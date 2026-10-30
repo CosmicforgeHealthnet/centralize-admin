@@ -7,6 +7,12 @@ name: CA Mail settings install (manual)
 #   MAIL_* / RESEND_* only, no *_ENABLED switches.
 # Switches are set separately and visibly with the `flags` input
 # (e.g. MAIL_ENABLED=true,MAIL_SENDING_ENABLED=true).
+# Staging: the committed, secret-free profile infrastructure/mail/env/staging.env
+# is installed under CA_STAGING_MAIL_ENV (which overrides it). With
+# provider_credentials=shared-from-production, RESEND_API_KEY and
+# RESEND_WEBHOOK_SECRET (only those two) are taken from CA_PRODUCTION_MAIL_ENV:
+# one Resend account and one webhook serve both deployments. See
+# .github/scripts/ca-mail-env-values.py.
 # mode=preview is read-only (key NAMES and added/changed/unchanged).
 # mode=apply needs confirm=APPLY_MAIL_SETTINGS (staging) or
 # APPLY_PRODUCTION_MAIL_SETTINGS (production). See
@@ -36,6 +42,11 @@ on:
         description: "apply only: APPLY_MAIL_SETTINGS (staging) or APPLY_PRODUCTION_MAIL_SETTINGS (production)"
         required: false
         default: ''
+      provider_credentials:
+        description: "staging only: shared-from-production reuses RESEND_API_KEY and RESEND_WEBHOOK_SECRET from CA_PRODUCTION_MAIL_ENV"
+        type: choice
+        options: [secret, shared-from-production]
+        default: secret
 
 permissions:
   contents: read
@@ -54,7 +65,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - run: bash -n .github/scripts/ca-mail-env-install.sh && sha256sum .github/scripts/ca-mail-env-install.sh
+      - run: bash -n .github/scripts/ca-mail-env-install.sh && python3 -m py_compile .github/scripts/ca-mail-env-values.py && sha256sum .github/scripts/ca-mail-env-install.sh
 
   install:
     name: Mail settings ${{ inputs.mode }} (${{ inputs.target }})
@@ -118,17 +129,21 @@ jobs:
           TARGET: ${{ inputs.target }}
           MODE: ${{ inputs.mode }}
           FLAGS: ${{ inputs.flags }}
+          CREDENTIALS: ${{ inputs.provider_credentials }}
+          PROFILE: infrastructure/mail/env/staging.env
           SSHPASS: ${{ secrets.PROD_PASSWORD }}
           STAGING_VALUES: ${{ secrets.CA_STAGING_MAIL_ENV }}
           PRODUCTION_VALUES: ${{ secrets.CA_PRODUCTION_MAIL_ENV }}
         run: |
           set -euo pipefail
           ssh="$RUNNER_TEMP/ssh"
-          values="$STAGING_VALUES"; [[ "$TARGET" == production ]] && values="$PRODUCTION_VALUES"
-          if [[ -z "$values" && -z "$FLAGS" ]]; then
-            echo "Secret CA_${TARGET^^}_MAIL_ENV is empty and no flags were given. Add the secret to the production environment."; exit 1
-          fi
           [[ "$FLAGS" =~ ^[A-Z0-9_=,a-z\ ]*$ ]] || { echo 'flags contain unexpected characters.'; exit 1; }
+          if [[ "$TARGET" == production && -z "$PRODUCTION_VALUES" && -z "$FLAGS" ]]; then
+            echo 'Secret CA_PRODUCTION_MAIL_ENV is empty and no flags were given. Add the secret to the production environment.'; exit 1
+          fi
+          # Values are assembled in memory and streamed into the SSH session;
+          # only key names and their source are printed.
+          values="$(python3 .github/scripts/ca-mail-env-values.py)" || exit 1
           run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           d="\$HOME/.ca-mail-env"
           printf '%s\n' "$values" | "$ssh" "umask 077; cat > $d/values-$run"

@@ -1,0 +1,12 @@
+{
+  "_comment": "Operator-enrolled Product Admin manifest signers (PIC_TRUSTED_SIGNERS_FILE). Public keys only. A registration names the approved kid; HQ never trusts a key carried inside a manifest. No signer is enrolled until its owner has generated and handed over the public key through an approved channel.",
+  "signers": {
+    "karryam-staging-manifest-2026-11": {
+      "product_id": "karryam",
+      "environment": "staging",
+      "public_key_file": "/run/secrets/karryam-staging-manifest-signer.pub.pem",
+      "not_after": "<ISO-8601 expiry agreed at enrollment>",
+      "revoked": false
+    }
+  }
+}

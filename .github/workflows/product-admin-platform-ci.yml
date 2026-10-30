@@ -1,0 +1,187 @@
+name: Product Admin Platform CI
+
+# Validates the Universal Product Admin Protocol packages, the independent
+# Karryam Admin service, the HQ Product Integration Core (registry,
+# onboarding, synchronization, synthetic third-product conformance) and both
+# container images. Build/test only: nothing is pushed or deployed.
+
+on:
+  pull_request:
+    paths:
+      - "packages/**"
+      - "services/karryam-admin/**"
+      - "services/product-integration-core/**"
+      - "services/central-admin-api/src/modules/product-gateway/**"
+      - "services/central-admin-api/tests/product-gateway*.test.js"
+      - "infrastructure/product-admin/**"
+      - "infrastructure/scripts/check-layout.mjs"
+      - ".github/workflows/product-admin-platform-ci.yml"
+  push:
+    branches: [staging]
+    paths:
+      - "packages/**"
+      - "services/karryam-admin/**"
+      - "services/product-integration-core/**"
+      - "services/central-admin-api/src/modules/product-gateway/**"
+      - "services/central-admin-api/tests/product-gateway*.test.js"
+      - "infrastructure/product-admin/**"
+      - "infrastructure/scripts/check-layout.mjs"
+      - ".github/workflows/product-admin-platform-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-admin-platform-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  packages:
+    name: Protocol v1 packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Layout guard
+        run: node infrastructure/scripts/check-layout.mjs
+      - name: Package tests (zero runtime dependencies)
+        run: |
+          set -euo pipefail
+          for pkg in admin-contracts event-contracts identity-and-permissions service-clients; do
+            echo "::group::$pkg"
+            npm --prefix "packages/$pkg" run check
+            npm --prefix "packages/$pkg" test
+            echo "::endgroup::"
+          done
+      - name: Published schemas and OpenAPI are in sync with source
+        run: |
+          set -euo pipefail
+          npm --prefix packages/admin-contracts run schemas:write
+          npm --prefix packages/event-contracts run schemas:write
+          git diff --exit-code -- packages/admin-contracts/schemas packages/admin-contracts/openapi packages/event-contracts/schemas
+
+  karryam-admin:
+    name: Karryam Admin (independent service)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: services/karryam-admin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run check
+      - name: Protocol, security-negative, bridge, transport and PostgreSQL tests
+        env:
+          KARRYAM_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: npm test
+
+  product-integration-core:
+    name: Product Integration Core (registry, onboarding, sync, conformance)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+    defaults:
+      run:
+        working-directory: services/product-integration-core
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install (Product Integration Core and Karryam Admin for the cross-service test)
+        run: |
+          npm ci
+          npm --prefix ../karryam-admin ci
+      - run: npm run check
+      - name: Migrations, runtime role restriction and restore on disposable PostgreSQL
+        run: node --test tests/migrations-postgres.test.js
+      - name: Synthetic third Product Admin universal onboarding conformance (20 steps)
+        run: node --test tests/conformance-synthetic-third-postgres.test.js
+      - name: Full suite (security negatives, sync edge cases, Karryam through HQ, static boundaries)
+        run: npm test
+
+  containers:
+    name: Build and smoke-test private service images (no push/deploy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build images from the repository root
+        run: |
+          docker build -f services/karryam-admin/Dockerfile -t cosmicforge-karryam-admin:ci .
+          docker build -f services/product-integration-core/Dockerfile -t cosmicforge-product-integration-core:ci .
+      - name: Disabled-by-default smoke test over private Unix sockets
+        run: |
+          set -euo pipefail
+          status() { sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$1" "http://local$2"; }
+          check() { # name image socket uid
+            local name="$1" image="$2" sock uid="$4" dir
+            dir="$(mktemp -d)"; chmod 0777 "$dir"; sock="$dir/$3"
+            docker run -d --rm --name "$name" --network none --read-only --cap-drop ALL --security-opt no-new-privileges -v "$dir:/run/cosmicforge" "$image" >/dev/null
+            for i in $(seq 1 30); do [ -S "$sock" ] && break; sleep 1; done
+            test -S "$sock"
+            test "$(docker exec "$name" id -u)" = "$uid"
+            test "$(status "$sock" /health/live)" = 200
+            test "$(status "$sock" /health/ready)" = 503
+            echo "$name live=200 ready=503 uid=$uid"
+            docker stop "$name" >/dev/null
+          }
+          check karryam-admin-smoke cosmicforge-karryam-admin:ci karryam-admin.sock 10001
+          check pic-smoke cosmicforge-product-integration-core:ci product-integration-core.sock 10002
+      - name: Protocol endpoints refuse service while disabled
+        run: |
+          set -euo pipefail
+          dir="$(mktemp -d)"; chmod 0777 "$dir"
+          docker run -d --rm --name ka --network none -v "$dir:/run/cosmicforge" cosmicforge-karryam-admin:ci >/dev/null
+          docker run -d --rm --name pic --network none -v "$dir:/run/cosmicforge" cosmicforge-product-integration-core:ci >/dev/null
+          for i in $(seq 1 30); do [ -S "$dir/karryam-admin.sock" ] && [ -S "$dir/product-integration-core.sock" ] && break; sleep 1; done
+          test "$(sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$dir/karryam-admin.sock" http://local/internal/product-admin/v1/manifest)" = 503
+          test "$(sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$dir/karryam-admin.sock" http://local/internal/karryam-admin/v1/capabilities)" = 404
+          test "$(sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$dir/product-integration-core.sock" http://local/internal/pic/v1/products)" = 503
+          docker stop ka pic >/dev/null
+      - name: Enabling without configuration fails closed
+        run: |
+          set -euo pipefail
+          ! docker run --rm --network none -e KARRYAM_ADMIN_ENABLED=true cosmicforge-karryam-admin:ci
+          ! docker run --rm --network none -e PIC_ENABLED=true cosmicforge-product-integration-core:ci

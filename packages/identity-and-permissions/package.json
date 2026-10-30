@@ -1,0 +1,13 @@
+{
+  "name": "@cosmicforge/identity-and-permissions",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Product-scoped staff grants, scope intersection, explicit deny/expiry/revocation and short-lived delegated identity",
+  "main": "src/index.js",
+  "exports": { ".": "./src/index.js" },
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "check": "node -e \"require('./src/index.js')\"",
+    "test": "node --test tests/*.test.js"
+  }
+}

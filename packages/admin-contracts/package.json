@@ -1,0 +1,27 @@
+{
+  "name": "@cosmicforge/admin-contracts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Universal Product Admin Protocol v1: schemas, manifest signing/verification, envelopes and contract compatibility",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./schemas/*": "./schemas/*",
+    "./openapi/*": "./openapi/*",
+    "./testing": "./src/testing.js"
+  },
+  "files": [
+    "src",
+    "schemas",
+    "openapi",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "check": "node -e \"require('./src/index.js')\"",
+    "test": "node --test tests/*.test.js",
+    "schemas:write": "node scripts/write-schemas.js"
+  }
+}

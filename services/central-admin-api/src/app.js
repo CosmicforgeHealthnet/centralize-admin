@@ -88,6 +88,7 @@ function loadRoutes() {
     marketingIntelligenceRoutes: require("./modules/marketing/intelligence").router,
     advertisingExecutionRoutes: require("./modules/marketing/advertising-execution").router,
     hrmRoutes: require("./modules/hrm").router,
+    productGateway: require("./modules/product-gateway"),
   };
 }
 
@@ -107,6 +108,8 @@ function createApp({
   const cloudinaryStatus = cloudinaryConfigurator({ env, logger: appLogger });
   const routes = loadRoutes();
   const mailHttp = mailHttpFactory({ env, authenticate });
+  // Generic HQ product gateway (disabled unless PRODUCT_INTEGRATION_ENABLED=true).
+  const productGateway = routes.productGateway.createProductGateway({ env });
   const app = express();
 
   app.locals.googleOAuth = googleOAuth;
@@ -256,6 +259,9 @@ app.use(
     routes.advertisingExecutionRoutes,
   );
   app.use("/api/hrm", routes.hrmRoutes);
+  app.use("/api/products", productGateway.productsRouter);
+  app.use("/api/admin/product-integrations", productGateway.adminRouter);
+  app.use("/api/admin/product-integration-grants", productGateway.adminRouter);
   app.post(MAIL_WEBHOOK_PATH, mailHttp.webhookHandler);
   if (mailHttp.brandWebhookHandler) app.post(`${MAIL_WEBHOOK_PATH}/brand/:slug`, mailHttp.brandWebhookHandler);
   if (mailHttp.integrationHandler) app.post(MAIL_INTEGRATION_PATH, mailHttp.integrationHandler);

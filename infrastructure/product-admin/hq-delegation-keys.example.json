@@ -1,0 +1,6 @@
+{
+  "_comment": "Keys the Central Admin API uses to sign cf-hq-delegation+jwt tokens and PIC uses to verify them (PIC_HQ_DELEGATION_KEYS_FILE). Shared ONLY by those two services; never a browser/session key. Every key has a mandatory expiry; rotate by adding a new kid, switching the API, then removing the old kid.",
+  "keys": {
+    "hq-pic-2026-11": { "key_b64url": "<operator-generated 32+ random bytes, base64url>", "not_after": "<ISO-8601 expiry>" }
+  }
+}

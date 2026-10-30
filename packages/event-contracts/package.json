@@ -1,0 +1,14 @@
+{
+  "name": "@cosmicforge/event-contracts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Product Admin to HQ standard event envelope v1, schema registry, sequencing and deduplication helpers",
+  "main": "src/index.js",
+  "exports": { ".": "./src/index.js", "./schemas/*": "./schemas/*" },
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "check": "node -e \"require('./src/index.js')\"",
+    "schemas:write": "node -e \"require('fs').writeFileSync('schemas/event-envelope.v1.json', JSON.stringify(require('./src').publishedEnvelopeSchema(), null, 2) + '\\n')\"",
+    "test": "node --test tests/*.test.js"
+  }
+}

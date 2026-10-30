@@ -20,6 +20,9 @@ on:
       - .github/scripts/tests/ca-release-ops-replica.sh
       - .github/workflows/production.yml
       - .github/workflows/ca-mail-env-install.yml
+      - .github/scripts/ca-mail-env-values.py
+      - .github/scripts/tests/ca-mail-env-values-test.sh
+      - infrastructure/mail/env/**
       - .github/scripts/ca-mail-backup.sh
       - .github/workflows/ca-mail-backup.yml
       - .github/workflows/staging.yml
@@ -42,6 +45,9 @@ on:
       - .github/scripts/ca-host-ops.sh
       - .github/scripts/tests/ca-release-ops-replica.sh
       - .github/scripts/ca-mail-backup.sh
+      - .github/scripts/ca-mail-env-values.py
+      - .github/scripts/tests/ca-mail-env-values-test.sh
+      - infrastructure/mail/env/**
       - services/central-admin-api/scripts/mail/keyring.js
       - services/central-admin-api/scripts/mail/verify-restored-content.js
       - services/central-admin-api/src/modules/mail/security/**
@@ -60,7 +66,9 @@ jobs:
         with:
           persist-credentials: false
       - name: ShellCheck
-        run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable -S warning /mnt/.github/scripts/ca-db-isolation-cutover.sh /mnt/.github/scripts/tests/ca-db-cutover-replica.sh /mnt/.github/scripts/ca-mail-staging-ops.sh /mnt/.github/scripts/tests/ca-mail-staging-ops-replica.sh /mnt/.github/scripts/ca-production-deploy.sh /mnt/.github/scripts/ca-mail-env-install.sh /mnt/.github/scripts/ca-host-ops.sh /mnt/.github/scripts/tests/ca-release-ops-replica.sh /mnt/.github/scripts/ca-mail-backup.sh
+        run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable -S warning /mnt/.github/scripts/ca-db-isolation-cutover.sh /mnt/.github/scripts/tests/ca-db-cutover-replica.sh /mnt/.github/scripts/ca-mail-staging-ops.sh /mnt/.github/scripts/tests/ca-mail-staging-ops-replica.sh /mnt/.github/scripts/ca-production-deploy.sh /mnt/.github/scripts/ca-mail-env-install.sh /mnt/.github/scripts/ca-host-ops.sh /mnt/.github/scripts/tests/ca-release-ops-replica.sh /mnt/.github/scripts/ca-mail-backup.sh /mnt/.github/scripts/tests/ca-mail-env-values-test.sh
+      - name: Mail settings assembly (staging profile, shared provider credentials)
+        run: bash .github/scripts/tests/ca-mail-env-values-test.sh
       - name: Full run, failures, rollbacks and rerun
         run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-all
       - name: Production guards

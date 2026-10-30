@@ -144,8 +144,8 @@ function buildAuthenticate({ client = prisma, sessions = null, runtime = null, e
 
     req.adminUser = adminUser;
     req.authSession = session
-      ? { id: session.id, mfaVerifiedAt: session.mfaVerifiedAt, mfaEnrolled, authMethod: session.authMethod, source: credential.source, mode: config.mode }
-      : { id: null, mfaVerifiedAt: null, mfaEnrolled, authMethod: "LEGACY_TOKEN", source: credential.source, mode: config.mode };
+      ? { id: session.id, mfaVerifiedAt: session.mfaVerifiedAt, mfaEnrolled, authMethod: session.authMethod, source: credential.source, mode: config.mode, tokenIssuedAt: decoded.iat }
+      : { id: null, mfaVerifiedAt: null, mfaEnrolled, authMethod: "LEGACY_TOKEN", source: credential.source, mode: config.mode, tokenIssuedAt: decoded.iat };
     next();
   });
 }

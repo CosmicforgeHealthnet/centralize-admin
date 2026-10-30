@@ -9,12 +9,22 @@ This is a **multi-service repository**, not a single combined runtime. The exist
 
 Each application has its own `package.json`, lockfile and deployment lifecycle. There is intentionally no root `node_modules` or root `npm ci` requirement. Install and run from each application directory.
 
+## Product Admin platform (disabled by default)
+
+Universal Product Admin Protocol v1 and the HQ integration platform — see [docs/product-admin](docs/product-admin/README.md):
+
+- `services/product-integration-core/` — HQ product registry, onboarding, grants, subscriptions, generic synchronization and monitoring (own process, `hq_integration` schema).
+- `services/karryam-admin/` — independent Karryam Admin implementing Protocol v1 (own `karryam_admin` schema; bridge client disabled until trust enrollment).
+- `services/central-admin-api/src/modules/product-gateway/` — staff routes `/api/products/*` and `/api/admin/product-integrations/*` (off unless `PRODUCT_INTEGRATION_ENABLED=true`).
+- `packages/admin-contracts`, `packages/event-contracts`, `packages/identity-and-permissions`, `packages/service-clients` — dependency-free shared libraries, consumed by relative path.
+- `infrastructure/product-admin/` — operator configuration templates (not deployed by any workflow).
+
 ## Reserved boundaries (not implemented services)
 
-- `services/healthnet-admin/`, `services/karryam-admin/`, `services/future-product-admins/` are architectural placeholders; their APIs, independent credentials, DBs and deployments are **not** implemented.
+- `services/healthnet-admin/` is an independent read-only service foundation that does not yet implement Protocol v1; `services/future-product-admins/` remains a placeholder. Future products onboard through the same registry once they implement Protocol v1.
 - `modules/` maps ownership of current functions, not new executable modules. Existing code still lives under `services/central-admin-api/src/modules/` and `apps/central-admin-web/src/`.
-- `packages/` reserves shared identity, UI, API-contract, client and event-contract packages. No live runtime dependencies on these packages are introduced.
-- `infrastructure/` holds layout verification and planned deployment conventions.
+- `packages/shared-ui` remains reserved.
+- `infrastructure/` holds layout verification, Mail operations and Product Admin templates.
 
 ## Local development
 

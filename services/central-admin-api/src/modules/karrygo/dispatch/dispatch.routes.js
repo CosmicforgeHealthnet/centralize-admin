@@ -19,6 +19,7 @@ const {
   approveBike,
   rejectBike,
 } = require("./dispatch.controller");
+const { legacyDirectDbTelemetry } = require("./legacy-telemetry");
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
@@ -28,6 +29,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
+router.use(legacyDirectDbTelemetry("karrygo-dispatch"));
 router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);

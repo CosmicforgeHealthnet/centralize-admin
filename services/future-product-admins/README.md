@@ -1,3 +1,3 @@
 # future-product-admins
 
-**Reserved only — not an implemented microservice.** The currently functional admin API is at `services/central-admin-api/`. No endpoints, database migrations, deployment manifests, or permissions have been created here. Extract functionality into this service only after its API contracts, security boundary, CI and rollout plan are validated.
+**Reserved only — not an implemented microservice.** New CosmicForge products do not need Headquarters changes: each product ships its own Product Admin service implementing the [Universal Product Admin Protocol v1](../../docs/product-admin/protocol-v1.md) (use `packages/service-clients` `createProductAdminHandler`), and is then onboarded through the HQ registry ([registry and onboarding](../../docs/product-admin/registry-and-onboarding.md)). The synthetic third Product Admin used in `services/product-integration-core/tests` is the reference for a minimal conforming implementation.

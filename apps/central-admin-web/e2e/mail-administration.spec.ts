@@ -88,6 +88,66 @@ test.describe("IT > Mail Administration", () => {
     expect(api.unmatched.filter((call) => call.includes("/api/mail/"))).toEqual([]);
   });
 
+  test("Karryam onboarding: shared mailbox access with MFA approval, then send-as", async ({ page, api }) => {
+    await signIn(page, MAIL_ADMIN);
+    defaultMocks(api, MAIL_ADMIN, entitlements({ mailboxes: [], canManageDomains: true, canViewAdministration: true }));
+    const KARRYAM = { id: "org-ky", slug: "karryam", name: "Karryam", kind: "BRAND" };
+    const INFO = { id: "addr-info", address: "info@karryam.com", kind: "SHARED", status: "ACTIVE" };
+    const BOX = { id: "mb-info", organizationId: KARRYAM.id, type: "SHARED", purpose: "GENERAL", name: "Karryam", status: "ACTIVE", owner: null, addresses: [INFO], memberCount: 0, createdAt: NOW };
+    const SENDER = { id: "u-sender", name: "Sade Sender", email: "sade@karryam.example", department: "Operations" };
+    const members: Array<Record<string, unknown>> = [];
+    const grants: Array<Record<string, unknown>> = [];
+    api
+      .on("GET", `${M}/admin/organizations`, ok([KARRYAM]))
+      .on("GET", `${M}/admin/domains`, ok([]))
+      .on("GET", `${M}/admin/mailboxes`, () => ok([{ ...BOX, memberCount: members.length }]))
+      .on("GET", `${M}/directory/staff`, ok([SENDER]))
+      .on("GET", `${M}/mailboxes/:id/members`, () => ok(members))
+      .on("POST", `${M}/security/step-up`, ok({ stepUpId: "su-member", expiresAt: "2026-10-24T09:05:00Z" }))
+      .on("POST", `${M}/mailboxes/:id/members`, (req) => {
+        const body = req.postDataJSON() as Record<string, unknown>;
+        members.push({ id: "mem-1", adminUserId: body.adminUserId, name: SENDER.name, email: SENDER.email, role: body.role, canSend: body.canSend });
+        return { status: 201, body: { success: true, data: members[0] } };
+      })
+      .on("GET", `${M}/admin/sender-grants`, () => ok(grants))
+      .on("POST", `${M}/admin/sender-grants`, (req) => {
+        const body = req.postDataJSON() as Record<string, unknown>;
+        grants.push({ id: "g-1", mailbox: { id: body.mailboxId, name: BOX.name }, address: INFO, member: { id: body.adminUserId, name: SENDER.name, email: SENDER.email }, grantedBy: MAIL_ADMIN.id, expiresAt: null, createdAt: NOW });
+        return { status: 201, body: { success: true, data: grants[0] } };
+      });
+
+    await openMailAdministration(page, api);
+
+    // 1. Mailbox access: a different administrator grants membership; MFA first.
+    await page.getByRole("tab", { name: "Mailbox access" }).click();
+    await page.getByRole("combobox", { name: "Shared mailbox", exact: true }).selectOption({ label: "Karryam" });
+    await page.getByRole("combobox", { name: "Search staff by name or email" }).fill("Sade");
+    await page.getByRole("option", { name: /Sade Sender/ }).click();
+    await page.getByRole("button", { name: "Grant access (requires MFA)" }).click();
+    expect(api.callsTo("POST", `${M}/mailboxes/mb-info/members`), "nothing granted before MFA").toHaveLength(0);
+    const dialog = page.getByRole("dialog", { name: "Approve shared mailbox access" });
+    await dialog.getByLabel("Authentication code").fill("123456");
+    await dialog.getByRole("button", { name: "Verify" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Mailbox access granted" })).toBeVisible();
+    expect(api.callsTo("POST", `${M}/security/step-up`)[0].body).toEqual({ code: "123456", purpose: "MAIL_MEMBERSHIP_GRANT" });
+    expect(api.callsTo("POST", `${M}/mailboxes/mb-info/members`)[0].body).toEqual({ adminUserId: SENDER.id, role: "MEMBER", canSend: true, stepUpId: "su-member" });
+    await expect(page.getByRole("cell", { name: "Sade Sender" })).toBeVisible();
+
+    // 2. Send-as: the member may now send as info@karryam.com.
+    await page.getByRole("tab", { name: "Send-as grants" }).click();
+    await page.getByRole("combobox", { name: "Shared mailbox", exact: true }).selectOption({ label: "Karryam" });
+    await page.getByRole("combobox", { name: "Sender address", exact: true }).selectOption({ label: "info@karryam.com" });
+    await page.getByRole("combobox", { name: "Search staff by name or email" }).fill("Sade");
+    await page.getByRole("option", { name: /Sade Sender/ }).click();
+    await page.getByRole("button", { name: "Grant send-as permission" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Send-as permission granted." })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "info@karryam.com" })).toBeVisible();
+    expect(api.callsTo("POST", `${M}/admin/sender-grants`)[0].body).toEqual({ mailboxId: "mb-info", addressId: "addr-info", adminUserId: SENDER.id });
+
+    // No private mailbox content is requested by the administration flow.
+    expect(api.callsTo("GET", /\/api\/mail\/v1\/(threads|messages)\//)).toHaveLength(0);
+  });
+
   test("read-only administrators see data but no change controls", async ({ page, api }) => {
     await signIn(page, MAIL_ADMIN);
     defaultMocks(api, MAIL_ADMIN, entitlements({ mailboxes: [], canManageDomains: false, canViewAdministration: true }));

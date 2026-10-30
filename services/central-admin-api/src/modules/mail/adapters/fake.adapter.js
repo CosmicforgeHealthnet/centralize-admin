@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const { MailProviderError, broadcastDisabled } = require("./mail-provider.contract");
 
 function createFakeAdapter() {
-  const state = { sent: [], byIdempotency: new Map(), inbound: new Map(), attachments: new Map(), failures: [], domains: new Map() };
+  const state = { sent: [], byIdempotency: new Map(), inbound: new Map(), attachments: new Map(), failures: [], domains: new Map(), deliveryStatus: new Map() };
 
   function nextFailure(operation) {
     const index = state.failures.findIndex((entry) => entry.operation === operation);
@@ -121,8 +121,15 @@ function createFakeAdapter() {
       const domain = String(name || "").toLowerCase();
       return [...state.domains.entries()].map(([providerDomainId, entry]) => ({ providerDomainId, ...entry })).find((entry) => entry.name === domain) || null;
     },
-    async retrieveDeliveryEvents() {
-      return [];
+    // Latest provider status of a sent email (tests set it with setDeliveryStatus).
+    setDeliveryStatus(providerMessageId, type) {
+      state.deliveryStatus.set(providerMessageId, type);
+    },
+    async retrieveDeliveryEvents(providerMessageId) {
+      const failure = nextFailure("retrieveDeliveryEvents");
+      if (failure) throw new MailProviderError(failure.kind, failure.code, "fake failure");
+      const type = state.deliveryStatus.get(providerMessageId);
+      return type ? [{ type, occurredAt: new Date(), recipient: null }] : [];
     },
     async healthProbe() {
       return { ok: true, latencyMs: 0, detail: "fake" };

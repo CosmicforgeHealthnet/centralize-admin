@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cosmicforge.internal/product-admin/dataset.v1.json",
+  "title": "CosmicForge Product Admin Protocol dataset.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+    },
+    "schema_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+    },
+    "schema_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "privacy_class": {
+      "type": "string",
+      "enum": [
+        "PUBLIC",
+        "INTERNAL",
+        "CONFIDENTIAL",
+        "RESTRICTED_PII"
+      ]
+    },
+    "scope_dimensions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "market",
+          "organization",
+          "zone",
+          "tenant"
+        ]
+      },
+      "maxItems": 4,
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "authorized_departments": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]{1,47}$"
+      },
+      "maxItems": 32,
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "semantic_grain": {
+      "type": "string",
+      "enum": [
+        "EVENT",
+        "HOUR",
+        "DAY",
+        "WEEK",
+        "MONTH",
+        "SNAPSHOT"
+      ]
+    },
+    "units": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]{0,31}$"
+      },
+      "maxItems": 16,
+      "uniqueItems": true
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-Z]{3}$"
+    },
+    "freshness_target_seconds": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 2678400
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_system": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "source_owner": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "derivation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "source_system",
+        "source_owner",
+        "derivation"
+      ]
+    },
+    "allowed_fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "integer",
+              "number",
+              "boolean",
+              "date-time"
+            ]
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "INTERNAL",
+              "CONFIDENTIAL",
+              "RESTRICTED_PII"
+            ]
+          },
+          "meaning": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-z][a-z0-9_]{0,31}$"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "classification",
+          "meaning",
+          "unit"
+        ]
+      },
+      "maxItems": 64,
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "COUNT",
+              "AVG",
+              "RATIO",
+              "MIN",
+              "MAX",
+              "GAUGE"
+            ]
+          },
+          "grain": {
+            "type": "string",
+            "enum": [
+              "EVENT",
+              "HOUR",
+              "DAY",
+              "WEEK",
+              "MONTH",
+              "SNAPSHOT"
+            ]
+          },
+          "unit": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,31}$"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{3}$"
+          }
+        },
+        "required": [
+          "metric_id",
+          "version",
+          "definition",
+          "aggregation",
+          "grain",
+          "unit",
+          "currency"
+        ]
+      },
+      "maxItems": 64,
+      "uniqueItems": true
+    },
+    "retention_days": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3650
+    },
+    "readiness": {
+      "type": "string",
+      "enum": [
+        "CERTIFIED_BY_PRODUCT",
+        "PROPOSED",
+        "NOT_CERTIFIED",
+        "BLOCKED"
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+          },
+          "detail": {
+            "type": "string",
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "code",
+          "detail"
+        ]
+      },
+      "maxItems": 16,
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "dataset_id",
+    "version",
+    "schema_id",
+    "schema_digest",
+    "title",
+    "privacy_class",
+    "scope_dimensions",
+    "authorized_departments",
+    "semantic_grain",
+    "units",
+    "currency",
+    "freshness_target_seconds",
+    "lineage",
+    "allowed_fields",
+    "metrics",
+    "retention_days",
+    "readiness",
+    "blockers"
+  ]
+}

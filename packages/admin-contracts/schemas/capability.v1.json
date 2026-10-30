@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cosmicforge.internal/product-admin/capability.v1.json",
+  "title": "CosmicForge Product Admin Protocol capability.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "METADATA",
+        "READ",
+        "COMMAND"
+      ]
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "AVAILABLE",
+        "READ_ONLY",
+        "DISABLED",
+        "BLOCKED_POLICY",
+        "BLOCKED_DEPENDENCY",
+        "UNAVAILABLE"
+      ]
+    },
+    "risk": {
+      "type": "string",
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3",
+        "R4"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 240
+    },
+    "datasets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+      },
+      "maxItems": 32,
+      "uniqueItems": true
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+          },
+          "detail": {
+            "type": "string",
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "code",
+          "detail"
+        ]
+      },
+      "maxItems": 16,
+      "uniqueItems": true
+    },
+    "requires_recent_mfa": {
+      "type": "boolean"
+    },
+    "requires_independent_approval": {
+      "type": "boolean"
+    },
+    "request_schema": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "kind",
+    "state",
+    "risk",
+    "description",
+    "datasets",
+    "blockers",
+    "requires_recent_mfa",
+    "requires_independent_approval",
+    "request_schema"
+  ]
+}

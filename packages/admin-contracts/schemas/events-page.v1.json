@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cosmicforge.internal/product-admin/events-page.v1.json",
+  "title": "CosmicForge Product Admin Protocol events-page.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+    },
+    "partition_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "maxItems": 100
+    },
+    "head_sequence": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "dataset_id",
+    "partition_key",
+    "events",
+    "head_sequence"
+  ]
+}
