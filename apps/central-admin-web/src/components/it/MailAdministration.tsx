@@ -19,6 +19,7 @@ import StepUpDialog from "@/components/marketing/email-marketing/StepUpDialog";
 import * as adminApi from "@/lib/mail-admin.service";
 import MailForwardingAdmin from "@/components/it/MailForwardingAdmin";
 import MailQuarantine from "@/components/it/MailQuarantine";
+import PersonalMailboxForm from "@/components/it/PersonalMailboxForm";
 import type { AdminDomain, ProvisionRequest } from "@/types/mail-admin.types";
 import type { MembershipRole, StaffDirectoryEntry } from "@/types/mail.types";
 
@@ -344,8 +345,9 @@ function Mailboxes({ canEdit }: { canEdit: boolean }) {
           <ErrorLine error={status.error} />
         </PermissionBoundary>
       </Section>
+      {canEdit && <PersonalMailboxForm />}
       {canEdit && (
-        <Section id="mail-admin-new-mailbox" title="Create shared mailbox" description="Personal mailboxes are created by approving an HR provisioning request.">
+        <Section id="mail-admin-new-mailbox" title="Create shared mailbox" description="Employees can also request a personal mailbox through HR provisioning; Mail administrators may create personal mailboxes directly above.">
           <form className="grid gap-2 md:grid-cols-2" onSubmit={(e: FormEvent) => { e.preventDefault(); create.mutate(form); }}>
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-semibold" htmlFor="mb-org">Brand</label>
