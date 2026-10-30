@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ITSubNav, { type ITSection } from "@/components/it/ITSubNav";
 import ITStatCards from "@/components/it/ITStatCards";
 import ConsultationTable from "@/components/it/ConsultationTable";
@@ -25,6 +25,14 @@ import MailAdministration from "@/components/it/MailAdministration";
 
 export default function ITPage() {
   const [activeSection, setActiveSection] = useState<ITSection>("overview");
+
+  // Mail onboarding links must open the real Administration tab, rather than
+  // leaving administrators at the default IT overview.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("section") === "mail-admin") {
+      setActiveSection("mail-admin");
+    }
+  }, []);
 
   return (
     <div className="flex gap-4">
