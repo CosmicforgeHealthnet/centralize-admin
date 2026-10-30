@@ -316,3 +316,18 @@ The external dependencies in section I are still outstanding: signer keys and
 trust enrollment, PIC/Karryam Admin keys, staging database roles and
 migrations, deployment definitions, Bridge enrollment, and Karryam dataset
 certification.
+
+### CI evidence (Linux, Node 22, PostgreSQL 16) — PR #55
+
+[Product Admin Platform CI run 41130975050](https://github.com/CosmicforgeHealthnet/centralize-admin/actions/runs/41130975050): all jobs passed, 0 tests skipped.
+
+| Job | Result |
+|---|---|
+| Protocol v1 packages | admin-contracts 19/19 · event-contracts 7/7 · identity-and-permissions 9/9 · service-clients 8/8 · schemas/OpenAPI in sync |
+| Karryam Admin | 30/30. The pinned KarryGo contract test ran against a real checkout at `a4adee68` (required); the drift step reported "KarryGo staging matches the pinned bridge contract" |
+| Product Integration Core | migrations 5/5 · synthetic third-product conformance 17/17 · full suite 49/49 |
+| Containers | both images build, run non-root and read-only, live 200 / ready 503 / protocol 503 while disabled, and refuse to start when enabled without config |
+
+Other PR checks passed: Monorepo Layout and Container CI, and Social Operations CI
+("Verify Social Operations backend", the full API suite). "Classify staging
+API changes" was skipped on the PR, so nothing was deployed.
