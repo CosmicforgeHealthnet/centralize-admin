@@ -678,6 +678,34 @@ NODE
   fi
   # 6. Live readiness endpoint as served.
   info "readiness endpoint: $(docker exec "$APP" node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/api/mail/v1/health/ready').then(r=>r.text()).then(t=>process.stdout.write(t.slice(0,600)))" 2>/dev/null || echo unavailable)"
+  # 7. Mail setup and activity, COUNTS ONLY (no address, subject or body):
+  #    what the Admin UI set up and what happened to outbound mail.
+  out="$(docker exec -i -w /app "$APP" node - 2>/dev/null <<'NODE' | grep -E '^\{' | tail -n 1 || true
+const { prisma: c } = require('./src/shared/config/database');
+const day = new Date(Date.now() - 7 * 86400000);
+const group = async (model, by, where) => Object.fromEntries((await c[model].groupBy({ by, where, _count: { _all: true } })).map((r) => [by.map((k) => r[k]).join('/'), r._count._all]));
+(async () => {
+  const domains = await c.mailDomain.findMany({ select: { domain: true, status: true, sendingStatus: true, receivingStatus: true } });
+  const res = {
+    organizations: await c.mailOrganization.count(),
+    domains: domains.map((d) => `${d.domain}:${d.status}/send=${d.sendingStatus}/receive=${d.receivingStatus}`),
+    mailboxes: await group('mailMailbox', ['type', 'status']),
+    addresses: await c.mailAddress.count({ where: { status: 'ACTIVE' } }),
+    activeMemberships: await group('mailMembership', ['role'], { revokedAt: null }),
+    activeSenderGrants: await c.mailSenderGrant.count({ where: { revokedAt: null } }),
+    rolloutRules: await group('mailRolloutRule', ['capability', 'scopeType', 'effect'], { environment: process.env.MAIL_DEPLOYMENT_ENV, revokedAt: null }),
+    cohortMembers: await c.mailRolloutCohortMember.count({ where: { removedAt: null } }),
+    emergencyStopsActive: await c.mailEmergencyStop.count({ where: { environment: process.env.MAIL_DEPLOYMENT_ENV, releasedAt: null } }),
+    outbound7d: await group('mailMessage', ['status'], { direction: 'OUTBOUND', createdAt: { gte: day } }),
+    deliveryEvents7d: await group('mailDeliveryEvent', ['eventType'], { createdAt: { gte: day } }),
+    deliveryEventSources7d: await group('mailWebhookEvent', ['provider', 'status'], { receivedAt: { gte: day } }),
+    jobs7d: await group('mailOutboxJob', ['kind', 'status'], { createdAt: { gte: day } }),
+  };
+  process.stdout.write(JSON.stringify(res));
+})().catch((e) => process.stdout.write(JSON.stringify({ error: e.code || e.name }))).finally(() => c.$disconnect());
+NODE
+)"
+  info "Mail setup and activity (counts only; outbound/events/jobs over 7 days): ${out:-unavailable}"
   return "$bad"
 }
 
