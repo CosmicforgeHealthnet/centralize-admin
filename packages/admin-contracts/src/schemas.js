@@ -175,6 +175,49 @@ const operationCommand = object({
   scope,
 });
 
+// Standard result shapes for the synchronization endpoints. Events inside a
+// page are validated separately against the event-contracts envelope.
+const eventsPage = object({
+  dataset_id: id("catalogId"),
+  partition_key: id("partitionKey"),
+  events: { type: "array", items: { type: "object" }, maxItems: 100 },
+  head_sequence: { type: "integer", minimum: 0 },
+});
+
+const syncStatus = {
+  type: "object",
+  additionalProperties: false,
+  required: ["event_source", "partitions", "last_source_observation"],
+  properties: {
+    event_source: enumOf(["CERTIFIED", "NOT_CERTIFIED", "UNAVAILABLE"]),
+    partitions: {
+      type: "array", maxItems: 1000,
+      items: object({ dataset_id: id("catalogId"), partition_key: id("partitionKey"), head_sequence: { type: "integer", minimum: 0 } }),
+    },
+    datasets: {
+      type: "array", maxItems: 128,
+      items: object({ dataset_id: id("catalogId"), readiness: enumOf(P.DATASET_READINESS), blockers: list(blocker, 16) }),
+    },
+    last_source_observation: nullable(dateTime),
+  },
+};
+
+const snapshot = object({
+  snapshot_id: id("pathParam"),
+  dataset_id: id("catalogId"),
+  dataset_version: id("semver"),
+  partitions: { type: "array", maxItems: 1000, items: object({ partition_key: id("partitionKey"), through_sequence: { type: "integer", minimum: 0 } }) },
+  records: {
+    type: "array", maxItems: 1000,
+    items: object({
+      entity: object({ type: id("catalogId"), id: id("pathParam"), version: { type: "integer", minimum: 0 } }),
+      scope: { type: "object", additionalProperties: false, required: [], properties: { market: id("scopeValue"), organization: id("scopeValue"), zone: id("scopeValue"), tenant: id("scopeValue") } },
+      payload: { type: "object" },
+    }),
+  },
+  complete: { type: "boolean" },
+});
+
 const SCHEMAS = Object.freeze({
   "scope.v1": scope,
   "capability.v1": capability,
@@ -186,6 +229,9 @@ const SCHEMAS = Object.freeze({
   "metric-observation.v1": metricObservationPayload,
   "events-ack.v1": ackRequest,
   "operation-command.v1": operationCommand,
+  "events-page.v1": eventsPage,
+  "sync-status.v1": syncStatus,
+  "snapshot.v1": snapshot,
 });
 
 function publishedSchema(name) {
@@ -199,4 +245,4 @@ function publishedSchema(name) {
   };
 }
 
-module.exports = { SCHEMAS, publishedSchema, scope, capability, dataset, eventFamily, manifestBody, signedManifest, responseEnvelope, metricObservationPayload, ackRequest, operationCommand };
+module.exports = { SCHEMAS, publishedSchema, eventsPage, syncStatus, snapshot, scope, capability, dataset, eventFamily, manifestBody, signedManifest, responseEnvelope, metricObservationPayload, ackRequest, operationCommand };

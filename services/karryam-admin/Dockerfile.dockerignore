@@ -1,0 +1,23 @@
+# Per-Dockerfile ignore list (BuildKit) for services/karryam-admin/Dockerfile.
+# Context is the repository root; only the shared protocol packages and this
+# service's runtime files are sent.
+*
+!packages/admin-contracts/package.json
+!packages/admin-contracts/src/**
+!packages/admin-contracts/schemas/**
+!packages/service-clients/package.json
+!packages/service-clients/src/**
+!packages/identity-and-permissions/package.json
+!packages/identity-and-permissions/src/**
+!packages/event-contracts/package.json
+!packages/event-contracts/src/**
+!services/karryam-admin/package.json
+!services/karryam-admin/package-lock.json
+!services/karryam-admin/src/**
+!services/karryam-admin/scripts/**
+!services/karryam-admin/migrations/**
+**/node_modules
+**/.env
+**/.env.*
+**/*.pem
+**/*.key

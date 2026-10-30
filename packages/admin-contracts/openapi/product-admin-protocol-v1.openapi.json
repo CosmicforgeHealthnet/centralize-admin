@@ -3138,6 +3138,256 @@
           "case_reference",
           "scope"
         ]
+      },
+      "events_page_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dataset_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "partition_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "maxItems": 100
+          },
+          "head_sequence": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "dataset_id",
+          "partition_key",
+          "events",
+          "head_sequence"
+        ]
+      },
+      "sync_status_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_source",
+          "partitions",
+          "last_source_observation"
+        ],
+        "properties": {
+          "event_source": {
+            "type": "string",
+            "enum": [
+              "CERTIFIED",
+              "NOT_CERTIFIED",
+              "UNAVAILABLE"
+            ]
+          },
+          "partitions": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "dataset_id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "partition_key": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+                },
+                "head_sequence": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "dataset_id",
+                "partition_key",
+                "head_sequence"
+              ]
+            }
+          },
+          "datasets": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "dataset_id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "readiness": {
+                  "type": "string",
+                  "enum": [
+                    "CERTIFIED_BY_PRODUCT",
+                    "PROPOSED",
+                    "NOT_CERTIFIED",
+                    "BLOCKED"
+                  ]
+                },
+                "blockers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+                      },
+                      "detail": {
+                        "type": "string",
+                        "maxLength": 240
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "detail"
+                    ]
+                  },
+                  "maxItems": 16,
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "dataset_id",
+                "readiness",
+                "blockers"
+              ]
+            }
+          },
+          "last_source_observation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "snapshot_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "snapshot_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "dataset_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "dataset_version": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+          },
+          "partitions": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "partition_key": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+                },
+                "through_sequence": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "partition_key",
+                "through_sequence"
+              ]
+            }
+          },
+          "records": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "entity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "id",
+                    "version"
+                  ]
+                },
+                "scope": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [],
+                  "properties": {
+                    "market": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+                    },
+                    "organization": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+                    },
+                    "zone": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+                    },
+                    "tenant": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+                    }
+                  }
+                },
+                "payload": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "entity",
+                "scope",
+                "payload"
+              ]
+            }
+          },
+          "complete": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "dataset_id",
+          "dataset_version",
+          "partitions",
+          "records",
+          "complete"
+        ]
       }
     },
     "securitySchemes": {

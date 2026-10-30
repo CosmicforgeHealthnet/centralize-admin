@@ -1,0 +1,19 @@
+{
+  "name": "@cosmicforge/karryam-admin",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Independent Karryam Admin service: Universal Product Admin Protocol v1 implementation with a private, read-only Karryam Backoffice Bridge foundation",
+  "main": "src/server/index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node src/server/index.js",
+    "check": "node scripts/check-syntax.js",
+    "test": "node --test tests/*.test.js",
+    "migrate": "node scripts/migrate.js"
+  },
+  "dependencies": {
+    "pg": "8.20.0"
+  }
+}
