@@ -43,12 +43,17 @@ export default function MailHomePage() {
             <Mail className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
             <h1 className="text-sm font-semibold">No mailbox assigned</h1>
             <p className="max-w-md text-xs text-muted-foreground">
-              You do not have a CosmicForge mailbox yet. Ask your administrator, or request one below.
+              You do not have a CosmicForge mailbox yet. An authorized Mail administrator must register and verify the sending domain, create the mailbox and grant you access before you can send.
             </p>
             <div className="mt-2 flex gap-2">
               <Link href="/dashboard/mail/settings" className="rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground">
                 Mail settings &amp; requests
               </Link>
+              {(q.data?.canManageDomains || q.data?.canViewAdministration) && (
+                <Link href="/dashboard/it?section=mail-admin" className="rounded-md border border-border px-3 py-1.5 text-[12px] font-semibold">
+                  Open Mail administration
+                </Link>
+              )}
             </div>
           </div>
         ) : (

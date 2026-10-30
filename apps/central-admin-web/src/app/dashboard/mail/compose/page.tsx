@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import ComposeEditor from "@/components/mail/ComposeEditor";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
@@ -24,7 +25,12 @@ function ComposeInner() {
       <PermissionBoundary isLoading={entitlements.isLoading} error={entitlements.error} retry={() => entitlements.refetch()}>
         {!mailboxId ? (
           <div role="alert" className="rounded-lg border border-border bg-card p-8 text-center text-xs text-muted-foreground">
-            You do not have a mailbox you can send from.
+            <p>You do not have a mailbox you can send from. A Mail administrator must grant you an active sender mailbox.</p>
+            {(entitlements.data?.canManageDomains || entitlements.data?.canViewAdministration) && (
+              <Link href="/dashboard/it?section=mail-admin" className="mt-3 inline-block rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">
+                Open Mail administration
+              </Link>
+            )}
           </div>
         ) : (
           <ComposeEditor
