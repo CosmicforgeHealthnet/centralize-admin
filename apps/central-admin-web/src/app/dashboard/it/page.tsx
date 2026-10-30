@@ -29,9 +29,11 @@ export default function ITPage() {
   // Mail onboarding links must open the real Administration tab, rather than
   // leaving administrators at the default IT overview.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("section") === "mail-admin") {
-      setActiveSection("mail-admin");
-    }
+    if (new URLSearchParams(window.location.search).get("section") !== "mail-admin") return;
+    // Defer the URL-driven navigation until after hydration rather than
+    // synchronously updating React state inside an effect.
+    const frame = window.requestAnimationFrame(() => setActiveSection("mail-admin"));
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   return (
