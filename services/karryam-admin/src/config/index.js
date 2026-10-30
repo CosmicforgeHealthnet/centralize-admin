@@ -132,6 +132,19 @@ function loadConfig(env = process.env, { now = Date.now() } = {}) {
   }
   const serviceKeys = K.loadServiceKeys(required(env, "KARRYAM_ADMIN_HQ_SERVICE_KEYS_FILE"), { now, name: "KARRYAM_ADMIN_HQ_SERVICE_KEYS_FILE" });
   const delegationKeys = K.loadDelegationKeys(required(env, "KARRYAM_ADMIN_DELEGATION_KEYS_FILE"), { now, name: "KARRYAM_ADMIN_DELEGATION_KEYS_FILE" });
+  const bridge = loadBridgeConfig(env);
+  // Each trust boundary needs its own key: service authentication, staff
+  // delegation and the bridge HMAC key must never share key material.
+  const boundaries = [
+    Object.values(serviceKeys).map((k) => k.key),
+    Object.values(delegationKeys).map((k) => k.key),
+    bridge.enabled && bridge.serviceKey ? [bridge.serviceKey] : [],
+  ];
+  for (let i = 0; i < boundaries.length; i += 1) {
+    for (let j = i + 1; j < boundaries.length; j += 1) {
+      if (boundaries[i].some((a) => boundaries[j].some((b) => Buffer.from(a).equals(Buffer.from(b))))) throw new ConfigError("KEY_REUSE_ACROSS_BOUNDARIES");
+    }
+  }
 
   let manifestSigner = null;
   const signerFile = env.KARRYAM_ADMIN_MANIFEST_SIGNING_KEY_FILE;
@@ -158,7 +171,7 @@ function loadConfig(env = process.env, { now = Date.now() } = {}) {
     manifestSigner,
     manifestRevision: intInRange(env.KARRYAM_ADMIN_MANIFEST_REVISION, "KARRYAM_ADMIN_MANIFEST_REVISION", 1, 2147483647, 1),
     manifestTtlSeconds: intInRange(env.KARRYAM_ADMIN_MANIFEST_TTL_SECONDS, "KARRYAM_ADMIN_MANIFEST_TTL_SECONDS", 300, 7 * 24 * 3600, 3600),
-    bridge: loadBridgeConfig(env),
+    bridge,
   });
 }
 

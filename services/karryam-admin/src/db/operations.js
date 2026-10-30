@@ -20,6 +20,7 @@ function rowToOperation(row) {
     request_digest: row.request_digest,
     service_id: row.service_id,
     idempotency_key: row.idempotency_key,
+    staff_ref: row.staff_ref,
   };
 }
 
@@ -78,7 +79,7 @@ function memoryOperations(audit) {
         }
       }
       if (byId.has(op.id)) return { kind: "COMMAND_CONFLICT", operation: { ...byId.get(op.id) } };
-      const operation = { operation_id: op.id, capability_id: op.capabilityId, status: "REJECTED", reason_code: op.reasonCode, created_at: new Date().toISOString(), request_digest: op.requestDigest, service_id: op.serviceId, idempotency_key: op.idempotencyKey };
+      const operation = { operation_id: op.id, capability_id: op.capabilityId, status: "REJECTED", reason_code: op.reasonCode, created_at: new Date().toISOString(), request_digest: op.requestDigest, service_id: op.serviceId, idempotency_key: op.idempotencyKey, staff_ref: op.staffRef };
       await audit.record({ ...auditRecord, operation_id: op.id });
       byId.set(op.id, operation);
       return { kind: "CREATED", operation: { ...operation } };

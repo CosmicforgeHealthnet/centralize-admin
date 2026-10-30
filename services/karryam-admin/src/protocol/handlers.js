@@ -55,6 +55,17 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
     }
   }
 
+  // Operation and audit reads need a staff delegation for operation.read and
+  // return only operations that staff member requested. Unknown and foreign
+  // operations answer identically, so existence is not disclosed.
+  async function ownOperation(ctx) {
+    if (!ctx.delegation || ctx.delegation.action !== "operation.read") throw new P("FORBIDDEN", "DELEGATION_ACTION_MISMATCH");
+    const id = ctx.params.operationId;
+    const operation = UUID.test(id) ? await operations.get(id) : null;
+    if (!operation || operation.staff_ref !== ctx.delegation.sub) throw new P("NOT_FOUND", "OPERATION_NOT_FOUND");
+    return operation;
+  }
+
   return {
     async healthLive() {
       return { status: 200, body: { status: "live", service: "karryam-admin" } };
@@ -121,9 +132,7 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
     },
 
     async operationGet(ctx) {
-      const id = ctx.params.operationId;
-      const operation = UUID.test(id) ? await operations.get(id) : null;
-      if (!operation) throw new P("NOT_FOUND", "OPERATION_NOT_FOUND");
+      const operation = await ownOperation(ctx);
       return ok(ctx, {
         operation_id: operation.operation_id,
         capability_id: operation.capability_id,
@@ -138,6 +147,7 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
       if (!ctx.body || !validateCommand(ctx.body).valid) throw new P("INVALID_REQUEST", "COMMAND_INVALID");
       if (!ctx.delegation || ctx.delegation.action !== "operation.submit") throw new P("FORBIDDEN", "DELEGATION_ACTION_MISMATCH");
       const command = ctx.body;
+      if (!withinScope(command.scope, ctx.delegation.scope)) throw new P("FORBIDDEN", "SCOPE_DENIED");
       const cap = findCapability(catalog, command.capability_id);
       if (!cap) throw new P("NOT_FOUND", "UNKNOWN_CAPABILITY");
       if (cap.kind !== "COMMAND") throw new P("INVALID_REQUEST", "CAPABILITY_NOT_COMMAND");
@@ -165,12 +175,19 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
     },
 
     async auditGet(ctx) {
-      const id = ctx.params.operationId;
-      const rows = UUID.test(id) ? await audit.listForOperation(id) : [];
+      const operation = await ownOperation(ctx);
+      const rows = await audit.listForOperation(operation.operation_id);
       if (rows.length === 0) throw new P("NOT_FOUND", "OPERATION_NOT_FOUND");
-      return ok(ctx, { operation_id: id, records: rows });
+      return ok(ctx, { operation_id: operation.operation_id, records: rows });
     },
   };
+}
+
+// Every requested scope value must already be in the delegated scope.
+function withinScope(requested, delegated) {
+  if (!requested || typeof requested !== "object" || !delegated || typeof delegated !== "object") return false;
+  return Object.entries(requested).every(([dim, values]) =>
+    Array.isArray(values) && Array.isArray(delegated[dim]) && values.every((v) => delegated[dim].includes(v)));
 }
 
 module.exports = { createHandlers, EVENTS_QUERY };
