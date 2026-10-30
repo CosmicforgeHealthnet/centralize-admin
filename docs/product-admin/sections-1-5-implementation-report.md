@@ -237,3 +237,82 @@ deployment for PIC and Karryam Admin on staging with both disabled, then
 staged enablement and a staging conformance run; (2) Section 6 Karryam
 domain modules and Section 8 bridge event processing so Karryam datasets can
 become `CERTIFIED_BY_PRODUCT`.
+
+---
+
+## Addendum — independent re-verification and hardening (30 October 2026, second pass)
+
+A second engineering pass re-ran the Section 1 audit and every Section 3–5
+suite against the latest `staging`, and audited the code against each bullet
+of Sections 3.2–5.10. Nothing was reimplemented. Verified requirements
+are unchanged. The gaps below were fixed in place and covered by new tests.
+
+### Baseline (recomputed)
+
+| Item | Value |
+|---|---|
+| centralize-admin `staging` at start | `1ccfc0fa45f579735dd523dac09aad780f3c43b3` (Mail-only commits since `0cebe34`; none touch Sections 1–5) |
+| KarryGo `staging` | `a4adee680f88705641c6a204caac83125d1970a5` — unchanged |
+| PR #36 | `0a3b401d833f81c5696797f3c67388940be69699`, still draft and untouched |
+| Other open PRs | #54 (Mail only) |
+| Bridge artifacts | the four SHA-256 values above all match; `SHA256SUMS` 104/104 OK; matrix 435 = 370 READ_ONLY / 52 AVAILABLE / 7 BLOCKED_DEPENDENCY / 6 DISABLED; OpenAPI 3.1.0, info 1.0.0, 432 paths |
+
+### Gaps found and fixed
+
+| Spec | Gap | Fix |
+|---|---|---|
+| 1.2 | CI always skipped the pinned KarryGo contract test (no checkout), so drift was never checked automatically | CI checks out KarryGo's bridge artifacts (public repository, sparse) at the pinned commit and makes the test **required** (`KARRYGO_REQUIRE_CHECKOUT=1`). A second step compares KarryGo `staging` HEAD and raises a warning annotation on drift |
+| 5.6 step 6, 5.9 | Synchronization filtered only on lifecycle `ENABLED`: a product whose signer was revoked or expired, or whose manifest had expired, kept synchronizing. `manifest_expires_at` was never refreshed after onboarding | `identityBlock` runs before every subscription run and sends no request when it trips. It checks: approved signer present in the trust store, unrevoked, unexpired and enrolled for this product/environment; stored manifest unexpired; no identity drift. The result is `BLOCKED_IDENTITY` plus a sanitized alert. The engine now requires a trust store (fail closed). A verified health check with an unchanged catalog refreshes the manifest digest, revision and expiry |
+| 5.5 | Navigation showed products with identity drift as available. The dataset `granted` flag ignored expiry and explicit deny | `IDENTITY_NOT_VERIFIED` reason; the `granted` flag uses the same `authorize` decision as the read path |
+| 4.6 | Changing a capability's `requires_recent_mfa` / `requires_independent_approval` produced no change entry, so the revision was classified `IDENTICAL` | These are now `BREAKING` (`CAPABILITY_AUTHORIZATION_CHANGED`). Lineage, title, blockers, sunset and pure version bumps are `ADDITIVE`. Any remaining difference becomes `BREAKING` `UNCLASSIFIED_CHANGE` |
+| 4.6 | Any protocol minor of major 1 was accepted | Minor must be ≤ the supported minor (unknown newer contracts are rejected) |
+| 4.2, 5.4 | `GET /operations/{id}` and `GET /audit/{id}` needed only a service signature, so any staff member with product-level `operation.read` could read any operation, including its audit `staff_ref` | Both now need a request-bound `operation.read` product delegation; Karryam Admin returns only operations the delegated staff member requested (others answer 404). PIC signs that delegation. `POST /operations` refuses a command scope outside the delegated scope (`SCOPE_DENIED`) |
+| 6 | A malformed explicit `DENY` grant was silently ignored (fail open) | It now denies (`POLICY_INVALID`) |
+| 3.2 | Karryam Admin accepted the same key for service authentication, delegation and the bridge HMAC | `KEY_REUSE_ACROSS_BOUNDARIES` (matches PIC) |
+| 5.2 | A subscription of a `REVOKED`/`REJECTED` registration could still be toggled (writing misleading history) | `REGISTRATION_TERMINAL` (409) |
+| 5.9 | PIC replaced the API's correlation ID, so logs could not be joined across the two services | PIC keeps its server-generated ID and logs the validated inbound ID as `upstream_correlation_id` |
+| 5.10 step 10 | Only metric-observation events were exercised | The synthetic product now also declares a non-metric standard family (`projection: NONE`). A new test proves it is validated, stored without projection, sequenced and ACKed after commit, and that an off-schema payload (here with an extra personal field) is quarantined without retaining the payload |
+
+### Not changed (recorded)
+
+- Retention (`retention_days`) is stored as metadata. Purging append-only
+  inbox and lineage rows needs a migration-role job (later phase).
+- Dual-read migration remains a recorded refusal
+  (`DUAL_READ_PLAN_REQUIRES_NEW_REGISTRATION`); execution is later-phase work.
+- Capability state changes (for example `DISABLED` → `AVAILABLE`) stay
+  `ADDITIVE`, with mandatory independent certification and approval. A state
+  change only advertises readiness; it grants nobody access.
+- `quarantined_count` never decreases, so coverage stays `PARTIAL` after any
+  quarantine. This is conservative by design.
+
+### Local test evidence (Windows 11, Node 25.2.1, disposable PostgreSQL 18.4)
+
+| Suite | Result |
+|---|---|
+| admin-contracts | 19 / 19 (3 new tests) |
+| event-contracts | 7 / 7 |
+| identity-and-permissions | 9 / 9 (1 new) |
+| service-clients | 8 / 8 |
+| Karryam Admin (PostgreSQL + real KarryGo checkout, required) | 29 / 30. The one failure is the Unix-socket permission test, which cannot run on Windows |
+| Product Integration Core (PostgreSQL, `pg_dump` restore) | 48 / 49 (6 new tests). The one failure is a config test that requires POSIX absolute paths; Windows temp directories are `C:\…` |
+| Central Admin API gateway | 10 / 11. The one failure is the Unix-socket transport (Windows); no API source changed |
+
+The Windows-only failures were confirmed as environment limits: the
+services ship as Linux containers, and the same tests pass on the Ubuntu CI
+runners. The three identity-gate tests were also checked by mutation:
+disabling the gate makes them fail.
+
+### Deployment effect
+
+No file under `services/central-admin-api/`, nor `Dockerfile` or
+`.dockerignore`, was changed, so `staging-api-change-scope.sh` classifies
+the change as non-deployable. No staging image or VPS change results. PIC
+and Karryam Admin are still not deployed anywhere.
+
+### Verdict (unchanged)
+
+**SECTIONS 1–5 CODE COMPLETE — STAGING/EXTERNAL CERTIFICATION PENDING.**
+The external dependencies in section I are still outstanding: signer keys and
+trust enrollment, PIC/Karryam Admin keys, staging database roles and
+migrations, deployment definitions, Bridge enrollment, and Karryam dataset
+certification.

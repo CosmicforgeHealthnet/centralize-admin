@@ -100,9 +100,10 @@ authorized in PIC from explicit grants. Admin routes also require MFA within
 
 `GET /api/products` returns, per granted product: `product_id`,
 `display_name`, `available`, `reason` (`NOT_REGISTERED`, `NOT_ENABLED`,
-`PROTOCOL_INCOMPATIBLE`, `CONTRACT_DRIFT` or null), lifecycle status,
+`PROTOCOL_INCOMPATIBLE`, `IDENTITY_NOT_VERIFIED`, `CONTRACT_DRIFT` or null), lifecycle status,
 contract revision, protocol, effective scope, grant role, capability state
-counts, datasets with `granted` flags and `navigation` metadata (only when
+counts, datasets with `granted` flags (computed with the same decision as
+the metric read: expiry, explicit deny, dataset and scope) and `navigation` metadata (only when
 available). The frontend is unchanged; specialised product pages remain
 separate work.
 
@@ -115,11 +116,11 @@ separate work.
 | 3 | destination from registry | `clientFor(endpoints, row)` via `endpoint_ref`; endpoint bound to product+environment |
 | 4 | approved service identity | `cf-svc-v1` keys from the endpoint entry; TLS pin for HTTPS |
 | 5 | bounded page | `limit ≤ page_limit ≤ 100`, 1 MiB response cap, `events-page.v1` validation |
-| 6 | verify identity, schema, digest, sequence, source, scope | `createEventRegistry(...).validate` + `sequenceDecision` |
+| 6 | verify identity, schema, digest, sequence, source, scope | Per run, before any request: `identityBlock` — approved signer present in the trust store, unrevoked, unexpired, enrolled for this product/environment; stored manifest unexpired; no `IDENTITY_MISMATCH`/`MANIFEST_EXPIRED`/`MANIFEST_INVALID` drift (run result `BLOCKED_IDENTITY` + alert). Per event: `createEventRegistry(...).validate` + `sequenceDecision` |
 | 7 | privacy and authorization policy | restricted classification refused; subscription allowed scope; dataset dimensions |
 | 8 | durable append-only inbox | `hq_product_admin_event_inbox` |
 | 9 | same ID, different digest | `DIGEST_CONFLICT` quarantine; identical replays counted as duplicates |
-| 10 | domain-neutral projections only | `METRIC_OBSERVATION` against the pinned metric definition |
+| 10 | domain-neutral projections only | `METRIC_OBSERVATION` against the pinned metric definition; other standard families (`projection: NONE`) are validated, stored and sequenced but never projected |
 | 11 | lineage + cursor in the same transaction | one transaction per event |
 | 12 | commit | — |
 | 13 | ACK after commit | `ack()` after the page; tested by inspecting the inbox from the ACK handler |
@@ -149,6 +150,13 @@ connection health, contract and drift, datasets, subscriptions with lag,
 cursors with sequence lag, unacknowledged counts and gaps, 24 h run stats
 (failed ACKs, lease failures, failed runs, last success), quarantine counts
 and alert counts by reason. Health is never inferred from local liveness.
+
+The scheduled health check runs before every scheduled synchronization tick.
+A fully verified manifest from the approved signer with an unchanged catalog
+refreshes the stored manifest digest, revision and expiry; anything else
+records drift and stops synchronization (above) until a later check verifies
+again. Lifecycle state is never changed by a health check, so a `SUSPENDED`
+or `REVOKED` product is never reactivated by a new manifest.
 
 ## 5.10 Universal onboarding conformance
 
