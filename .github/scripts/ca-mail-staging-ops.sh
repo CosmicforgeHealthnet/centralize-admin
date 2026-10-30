@@ -453,7 +453,7 @@ services:
       - ./freshclam.conf:/etc/clamav/freshclam.conf:ro
       - clamav-signatures:/var/lib/clamav
     healthcheck:
-      test: ["CMD", "clamdcheck.sh"]
+      test: ["CMD-SHELL","printf 'zPING\\\\000' | nc -w 3 127.0.0.1 3310 | grep -q '^PONG'"]
       interval: 60s
       timeout: 10s
       retries: 3
