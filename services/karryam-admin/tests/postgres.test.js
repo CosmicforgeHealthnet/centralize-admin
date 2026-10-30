@@ -19,10 +19,10 @@ const F = require("./helpers/fixtures");
 
 const ADMIN_URL = process.env.KARRYAM_ADMIN_TEST_DATABASE_URL;
 
-function withDb(base, db, user) {
+function withDb(base, db, user, password) {
   const url = new URL(base);
   url.pathname = "/" + db;
-  if (user) { url.username = user; url.password = ""; }
+  if (user) { url.username = user; url.password = password || ""; }
   return url.toString();
 }
 
@@ -32,10 +32,12 @@ test("migrations, runtime least privilege and durable stores on disposable Postg
   const db = "ka_test_" + suffix;
   const migrator = "ka_test_migrator_" + suffix;
   const runtime = "ka_test_runtime_" + suffix;
+  // Throwaway passwords: CI PostgreSQL uses password (SCRAM) authentication.
+  const password = randomBytes(12).toString("hex");
   const admin = new Client({ connectionString: ADMIN_URL });
   await admin.connect();
-  await admin.query(`CREATE ROLE ${migrator} LOGIN`);
-  await admin.query(`CREATE ROLE ${runtime} LOGIN`);
+  await admin.query(`CREATE ROLE ${migrator} LOGIN PASSWORD '${password}'`);
+  await admin.query(`CREATE ROLE ${runtime} LOGIN PASSWORD '${password}'`);
   await admin.query(`CREATE DATABASE ${db} OWNER ${migrator}`);
   await admin.query(`REVOKE ALL ON DATABASE ${db} FROM PUBLIC`);
   await admin.query(`GRANT CONNECT ON DATABASE ${db} TO ${runtime}`);
@@ -50,8 +52,8 @@ test("migrations, runtime least privilege and durable stores on disposable Postg
     await admin.end();
   });
 
-  const migrationUrl = withDb(ADMIN_URL, db, migrator);
-  const runtimeUrl = withDb(ADMIN_URL, db, runtime);
+  const migrationUrl = withDb(ADMIN_URL, db, migrator, password);
+  const runtimeUrl = withDb(ADMIN_URL, db, runtime, password);
 
   // Fresh install, then an idempotent re-run.
   const first = await migrate({ connectionString: migrationUrl, runtimeRole: runtime });
