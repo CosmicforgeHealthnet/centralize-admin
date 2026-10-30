@@ -139,7 +139,7 @@ function Domains({ canEdit }: { canEdit: boolean }) {
   const verify = useMutation({ mutationFn: adminApi.verifyDomain, onSuccess: () => qc.invalidateQueries({ queryKey: qk("domains") }) });
   return (
     <>
-      <Section id="mail-admin-domains" title="Sending and receiving domains" description="Domains must be on the server allowlist and verified with the provider before any external mail is sent. DNS changes are made by the domain owner outside this page.">
+      <Section id="mail-admin-domains" title="Sending and receiving domains" description="Domains must be on the server allowlist and verified with the provider before any external mail is sent. Check DNS can link an existing Resend domain by name, so no new Resend domain or DNS setup is required.">
         <PermissionBoundary isLoading={domains.isLoading} error={domains.error} compact forbiddenMessage={FORBIDDEN}>
           <Table caption="Mail domains" head={["Domain", "Brand", "Status", "Sending", "Receiving", "Last checked", ""]} empty={!domains.data?.length}>
             {(domains.data ?? []).map((d) => (
@@ -153,7 +153,7 @@ function Domains({ canEdit }: { canEdit: boolean }) {
                   <td className={td}>{formatFullDate(d.lastCheckedAt) || "Never"}</td>
                   <td className={td}>
                     {canEdit && (
-                      <button type="button" className={ghost} disabled={verify.isPending || !d.providerDomainId} title={d.providerDomainId ? undefined : "Add the provider domain id first"} onClick={() => verify.mutate(d.id)}>
+                      <button type="button" className={ghost} disabled={verify.isPending} title={d.providerDomainId ? "Recheck provider domain verification" : "Look up this domain in Resend and verify its status"} onClick={() => verify.mutate(d.id)}>
                         Check DNS
                       </button>
                     )}
