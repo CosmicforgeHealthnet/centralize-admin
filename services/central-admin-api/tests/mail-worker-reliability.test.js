@@ -204,14 +204,16 @@ test("worker / outbound reliability on real PostgreSQL", { timeout: 300000 }, as
 
   await t.test("MAIL_SENDING_ENABLED=false holds queued mail without consuming attempts; it sends once re-enabled", async () => {
     const sent = await send({ to: ["hold@partner.example"] });
-    const paused = harness.build({ MAIL_SENDING_ENABLED: "false" }).createWorker({ queues: ["OUTBOUND"] });
+    // Backend-managed core queues: with sending off the worker does not serve
+    // OUTBOUND (paused with its reason), so the job is untouched.
+    const paused = harness.build({ MAIL_SENDING_ENABLED: "false" }).createWorker({ queues: ["OUTBOUND"], heartbeat: false });
     for (let index = 0; index < 8; index += 1) {
       await paused.drain({ maxTicks: 1 });
       harness.advance(301 * 1000);
     }
+    assert.deepEqual(paused.metrics.pausedQueues, [{ queue: "OUTBOUND", reason: "SENDING_DISABLED" }]);
     const job = await jobOf(sent.jobId);
-    assert.equal(job.status, "RETRY_SCHEDULED");
-    assert.equal(job.lastErrorCode, "MAIL_SENDING_DISABLED");
+    assert.ok(["PENDING", "RETRY_SCHEDULED"].includes(job.status), "held, never failed or dead-lettered");
     assert.equal(job.attemptCount, 0, "no attempt consumed");
     const message = await messageOf(sent.messageId);
     assert.equal(message.status, "QUEUED");

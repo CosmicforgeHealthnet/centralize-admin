@@ -11,6 +11,11 @@
 # edited. Only admin-server-app-1 (and, when present, the production Mail
 # worker) is recreated. Every check must pass before and after; any failure
 # restores the previous image (kept under a local rollback tag) and verifies it.
+#
+# Mail worker: with Mail enabled the worker must really process work, not just
+# exist. A worker that exited (even with code 0), restart-loops, runs another
+# image or another database, serves no core queue, or does not complete an
+# isolated self-test job fails the deploy and rolls back app and worker.
 # Never touches the database, staging, RTC or any other project.
 set -Eeuo pipefail
 umask 077
@@ -51,8 +56,28 @@ fi
 mkdir -p /run/lock
 exec 7>/run/lock/centralize-admin-production-deploy.lock
 flock -n 7 || { echo 'Another production deploy is running; refusing overlap. Nothing changed.' >&2; exit 1; }
-exec 9>/run/lock/centralize-admin-db-isolation.lock
-flock -n 9 || { echo 'The CA database isolation cutover is running; refusing overlap. Nothing changed.' >&2; exit 1; }
+# Who holds a lock file: "PID command;" per locking process (or empty).
+lock_holder() {
+  local ino; ino="$(stat -c %i "$1" 2>/dev/null)" || return 0
+  awk -v ino="$ino" '$2 == "FLOCK" { n = split($6, a, ":"); if (a[n] == ino) print $5 }' /proc/locks | sort -u | while read -r pid; do
+    [[ "$pid" == "$$" ]] && continue
+    printf '%s %s;' "$pid" "$( { tr '\0' ' ' < "/proc/$pid/cmdline"; } 2>/dev/null | cut -c1-160)"
+  done
+}
+# The DB isolation lock is also taken (shared) by short read-only Mail checks.
+# A running cutover is never overlapped: refuse at once. Any other holder is
+# waited for (at most 10 minutes); the lock is never removed or bypassed.
+readonly DB_LOCK=/run/lock/centralize-admin-db-isolation.lock
+exec 9>"$DB_LOCK"
+if ! flock -n 9; then
+  holder="$(lock_holder "$DB_LOCK")"
+  if [[ "$holder" == *cutover* ]]; then
+    echo "The CA database isolation cutover is running (holder: $holder); refusing overlap. Nothing changed." >&2; exit 1
+  fi
+  echo "The CA DB isolation lock is held by another CA operation (holder: ${holder:-unknown}); waiting up to 10 minutes for it to finish."
+  flock -w 600 9 || { echo "The CA DB isolation lock is still held after 10 minutes (holder: $(lock_holder "$DB_LOCK")); refusing overlap. Nothing changed." >&2; exit 1; }
+  echo 'The CA DB isolation lock was released; continuing.'
+fi
 
 run_dir="/var/backups/centralize-admin/production-deploy-$RUN_ID"
 mkdir -p /var/backups/centralize-admin; chmod 700 /var/backups/centralize-admin; mkdir -m 700 "$run_dir"
@@ -187,19 +212,81 @@ set_override() { # image -> pins services.app.image (atomic, root-only)
   chmod 600 "$tmp"; mv -f "$tmp" "$OVERRIDE"
 }
 
-sync_worker() { # recreate the production Mail worker (if deployed) with the app's image
-  docker inspect "$WORKER" >/dev/null 2>&1 || { info 'no production Mail worker deployed; nothing to sync'; return 0; }
+mail_on() { [[ ",$(mail_flags)," == *,MAIL_ENABLED=true,* ]]; }
+# Core Mail processing is backend-managed: with Mail on the worker runs unless
+# MAIL_WORKER_ENABLED=false (an explicit emergency shutdown).
+worker_expected() { mail_on && [[ ",$(mail_flags)," != *,MAIL_WORKER_ENABLED=false,* ]]; }
+
+worker_db() { # database name the worker's own Prisma client is connected to
+  { docker exec -i -w /app "$WORKER" node - 2>/dev/null <<'NODE' || true; } | grep -E '^DB ' | tail -n 1 | cut -c4- || true
+const { prisma } = require('./src/shared/config/database');
+prisma.$queryRawUnsafe('SELECT current_database() AS name').then((r) => process.stdout.write('DB ' + (r[0]?.name || '') + '\n')).catch(() => process.stdout.write('DB ?\n')).finally(() => prisma.$disconnect());
+NODE
+}
+
+# Verifies the worker after (re)creation. Mail off / worker shut down: an idle
+# (running) or, on older images, cleanly exited worker is accepted. Mail on:
+# running, stable (no restart loop), restart policy survives reboots, same
+# image as the app, same database as the app, and (images with
+# scripts/mail/verify-worker.js) a fresh heartbeat for this release serving
+# every core queue plus a completed isolated self-test job.
+verify_worker() {
+  local image="$1" i st code restarts0 restarts1 policy
+  for ((i = 0; i < 30; i++)); do
+    st="$(docker inspect -f '{{.State.Status}}' "$WORKER")"
+    [[ "$st" == running || "$st" == exited ]] && break; sleep 2
+  done
+  sleep 5
+  st="$(docker inspect -f '{{.State.Status}}' "$WORKER")"; code="$(docker inspect -f '{{.State.ExitCode}}' "$WORKER")"
+  [[ "$(docker inspect -f '{{.Config.Image}}' "$WORKER")" == "$image" ]] || { fail "production Mail worker runs $(docker inspect -f '{{.Config.Image}}' "$WORKER"), not $image"; return 1; }
+  if ! worker_expected; then
+    if [[ "$st" == running || ( "$st" == exited && "$code" == 0 ) ]]; then
+      pass "production Mail worker on the app image; idle by configuration (Mail flags: $(mail_flags); $st)"; return 0
+    fi
+    fail "production Mail worker: status $st exit $code (Mail off; expected an idle worker)"; return 1
+  fi
+  [[ "$st" == running ]] || { fail "production Mail worker is not running (status $st, exit $code) although Mail is enabled; an exited worker is never healthy"; return 1; }
+  restarts0="$(docker inspect -f '{{.RestartCount}}' "$WORKER")"; sleep 15
+  st="$(docker inspect -f '{{.State.Status}}' "$WORKER")"; restarts1="$(docker inspect -f '{{.RestartCount}}' "$WORKER")"
+  [[ "$st" == running && "$restarts1" == "$restarts0" ]] || { fail "production Mail worker is not stable (status $st, restarts $restarts0 -> $restarts1)"; return 1; }
+  policy="$(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' "$WORKER")"
+  [[ "$policy" == unless-stopped || "$policy" == always ]] || { fail "production Mail worker restart policy is $policy (must survive crashes and reboots: unless-stopped)"; return 1; }
+  local wdb; wdb="$(worker_db)"
+  [[ "$wdb" == "$DEST_DB" && "$(runtime_db)" == "$DEST_DB" ]] || { fail "production Mail worker database is '${wdb:-unknown}', the app's is '$(runtime_db)' (must both be $DEST_DB)"; return 1; }
+  pass "production Mail worker running, stable, restart=$policy, same image and database ($DEST_DB) as the app"
+  if docker exec "$APP" test -f /app/scripts/mail/verify-worker.js; then
+    local out
+    # Verdict comes from the JSON line (the exit code is non-zero on failure).
+    out="$(docker exec -w /app "$APP" node scripts/mail/verify-worker.js --expect-release "$image" --wait 150 2>/dev/null | grep '^CA_MAIL_WORKER_VERIFY ' | tail -n 1 || true)"
+    out="${out#CA_MAIL_WORKER_VERIFY }"
+    if python3 -c 'import json,sys; d=json.loads(sys.argv[1]); sys.exit(0 if d.get("ok") and d.get("checks",{}).get("selfTest") else 1)' "$out" 2>/dev/null; then
+      pass "production Mail worker processes work: heartbeat for this release on $DEST_DB, core queues served, isolated self-test job completed ($(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print("queues=" + ",".join(d.get("coreQueues", [])) + " selfTestSeconds=" + str(d.get("selfTest", {}).get("latencySeconds")))' "$out"))"
+      info "Mail queues after deploy: $(python3 -c 'import json,sys; print(json.dumps(json.loads(sys.argv[1]).get("queues")))' "$out" 2>/dev/null)"
+    else
+      fail "production Mail worker did not prove processing: ${out:-no output}"; return 1
+    fi
+  else
+    info 'this image predates worker heartbeats (scripts/mail/verify-worker.js): verified running, stable, image and database only'
+  fi
+}
+
+sync_worker() { # recreate the production Mail worker with the app's image, then verify it
+  if ! docker inspect "$WORKER" >/dev/null 2>&1; then
+    if worker_expected; then
+      fail "Mail is enabled but no production Mail worker is deployed (run CA Mail operations: services-deploy, target production)"; return 4
+    fi
+    info 'no production Mail worker deployed; Mail is off (nothing to sync)'; return 0
+  fi
   local image; image="$(docker inspect -f '{{.Config.Image}}' "$APP")"
   [[ -f "$WORKER_ROOT/docker-compose.yml" ]] || { fail "production Mail worker exists but $WORKER_ROOT/docker-compose.yml is missing"; return 1; }
-  printf 'services:\n  mail-worker:\n    image: %s\n    pull_policy: never\n' "$image" > "$WORKER_ROOT/docker-compose.release.yml"
+  # Same image as the app, the release recorded in its heartbeat, and (Mail
+  # on) a restart policy that survives crashes and server reboots.
+  { printf 'services:\n  mail-worker:\n    image: %s\n    pull_policy: never\n' "$image"
+    worker_expected && printf '    restart: unless-stopped\n'
+    printf '    environment:\n      MAIL_RELEASE_IMAGE: "%s"\n' "$image"
+  } > "$WORKER_ROOT/docker-compose.release.yml"
   (cd "$WORKER_ROOT" && env -i HOME=/root PATH="$SAFE_PATH" docker compose -f docker-compose.yml -f docker-compose.release.yml up -d --no-deps --no-build --pull never --force-recreate mail-worker) >/dev/null
-  sleep 8
-  local st code; st="$(docker inspect -f '{{.State.Status}}' "$WORKER")"; code="$(docker inspect -f '{{.State.ExitCode}}' "$WORKER")"
-  if [[ "$st" == running || ( "$st" == exited && "$code" == 0 ) ]] && [[ "$(docker inspect -f '{{.Config.Image}}' "$WORKER")" == "$image" ]]; then
-    pass "production Mail worker now runs the same image as the app ($st)"
-  else
-    fail "production Mail worker: status $st exit $code after sync"; return 1
-  fi
+  verify_worker "$image"
 }
 
 rollback() {
@@ -208,7 +295,7 @@ rollback() {
   set_override "$rollback_tag"
   if recreate_app >&2 && verify_internal 45; then
     fail "deploy rolled back; previous image verified (runtime DB, Prisma, health, login 401) under $rollback_tag"
-    sync_worker || true
+    sync_worker || fail 'Mail worker on the previous image did not verify (see above)'
   else
     fail "ROLLBACK DID NOT VERIFY. Previous image is tagged $rollback_tag; $OVERRIDE pins it. Inspect $APP."
   fi
@@ -223,6 +310,15 @@ preflight() {
   verify_public && pass "baseline: $PUBLIC_API/health 200 and CORS for $PUBLIC_ORIGIN" || { fail 'baseline public checks'; return 1; }
   info "running image: $(docker inspect -f '{{.Config.Image}}' "$APP") ($(docker inspect -f '{{.Image}}' "$APP" | cut -c1-19)); release override: $([[ -f "$OVERRIDE" ]] && echo present || echo absent); Mail flags: $(mail_flags)"
   compose config -q && pass 'Compose resolves the production configuration' || { fail 'Compose cannot resolve the production configuration'; return 1; }
+  # Mail worker state as it is now (read-only; reported, never gating).
+  if docker inspect "$WORKER" >/dev/null 2>&1; then
+    info "Mail worker now: $(docker inspect -f 'status={{.State.Status}} exit={{.State.ExitCode}} restarts={{.RestartCount}} policy={{.HostConfig.RestartPolicy.Name}} image={{.Config.Image}}' "$WORKER")"
+    if docker exec "$APP" test -f /app/scripts/mail/verify-worker.js 2>/dev/null; then
+      info "Mail worker heartbeat now: $(docker exec -w /app "$APP" node scripts/mail/verify-worker.js --no-self-test --wait 5 2>/dev/null | grep '^CA_MAIL_WORKER_VERIFY ' | tail -n 1 | cut -c23-900)"
+    fi
+  elif worker_expected; then
+    info 'Mail is enabled but no production Mail worker is deployed'
+  fi
 }
 
 deploy() {
@@ -251,9 +347,16 @@ deploy() {
   verify_public || { fail 'new image: public HTTPS health/CORS failed'; return 1; }
   pass "new image: $PUBLIC_API/health 200 and CORS for $PUBLIC_ORIGIN"
   [[ "$(mail_flags)" == "$flags_before" ]] || { fail 'Mail flags changed'; return 1; }
+  pass "production app runs $IMAGE_TAG; Mail flags unchanged: $flags_before"
+  # Still armed: a worker that does not prove processing rolls back app and
+  # worker together. A missing worker (exit 4) is an infrastructure gap, not
+  # a release defect: reported as a failure without rolling the app back.
+  local wrc=0
+  sync_worker || wrc=$?
+  if [[ "$wrc" == 4 ]]; then armed=false; return 4; fi
+  [[ "$wrc" == 0 ]] || return 1
   armed=false
-  pass "production runs $IMAGE_TAG; Mail flags unchanged: $flags_before"
-  sync_worker
+  pass "production release $IMAGE_TAG complete (app and Mail worker verified)"
 }
 
 case "$mode" in

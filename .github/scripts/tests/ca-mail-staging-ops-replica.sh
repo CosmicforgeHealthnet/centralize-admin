@@ -154,7 +154,7 @@ run() {
   flock /run/lock/centralize-admin-db-isolation.lock sleep 120 &
   local holder=$!; sleep 1
   ! run_ops --migrate-apply
-  check 'refused while the DB isolation lock is held' grep -q 'database isolation cutover is running' "$work/last.log"
+  check 'refused while the DB isolation lock is held' grep -q 'DB isolation lock is held (holder: [0-9]' "$work/last.log"
   pkill -P "$holder" 2>/dev/null || true; kill "$holder" 2>/dev/null || true; wait "$holder" 2>/dev/null || true
 
   log 'M4 apply: backup, rehearsal on a restored copy, then 27-37'

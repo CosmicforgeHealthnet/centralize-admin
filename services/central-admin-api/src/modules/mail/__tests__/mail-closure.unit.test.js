@@ -13,6 +13,10 @@ const { createMailSchemaReadiness, MAIL_SCHEMA_REQUIREMENTS } = require("../sche
 const { scanLinks } = require("../marketing/link-scan");
 const { validateConsentInput } = require("../marketing/marketing.service");
 const { createMailWorker } = require("../jobs/mail-worker");
+const { createMailApplication } = require("../application");
+const { createFakeAdapter } = require("../adapters/fake.adapter");
+const { memoryBackend } = require("../storage/mail-storage");
+const { signatureScanner } = require("../scanning/attachment-scanner");
 
 const secret = () => `whsec_${crypto.randomBytes(24).toString("base64")}`;
 
@@ -55,6 +59,40 @@ test("schema readiness fails closed when the probe itself errors", async () => {
   const state = await readiness.check();
   assert.equal(state.ready, false);
   assert.equal(state.missing.length, MAIL_SCHEMA_REQUIREMENTS.length);
+});
+
+test("readiness with receiving enabled requires a healthy attachment scanner", async () => {
+  const tables = MAIL_SCHEMA_REQUIREMENTS.flatMap((entry) => entry.tables || []);
+  const columns = MAIL_SCHEMA_REQUIREMENTS.flatMap((entry) => entry.columns || []);
+  const client = {
+    async $queryRawUnsafe(query) {
+      return query.startsWith("SELECT relname")
+        ? tables.map((relname) => ({ relname }))
+        : columns.map(([table_name, column_name]) => ({ table_name, column_name }));
+    },
+  };
+  const key = Buffer.alloc(32, 7).toString("base64");
+  const build = (scanner) => createMailApplication({
+    client,
+    config: loadMailConfig({ MAIL_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true", MAIL_PROVIDER: "fake", MAIL_ENCRYPTION_KEYS: `v1:${key}`, MAIL_ENCRYPTION_ACTIVE_KEY: "v1" }),
+    adapter: createFakeAdapter(),
+    storageBackend: memoryBackend(),
+    scanner,
+    logger: { info() {}, warn() {}, error() {} },
+  });
+
+  const healthy = await build(signatureScanner()).readiness();
+  assert.equal(healthy.ready, true);
+  assert.equal(healthy.dependencies.scanner, "OK");
+
+  const failed = await build({
+    name: "clamd",
+    available: true,
+    async scan() { return { status: "SCANNER_UNAVAILABLE" }; },
+    async health() { throw new Error("scanner unreachable"); },
+  }).readiness();
+  assert.equal(failed.ready, false, "a failed scanner health probe blocks readiness");
+  assert.equal(failed.dependencies.scanner, "UNAVAILABLE");
 });
 
 test("the worker idles without touching the job tables while the schema is missing", async () => {

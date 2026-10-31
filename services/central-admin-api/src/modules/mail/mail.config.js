@@ -15,6 +15,11 @@ function intInRange(value, fallback, min, max) {
   return Math.min(Math.max(parsed, min), max);
 }
 
+// Unset or blank -> fallback; otherwise the usual true/false parsing.
+function optionalFlag(value, fallback) {
+  return value === undefined || value === null || String(value).trim() === "" ? fallback : flag(value);
+}
+
 function list(value) {
   return String(value ?? "")
     .split(",")
@@ -44,7 +49,10 @@ function loadMailConfig(env = process.env) {
     sendingEnabled: enabled && flag(env.MAIL_SENDING_ENABLED),
     receivingEnabled: enabled && flag(env.MAIL_RECEIVING_ENABLED),
     marketingEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED),
-    workerEnabled: enabled && flag(env.MAIL_WORKER_ENABLED),
+    // Core Mail processing is backend-managed: with Mail enabled the worker
+    // runs unless MAIL_WORKER_ENABLED=false (an explicit emergency shutdown).
+    // No staff rollout rule, cohort or frontend switch is needed for it.
+    workerEnabled: enabled && optionalFlag(env.MAIL_WORKER_ENABLED, true),
     provider: String(env.MAIL_PROVIDER || "resend").trim().toLowerCase(),
     domainAllowlist: list(env.MAIL_DOMAIN_ALLOWLIST),
     // Addresses on our domains that another system sends from directly
@@ -217,7 +225,14 @@ function loadMailConfig(env = process.env) {
       windowDays: intInRange(env.MAIL_MARKETING_REPLY_WINDOW_DAYS, 30, 1, 180),
     },
     reconciliation: {
-      enabled: flag(env.MAIL_RECONCILIATION_ENABLED),
+      // Inbound reconciliation is the safety net for missed webhooks. On by
+      // default for a staging/production deployment that receives and owns
+      // inbound mail (MAIL_INBOUND_ACTIVE_ENVIRONMENT); the webhook stays the
+      // primary low-latency path. MAIL_RECONCILIATION_ENABLED=true|false
+      // overrides.
+      enabled: optionalFlag(env.MAIL_RECONCILIATION_ENABLED, enabled && flag(env.MAIL_RECEIVING_ENABLED) && ["staging", "production"].includes(deploymentEnvironment(env)) && inboundOwnershipConfig(env).ownedHere),
+      // Hard cap of reconciliation enqueues per run (provider rate limits).
+      inboundMaxEnqueuePerRun: intInRange(env.MAIL_INBOUND_RECONCILE_MAX_ENQUEUE, 50, 1, 500),
       // Resend keeps idempotency keys for 24h. A send whose first attempt is
       // older than this window is never retried; it becomes OUTCOME_UNKNOWN.
       idempotencyWindowHours: intInRange(env.MAIL_PROVIDER_IDEMPOTENCY_WINDOW_HOURS, 23, 1, 23),
@@ -247,6 +262,13 @@ function loadMailConfig(env = process.env) {
       maxAttempts: intInRange(env.MAIL_WORKER_MAX_ATTEMPTS, 6, 1, 20),
       // Graceful shutdown: how long stop() waits for in-flight jobs.
       drainTimeoutMs: intInRange(env.MAIL_WORKER_DRAIN_TIMEOUT_MS, 30000, 1000, 600000),
+      // Durable heartbeat (worker-heartbeat.js): written every interval; a
+      // worker silent for staleAfterSeconds is reported NOT_RUNNING.
+      heartbeatIntervalSeconds: intInRange(env.MAIL_WORKER_HEARTBEAT_SECONDS, 30, 5, 600),
+      staleAfterSeconds: intInRange(env.MAIL_WORKER_STALE_SECONDS, 180, 30, 3600),
+      // Release identifier (image tag) recorded in the heartbeat; set by the
+      // deploy scripts. Never a secret.
+      release: String(env.MAIL_RELEASE_IMAGE || "").trim().slice(0, 200) || null,
     },
     unknownRecipientPolicy:
       String(env.MAIL_UNKNOWN_RECIPIENT_POLICY || "reject").trim().toLowerCase() === "quarantine"
@@ -352,6 +374,10 @@ function loadMailConfig(env = process.env) {
     ops: {
       alertsEnabled: env.MAIL_OPS_ALERTS_ENABLED === undefined ? true : flag(env.MAIL_OPS_ALERTS_ENABLED),
       evaluateIntervalSeconds: intInRange(env.MAIL_OPS_EVALUATE_SECONDS, 300, 60, 3600),
+      // The API process also evaluates alerts (watchdog), so a stopped or
+      // stalled worker is still reported. MAIL_OPS_API_WATCHDOG_ENABLED=false
+      // leaves evaluation to the worker only.
+      apiWatchdogEnabled: optionalFlag(env.MAIL_OPS_API_WATCHDOG_ENABLED, true),
       metricsToken: String(env.MAIL_METRICS_TOKEN || ""),
       // Initial thresholds; tune from pilot observations (no stability data yet).
       thresholds: {
@@ -606,6 +632,7 @@ function publicStatus(config) {
     confirmationEmailsEnabled: config.confirmationEmailsEnabled,
     testSendsEnabled: config.testSendsEnabled,
     workerQueues: config.workerQueues,
+    inboundReconciliation: config.receivingEnabled && config.reconciliation.enabled,
     unsubscribeConfigured: config.unsubscribe.secret.length >= 32 && Boolean(config.publicApiUrl),
     emergencyStop: { ...config.emergencyStop },
     integrationsEnabled: config.integrations.enabled,
@@ -619,4 +646,4 @@ function publicStatus(config) {
   };
 }
 
-module.exports = { loadMailConfig, providerConfigured, publicStatus, flag, infrastructureViolations, addressPolicyViolations, ENVIRONMENT_MARKERS };
+module.exports = { loadMailConfig, providerConfigured, publicStatus, flag, optionalFlag, infrastructureViolations, addressPolicyViolations, ENVIRONMENT_MARKERS };
