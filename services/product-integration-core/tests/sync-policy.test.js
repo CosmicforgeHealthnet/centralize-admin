@@ -48,7 +48,7 @@ test("the gate requires enablement, environment, the active contract, a supporte
   assert.equal(gate(row(), null), "NO_ACTIVE_CONTRACT");
   assert.equal(gate(row(), contract({ status: "SUPERSEDED" })), "NO_ACTIVE_CONTRACT");
   assert.equal(gate(row({ current_contract_id: "c2" })), "CONTRACT_SUPERSEDED");
-  assert.equal(gate(row(), contract({ protocol_minor: 1 })), "PROTOCOL_UNSUPPORTED");
+  assert.equal(gate(row(), contract({ protocol_minor: 2 })), "PROTOCOL_UNSUPPORTED");
   assert.equal(gate(row(), contract({ protocol_major: 2 })), "PROTOCOL_UNSUPPORTED");
   assert.equal(gate(row({ manifest_expires_at: new Date(NOW - 1) })), "MANIFEST_EXPIRED");
   assert.equal(gate(row({ manifest_expires_at: null })), "MANIFEST_EXPIRED");

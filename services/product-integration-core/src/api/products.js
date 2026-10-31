@@ -7,6 +7,7 @@
 const { randomUUID } = require("node:crypto");
 const C = require("../../../../packages/admin-contracts");
 const I = require("../../../../packages/identity-and-permissions");
+const clients = require("../../../../packages/service-clients");
 const { T } = require("../db");
 const { loadGrants, authorizeStaff, AuthorizationError } = require("../authz");
 const { resolveEndpoint, clientFor } = require("../registry/endpoints");
@@ -66,6 +67,48 @@ function createProducts({ pool, endpoints, environment, trustStore = false, now 
       auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: row.product_id, action,
       scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
     }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+  }
+
+  // Strict, allowlisted query for 1.1 reads; values checked against the
+  // published protocol schemas. Returns an ordered plain object.
+  const validateRead = Object.fromEntries(Object.entries(C.READ_QUERY_SCHEMAS).map(([k, schema]) => [k, C.compile(schema)]));
+  function readQuery(searchParams, keys) {
+    const out = {};
+    for (const [key, raw] of searchParams) {
+      if (!keys.includes(key)) throw new ProductError("INVALID_REQUEST", "UNKNOWN_PARAMETER");
+      if (Object.prototype.hasOwnProperty.call(out, key)) throw new ProductError("INVALID_REQUEST", "DUPLICATE_PARAMETER");
+      const value = key === "limit" ? (/^[0-9]{1,3}$/.test(raw) ? Number(raw) : raw) : raw;
+      if (!validateRead[key](value).valid) throw new ProductError("INVALID_REQUEST", "INVALID_PARAMETER");
+      out[key] = value;
+    }
+    if (!out.market || !out.organization) throw new ProductError("INVALID_REQUEST", "SCOPE_REQUIRED");
+    const ordered = {};
+    for (const k of keys) if (out[k] !== undefined) ordered[k] = out[k];
+    return ordered;
+  }
+
+  async function forwardRead(subject, row, action, endpointId, params, query, ctx) {
+    const requestedScope = {};
+    for (const dim of DIMS) if (query[dim] !== undefined) requestedScope[dim] = [query[dim]];
+    const decision = await authorize(subject, action, ctx, { productId: row.product_id, productAdminId: row.id, requestedScope, productScope: row.allowed_scope });
+    let uri;
+    try { uri = clients.buildUri(C.endpointPath(endpointId, params), query); } catch { throw new ProductError("INVALID_REQUEST", "PATH_PARAMETER_INVALID"); }
+    const endpoint = resolveEndpoint(endpoints, row);
+    const token = I.signDelegation({
+      iss: "product-integration-core", aud: row.product_id + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
+      auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: row.product_id, action,
+      scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
+    }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+    const client = clientFor(endpoints, row, clientOptions);
+    let res;
+    try {
+      res = endpointId === "resourceList" ? await client.listResources(params.capabilityId, params.collectionId, query, { delegation: token, correlationId: ctx.correlationId })
+        : endpointId === "resourceGet" ? await client.getResource(params.capabilityId, params.collectionId, params.resourceId, query, { delegation: token, correlationId: ctx.correlationId })
+          : await client.getReport(params.reportId, query, { delegation: token, correlationId: ctx.correlationId });
+    } catch {
+      throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE");
+    }
+    return { status: res.status, body: res.json };
   }
 
   return {
@@ -224,6 +267,33 @@ function createProducts({ pool, endpoints, environment, trustStore = false, now 
       } catch {
         throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE");
       }
+    },
+
+    // Protocol 1.1 scoped reads (resources and reports). Product-neutral:
+    // the capability must be a usable READ capability of the ACTIVE
+    // contract; only allowlisted query keys are forwarded; HQ authorizes the
+    // grant, recent MFA and requested scope, then delegates exactly that
+    // scope for this one request. The Product Admin re-checks everything
+    // and is the only component that talks to its source.
+    async resource(subject, productId, capabilityId, collectionId, resourceId, query, ctx) {
+      const endpointId = resourceId === null ? "resourceList" : "resourceGet";
+      const { row, contract } = await enabledRegistration(productId);
+      if (!C.endpointSupported(endpointId, { major: contract.protocol_major, minor: contract.protocol_minor })) throw new ProductError("UNAVAILABLE", "PROTOCOL_FEATURE_UNSUPPORTED");
+      const cap = contract.catalog.capabilities.find((c) => c.id === capabilityId);
+      if (!cap) throw new ProductError("NOT_FOUND", "UNKNOWN_CAPABILITY");
+      if (cap.kind !== "READ") throw new ProductError("INVALID_REQUEST", "CAPABILITY_NOT_READ");
+      if (!C.USABLE_CAPABILITY_STATES.includes(cap.state)) throw new ProductError("UNAVAILABLE", "CAPABILITY_" + cap.state);
+      const keys = resourceId === null ? C.RESOURCE_QUERY : C.RESOURCE_QUERY.filter((k) => !["limit", "continuation"].includes(k));
+      return forwardRead(subject, row, "resource.read", endpointId, { capabilityId, collectionId, ...(resourceId === null ? {} : { resourceId }) }, readQuery(query, keys), ctx);
+    },
+
+    async report(subject, productId, reportId, query, ctx) {
+      const { row, contract } = await enabledRegistration(productId);
+      if (!C.endpointSupported("reportGet", { major: contract.protocol_major, minor: contract.protocol_minor })) throw new ProductError("UNAVAILABLE", "PROTOCOL_FEATURE_UNSUPPORTED");
+      const cap = contract.catalog.capabilities.find((c) => c.id === reportId);
+      if (!cap || cap.kind !== "READ") throw new ProductError("NOT_FOUND", "UNKNOWN_REPORT");
+      if (!C.USABLE_CAPABILITY_STATES.includes(cap.state)) throw new ProductError("UNAVAILABLE", "CAPABILITY_" + cap.state);
+      return forwardRead(subject, row, "report.read", "reportGet", { reportId }, readQuery(query, C.REPORT_QUERY), ctx);
     },
 
     // Command submission stays disabled in this phase. The request is

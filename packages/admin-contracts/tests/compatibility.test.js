@@ -180,7 +180,7 @@ test("protocol versions: minor upgrade is additive, downgrade and major change a
   assert.equal(C.activationDecision(result).reason, "NEW_MAJOR_REQUIRES_ONBOARDING");
   const typed = base(); typed.protocol = { major: 1, minor: "0" };
   assertRefused(C.compareCatalogs(base(), typed), "minor of a different type");
-  assert.equal(C.isSupportedProtocol({ major: 1, minor: 1 }), false);
+  assert.equal(C.isSupportedProtocol({ major: 1, minor: 2 }), false);
   assert.equal(C.isSupportedProtocol({ major: 2, minor: 0 }), false);
 });
 

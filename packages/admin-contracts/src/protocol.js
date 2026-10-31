@@ -4,7 +4,9 @@
 // Product Admin and by Headquarters. Nothing here is product-specific.
 
 const PROTOCOL_NAME = "cosmicforge.product-admin";
-const PROTOCOL_VERSION = Object.freeze({ major: 1, minor: 0 });
+// 1.1 (additive): scoped resource and report reads (resourceList,
+// resourceGet, reportGet). A 1.0 Product Admin simply does not offer them.
+const PROTOCOL_VERSION = Object.freeze({ major: 1, minor: 1 });
 const CONTRACT_VERSION = "1.0";
 const BASE_PATH = "/internal/product-admin/v1";
 const MANIFEST_SCHEMA = "cosmicforge.product-admin.manifest/v1";
@@ -81,7 +83,40 @@ const ENDPOINTS = Object.freeze({
   operationGet: Object.freeze({ method: "GET", path: "/operations/{operationId}", auth: "service+delegation" }),
   operationSubmit: Object.freeze({ method: "POST", path: "/operations", auth: "service+delegation" }),
   auditGet: Object.freeze({ method: "GET", path: "/audit/{operationId}", auth: "service+delegation" }),
+  // Protocol 1.1: staff-delegated, scoped reads of one READ capability's
+  // collection, one resource of it, or one product report.
+  resourceList: Object.freeze({ method: "GET", path: "/resources/{capabilityId}/{collectionId}", auth: "service+delegation", since: "1.1" }),
+  resourceGet: Object.freeze({ method: "GET", path: "/resources/{capabilityId}/{collectionId}/{resourceId}", auth: "service+delegation", since: "1.1" }),
+  reportGet: Object.freeze({ method: "GET", path: "/reports/{reportId}", auth: "service+delegation", since: "1.1" }),
 });
+
+// Query keys HQ may forward for 1.1 reads (exact allowlist; values are
+// validated again by the Product Admin against its own source contract).
+const RESOURCE_QUERY = Object.freeze(["market", "organization", "zone", "tenant", "purpose", "start", "end", "limit", "continuation"]);
+const REPORT_QUERY = Object.freeze(["market", "organization", "zone", "tenant", "purpose", "start", "end", "timezone", "authority", "product_code"]);
+const READ_QUERY_SCHEMAS = Object.freeze({
+  market: { type: "string", pattern: PATTERNS.scopeValue },
+  organization: { type: "string", pattern: PATTERNS.scopeValue },
+  zone: { type: "string", pattern: PATTERNS.scopeValue },
+  tenant: { type: "string", pattern: PATTERNS.scopeValue },
+  purpose: { type: "string", pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
+  start: { type: "string", format: "date-time" },
+  end: { type: "string", format: "date-time" },
+  limit: { type: "integer", minimum: 1, maximum: 100 },
+  continuation: { type: "string", pattern: "^[A-Za-z0-9_-]{16,2048}$" },
+  timezone: { type: "string", pattern: "^[A-Za-z][A-Za-z0-9_+/-]{0,63}$" },
+  authority: { type: "string", pattern: "^[A-Z][A-Z_]{1,31}$" },
+  product_code: { type: "string", pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
+});
+
+// True when a contract's protocol version offers this endpoint.
+function endpointSupported(endpointId, protocol) {
+  const endpoint = ENDPOINTS[endpointId];
+  if (!endpoint || !protocol) return false;
+  if (!endpoint.since) return true;
+  const [major, minor] = endpoint.since.split(".").map(Number);
+  return protocol.major === major && protocol.minor >= minor;
+}
 
 const PATH_PARAM = new RegExp(PATTERNS.pathParam);
 
@@ -127,4 +162,5 @@ module.exports = {
   FRESHNESS, COVERAGE, PRIVACY_CLASSES, HQ_SYNCABLE_PRIVACY, SCOPE_DIMENSIONS, GRAINS,
   AGGREGATIONS, DATASET_READINESS, EVENT_FAMILY_STATUS, PROJECTIONS, VALUE_STATES, FIELD_TYPES,
   ERROR_CODES, ENDPOINTS, endpointPath, matchEndpoint, isSupportedProtocol,
+  RESOURCE_QUERY, REPORT_QUERY, READ_QUERY_SCHEMAS, endpointSupported,
 };

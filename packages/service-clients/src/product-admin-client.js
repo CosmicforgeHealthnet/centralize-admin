@@ -39,6 +39,10 @@ function createProductAdminClient({ productId, target, auth, timeoutMs, maxRespo
     getOperation: (operationId, o = {}) => call("operationGet", { ...o, params: { operationId } }),
     submitOperation: (command, o = {}) => call("operationSubmit", { ...o, body: command }),
     getAudit: (operationId, o = {}) => call("auditGet", { ...o, params: { operationId } }),
+    // Protocol 1.1 scoped reads.
+    listResources: (capabilityId, collectionId, query, o = {}) => call("resourceList", { ...o, query, params: { capabilityId, collectionId } }),
+    getResource: (capabilityId, collectionId, resourceId, query, o = {}) => call("resourceGet", { ...o, query, params: { capabilityId, collectionId, resourceId } }),
+    getReport: (reportId, query, o = {}) => call("reportGet", { ...o, query, params: { reportId } }),
   });
 }
 

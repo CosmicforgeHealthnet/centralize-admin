@@ -26,7 +26,12 @@ const OPAQUE = "[A-Za-z0-9][A-Za-z0-9._:-]{0,127}";
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 const DEPT = /^[A-Za-z0-9 _-]{1,64}$/;
 const METRIC_QUERY_KEYS = new Set(["window_start", "window_end", "market", "organization", "zone", "tenant", "limit"]);
+// Protocol 1.1 scoped reads (product-neutral allowlists; PIC and the
+// Product Admin validate every value again).
+const RESOURCE_QUERY_KEYS = new Set(["market", "organization", "zone", "tenant", "purpose", "start", "end", "limit", "continuation"]);
+const REPORT_QUERY_KEYS = new Set(["market", "organization", "zone", "tenant", "purpose", "start", "end", "timezone", "authority", "product_code"]);
 const QUERY_VALUE = /^[A-Za-z0-9._:+-]{1,64}$/;
+const SPECIAL_VALUES = { continuation: /^[A-Za-z0-9_-]{16,2048}$/, timezone: /^[A-Za-z][A-Za-z0-9_+/-]{0,63}$/ };
 const MFA_WINDOW_MS = 5 * 60 * 1000;
 
 const re = (source) => new RegExp("^" + source + "$");
@@ -38,7 +43,10 @@ const PRODUCT_ROUTES = [
   ["GET", re(`/${PRODUCT}/manifest`), false],
   ["GET", re(`/${PRODUCT}/capabilities`), false],
   ["GET", re(`/${PRODUCT}/datasets`), false],
-  ["GET", re(`/${PRODUCT}/metrics/${OPAQUE}`), true],
+  ["GET", re(`/${PRODUCT}/metrics/${OPAQUE}`), METRIC_QUERY_KEYS],
+  ["GET", re(`/${PRODUCT}/resources/${OPAQUE}/${OPAQUE}`), RESOURCE_QUERY_KEYS],
+  ["GET", re(`/${PRODUCT}/resources/${OPAQUE}/${OPAQUE}/${OPAQUE}`), RESOURCE_QUERY_KEYS],
+  ["GET", re(`/${PRODUCT}/reports/${OPAQUE}`), REPORT_QUERY_KEYS],
   ["GET", re(`/${PRODUCT}/events/status`), false],
   ["GET", re(`/${PRODUCT}/operations/${OPAQUE}`), false],
   ["POST", re(`/${PRODUCT}/operations`), false],
@@ -75,14 +83,14 @@ function rawQuery(req) {
   return index === -1 ? "" : url.slice(index + 1);
 }
 
-// Metrics only: exact allowlisted keys, no duplicates, bounded values.
-function metricQuery(req) {
+// Exact allowlisted keys per route, no duplicates, bounded values.
+function metricQuery(req, keys = METRIC_QUERY_KEYS) {
   const params = new URLSearchParams(rawQuery(req));
   const seen = new Set();
   const out = new URLSearchParams();
   for (const [key, value] of params) {
-    if (!METRIC_QUERY_KEYS.has(key) || seen.has(key)) throw fail(400, "INVALID_QUERY", "Invalid product metric query");
-    if (!QUERY_VALUE.test(value)) throw fail(400, "INVALID_QUERY", "Invalid product metric query");
+    if (!keys.has(key) || seen.has(key)) throw fail(400, "INVALID_QUERY", "Invalid product query");
+    if (!(SPECIAL_VALUES[key] || QUERY_VALUE).test(value)) throw fail(400, "INVALID_QUERY", "Invalid product query");
     seen.add(key);
     out.append(key, value);
   }
@@ -118,7 +126,7 @@ function createForwarder({ config, readKey, transport, now, call }) {
   return async function forward(req, res, picPath, allowsQuery) {
     if (!config.enabled) throw fail(503, "PRODUCT_INTEGRATION_DISABLED", "Product integration is disabled");
     if (!config.configured || !transport) throw fail(503, "PRODUCT_INTEGRATION_NOT_CONFIGURED", "Product integration is not configured");
-    const query = allowsQuery ? metricQuery(req) : "";
+    const query = allowsQuery ? metricQuery(req, allowsQuery instanceof Set ? allowsQuery : METRIC_QUERY_KEYS) : "";
     const key = await readKey();
     if (!key) throw fail(503, "PRODUCT_INTEGRATION_NOT_CONFIGURED", "Product integration is not configured");
     const target = PIC_BASE + picPath + query;

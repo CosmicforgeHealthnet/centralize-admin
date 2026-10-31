@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "CosmicForge Universal Product Admin Protocol",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Product Admin to Headquarters private protocol. Not an alias for any product bridge. Private transport only; never exposed through public ingress."
   },
   "paths": {
@@ -1040,6 +1040,553 @@
             "schema": {
               "type": "string",
               "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}": {
+      "get": {
+        "operationId": "resourceList",
+        "summary": "(1.1) Bounded, scoped page of one collection of a READ capability; opaque continuation",
+        "security": [
+          {
+            "ServiceHmac": [],
+            "StaffDelegation": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "capabilityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "collectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "organization",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "tenant",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "purpose",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "continuation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,2048}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}/{resourceId}": {
+      "get": {
+        "operationId": "resourceGet",
+        "summary": "(1.1) One scoped resource of a READ capability collection",
+        "security": [
+          {
+            "ServiceHmac": [],
+            "StaffDelegation": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "capabilityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "collectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "organization",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "tenant",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "purpose",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/reports/{reportId}": {
+      "get": {
+        "operationId": "reportGet",
+        "summary": "(1.1) One product report with source, grain, units, scope, coverage and lineage",
+        "security": [
+          {
+            "ServiceHmac": [],
+            "StaffDelegation": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "organization",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "tenant",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "purpose",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "timezone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_+/-]{0,63}$"
+            }
+          },
+          {
+            "name": "authority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z][A-Z_]{1,31}$"
+            }
+          },
+          {
+            "name": "product_code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
             }
           }
         ],
