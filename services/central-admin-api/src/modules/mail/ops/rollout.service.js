@@ -111,7 +111,19 @@ function createRolloutService({ client, config, audit, stepUp, clock = () => new
   async function workerQueuesAllowed(queues) {
     if (!enforced) return queues;
     const allowed = [];
-    for (const queue of queues) if (!(await decide(`WORKER_${queue}`))) allowed.push(queue);
+    for (const queue of queues) {
+      // Essential queues follow backend service flags; rollout still controls
+      // optional MARKETING processing. Explicit DENY rules remain enforceable.
+      const capability = `WORKER_${queue}`;
+      const decision = await decide(capability);
+      const coreEnabled = queue === "INBOUND"
+        ? config.receivingEnabled && config.inbound?.ownedHere !== false
+        : queue === "OUTBOUND"
+          ? config.sendingEnabled
+          : queue === "EVENTS" && config.enabled;
+      if (decision === "MAIL_ROLLOUT_DENIED") continue;
+      if (decision === null || (decision === "MAIL_ROLLOUT_NOT_ENABLED" && coreEnabled)) allowed.push(queue);
+    }
     return allowed;
   }
 
