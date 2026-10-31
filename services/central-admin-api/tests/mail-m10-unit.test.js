@@ -44,7 +44,7 @@ test("rollout decisions: default deny, scope matching, DENY precedence, cohorts,
   const domain = make({ rules: [rule("STAFF_MAIL", "DOMAIN", "d1")], addresses: { a1: "d1", a2: "d2" } });
   assert.equal(await domain.decide("STAFF_MAIL", { senderAddressId: "a1" }), null, "domain resolved from the sender address");
   assert.equal(await domain.decide("STAFF_MAIL", { senderAddressId: "a2" }), "MAIL_ROLLOUT_NOT_ENABLED");
-  assert.deepEqual(await make({ rules: [rule("WORKER_OUTBOUND", "ENVIRONMENT", null)] }).workerQueuesAllowed(["OUTBOUND", "MARKETING"]), ["OUTBOUND"]);
+  assert.deepEqual(await make({ rules: [rule("WORKER_OUTBOUND", "ENVIRONMENT", null)] }).workerQueuesAllowed(["OUTBOUND", "MARKETING"]), [], "a rollout rule never overrides disabled backend Mail flags");
 });
 
 test("core Mail workers follow backend flags and resume without UI rollout permissions", async () => {
