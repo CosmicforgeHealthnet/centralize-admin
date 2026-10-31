@@ -39,6 +39,10 @@ function readPem(file, label) {
  */
 function buildEndpoints(json, { environment, allowInsecureLoopback = false } = {}) {
   const map = new Map();
+  // Keys are symmetric: whoever holds one can sign with it. A key shared by
+  // two Product Admin endpoints would let one product sign as HQ to the
+  // other, or mint delegations for it, so every key must be unique.
+  const seenKeys = [];
   const entries = (json && json.endpoints) || {};
   for (const [ref, raw] of Object.entries(entries)) {
     if (!raw || typeof raw !== "object") throw new EndpointError("ENDPOINT_INVALID");
@@ -56,6 +60,8 @@ function buildEndpoints(json, { environment, allowInsecureLoopback = false } = {
     const delegationKey = readSecret(raw.delegation, "DELEGATION");
     if (serviceKey.length < 32 || delegationKey.length < 32) throw new EndpointError("KEY_TOO_SHORT");
     if (serviceKey.equals(delegationKey)) throw new EndpointError("KEY_REUSE");
+    if (seenKeys.some((k) => k.equals(serviceKey) || k.equals(delegationKey))) throw new EndpointError("KEY_REUSE_ACROSS_BOUNDARIES");
+    seenKeys.push(serviceKey, delegationKey);
     map.set(ref, Object.freeze({
       ref,
       productId: raw.product_id,

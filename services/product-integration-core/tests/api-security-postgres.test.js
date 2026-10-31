@@ -150,3 +150,24 @@ test("a disabled core refuses every API call", async () => {
     assert.equal(r.json.error.reason, "PRODUCT_INTEGRATION_DISABLED");
   } finally { server.close(); }
 });
+
+test("REGRESSION: an explicit DENY cannot be revoked by the staff member it restricts", { skip }, async () => {
+  const h = await startHarness();
+  try {
+    await h.registerAndEnable();
+    await h.bootstrapPlatformGrant("staff-viewer", ["integration.grants.manage"]);
+    await h.grantViewer();
+    const denyId = await h.grantViewer("staff-viewer", { effect: "DENY", role: null, actions: ["metric.read"], scope: {} });
+    const metric = "/products/" + h.product.PRODUCT_ID + "/metrics/synthetic.completed_orders?market=NG&tenant=tenant-a";
+    assert.equal((await h.call("staff-viewer", "GET", metric)).status, 403);
+    const self = await h.call("staff-viewer", "POST", "/admin/product-integration-grants/" + denyId + "/revoke", { reason_code: "NOT_NEEDED" });
+    assert.equal(self.status, 403);
+    assert.equal(self.json.error.reason, "SELF_REVOKE_DENIED");
+    assert.equal((await h.call("staff-viewer", "GET", metric)).status, 403, "the DENY still wins");
+    // Database backstop for new revocations.
+    await assert.rejects(h.pool.query("UPDATE hq_integration.hq_product_admin_grants SET revoked_at = now(), revoked_by = staff_id, revocation_reason = 'X' WHERE id = $1", [denyId]), /no_self_revoke/);
+    // Another administrator can revoke it.
+    const other = await h.call("staff-requester", "POST", "/admin/product-integration-grants/" + denyId + "/revoke", { reason_code: "REVIEWED" });
+    assert.equal(other.status, 200);
+  } finally { await h.close(); }
+});

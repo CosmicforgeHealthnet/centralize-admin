@@ -187,6 +187,12 @@ test("operations are durably rejected, idempotent, auditable and never executed"
   const replay = await client.submitOperation(cmd, { delegation: F.delegation(m, { method: "POST", uri, body: cmd, action: "operation.submit" }) });
   assert.equal(replay.json.error.operation_id, cmd.command_id);
   assert.equal(app.deps.operations.byId.size, 1);
+  // REGRESSION: another staff member resending the same command is not a
+  // replay of someone else's operation.
+  const foreign = await client.submitOperation(cmd, { delegation: F.delegation(m, { method: "POST", uri, body: cmd, action: "operation.submit", sub: "staff-99" }) });
+  assert.equal(foreign.status, 409);
+  assert.equal(foreign.json.error.reason, "IDEMPOTENCY_KEY_REUSED");
+  assert.equal(foreign.json.error.operation_id, undefined, "nothing about the other operation is disclosed");
   const changed = { ...cmd, reason_code: "OTHER_REASON" };
   const conflict = await client.submitOperation(changed, { delegation: F.delegation(m, { method: "POST", uri, body: changed, action: "operation.submit" }) });
   assert.equal(conflict.status, 409);
@@ -203,6 +209,14 @@ test("operations are durably rejected, idempotent, auditable and never executed"
   assert.equal((await client.submitOperation(malformed, { delegation: F.delegation(m, { method: "POST", uri, body: malformed, action: "operation.submit" }) })).json.error.reason, "COMMAND_INVALID");
   const outside = command({ scope: { market: ["NG-ABUJA"], organization: ["karryam-ng"] } });
   assert.equal((await client.submitOperation(outside, { delegation: F.delegation(m, { method: "POST", uri, body: outside, action: "operation.submit" }) })).json.error.reason, "SCOPE_DENIED");
+  // REGRESSION: an omitted or empty dimension means "everywhere" and must not
+  // pass as inside the delegation.
+  for (const scope of [{}, { market: ["NG-LAGOS"] }, { organization: ["karryam-ng"] }, { market: [], organization: ["karryam-ng"] }]) {
+    const unscoped = command({ scope });
+    const res = await client.submitOperation(unscoped, { delegation: F.delegation(m, { method: "POST", uri, body: unscoped, action: "operation.submit" }) });
+    assert.equal(res.json.error.reason, res.status === 400 ? "COMMAND_INVALID" : "SCOPE_DENIED", JSON.stringify(scope));
+    assert.notEqual(res.status, 200);
+  }
   const unknownId = randomUUID();
   assert.equal((await client.getOperation(unknownId, readAs(BASE + "/operations/" + unknownId))).status, 404);
   assert.equal((await client.getAudit(unknownId, readAs(BASE + "/audit/" + unknownId))).status, 404);
@@ -226,4 +240,17 @@ test("readiness reports the database honestly and never claims upstream certific
   assert.equal(res.json.upstream_certified, false);
   const live = await F.rawRequest(app.port, { path: BASE + "/health/live" });
   assert.equal(live.status, 200);
+});
+
+test("command scope containment: every delegated dimension is required, non-empty and contained", () => {
+  const { withinScope } = require("../src/protocol/handlers");
+  const delegated = { market: ["NG-LAGOS"], organization: ["karryam-ng"], zone: ["z1"] };
+  assert.equal(withinScope({ market: ["NG-LAGOS"], organization: ["karryam-ng"], zone: ["z1"] }, delegated), true);
+  assert.equal(withinScope({}, delegated), false);
+  assert.equal(withinScope({ market: ["NG-LAGOS"], organization: ["karryam-ng"] }, delegated), false, "zone omitted");
+  assert.equal(withinScope({ market: ["NG-LAGOS"], organization: ["karryam-ng"], zone: [] }, delegated), false, "zone empty");
+  assert.equal(withinScope({ market: ["NG-LAGOS"], organization: ["karryam-ng"], zone: ["z1"], tenant: ["t1"] }, delegated), false, "undelegated dimension");
+  assert.equal(withinScope({ market: ["NG-ABUJA"], organization: ["karryam-ng"], zone: ["z1"] }, delegated), false);
+  assert.equal(withinScope({ market: ["NG-LAGOS"] }, { market: ["NG-LAGOS"] }), false, "organization is always required");
+  assert.equal(withinScope([], delegated), false);
 });

@@ -559,7 +559,12 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       await authz(subject, "integration.grants.manage", ctx);
       if (!REASON.test(String(reason_code || ""))) throw new OnboardingError("REASON_CODE_REQUIRED", 400);
       return withTx(pool, async (client) => {
-        const { rows } = await client.query(`UPDATE ${T}hq_product_admin_grants SET revoked_at = now(), revoked_by = $2, revocation_reason = $3 WHERE id = $1 AND revoked_at IS NULL RETURNING id, product_id`, [grantId, subject.staffId, reason_code]);
+        // Symmetric with the no-self-grant rule: nobody revokes a grant that
+        // applies to themselves, so an explicit DENY cannot be lifted by the
+        // person it restricts.
+        const { rows: [target] } = await client.query(`SELECT staff_id FROM ${T}hq_product_admin_grants WHERE id = $1 FOR UPDATE`, [grantId]);
+        if (target && target.staff_id === subject.staffId) throw new OnboardingError("SELF_REVOKE_DENIED", 403);
+        const { rows } = await client.query(`UPDATE ${T}hq_product_admin_grants SET revoked_at = now(), revoked_by = $2, revocation_reason = $3 WHERE id = $1 AND revoked_at IS NULL AND staff_id <> $2 RETURNING id, product_id`, [grantId, subject.staffId, reason_code]);
         if (!rows[0]) throw new OnboardingError("UNKNOWN_GRANT", 404);
         await recordAudit(client, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId: rows[0].product_id, action: "integration.grant.revoke", outcome: "RECORDED", metadata: { grant_ref: grantId } });
         return { grant_id: grantId, revoked: true };

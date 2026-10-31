@@ -183,11 +183,21 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
   };
 }
 
-// Every requested scope value must already be in the delegated scope.
+// A command must name its scope explicitly and stay inside the delegation:
+// every dimension the delegation restricts must be present and non-empty in
+// the request (an omitted dimension would mean "everywhere"), market and
+// organization are always required, and every requested value must already
+// be delegated.
+const REQUIRED_SCOPE_DIMENSIONS = Object.freeze(["market", "organization"]);
 function withinScope(requested, delegated) {
-  if (!requested || typeof requested !== "object" || !delegated || typeof delegated !== "object") return false;
+  if (!requested || typeof requested !== "object" || Array.isArray(requested)) return false;
+  if (!delegated || typeof delegated !== "object" || Array.isArray(delegated)) return false;
+  const required = new Set([...REQUIRED_SCOPE_DIMENSIONS, ...Object.keys(delegated)]);
+  for (const dim of required) {
+    if (!Array.isArray(requested[dim]) || requested[dim].length === 0) return false;
+  }
   return Object.entries(requested).every(([dim, values]) =>
-    Array.isArray(values) && Array.isArray(delegated[dim]) && values.every((v) => delegated[dim].includes(v)));
+    Array.isArray(values) && values.length > 0 && Array.isArray(delegated[dim]) && values.every((v) => delegated[dim].includes(v)));
 }
 
-module.exports = { createHandlers, EVENTS_QUERY };
+module.exports = { createHandlers, EVENTS_QUERY, withinScope };

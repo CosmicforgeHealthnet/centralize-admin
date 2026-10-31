@@ -19,6 +19,11 @@ ALTER TABLE hq_integration.hq_product_admin_sync_runs DROP CONSTRAINT hq_product
 ALTER TABLE hq_integration.hq_product_admin_sync_runs ADD CONSTRAINT hq_product_admin_sync_runs_ack_status_check
   CHECK (ack_status IN ('NOT_REQUIRED', 'ACKED', 'ACK_FAILED', 'SKIPPED_REVOKED', 'SKIPPED_BLOCKED'));
 
+-- Nobody revokes a grant that applies to themselves (mirrors no_self_grant).
+-- NOT VALID: enforced for every new revocation without rewriting history.
+ALTER TABLE hq_integration.hq_product_admin_grants ADD CONSTRAINT hq_product_admin_grants_no_self_revoke
+  CHECK (revoked_by IS NULL OR revoked_by <> staff_id) NOT VALID;
+
 ALTER TABLE hq_integration.hq_product_admin_sync_cursors ADD COLUMN hold_reason text NULL;
 -- Format-only: an image rollback to code that predates hold_reason must still
 -- be able to clear a gap (the engine always clears both together).
