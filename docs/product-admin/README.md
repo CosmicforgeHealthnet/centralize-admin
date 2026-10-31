@@ -1,6 +1,6 @@
 # Product Admin platform (Karryam Admin and Centralized Admin HQ integration)
 
-Implementation of Sections 1–5 of *Karryam Admin and Centralized Admin
+Implementation of Sections 1–8 of *Karryam Admin and Centralized Admin
 Headquarters — Complete Backend Implementation Specification v1.0*.
 
 | Document | Covers |
@@ -10,6 +10,7 @@ Headquarters — Complete Backend Implementation Specification v1.0*.
 | [protocol-v1.md](protocol-v1.md) | Section 4: Universal Product Admin Protocol v1, manifest, datasets, events, compatibility, envelopes, Karryam status |
 | [registry-and-onboarding.md](registry-and-onboarding.md) | Section 5: registry database, onboarding, HQ API, navigation contract, synchronization, monitoring, runbook |
 | [sections-1-5-implementation-report.md](sections-1-5-implementation-report.md) | Evidence report: completion matrix, test results, external dependencies, verdict |
+| [sections-6-8-implementation-report.md](sections-6-8-implementation-report.md) | Sections 6–8: Karryam Admin modules and reports, secure Bridge connector, two-stage synchronization; coverage matrix, evidence, blockers, verdict |
 
 Code:
 

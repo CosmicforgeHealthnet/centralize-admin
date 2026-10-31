@@ -40,6 +40,27 @@ services:
       - /etc/cosmicforge/secrets/karryam-admin:/run/secrets:ro
     networks: [admin-private]
 
+  # Stage A worker: same image, separate process. It talks only to the
+  # private Bridge and the Karryam Admin database; it never calls HQ and has
+  # no listener (so no socket health check).
+  karryam-admin-worker:
+    image: ghcr.io/cosmicforgehealthnet/karryam-admin:<reviewed-tag>
+    command: ["node", "src/worker/index.js"]
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      disable: true
+    environment:
+      KARRYAM_ADMIN_ENABLED: "false"      # enable only after certification
+      KARRYAM_BRIDGE_ENABLED: "false"     # requires approved bridge trust enrollment
+      KARRYAM_BRIDGE_FEED_ENABLED: "false"
+    env_file: [/etc/cosmicforge/karryam-admin.env]
+    volumes:
+      - /etc/cosmicforge/secrets/karryam-admin:/run/secrets:ro
+    networks: [admin-private]
+
 volumes:
   pic-socket: {}
   karryam-admin-socket: {}

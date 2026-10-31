@@ -2,7 +2,12 @@ const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const ROOT = path.resolve(__dirname, "..", "..");
+// Default: the Central Admin API. --product-admin scans the Product Admin
+// platform from the repository root with the same rules: Karryam Admin, the
+// Product Integration Core, the shared protocol packages, infrastructure
+// templates, product-admin docs and every workflow.
+const PRODUCT_ADMIN = process.argv.includes("--product-admin");
+const ROOT = PRODUCT_ADMIN ? path.resolve(__dirname, "..", "..", "..", "..") : path.resolve(__dirname, "..", "..");
 const EXCLUDED_SEGMENTS = new Set([
   ".git",
   "node_modules",
@@ -13,7 +18,17 @@ const EXCLUDED_SEGMENTS = new Set([
   "src/generated",
 ]);
 
-const INCLUDED_PREFIXES = [
+const INCLUDED_PREFIXES = PRODUCT_ADMIN ? [
+  ".github/workflows/",
+  "docs/product-admin/",
+  "infrastructure/product-admin/",
+  "packages/admin-contracts/",
+  "packages/event-contracts/",
+  "packages/identity-and-permissions/",
+  "packages/service-clients/",
+  "services/karryam-admin/",
+  "services/product-integration-core/",
+] : [
   ".github/",
   "docs/",
   "prisma/",
@@ -22,7 +37,7 @@ const INCLUDED_PREFIXES = [
   "tests/",
 ];
 
-const INCLUDED_FILES = new Set([
+const INCLUDED_FILES = new Set(PRODUCT_ADMIN ? [] : [
   ".env.example",
   ".gitignore",
   "Dockerfile",

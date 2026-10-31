@@ -8,6 +8,7 @@ name: Product Admin Platform CI
 on:
   pull_request:
     paths:
+      - "services/central-admin-api/scripts/social-operations/secret-scan.js"
       - "packages/**"
       - "services/karryam-admin/**"
       - "services/product-integration-core/**"
@@ -19,6 +20,7 @@ on:
   push:
     branches: [staging]
     paths:
+      - "services/central-admin-api/scripts/social-operations/secret-scan.js"
       - "packages/**"
       - "services/karryam-admin/**"
       - "services/product-integration-core/**"
@@ -58,6 +60,8 @@ jobs:
             npm --prefix "packages/$pkg" test
             echo "::endgroup::"
           done
+      - name: Redacted secret scan (Product Admin services, packages, templates, workflows)
+        run: node services/central-admin-api/scripts/social-operations/secret-scan.js --product-admin
       - name: Published schemas and OpenAPI are in sync with source
         run: |
           set -euo pipefail
@@ -105,8 +109,10 @@ jobs:
           ref: ${{ steps.karrygo-pin.outputs.sha }}
           path: _karrygo-pinned
           persist-credentials: false
-          sparse-checkout: services/admin-backoffice-service/docs/openapi
-      - name: Protocol, security-negative, bridge, transport and PostgreSQL tests
+          sparse-checkout: |
+            services/admin-backoffice-service/docs/openapi
+            shared/go/adminevents
+      - name: Pinned registry, connector security, modules, operations, reports, Stage A/B pipeline and PostgreSQL tests
         env:
           KARRYAM_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
           KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-pinned
@@ -119,7 +125,9 @@ jobs:
           ref: staging
           path: _karrygo-staging
           persist-credentials: false
-          sparse-checkout: services/admin-backoffice-service/docs/openapi
+          sparse-checkout: |
+            services/admin-backoffice-service/docs/openapi
+            shared/go/adminevents
       - name: Report KarryGo bridge contract drift (warning only; re-pin after review)
         env:
           KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-staging
@@ -217,3 +225,6 @@ jobs:
           set -euo pipefail
           ! docker run --rm --network none -e KARRYAM_ADMIN_ENABLED=true cosmicforge-karryam-admin:ci
           ! docker run --rm --network none -e PIC_ENABLED=true cosmicforge-product-integration-core:ci
+          # The Stage A worker (same image) refuses to start while disabled.
+          ! docker run --rm --network none cosmicforge-karryam-admin:ci node src/worker/index.js
+          ! docker run --rm --network none -e KARRYAM_ADMIN_ENABLED=true cosmicforge-karryam-admin:ci node src/worker/index.js
