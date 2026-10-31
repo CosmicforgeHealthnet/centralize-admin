@@ -503,7 +503,12 @@ export default function ComposeEditor({
 
       <div className="flex flex-col gap-2 px-3 pb-2">
         <AttachmentViewer attachments={attachments} onRemove={removeAttachment} />
-        {error && <p role="alert" className="text-[12px] text-red-600">{error}</p>}
+        {error && (
+          <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100">
+            <p className="font-semibold">We couldn&apos;t complete that action</p>
+            <p className="mt-1 leading-relaxed">{error}</p>
+          </div>
+        )}
       </div>
 
       <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border bg-card px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">

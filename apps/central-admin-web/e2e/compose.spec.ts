@@ -43,7 +43,7 @@ test.describe("Compose: server-authorized senders, autosave and honest send feed
     await page.getByLabel("Subject").fill("Hello");
     await page.getByRole("button", { name: "Send", exact: true }).click();
 
-    await expect(page.getByRole("alert").filter({ hasText: "not authorized to send" })).toBeVisible();
+    await expect(page.getByRole("alert").filter({ hasText: "Select an approved sender identity" })).toBeVisible();
     await expect(page.getByText("Message queued for sending.")).toHaveCount(0);
     const send = api.callsTo("POST", `${M}/drafts/dr-1/send`);
     expect(send).toHaveLength(1);
