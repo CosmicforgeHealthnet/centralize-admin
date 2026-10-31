@@ -77,7 +77,7 @@ test("manifest is signed, verifies for product 'karryam' and advertises honest s
   const usable = verified.manifest.capabilities.filter((c) => contracts.USABLE_CAPABILITY_STATES.includes(c.state));
   // Without Bridge enrollment only local, source-free capabilities are usable:
   // the connector-health report and the two local approval records.
-  assert.deepEqual(usable.map((c) => c.id).sort(), ["karryam.governance.approval.decide", "karryam.governance.approval.propose", "karryam.report.connector_health"]);
+  assert.deepEqual(usable.map((c) => c.id).sort(), ["karryam.governance.approval.decide", "karryam.governance.approval.propose", "karryam.governance.approval.revoke", "karryam.report.connector_health"]);
   const sourceCommands = verified.manifest.capabilities.filter((c) => c.kind === "COMMAND" && !c.id.startsWith("karryam.governance."));
   assert.equal(sourceCommands.length, 58);
   assert.ok(sourceCommands.every((c) => c.state === "DISABLED" && c.blockers.length >= 1 && c.request_schema === null));

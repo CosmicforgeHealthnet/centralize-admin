@@ -253,7 +253,9 @@ function commandAllowlist(value, bridge) {
   for (const id of list) {
     const cap = id.startsWith("karryam.") ? registry.capability(id.slice("karryam.".length)) : null;
     if (!cap || !["COMMAND", "RETRIEVAL"].includes(cap.kind) || ["BLOCKED_DEPENDENCY", "DISABLED"].includes(cap.matrix_state)) throw new ConfigError("KARRYAM_ADMIN_ENABLED_COMMANDS_INVALID");
-    if (cap.risk === "R3" || cap.risk === "R4") throw new ConfigError("KARRYAM_ADMIN_COMMAND_RISK_REQUIRES_CERTIFICATION");
+    // R3/R4 may be listed, but listing never makes them executable: exposure
+    // also requires a high-risk certification in force (database, operator
+    // identity only) and execution re-checks it with an independent approval.
   }
   return list;
 }

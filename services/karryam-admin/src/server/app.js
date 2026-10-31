@@ -56,7 +56,7 @@ function createApp(config, deps) {
   const approvals = deps.approvals || memoryApprovals({ now });
   const reads = createReads({ config, bridgeClient, continuation, audit: deps.audit, accessLog, now, logger: deps.logger });
   const reports = createReports({ config, bridgeClient, store: deps.pipeline || null, audit: deps.audit, bridgeMetrics, now });
-  const operationsService = createOperations({ config, catalog, operations: deps.operations, approvals, bridgeClient, now, logger: deps.logger });
+  const operationsService = createOperations({ config, catalog, operations: deps.operations, approvals, bridgeClient, certifications: deps.certifications || null, governance: deps.governance || null, now, logger: deps.logger });
   const handlers = createHandlers({ config, catalog, manifest, bridgeClient, operations: deps.operations, operationsService, reads, reports, pipeline: deps.pipeline || null, audit: deps.audit, governance: deps.governance || null, dbReady: deps.dbReady, logger: deps.logger, now });
   return clients.createProductAdminHandler({
     productId: config.productId,

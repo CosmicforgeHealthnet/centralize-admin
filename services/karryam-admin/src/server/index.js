@@ -17,17 +17,26 @@ const { pgApprovals } = require("../db/approvals");
 const { pgAccessLog } = require("../db/access-log");
 const { createPipelineStore } = require("../sync/store");
 const { createGovernanceStore } = require("../db/governance");
+const { pgCertifications } = require("../db/certifications");
+const { contractRevision } = require("../sync/bridge-consumer");
 
 async function start(env = process.env, { logger = createLogger() } = {}) {
-  const config = loadConfig(env);
+  let config = loadConfig(env);
   let pool = null;
   let deps = { logger };
   if (config.enabled) {
     pool = createPool(config.databaseUrl);
+    // High-risk exposure is evaluated at startup from certifications in force
+    // (fail closed: none when the store cannot be read); every submission
+    // re-checks the certification, so a revocation takes effect immediately.
+    const certifications = pgCertifications(pool);
+    const listed = config.enabledCommands.filter((id) => { const c = require("../bridge/contracts/registry").capability(id.slice("karryam.".length)); return c && (c.risk === "R3" || c.risk === "R4"); });
+    const highRiskCertified = listed.length ? await certifications.activeIds(contractRevision()).catch(() => []) : [];
+    config = Object.freeze({ ...config, highRiskCertified: Object.freeze(listed.filter((id) => highRiskCertified.includes(id))) });
     const audit = pgAudit(pool);
     deps = {
       logger, audit, nonceStore: pgNonceStore(pool), operations: pgOperations(pool), approvals: pgApprovals(pool), accessLog: pgAccessLog(pool),
-      pipeline: createPipelineStore(pool, { serviceInstanceId: config.serviceInstanceId }), governance: createGovernanceStore(pool), dbReady: () => ping(pool),
+      pipeline: createPipelineStore(pool, { serviceInstanceId: config.serviceInstanceId }), governance: createGovernanceStore(pool), certifications, dbReady: () => ping(pool),
     };
   }
   const server = createServer(createApp(config, deps), config);

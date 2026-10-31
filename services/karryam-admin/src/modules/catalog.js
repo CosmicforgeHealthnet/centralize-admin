@@ -37,6 +37,7 @@ const MODULE_BY_READ = new Map(MODULES.filter((m) => m.read).map((m) => [m.read,
 
 const blocker = (code, detail) => ({ code, detail: String(detail).slice(0, 240) });
 const BRIDGE_TRUST = blocker("BRIDGE_TRUST_NOT_ENROLLED", "Bridge mTLS identity, HMAC key and staff signing key are not enrolled for this environment");
+const HIGH_RISK = blocker("HIGH_RISK_CERTIFICATION_REQUIRED", "R3/R4 execution requires a two-reviewer certification for the pinned contract, runtime Bridge availability, recent MFA and an independent approval of the exact intent");
 
 function sourceBlocker(cap) {
   return blocker("SOURCE_" + cap.matrix_state, cap.blocker || "Source capability is " + cap.matrix_state);
@@ -62,9 +63,14 @@ function readExposure(cap, config) {
 function commandExposure(cap, config) {
   const id = "karryam." + cap.id;
   if (cap.matrix_state === "BLOCKED_DEPENDENCY" || cap.matrix_state === "DISABLED") return { state: "DISABLED", blockers: [sourceBlocker(cap)] };
-  if (cap.risk === "R3" || cap.risk === "R4") return { state: "DISABLED", blockers: [blocker("HIGH_RISK_CERTIFICATION_REQUIRED", "R3/R4 execution requires separate certification, two-person approval and an approved owner policy")] };
-  if (!config.bridge.enabled) return { state: "DISABLED", blockers: [BRIDGE_TRUST] };
-  if (!config.enabledCommands.includes(id)) return { state: "DISABLED", blockers: [blocker("COMMAND_NOT_ENABLED", "Not enabled by the operator for this environment; source policy must also approve it")] };
+  const high = cap.risk === "R3" || cap.risk === "R4";
+  if (!config.bridge.enabled) return { state: "DISABLED", blockers: [BRIDGE_TRUST, ...(high ? [HIGH_RISK] : [])] };
+  if (!config.enabledCommands.includes(id)) return { state: "DISABLED", blockers: [blocker("COMMAND_NOT_ENABLED", "Not enabled by the operator for this environment; source policy must also approve it"), ...(high ? [HIGH_RISK] : [])] };
+  // R3/R4 (Section 11.3): an operator listing alone is never enough; a
+  // two-reviewer certification for the pinned contract must be in force.
+  // Execution still needs runtime Bridge availability, recent MFA, an
+  // independent approval of the exact intent and the Bridge's own decision.
+  if (high && !(config.highRiskCertified || []).includes(id)) return { state: "DISABLED", blockers: [HIGH_RISK] };
   return { state: "AVAILABLE", blockers: [] };
 }
 

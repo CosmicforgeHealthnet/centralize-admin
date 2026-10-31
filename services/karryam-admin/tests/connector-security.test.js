@@ -216,10 +216,19 @@ test("configuration: client certificate URI/expiry/revocation, command allowlist
   assert.throws(() => F.loadConfig(env, { now: Date.now() - 86400000 }), reason("KARRYAM_BRIDGE_CLIENT_CERT_NOT_CURRENTLY_VALID"));
   assert.throws(() => F.loadConfig({ ...env, KARRYAM_ADMIN_CURSOR_KEY_FILE: "" }), reason("KARRYAM_ADMIN_CURSOR_KEY_FILE_REQUIRED"));
   assert.throws(() => F.loadConfig({ ...env, KARRYAM_ADMIN_ZONES: "*" }), reason("KARRYAM_ADMIN_ZONES_INVALID"));
-  // Commands: only exact pinned commands; R3/R4 refused pending certification.
+  // Commands: only exact pinned commands. R3/R4 may be listed, but listing
+  // alone never exposes them: without a high-risk certification in force
+  // they stay DISABLED (Section 11.3).
   assert.deepEqual(F.loadConfig({ ...env, KARRYAM_ADMIN_ENABLED_COMMANDS: "karryam.customer.review.submit" }).enabledCommands, ["karryam.customer.review.submit"]);
-  assert.throws(() => F.loadConfig({ ...env, KARRYAM_ADMIN_ENABLED_COMMANDS: "karryam.wallet.command.submit" }), reason("KARRYAM_ADMIN_COMMAND_RISK_REQUIRES_CERTIFICATION"));
-  assert.throws(() => F.loadConfig({ ...env, KARRYAM_ADMIN_ENABLED_COMMANDS: "karryam.pricing.policy.activate" }), reason("KARRYAM_ADMIN_COMMAND_RISK_REQUIRES_CERTIFICATION"));
+  const { commandExposure } = require("../src/modules/catalog");
+  const R = require("../src/bridge/contracts/registry");
+  for (const id of ["karryam.wallet.command.submit", "karryam.pricing.policy.activate"]) {
+    const listed = F.loadConfig({ ...env, KARRYAM_ADMIN_ENABLED_COMMANDS: id });
+    const exposure = commandExposure(R.capability(id.slice(8)), listed);
+    assert.equal(exposure.state, "DISABLED", id);
+    assert.deepEqual(exposure.blockers.map((b) => b.code), ["HIGH_RISK_CERTIFICATION_REQUIRED"], id);
+    assert.equal(commandExposure(R.capability(id.slice(8)), { ...listed, highRiskCertified: [id] }).state, "AVAILABLE", "only listing + certification exposes " + id);
+  }
   assert.throws(() => F.loadConfig({ ...env, KARRYAM_ADMIN_ENABLED_COMMANDS: "karryam.customer.resources.customers.list" }), reason("KARRYAM_ADMIN_ENABLED_COMMANDS_INVALID"));
   assert.throws(() => F.loadConfig({ ...env, KARRYAM_ADMIN_ENABLED_COMMANDS: "karryam.bridge.operations.submit" }), reason("KARRYAM_ADMIN_ENABLED_COMMANDS_INVALID"), "source-disabled commands cannot be enabled");
   assert.throws(() => F.loadConfig({ ...F.enabledEnv(m), KARRYAM_ADMIN_ENABLED_COMMANDS: "karryam.customer.review.submit" }), reason("KARRYAM_ADMIN_ENABLED_COMMANDS_REQUIRE_BRIDGE"));

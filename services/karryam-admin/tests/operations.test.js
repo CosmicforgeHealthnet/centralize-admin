@@ -148,7 +148,10 @@ test("two-person approval foundation: independent, MFA-fresh, digest/scope bound
     return submit(h, cmd, claims).then((res) => ({ res, cmd }));
   };
   const digest = "sha256:" + "d".repeat(64);
-  const { res: proposed, cmd: proposal } = await local("karryam.governance.approval.propose", { capability_id: "karryam.wallet.command.submit", intent_digest: digest, ttl_seconds: 600 });
+  // High-risk targets need a certification in force before anyone can even propose.
+  const uncertified = await local("karryam.governance.approval.propose", { capability_id: "karryam.wallet.command.submit", intent_digest: digest, ttl_seconds: 600 });
+  assert.equal(uncertified.res.json.error.reason, "APPROVAL_TARGET_NOT_CERTIFIED");
+  const { res: proposed, cmd: proposal } = await local("karryam.governance.approval.propose", { capability_id: CAP, intent_digest: digest, ttl_seconds: 600 });
   assert.equal(proposed.json.result.status, "SUCCEEDED", JSON.stringify(proposed.json));
   assert.equal(proposed.json.result.approval.status, "PROPOSED");
   const self = await local("karryam.governance.approval.decide", { approval_id: proposal.command_id, decision: "APPROVE" });
@@ -162,7 +165,7 @@ test("two-person approval foundation: independent, MFA-fresh, digest/scope bound
 
   // Consumption: binding, requester, single use.
   const a = h.approvals;
-  const base = { id: proposal.command_id, operationId: randomUUID(), capabilityId: "karryam.wallet.command.submit", intentDigest: digest, scope: scopeArrays, requestedBy: "staff-17" };
+  const base = { id: proposal.command_id, operationId: randomUUID(), capabilityId: CAP, intentDigest: digest, scope: scopeArrays, requestedBy: "staff-17" };
   await assert.rejects(a.consume({ ...base, intentDigest: "sha256:" + "e".repeat(64) }), (e) => e.reason === "APPROVAL_BINDING_MISMATCH");
   await assert.rejects(a.consume({ ...base, scope: { ...scopeArrays, zone: ["z2"] } }), (e) => e.reason === "APPROVAL_BINDING_MISMATCH");
   await assert.rejects(a.consume({ ...base, requestedBy: "staff-55" }), (e) => e.reason === "APPROVAL_REQUESTER_MISMATCH");

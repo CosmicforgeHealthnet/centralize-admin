@@ -11,7 +11,9 @@
 // identity, digest, scope and requester (migration 002 triggers).
 //
 // recordRejection() / recordIntent() return { kind: "CREATED" | "REPLAY" |
-// "KEY_CONFLICT" | "COMMAND_CONFLICT", operation }.
+// "KEY_CONFLICT" | "COMMAND_CONFLICT" | "APPROVAL_REUSED", operation }.
+// An approval reference belongs to at most one operation that was not
+// refused (unique index, 003 as corrected by 004).
 
 const { sanitize } = require("../audit");
 
@@ -75,6 +77,10 @@ function pgOperations(pool) {
       if (!inserted.rows[0]) {
         await client.query("ROLLBACK");
         const prior = await get(op.id);
+        if (!prior && op.approvalRef) {
+          const { rows: [holder] } = await pool.query("SELECT id FROM karryam_admin.operation_requests WHERE approval_ref = $1 AND status <> 'REJECTED'", [op.approvalRef]);
+          if (holder) return { kind: "APPROVAL_REUSED", operation: null };
+        }
         return { kind: prior && prior.idempotency_key === op.idempotencyKey && prior.request_digest === op.requestDigest && prior.staff_ref === op.staffRef ? "REPLAY" : "COMMAND_CONFLICT", operation: prior };
       }
       await auditRow(client, auditRecord, op.id);
@@ -140,6 +146,7 @@ function memoryOperations(audit) {
       }
     }
     if (byId.has(op.id)) return { kind: "COMMAND_CONFLICT", operation: { ...byId.get(op.id) } };
+    if (op.approvalRef && [...byId.values()].some((p) => p.approval_ref === op.approvalRef && p.status !== "REJECTED")) return { kind: "APPROVAL_REUSED", operation: null };
     const at = new Date().toISOString();
     const operation = rowToOperation({
       id: op.id, capability_id: op.capabilityId, status, reason_code: op.reasonCode || (status === "RECORDED" ? "INTENT_RECORDED" : "REJECTED"), created_at: at, updated_at: at,

@@ -12,6 +12,11 @@
 //     expected_version, case_ref) must equal the command's own values.
 //  4. Intent + audit are persisted BEFORE dispatch; an approval reference,
 //     when present or required, is validated and consumed exactly once.
+//  4b. R3/R4 (Section 11.3) additionally need a high-risk certification in
+//     force for the pinned contract revision, a current runtime Bridge
+//     observation that the capability is AVAILABLE for the staff role, and an
+//     independent approval bound to that certification, policy revision,
+//     exact intent, scope and expected source version.
 //  5. One dispatch. A definite refusal is FAILED; a timeout, 5xx or broken
 //     response after the request may have arrived is UNKNOWN_OUTCOME and is
 //     never resubmitted: only authoritative readback of the original
@@ -23,6 +28,7 @@ const { protocolMapping } = require("../bridge/errors");
 const { bridgeStaffContext, StaffContextError } = require("../bridge/capabilities");
 const { commandExposure } = require("../modules/catalog");
 const { ApprovalError } = require("../db/approvals");
+const { contractRevision } = require("../sync/bridge-consumer");
 
 const P = contracts.ProtocolError;
 const validateCommand = contracts.compile(contracts.schemas.SCHEMAS["operation-command.v1"]);
@@ -34,12 +40,18 @@ const LOCAL = Object.freeze({
   "karryam.governance.approval.propose": {
     risk: "R2", description: "Propose an independent approval bound to one capability, intent digest and exact scope (local record; no source call)",
     schema: { type: "object", additionalProperties: false, required: ["capability_id", "intent_digest", "ttl_seconds"], properties: {
-      capability_id: { type: "string", pattern: "^[a-z][a-z0-9_.-]{1,95}$" }, intent_digest: { type: "string", pattern: "^sha256:[0-9a-f]{64}$" }, ttl_seconds: { type: "integer", minimum: 60, maximum: 3600 } } },
+      capability_id: { type: "string", pattern: "^[a-z][a-z0-9_.-]{1,95}$" }, intent_digest: { type: "string", pattern: "^sha256:[0-9a-f]{64}$" }, ttl_seconds: { type: "integer", minimum: 60, maximum: 3600 },
+      expected_version: { type: "integer", minimum: 0 } } },
   },
   "karryam.governance.approval.decide": {
     risk: "R2", description: "Approve or reject a proposed approval as an independent second staff member with recent MFA (local record; no source call)",
     schema: { type: "object", additionalProperties: false, required: ["approval_id", "decision"], properties: {
       approval_id: { type: "string", format: "uuid" }, decision: { type: "string", enum: ["APPROVE", "REJECT"] } } },
+  },
+  "karryam.governance.approval.revoke": {
+    risk: "R2", description: "Revoke a proposed or approved approval before it is consumed (e.g. approver access withdrawn); never by the requester of an approved reference (local record; no source call)",
+    schema: { type: "object", additionalProperties: false, required: ["approval_id", "reason_code"], properties: {
+      approval_id: { type: "string", format: "uuid" }, reason_code: { type: "string", pattern: "^[A-Z][A-Z0-9_]{2,63}$" } } },
   },
 });
 const validateLocal = Object.fromEntries(Object.entries(LOCAL).map(([id, l]) => [id, contracts.compile(l.schema)]));
@@ -85,8 +97,17 @@ function evidenceOf(res, sourceStatus) {
   return { source_status: sourceStatus, source_version: version, observed_at: res.asOf, bridge_correlation_id: res.bridgeCorrelationId, bridge_capability_id: res.capability.id };
 }
 
-function createOperations({ config, catalog, operations, approvals, bridgeClient, now = Date.now, logger = () => {} }) {
+function createOperations({ config, catalog, operations, approvals, bridgeClient, certifications = null, governance = null, now = Date.now, logger = () => {} }) {
   const findCapability = (id) => catalog.capabilities.find((c) => c.id === id) || null;
+  const HIGH = (risk) => risk === "R3" || risk === "R4";
+  const revision = contractRevision();
+
+  // Certification in force for a high-risk capability, or null (fail closed
+  // when the store is unavailable).
+  async function certificationFor(capabilityId) {
+    if (!certifications) return null;
+    try { return await certifications.active(capabilityId, revision); } catch { return null; }
+  }
 
   function auditBase(ctx, cap, outcome, reasonCode, extra = {}) {
     return { correlation_id: ctx.correlationId, request_id: ctx.requestId, endpoint: "operationSubmit", method: "POST", service_id: ctx.service.serviceId,
@@ -159,9 +180,28 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
       if (cap.id === "karryam.governance.approval.propose") {
         const target = findCapability(command.params.capability_id);
         if (!target || target.kind !== "COMMAND" || LOCAL[target.id]) throw new ApprovalError("APPROVAL_TARGET_INVALID");
-        result = await approvals.propose({ id: command.command_id, capabilityId: target.id, intentDigest: command.params.intent_digest, scope: command.scope, requestedBy: ctx.delegation.sub, ttlSeconds: command.params.ttl_seconds });
+        let cert = null;
+        if (HIGH(target.risk)) {
+          cert = await certificationFor(target.id);
+          if (!cert) throw new ApprovalError("APPROVAL_TARGET_NOT_CERTIFIED");
+        }
+        result = await approvals.propose({ id: command.command_id, capabilityId: target.id, intentDigest: command.params.intent_digest, scope: command.scope, requestedBy: ctx.delegation.sub, ttlSeconds: command.params.ttl_seconds,
+          risk: target.risk, expectedVersion: Number.isInteger(command.params.expected_version) ? command.params.expected_version : null,
+          sourcePolicyRevision: cert ? cert.source_policy_revision : null, certificationId: cert ? cert.certification_id : null });
       } else {
-        result = await approvals.decide({ id: command.params.approval_id, decidedBy: ctx.delegation.sub, approve: command.params.decision === "APPROVE", mfaAt });
+        // The approver (or revoker) must hold the approval's whole scope; for
+        // high-risk targets the approver's role must also be an approved
+        // Bridge role. Staff tier never counts.
+        const pending = await approvals.get(command.params.approval_id);
+        if (!pending) throw new ApprovalError("APPROVAL_NOT_FOUND");
+        if (!withinScope(pending.scope, ctx.delegation.scope)) throw new ApprovalError("APPROVER_SCOPE_INSUFFICIENT");
+        if (cap.id === "karryam.governance.approval.decide" && HIGH(pending.risk)) {
+          if (!config.bridge.enabled) throw new ApprovalError("APPROVER_ROLE_NOT_VERIFIABLE");
+          try { bridgeStaffContext(ctx.delegation, config.bridge, Math.floor(now() / 1000)); } catch (err) { throw new ApprovalError("APPROVER_" + (err instanceof StaffContextError ? err.reason : "STAFF_CONTEXT_INVALID")); }
+        }
+        result = cap.id === "karryam.governance.approval.decide"
+          ? await approvals.decide({ id: command.params.approval_id, decidedBy: ctx.delegation.sub, approve: command.params.decision === "APPROVE", mfaAt })
+          : await approvals.revoke({ id: command.params.approval_id, revokedBy: ctx.delegation.sub, reasonCode: command.params.reason_code });
       }
     } catch (err) {
       const reason = err instanceof ApprovalError ? err.reason : "APPROVAL_STORE_UNAVAILABLE";
@@ -204,6 +244,15 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
     else if (source.path_params.length > 1) throw new P("INVALID_REQUEST", "UNSUPPORTED_COMMAND_SHAPE");
     const approvalRequired = cap.requires_independent_approval;
     if (approvalRequired && !params.approval_ref) throw new P("FORBIDDEN", "INDEPENDENT_APPROVAL_REQUIRED");
+    let certification;
+    if (HIGH(cap.risk)) {
+      certification = await certificationFor(cap.id);
+      if (!certification) return reject(ctx, cap, command, "HIGH_RISK_CERTIFICATION_REQUIRED");
+      // Unknown or expired runtime availability is never treated as approval.
+      let runtime = { state: "UNKNOWN", reason: "RUNTIME_STORE_NOT_CONFIGURED" };
+      if (governance) { try { runtime = await governance.runtimeAvailability(source.id, staff.role, { contractRevision: revision }); } catch { runtime = { state: "UNKNOWN", reason: "RUNTIME_STORE_UNAVAILABLE" }; } }
+      if (runtime.state !== "AVAILABLE") return reject(ctx, cap, command, runtime.state === "UNKNOWN" ? "RUNTIME_AVAILABILITY_UNKNOWN" : "RUNTIME_CAPABILITY_" + runtime.state, "UNAVAILABLE");
+    }
     const intentDigest = contracts.digestOf({ capability: cap.id, target: command.target, body: params.body, scope, staff: ctx.delegation.sub });
 
     // 4. Intent + audit before any source call.
@@ -212,6 +261,7 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
       staffRef: ctx.delegation.sub, risk: cap.risk, bridgeCapabilityId: source.id, intentDigest, scope, requestReasonCode: command.reason_code,
       caseReference: command.case_reference, expectedVersion: command.target.expected_version, approvalRef: params.approval_ref || null,
     }, auditBase(ctx, cap, "OPERATION_RECORDED", null, { bridge_capability: source.id }));
+    if (intent.kind === "APPROVAL_REUSED") throw new P("FORBIDDEN", "APPROVAL_ALREADY_CONSUMED", { retryable: false });
     if (intent.kind === "KEY_CONFLICT") throw new P("CONFLICT", "IDEMPOTENCY_KEY_REUSED");
     if (intent.kind === "COMMAND_CONFLICT") throw new P("CONFLICT", "COMMAND_ID_REUSED");
     if (intent.kind === "REPLAY") {
@@ -220,7 +270,9 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
     }
     if (params.approval_ref) {
       try {
-        await approvals.consume({ id: params.approval_ref, operationId: command.command_id, capabilityId: cap.id, intentDigest, scope: command.scope, requestedBy: ctx.delegation.sub });
+        await approvals.consume({ id: params.approval_ref, operationId: command.command_id, capabilityId: cap.id, intentDigest, scope: command.scope, requestedBy: ctx.delegation.sub,
+          expectedVersion: command.target.expected_version,
+          ...(certification ? { certificationId: certification.certification_id, sourcePolicyRevision: certification.source_policy_revision } : {}) });
       } catch (err) {
         const reason = err instanceof ApprovalError ? err.reason : "APPROVAL_STORE_UNAVAILABLE";
         await operations.transition(command.command_id, "RECORDED", "REJECTED", { reasonCode: reason }, auditBase(ctx, cap, "OPERATION_REJECTED", reason));

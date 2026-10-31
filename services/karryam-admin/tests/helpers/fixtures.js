@@ -66,6 +66,8 @@ async function startApp(config, deps = {}) {
     ...(deps.approvals ? { approvals: deps.approvals } : {}),
     ...(deps.pipeline ? { pipeline: deps.pipeline } : {}),
     ...(deps.bridgeMetrics ? { bridgeMetrics: deps.bridgeMetrics } : {}),
+    ...(deps.certifications ? { certifications: deps.certifications } : {}),
+    ...(deps.governance ? { governance: deps.governance } : {}),
     ...(deps.now ? { now: deps.now } : {}),
   };
   const server = http.createServer(createApp(config, full));

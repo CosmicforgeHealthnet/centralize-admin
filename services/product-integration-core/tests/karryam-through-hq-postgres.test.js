@@ -39,7 +39,7 @@ test("Karryam Admin onboards through the generic registry and remains unavailabl
     assert.equal(catalog.product_id, "karryam");
     // Nothing that reaches the source claims to be executable; only the two
     // local approval-record commands (no source call) are available.
-    assert.deepEqual(catalog.capabilities.filter((c) => c.state === "AVAILABLE").map((c) => c.id).sort(), ["karryam.governance.approval.decide", "karryam.governance.approval.propose"]);
+    assert.deepEqual(catalog.capabilities.filter((c) => c.state === "AVAILABLE").map((c) => c.id).sort(), ["karryam.governance.approval.decide", "karryam.governance.approval.propose", "karryam.governance.approval.revoke"]);
     assert.ok(catalog.capabilities.filter((c) => c.kind === "COMMAND" && !c.id.startsWith("karryam.governance.")).every((c) => c.state === "DISABLED"));
     assert.ok(catalog.datasets.every((d) => d.readiness === "NOT_CERTIFIED"));
 

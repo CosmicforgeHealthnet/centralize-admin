@@ -85,9 +85,11 @@ function loadConfig(env = process.env) {
     const key = Buffer.from(String(entry.key_b64url || ""), "base64url");
     if (key.length < 32) throw new ConfigError("HQ_DELEGATION_KEY_TOO_SHORT");
     if (!entry.not_after || !(Date.parse(entry.not_after) > Date.now())) throw new ConfigError("HQ_DELEGATION_KEY_EXPIRY_REQUIRED");
-    hqDelegationKeys[kid] = { key, notAfter: entry.not_after };
+    hqDelegationKeys[kid] = { key, notAfter: entry.not_after, revoked: entry.revoked === true };
   }
-  if (Object.keys(hqDelegationKeys).length === 0) throw new ConfigError("HQ_DELEGATION_KEYS_REQUIRED");
+  // Emergency revocation keeps the kid listed (so its tokens are refused as
+  // KEY_REVOKED) but at least one unrevoked key must remain.
+  if (Object.values(hqDelegationKeys).filter((k) => !k.revoked).length === 0) throw new ConfigError("HQ_DELEGATION_KEYS_REQUIRED");
   for (const endpoint of endpoints.values()) {
     for (const hq of Object.values(hqDelegationKeys)) {
       if (hq.key.equals(endpoint.auth.key) || hq.key.equals(endpoint.delegation.key)) throw new ConfigError("KEY_REUSE_ACROSS_BOUNDARIES");
