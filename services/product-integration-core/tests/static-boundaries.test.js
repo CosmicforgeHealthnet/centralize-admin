@@ -47,3 +47,25 @@ test("process environment is read only by the config and server modules", () => 
     assert.doesNotMatch(fs.readFileSync(file, "utf8"), /process\.env/, rel);
   }
 });
+
+// Section 9.5.7: the legacy Central Admin Karryam dispatch module still uses
+// the Karryam Dispatch operational database directly (reads and writes).
+// It is documented, not cut over: a cutover needs source API parity,
+// permission/readback parity, operational testing, owner approval and
+// release authorization. Until then the access must not spread.
+test("legacy direct Karryam Dispatch database access stays confined to the documented legacy files", () => {
+  const api = path.join(__dirname, "..", "..", "central-admin-api", "src");
+  if (!fs.existsSync(api)) return;
+  const allowed = new Set([
+    path.join("modules", "karrygo", "dispatch", "dispatch.service.js"),
+    path.join("modules", "karrygo", "dispatch", "legacy-telemetry.js"),
+    path.join("shared", "config", "dispatchDatabase.js"),
+  ]);
+  const offenders = [];
+  for (const rel of fs.readdirSync(api, { recursive: true })) {
+    if (!rel.endsWith(".js") || rel.startsWith("generated") || /__tests__|\.test\.js$/.test(rel)) continue;
+    const code = fs.readFileSync(path.join(api, rel), "utf8");
+    if (/dispatchPrisma|DISPATCH_DATABASE_URL|generated\/dispatch-client/.test(code) && !allowed.has(rel)) offenders.push(rel);
+  }
+  assert.deepEqual(offenders, [], "new direct Karryam Dispatch database access outside the legacy module");
+});

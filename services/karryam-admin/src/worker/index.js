@@ -16,6 +16,7 @@ const { createPool } = require("../db/pool");
 const { createBridgeClient } = require("../bridge/client");
 const { createPipelineStore } = require("../sync/store");
 const { createBridgeConsumer } = require("../sync/bridge-consumer");
+const { createGovernanceStore } = require("../db/governance");
 
 const DAY_MS = 86400000;
 
@@ -29,6 +30,7 @@ async function startWorker(env = process.env, { logger = createLogger(), now = D
   if (!config.feed.enabled) throw Object.assign(new Error(), { reason: "KARRYAM_BRIDGE_FEED_DISABLED" });
   const pool = deps.pool || createPool(config.databaseUrl, { max: 4 });
   const store = createPipelineStore(pool, { serviceInstanceId: config.serviceInstanceId, now });
+  const governance = deps.governance === undefined ? createGovernanceStore(pool, { now }) : deps.governance;
   const bridgeClient = deps.bridgeClient || createBridgeClient(config.bridge, { metrics: {} });
   const consumer = createBridgeConsumer({ feed: config.feed, store, bridgeClient, now, logger });
   await consumer.init();
@@ -48,9 +50,13 @@ async function startWorker(env = process.env, { logger = createLogger(), now = D
     }
     const results = await consumer.tick();
     if (now() - lastRetention >= DAY_MS) {
-      const cleared = await store.clearExpiredPayloads(config.feed.retentionDays);
+      // Per-class retention policy (never shorter than the configured days);
+      // rows under an active legal hold are kept.
+      const retention = governance
+        ? await governance.clearExpiredPayloads({ configuredDays: config.feed.retentionDays })
+        : { cleared: await store.clearExpiredPayloads(config.feed.retentionDays), retainedUnderHold: 0 };
       lastRetention = now();
-      if (cleared) logger({ event: "inbox_retention", cleared });
+      if (retention.cleared || retention.retainedUnderHold) logger({ event: "inbox_retention", cleared: retention.cleared, retained_under_hold: retention.retainedUnderHold });
     }
     return results;
   }

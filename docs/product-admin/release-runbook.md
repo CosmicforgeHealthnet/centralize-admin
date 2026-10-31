@@ -96,6 +96,9 @@ restart, switch the product signer, re-verify, remove the old ID, restart.
 
 ## 7. Rollback
 
+Database migrations, backups, restore drills and the forward-fix / restore
+decision are in [database-migration-runbook.md](database-migration-runbook.md).
+
 - **Image**: redeploy the previous `staging-<sha>` tag. Migrations are
   forward-only; migration `002` is rollback-compatible (older images never
   write the new values and can still clear gaps).

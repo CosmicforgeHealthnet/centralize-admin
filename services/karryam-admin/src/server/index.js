@@ -16,6 +16,7 @@ const { pgOperations } = require("../db/operations");
 const { pgApprovals } = require("../db/approvals");
 const { pgAccessLog } = require("../db/access-log");
 const { createPipelineStore } = require("../sync/store");
+const { createGovernanceStore } = require("../db/governance");
 
 async function start(env = process.env, { logger = createLogger() } = {}) {
   const config = loadConfig(env);
@@ -26,7 +27,7 @@ async function start(env = process.env, { logger = createLogger() } = {}) {
     const audit = pgAudit(pool);
     deps = {
       logger, audit, nonceStore: pgNonceStore(pool), operations: pgOperations(pool), approvals: pgApprovals(pool), accessLog: pgAccessLog(pool),
-      pipeline: createPipelineStore(pool, { serviceInstanceId: config.serviceInstanceId }), dbReady: () => ping(pool),
+      pipeline: createPipelineStore(pool, { serviceInstanceId: config.serviceInstanceId }), governance: createGovernanceStore(pool), dbReady: () => ping(pool),
     };
   }
   const server = createServer(createApp(config, deps), config);

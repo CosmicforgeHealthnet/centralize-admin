@@ -55,8 +55,8 @@ function createPipelineStore(pool, { serviceInstanceId, productId = "karryam", n
   }
 
   async function recordContractRevision(rev) {
-    await pool.query(`INSERT INTO karryam_admin.bridge_contract_revisions (revision, source_commit, openapi_sha256, matrix_sha256, capability_count) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (revision) DO NOTHING`,
-      [rev.revision, rev.sourceCommit, rev.openapiSha256, rev.matrixSha256, rev.capabilityCount]);
+    await pool.query(`INSERT INTO karryam_admin.bridge_contract_revisions (revision, source_commit, openapi_sha256, matrix_sha256, capability_count, contract_version) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (revision) DO NOTHING`,
+      [rev.revision, rev.sourceCommit, rev.openapiSha256, rev.matrixSha256, rev.capabilityCount, rev.contractVersion || null]);
   }
 
   async function partition(key) {
@@ -92,10 +92,11 @@ function createPipelineStore(pool, { serviceInstanceId, productId = "karryam", n
 
   async function quarantine(client, key, { eventId, sequence, eventType, reason, digest }) {
     await client.query(
-      // Re-detection of an already resolved event reopens the record.
-      `INSERT INTO karryam_admin.event_quarantine (partition_key, event_id, sequence, event_type, reason, raw_digest) VALUES ($1,$2,$3,$4,$5,$6)
-       ON CONFLICT (partition_key, raw_digest, reason) DO UPDATE SET resolved_at = NULL, resolution = NULL, resolved_by = NULL, detected_at = now()
-       WHERE karryam_admin.event_quarantine.resolved_at IS NOT NULL`,
+      // Every re-detection is counted; one of an already resolved event
+      // reopens the record. The original evidence never changes.
+      `INSERT INTO karryam_admin.event_quarantine (partition_key, event_id, sequence, event_type, reason, raw_digest, last_seen_at) VALUES ($1,$2,$3,$4,$5,$6, now())
+       ON CONFLICT (partition_key, raw_digest, reason) DO UPDATE SET occurrences = karryam_admin.event_quarantine.occurrences + 1, last_seen_at = now(),
+         resolved_at = NULL, resolution = NULL, resolved_by = NULL`,
       [key, typeof eventId === "string" ? eventId.slice(0, 64) : null, Number.isSafeInteger(sequence) ? sequence : null, typeof eventType === "string" ? eventType.slice(0, 128) : null, CODE.test(reason) ? reason : "EVENT_REJECTED", digest]);
   }
 
@@ -152,10 +153,12 @@ function createPipelineStore(pool, { serviceInstanceId, productId = "karryam", n
     if (prev && sameValue && prev.value_state === obs.value_state && prev.coverage === obs.coverage) return null;
     const version = prev ? Number(prev.entity_version) + 1 : 1;
     await client.query(
-      `INSERT INTO karryam_admin.metric_snapshots (metric_id, partition_key, window_start, window_end, value, value_state, coverage, observed_at, entity_version)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       ON CONFLICT (metric_id, partition_key, window_start) DO UPDATE SET value = EXCLUDED.value, value_state = EXCLUDED.value_state, coverage = EXCLUDED.coverage, observed_at = EXCLUDED.observed_at, entity_version = EXCLUDED.entity_version, updated_at = now()`,
-      [obs.metric_id, p.partition_key, obs.window_start, obs.window_end, obs.value, obs.value_state, obs.coverage, obs.observed_at, version]);
+      `INSERT INTO karryam_admin.metric_snapshots (metric_id, partition_key, window_start, window_end, value, value_state, coverage, observed_at, entity_version, dataset_id, definition_version, grain, unit, currency)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+       ON CONFLICT (metric_id, partition_key, window_start) DO UPDATE SET value = EXCLUDED.value, value_state = EXCLUDED.value_state, coverage = EXCLUDED.coverage, observed_at = EXCLUDED.observed_at,
+         entity_version = EXCLUDED.entity_version, dataset_id = EXCLUDED.dataset_id, updated_at = now()`,
+      [obs.metric_id, p.partition_key, obs.window_start, obs.window_end, obs.value, obs.value_state, obs.coverage, obs.observed_at, version,
+        datasetId, obs.definition_version || "1.0.0", obs.grain || "DAY", obs.unit || "count", obs.currency || null]);
     await client.query(`INSERT INTO karryam_admin.hq_outbox_heads (dataset_id, partition_key) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [datasetId, p.partition_key]);
     const { rows: [head] } = await client.query(`SELECT head_sequence FROM karryam_admin.hq_outbox_heads WHERE dataset_id = $1 AND partition_key = $2 FOR UPDATE`, [datasetId, p.partition_key]);
     const sequence = Number(head.head_sequence) + 1;
@@ -244,8 +247,25 @@ function createPipelineStore(pool, { serviceInstanceId, productId = "karryam", n
       }
 
       const ident = [event.source_service, event.entity_type, event.entity_ref];
-      const { rows: [current] } = await client.query(`SELECT entity_version FROM karryam_admin.entity_projections WHERE source_service = $1 AND entity_type = $2 AND entity_ref = $3 FOR UPDATE`, ident);
+      const { rows: [current] } = await client.query(`SELECT entity_version, partition_key FROM karryam_admin.entity_projections WHERE source_service = $1 AND entity_type = $2 AND entity_ref = $3 FOR UPDATE`, ident);
       const currentVersion = current ? Number(current.entity_version) : null;
+      if (current && current.partition_key !== key) {
+        // The same source entity in another partition (another tenant or
+        // zone): never overwrite the other partition's projection. The event
+        // is kept as evidence, quarantined as an integrity incident (coverage
+        // becomes PARTIAL) and the feed is not blocked.
+        const conflictScope = { market: event.market, organization: event.scope.organization, zone: event.scope.zone, tenant: event.scope.tenant };
+        await client.query(
+          `INSERT INTO karryam_admin.bridge_event_inbox (partition_key, event_id, sequence, event_type, source_service, entity_type, entity_ref, entity_version, tombstone, classification, scope, payload, event_digest, outcome, delivery, occurred_at, emitted_at, contract_revision)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NULL,$12,'SCOPE_CONFLICT',$13,$14,$15,$16)`,
+          [key, event.event_id, event.sequence, event.event_type, ...ident, event.entity_version, event.tombstone, event.classification, JSON.stringify(conflictScope), verified.digest, delivery, event.occurred_at, event.emitted_at, contractRevision]);
+        await quarantine(client, key, { eventId: event.event_id, sequence: event.sequence, eventType: event.event_type, reason: "ENTITY_SCOPE_CONFLICT", digest: verified.digest });
+        if (delivery === "FEED") {
+          await client.query(`UPDATE karryam_admin.bridge_feed_partitions SET last_sequence = $2, last_success_at = now(), contract_revision = $3, last_error_code = 'ENTITY_SCOPE_CONFLICT' WHERE partition_key = $1`, [key, event.sequence, contractRevision]);
+        }
+        await deriveSyncHealth(client, { ...p, last_sequence: delivery === "FEED" ? event.sequence : last });
+        return "SCOPE_CONFLICT";
+      }
       let outcome = "APPLIED";
       if (currentVersion !== null && event.entity_version <= currentVersion) outcome = "STALE";
       else if (currentVersion !== null && event.entity_version > currentVersion + 1) outcome = "GAP_APPLIED";
@@ -288,8 +308,9 @@ function createPipelineStore(pool, { serviceInstanceId, productId = "karryam", n
       const p = await lockOwned(client, key, workerId, token);
       if (!p) return "LEASE_LOST";
       const ident = [record.source_service, record.entity_type, record.entity_ref];
-      const { rows: [current] } = await client.query(`SELECT entity_version FROM karryam_admin.entity_projections WHERE source_service = $1 AND entity_type = $2 AND entity_ref = $3 FOR UPDATE`, ident);
+      const { rows: [current] } = await client.query(`SELECT entity_version, partition_key FROM karryam_admin.entity_projections WHERE source_service = $1 AND entity_type = $2 AND entity_ref = $3 FOR UPDATE`, ident);
       const currentVersion = current ? Number(current.entity_version) : null;
+      if (current && current.partition_key !== key) return "SCOPE_CONFLICT";
       if (currentVersion !== null && record.entity_version <= currentVersion) {
         await client.query(`UPDATE karryam_admin.entity_version_gaps SET repaired_at = now(), repaired_by_run = $5 WHERE source_service = $1 AND entity_type = $2 AND entity_ref = $3 AND repaired_at IS NULL AND received_version <= $4`, [...ident, currentVersion, runId]);
         return "STALE";
@@ -370,8 +391,9 @@ function createPipelineStore(pool, { serviceInstanceId, productId = "karryam", n
 
   async function startRun(fields) {
     const id = randomUUID();
-    await pool.query(`INSERT INTO karryam_admin.sync_runs (id, stage, trigger_kind, partition_key, worker_id, fencing_token, contract_revision, status) VALUES ($1,$2,$3,$4,$5,$6,$7,'RUNNING')`,
-      [id, fields.stage, fields.trigger || "SCHEDULED", fields.partitionKey || null, fields.workerId, fields.token === undefined ? null : fields.token, fields.contractRevision || null]);
+    await pool.query(`INSERT INTO karryam_admin.sync_runs (id, stage, trigger_kind, partition_key, worker_id, fencing_token, contract_revision, status, correlation_id) VALUES ($1,$2,$3,$4,$5,$6,$7,'RUNNING',$8)`,
+      [id, fields.stage, fields.trigger || "SCHEDULED", fields.partitionKey || null, fields.workerId, fields.token === undefined ? null : fields.token, fields.contractRevision || null,
+        typeof fields.correlationId === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(fields.correlationId) ? fields.correlationId : null]);
     return id;
   }
 
@@ -380,8 +402,14 @@ function createPipelineStore(pool, { serviceInstanceId, productId = "karryam", n
       [id, status, JSON.stringify(counts), JSON.stringify(details), errorCode && CODE.test(errorCode) ? errorCode : errorCode ? "RUN_FAILED" : null]);
   }
 
+  // Explicit-days payload clearing (operator tooling and tests). Rows under
+  // an active legal hold are never cleared. The worker applies the per-class
+  // retention policy instead (db/governance.js).
   async function clearExpiredPayloads(retentionDays) {
-    const { rowCount } = await pool.query(`UPDATE karryam_admin.bridge_event_inbox SET payload = NULL, payload_cleared_at = now() WHERE payload IS NOT NULL AND received_at < now() - make_interval(days => $1)`, [retentionDays]);
+    if (!Number.isInteger(retentionDays) || retentionDays < 0) throw new Error("RETENTION_DAYS_INVALID");
+    const { rowCount } = await pool.query(
+      `UPDATE karryam_admin.bridge_event_inbox SET payload = NULL, payload_cleared_at = now(), payload_cleared_reason = 'RETENTION'
+       WHERE payload IS NOT NULL AND received_at < now() - make_interval(days => $1) AND NOT karryam_admin.under_legal_hold(partition_key, source_service, entity_type, entity_ref)`, [retentionDays]);
     return rowCount;
   }
 

@@ -112,12 +112,23 @@ jobs:
           sparse-checkout: |
             services/admin-backoffice-service/docs/openapi
             shared/go/adminevents
-      - name: Pinned registry, connector security, modules, operations, reports, Stage A/B pipeline and PostgreSQL tests
+      - name: PostgreSQL client tools for the backup/restore drill
+        run: pg_dump --version && pg_restore --version
+      - name: Pinned registry, connector security, modules, operations, reports, Stage A/B pipeline, Section 9 database governance and backup/restore drill
         env:
           KARRYAM_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
           KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-pinned
           KARRYGO_REQUIRE_CHECKOUT: "1"
+          PG_TOOLS_REQUIRED: "1"
+          RESTORE_DRILL_REPORT_DIR: ${{ runner.temp }}/restore-drill
         run: npm test
+      - name: Upload backup/restore drill evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: karryam-admin-restore-drill
+          path: ${{ runner.temp }}/restore-drill
+          if-no-files-found: warn
       - name: Check out KarryGo staging HEAD for drift detection
         uses: actions/checkout@v4
         with:
@@ -158,6 +169,8 @@ jobs:
           --health-retries 10
     env:
       PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      PG_TOOLS_REQUIRED: "1"
+      RESTORE_DRILL_REPORT_DIR: ${{ runner.temp }}/restore-drill
     defaults:
       run:
         working-directory: services/product-integration-core
@@ -177,8 +190,17 @@ jobs:
         run: node --test tests/migrations-postgres.test.js
       - name: Synthetic third Product Admin universal onboarding conformance (20 steps)
         run: node --test tests/conformance-synthetic-third-postgres.test.js
+      - name: Section 9 HQ schema governance and backup/restore drill
+        run: node --test tests/section9-postgres.test.js tests/restore-drill-postgres.test.js
       - name: Full suite (security negatives, sync edge cases, Karryam through HQ, static boundaries)
         run: npm test
+      - name: Upload backup/restore drill evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hq-integration-restore-drill
+          path: ${{ runner.temp }}/restore-drill
+          if-no-files-found: warn
 
   containers:
     name: Build and smoke-test private service images (no push/deploy)

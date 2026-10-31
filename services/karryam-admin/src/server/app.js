@@ -42,7 +42,7 @@ function disabledHandler({ logger = () => {} } = {}) {
 }
 
 /**
- * deps: { nonceStore, audit, operations, approvals, accessLog, pipeline, dbReady, bridgeClient?, logger, now }
+ * deps: { nonceStore, audit, operations, approvals, accessLog, pipeline, governance?, dbReady, bridgeClient?, logger, now }
  */
 function createApp(config, deps) {
   if (!config.enabled) return disabledHandler(deps);
@@ -57,7 +57,7 @@ function createApp(config, deps) {
   const reads = createReads({ config, bridgeClient, continuation, audit: deps.audit, accessLog, now, logger: deps.logger });
   const reports = createReports({ config, bridgeClient, store: deps.pipeline || null, audit: deps.audit, bridgeMetrics, now });
   const operationsService = createOperations({ config, catalog, operations: deps.operations, approvals, bridgeClient, now, logger: deps.logger });
-  const handlers = createHandlers({ config, catalog, manifest, bridgeClient, operations: deps.operations, operationsService, reads, reports, pipeline: deps.pipeline || null, audit: deps.audit, dbReady: deps.dbReady, logger: deps.logger, now });
+  const handlers = createHandlers({ config, catalog, manifest, bridgeClient, operations: deps.operations, operationsService, reads, reports, pipeline: deps.pipeline || null, audit: deps.audit, governance: deps.governance || null, dbReady: deps.dbReady, logger: deps.logger, now });
   return clients.createProductAdminHandler({
     productId: config.productId,
     serviceInstanceId: config.serviceInstanceId,

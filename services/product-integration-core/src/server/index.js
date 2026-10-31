@@ -11,6 +11,7 @@ const { createApp } = require("../api/app");
 const { createNonceStore } = require("../db");
 const { createSyncEngine } = require("../sync/engine");
 const { createHealthChecker } = require("../registry/health");
+const { createRetention } = require("../retention");
 
 const log = (entry) => process.stdout.write(JSON.stringify({ service: "product-integration-core", at: new Date().toISOString(), ...entry }) + "\n");
 
@@ -29,10 +30,21 @@ function start(env = process.env) {
     handler = createApp({ pool, endpoints: config.endpoints, trustStore: config.trustStore, hqDelegationKeys: config.hqDelegationKeys, environment: config.environment, nonceStore: createNonceStore(pool), logger: log, syncEngine });
     if (config.sync.enabled) {
       const health = createHealthChecker({ pool, endpoints: config.endpoints, trustStore: config.trustStore });
+      const retention = createRetention(pool);
+      let lastRetention = 0;
       timer = setInterval(async () => {
         if (running) return;
         running = true;
-        try { await health.checkAll(); await syncEngine.tick({ scheduled: true }); } catch (err) { log({ event: "sync_tick_failed", error: err && err.name }); } finally { running = false; }
+        try {
+          await health.checkAll();
+          await syncEngine.tick({ scheduled: true });
+          // Daily per-dataset payload retention; legal holds are respected.
+          if (Date.now() - lastRetention >= 86400000) {
+            const r = await retention.clearExpiredInboxPayloads();
+            lastRetention = Date.now();
+            if (r.cleared || r.retainedUnderHold) log({ event: "inbox_retention", cleared: r.cleared, retained_under_hold: r.retainedUnderHold });
+          }
+        } catch (err) { log({ event: "sync_tick_failed", error: err && err.name }); } finally { running = false; }
       }, config.sync.intervalSeconds * 1000);
     }
   } else {

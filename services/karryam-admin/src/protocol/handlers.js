@@ -17,6 +17,7 @@ const { bridgeStaffContext, StaffContextError } = require("../bridge/capabilitie
 const { capabilityMap, MODULES, collectionsOf, readExposure } = require("../modules/catalog");
 const { REPORTS } = require("../modules/reports");
 const { withinScope } = require("../operations/service");
+const { contractRevision } = require("../sync/bridge-consumer");
 
 const P = contracts.ProtocolError;
 const validateAck = contracts.compile(contracts.schemas.SCHEMAS["events-ack.v1"]);
@@ -36,7 +37,7 @@ const SNAPSHOT_QUERY = {
   cursor: { type: "cursor", max: 512 },
 };
 
-function createHandlers({ config, catalog, manifest, bridgeClient, operations, operationsService, reads, reports, pipeline, audit, dbReady, logger = () => {}, now = Date.now }) {
+function createHandlers({ config, catalog, manifest, bridgeClient, operations, operationsService, reads, reports, pipeline, audit, governance = null, dbReady, logger = () => {}, now = Date.now }) {
   const productId = config.productId;
   const ok = (ctx, result, extra = {}) => ({ body: contracts.okEnvelope({ productId, correlationId: ctx.correlationId, result, ...extra }, now()) });
   const datasetIds = new Set(catalog.datasets.map((d) => d.dataset_id));
@@ -60,7 +61,20 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, o
     }
     try {
       const discovery = await bridgeClient.capabilities(staff);
-      return { state: "READ_ONLY", observed_at: new Date(now()).toISOString(), discovery };
+      // Runtime availability is cached separately from the pinned static
+      // inventory (Section 9.2.3). A discovery that cannot be recorded is
+      // reported as such and never treated as approval.
+      let runtimeSnapshot = { state: "NOT_RECORDED", reason: "SNAPSHOT_STORE_NOT_CONFIGURED" };
+      if (governance) {
+        try {
+          const s = await governance.recordCapabilityDiscovery({ discovery: discovery && discovery.result, registry: R, contractRevision: contractRevision(), staff });
+          runtimeSnapshot = { state: "RECORDED", stored: s.stored, observed_at: s.observedAt, expires_at: s.expiresAt,
+            source_openapi_matches_pin: discovery.result.openapi_sha256 === R.summary().source_artifacts.openapi_sha256 };
+        } catch (err) {
+          runtimeSnapshot = { state: "NOT_RECORDED", reason: err && err.reason ? err.reason : "SNAPSHOT_STORE_UNAVAILABLE" };
+        }
+      }
+      return { state: "READ_ONLY", observed_at: new Date(now()).toISOString(), discovery, runtime_snapshot: runtimeSnapshot };
     } catch (err) {
       logger({ event: "bridge_unavailable", reason: err.reason || "BRIDGE_UNAVAILABLE", correlation_id: ctx.correlationId });
       return { state: "UNAVAILABLE", reason: "BRIDGE_UNAVAILABLE" };

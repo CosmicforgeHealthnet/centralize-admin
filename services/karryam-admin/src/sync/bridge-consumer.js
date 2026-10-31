@@ -63,7 +63,7 @@ function createBridgeConsumer({ feed, store, bridgeClient, workerId = "karryam-f
   }
 
   async function init() {
-    await store.recordContractRevision({ revision, sourceCommit: PINNED_BRIDGE_CONTRACT.source_commit, openapiSha256: R.summary().source_artifacts.openapi_sha256, matrixSha256: R.summary().source_artifacts.capability_matrix_sha256, capabilityCount: R.CAPABILITIES.length });
+    await store.recordContractRevision({ revision, sourceCommit: PINNED_BRIDGE_CONTRACT.source_commit, openapiSha256: R.summary().source_artifacts.openapi_sha256, matrixSha256: R.summary().source_artifacts.capability_matrix_sha256, capabilityCount: R.CAPABILITIES.length, contractVersion: PINNED_BRIDGE_CONTRACT.contract_version });
     return store.ensurePartitions(feed.scopes, feed.consumer);
   }
 
@@ -86,7 +86,7 @@ function createBridgeConsumer({ feed, store, bridgeClient, workerId = "karryam-f
     if (!lease) return { partitionKey: key, status: "LEASE_LOST" };
     const token = lease.lease_token;
     const runId = await store.startRun({ stage: "BRIDGE_FEED", trigger, partitionKey: key, workerId, token, contractRevision: revision });
-    const counts = { received: 0, applied: 0, stale: 0, duplicate: 0, gap_applied: 0, quarantined: 0, pages: 0 };
+    const counts = { received: 0, applied: 0, stale: 0, duplicate: 0, gap_applied: 0, quarantined: 0, scope_conflict: 0, pages: 0 };
     let status = "SUCCEEDED";
     let errorCode = null;
     let leaseLost = false;
@@ -140,6 +140,7 @@ function createBridgeConsumer({ feed, store, bridgeClient, workerId = "karryam-f
           if (outcome === "DUPLICATE") counts.duplicate += 1;
           else if (outcome === "STALE") counts.stale += 1;
           else if (outcome === "GAP_APPLIED") counts.gap_applied += 1;
+          else if (outcome === "SCOPE_CONFLICT") { counts.scope_conflict += 1; counts.quarantined += 1; }
           else counts.applied += 1;
           if (outcome !== "DUPLICATE") last = seq;
           previous = seq;
@@ -235,7 +236,9 @@ function createBridgeConsumer({ feed, store, bridgeClient, workerId = "karryam-f
             if (!record) { counts.backfill_rejected += 1; continue; }
             const outcome = await store.applySnapshotRecord(key, workerId, token, record, runId);
             if (outcome === "LEASE_LOST") throw Object.assign(new Error(), { leaseLost: true });
-            if (outcome === "BACKFILLED") counts.backfilled += 1; else counts.backfill_stale += 1;
+            if (outcome === "BACKFILLED") counts.backfilled += 1;
+            else if (outcome === "SCOPE_CONFLICT") counts.backfill_rejected += 1;
+            else counts.backfill_stale += 1;
           }
           next = res.result.next_cursor;
           if (!next) break;

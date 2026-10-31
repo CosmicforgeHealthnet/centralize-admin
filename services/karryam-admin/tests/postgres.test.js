@@ -57,7 +57,8 @@ test("migrations, runtime least privilege and durable stores on disposable Postg
 
   // Fresh install, then an idempotent re-run.
   const first = await migrate({ connectionString: migrationUrl, runtimeRole: runtime });
-  assert.deepEqual(first.applied, ["001_karryam_admin_foundation", "002_sections_6_8_modules_and_pipeline"]);
+  assert.deepEqual(first.applied, listMigrations().map((m) => m.version));
+  assert.ok(first.applied.includes("003_section_9_data_governance"));
   const again = await migrate({ connectionString: migrationUrl, runtimeRole: runtime });
   assert.deepEqual(again.applied, []);
 
