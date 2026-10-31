@@ -79,7 +79,8 @@ test("pinned KarryGo capability registry, schemas and event adapters regenerate 
       assert.ok(process.env.KARRYGO_REQUIRE_CHECKOUT !== "1", "event adapter source missing from checkout: " + rel);
       continue;
     }
-    const actual = createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+    // LF-normalized: a Windows checkout may convert .go files to CRLF.
+    const actual = createHash("sha256").update(fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n")).digest("hex");
     assert.equal(actual, sha, "event adapter drift in " + rel + ": review karrygo-event-adapters.v1.json");
   }
 });

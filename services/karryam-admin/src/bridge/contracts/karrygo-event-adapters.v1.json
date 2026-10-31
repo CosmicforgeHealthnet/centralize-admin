@@ -2,9 +2,10 @@
  "contract": "karryam.admin-events.v1",
  "export_schema": "cosmicforge.product-admin-event.v1",
  "max_event_bytes": 16384,
+ "source_files_hash": "sha256 of the file with line endings normalized to LF",
  "source_files": {
-  "shared/go/adminevents/registry.go": "65250ea605114a31c60c02be4d73dbea460a84848b76128077c2a38c7eb2b09f",
-  "shared/go/adminevents/adapters.go": "dc356c0ea571e048b5d2c03fd7d6857e79c2d7e0469667d9d293a3a1494d52d6"
+  "shared/go/adminevents/registry.go": "0d3d5cb3323a4f243f1c3877edc405a7f66fc90c3676b18fa275a4d83f7d3007",
+  "shared/go/adminevents/adapters.go": "5e3534f4b22863c5be9c35163a1050e8a2e5507709a4d2da787392bffdba20db"
  },
  "exportable_classifications": ["PUBLIC", "INTERNAL", "OPERATIONS_MINIMIZED", "FINANCIAL_SENSITIVE", "SAFETY_EVIDENCE"],
  "adapters": [
