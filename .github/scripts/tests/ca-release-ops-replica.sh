@@ -302,6 +302,18 @@ run() {
   check 'production healthy after rollback' bash -c 'curl -fsS http://127.0.0.1:14000/health >/dev/null'
   check 'worker follows the rolled-back image' test "$(docker inspect -f '{{.Image}}' admin-server-mail-mail-worker)" = "$(docker image inspect -f '{{.Id}}' "$good")"
 
+  log 'P5 Mail enabled but the worker exits with code 0: never reported healthy, release rolled back'
+  printf 'MAIL_ENABLED=true\n' >> /var/www/admin-server/.env
+  pcompose -f docker-compose.yml -f docker-compose.release.yml up -d --no-deps --force-recreate app >/dev/null 2>&1; sleep 4
+  ! deploy "$good"
+  check 'an exited worker is refused while Mail is enabled' grep -q 'an exited worker is never healthy' "$work/last.log"
+  check 'worker failure rolls the release back' grep -q 'deploy rolled back; previous image verified' "$work/last.log"
+  check 'no PASS for an exited worker' bash -c "! grep -q 'PASS: production Mail worker' '$work/last.log'"
+  sed -i '/^MAIL_ENABLED=true$/d' /var/www/admin-server/.env
+  pcompose -f docker-compose.yml -f docker-compose.release.yml up -d --no-deps --force-recreate app >/dev/null 2>&1; sleep 4
+  deploy "$good"
+  check 'Mail off again: release completes with an idle worker' grep -q 'idle by configuration' "$work/last.log"
+
   log 'E1 settings preview (read-only)'
   local e0; e0="$(sha /var/www/admin-server-staging/.env)"
   install --preview staging $'MAIL_PROVIDER=resend\nRESEND_API_KEY=re_test_a$b\nMAIL_S3_BUCKET=ca-mail-staging-bucket'
