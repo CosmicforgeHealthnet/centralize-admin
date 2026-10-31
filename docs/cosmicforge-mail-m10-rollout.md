@@ -30,7 +30,7 @@ Three layers apply, and each can only narrow what the layer above allows:
 | `STAFF_MAIL`, `SUPPORT` | Compose (external recipients only) and outbound dispatch | ENVIRONMENT, ORGANIZATION, DOMAIN (sender), MAILBOX, COHORT (sender) |
 | `MARKETING_BROADCAST`, `MARKETING_AUTOMATION`, `MARKETING_CONFIRMATION` | Worker before each provider call | ENVIRONMENT, ORGANIZATION |
 | `PRODUCT_INTEGRATION` | Event ingestion (503, retryable, so products lose nothing) | ENVIRONMENT, ORGANIZATION |
-| `WORKER_OUTBOUND`, `WORKER_INBOUND`, `WORKER_EVENTS` (legacy controls) | Core processing follows backend Mail flags; no ALLOW rule required. Explicit DENY rules remain enforceable. Worker entrypoint still requires MAIL_ENABLED and MAIL_WORKER_ENABLED. | ENVIRONMENT only (legacy) |
+| `WORKER_OUTBOUND`, `WORKER_INBOUND`, `WORKER_EVENTS` (retired as ALLOW controls) | Core processing is backend-managed: it follows the backend Mail flags (`MAIL_SENDING_ENABLED`, `MAIL_RECEIVING_ENABLED` + inbound ownership, `MAIL_ENABLED`). ALLOW rules are refused (`CORE_WORKER_BACKEND_MANAGED`). An explicit DENY rule is an emergency pause, reported in the worker heartbeat and raised as `MAIL_WORKER_QUEUE_UNSERVED`. The worker runs whenever `MAIL_ENABLED=true` unless `MAIL_WORKER_ENABLED=false` (explicit shutdown). See `docs/cosmicforge-mail-inbound-incident-repair.md`. | ENVIRONMENT only (DENY) |
 | `WORKER_MARKETING` | Optional marketing queue is still opt-in via rollout | ENVIRONMENT only |
 
 Rules are never edited, only revoked; every change is audited.
