@@ -120,14 +120,14 @@ jobs:
           KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-pinned
           KARRYGO_REQUIRE_CHECKOUT: "1"
           PG_TOOLS_REQUIRED: "1"
-          RESTORE_DRILL_REPORT_DIR: ${{ runner.temp }}/restore-drill
+          RESTORE_DRILL_REPORT_DIR: ${{ github.workspace }}/_restore-drill-evidence
         run: npm test
       - name: Upload backup/restore drill evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: karryam-admin-restore-drill
-          path: ${{ runner.temp }}/restore-drill
+          path: ${{ github.workspace }}/_restore-drill-evidence
           if-no-files-found: warn
       - name: Check out KarryGo staging HEAD for drift detection
         uses: actions/checkout@v4
@@ -170,7 +170,7 @@ jobs:
     env:
       PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
       PG_TOOLS_REQUIRED: "1"
-      RESTORE_DRILL_REPORT_DIR: ${{ runner.temp }}/restore-drill
+      RESTORE_DRILL_REPORT_DIR: ${{ github.workspace }}/_restore-drill-evidence
     defaults:
       run:
         working-directory: services/product-integration-core
@@ -199,7 +199,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: hq-integration-restore-drill
-          path: ${{ runner.temp }}/restore-drill
+          path: ${{ github.workspace }}/_restore-drill-evidence
           if-no-files-found: warn
 
   containers:
