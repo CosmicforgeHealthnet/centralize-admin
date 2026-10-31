@@ -1,6 +1,6 @@
 # Product Admin platform (Karryam Admin and Centralized Admin HQ integration)
 
-Implementation of Sections 1–8 of *Karryam Admin and Centralized Admin
+Implementation of Sections 1–11 of *Karryam Admin and Centralized Admin
 Headquarters — Complete Backend Implementation Specification v1.0*.
 
 | Document | Covers |
@@ -11,6 +11,12 @@ Headquarters — Complete Backend Implementation Specification v1.0*.
 | [registry-and-onboarding.md](registry-and-onboarding.md) | Section 5: registry database, onboarding, HQ API, navigation contract, synchronization, monitoring, runbook |
 | [sections-1-5-implementation-report.md](sections-1-5-implementation-report.md) | Evidence report: completion matrix, test results, external dependencies, verdict |
 | [sections-6-8-implementation-report.md](sections-6-8-implementation-report.md) | Sections 6–8: Karryam Admin modules and reports, secure Bridge connector, two-stage synchronization; coverage matrix, evidence, blockers, verdict |
+| [section-09-implementation-report.md](section-09-implementation-report.md) | Section 9: data models, migrations 003/004, governance, retention/legal hold, preflight, backup/restore drill |
+| [section-10-implementation-report.md](section-10-implementation-report.md) | Section 10: API families, HQ command path, Bridge contracts, HTTP policy |
+| [karryam-admin-api-catalog.json](karryam-admin-api-catalog.json) | Generated API catalog (CI drift-checked) |
+| [section-11-implementation-report.md](section-11-implementation-report.md) | Section 11: authorization intersection, identity chain, key rotation/revocation, R3/R4 approvals, privacy, threat tests |
+| [sections-09-11-final-acceptance.md](sections-09-11-final-acceptance.md) | Consolidated Sections 9–11 acceptance, CI evidence, operator-only items |
+| [database-migration-runbook.md](database-migration-runbook.md) | Migration preflight, backup, apply, rollback/restore |
 
 Code:
 
@@ -19,7 +25,7 @@ Code:
 - `services/karryam-admin` — first real Product Admin
 - `services/product-integration-core` — HQ registry, onboarding and sync
 - `services/central-admin-api/src/modules/product-gateway` — staff-facing routes
-- `infrastructure/product-admin` — operator templates
+- `infrastructure/product-admin` — operator templates and the disposable restore drill
 - `.github/workflows/product-admin-platform-ci.yml` — CI (build/test only)
 
 Everything new is disabled by default. Nothing here certifies a live
