@@ -25,7 +25,7 @@ function start(env = process.env) {
   if (config.enabled) {
     pool = new Pool({ connectionString: config.databaseUrl, max: 10, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000, application_name: "product-integration-core" });
     pool.on("error", () => log({ event: "database_pool_error" }));
-    syncEngine = createSyncEngine({ pool, endpoints: config.endpoints, environment: config.environment, workerId: config.sync.workerId || undefined, leaseSeconds: config.sync.leaseSeconds, logger: log });
+    syncEngine = createSyncEngine({ pool, endpoints: config.endpoints, environment: config.environment, trustStore: config.trustStore, workerId: config.sync.workerId || undefined, leaseSeconds: config.sync.leaseSeconds, logger: log });
     handler = createApp({ pool, endpoints: config.endpoints, trustStore: config.trustStore, hqDelegationKeys: config.hqDelegationKeys, environment: config.environment, nonceStore: createNonceStore(pool), logger: log, syncEngine });
     if (config.sync.enabled) {
       const health = createHealthChecker({ pool, endpoints: config.endpoints, trustStore: config.trustStore });

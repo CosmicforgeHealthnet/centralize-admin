@@ -20,6 +20,7 @@ function rowToOperation(row) {
     request_digest: row.request_digest,
     service_id: row.service_id,
     idempotency_key: row.idempotency_key,
+    staff_ref: row.staff_ref,
   };
 }
 
@@ -38,7 +39,7 @@ function pgOperations(pool) {
         if (existing.rows[0]) {
           await client.query("ROLLBACK");
           const prior = rowToOperation(existing.rows[0]);
-          return { kind: prior.request_digest === op.requestDigest && prior.operation_id === op.id ? "REPLAY" : "KEY_CONFLICT", operation: prior };
+          return { kind: prior.request_digest === op.requestDigest && prior.operation_id === op.id && prior.staff_ref === op.staffRef ? "REPLAY" : "KEY_CONFLICT", operation: prior };
         }
         const inserted = await client.query(
           "INSERT INTO karryam_admin.operation_requests(id, service_id, idempotency_key, request_digest, capability_id, staff_ref, status, reason_code) VALUES ($1,$2,$3,$4,$5,$6,'REJECTED',$7) ON CONFLICT DO NOTHING RETURNING *",
@@ -47,7 +48,7 @@ function pgOperations(pool) {
         if (!inserted.rows[0]) {
           await client.query("ROLLBACK");
           const prior = await get(op.id);
-          return { kind: prior && prior.idempotency_key === op.idempotencyKey && prior.request_digest === op.requestDigest ? "REPLAY" : "COMMAND_CONFLICT", operation: prior };
+          return { kind: prior && prior.idempotency_key === op.idempotencyKey && prior.request_digest === op.requestDigest && prior.staff_ref === op.staffRef ? "REPLAY" : "COMMAND_CONFLICT", operation: prior };
         }
         const r = sanitize({ ...auditRecord, operation_id: op.id });
         await client.query(
@@ -74,11 +75,11 @@ function memoryOperations(audit) {
     async recordRejection(op, auditRecord) {
       for (const prior of byId.values()) {
         if (prior.service_id === op.serviceId && prior.idempotency_key === op.idempotencyKey) {
-          return { kind: prior.request_digest === op.requestDigest && prior.operation_id === op.id ? "REPLAY" : "KEY_CONFLICT", operation: { ...prior } };
+          return { kind: prior.request_digest === op.requestDigest && prior.operation_id === op.id && prior.staff_ref === op.staffRef ? "REPLAY" : "KEY_CONFLICT", operation: { ...prior } };
         }
       }
       if (byId.has(op.id)) return { kind: "COMMAND_CONFLICT", operation: { ...byId.get(op.id) } };
-      const operation = { operation_id: op.id, capability_id: op.capabilityId, status: "REJECTED", reason_code: op.reasonCode, created_at: new Date().toISOString(), request_digest: op.requestDigest, service_id: op.serviceId, idempotency_key: op.idempotencyKey };
+      const operation = { operation_id: op.id, capability_id: op.capabilityId, status: "REJECTED", reason_code: op.reasonCode, created_at: new Date().toISOString(), request_digest: op.requestDigest, service_id: op.serviceId, idempotency_key: op.idempotencyKey, staff_ref: op.staffRef };
       await audit.record({ ...auditRecord, operation_id: op.id });
       byId.set(op.id, operation);
       return { kind: "CREATED", operation: { ...operation } };

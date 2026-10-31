@@ -33,14 +33,19 @@ test("Karryam Admin never reaches HQ code, Prisma or operational databases", () 
 
 test("the only outbound HTTP client is the fixed bridge client (plus the database pool)", () => {
   const offenders = walk(path.join(ROOT, "src")).filter((file) => /require\("node:(?:https?|tls)"\)|\bfetch\(|axios/.test(fs.readFileSync(file, "utf8")))
-    .map((file) => path.relative(ROOT, file)).sort();
+    .map((file) => path.relative(ROOT, file).split(path.sep).join("/")).sort();
   // listener.js creates the inbound server; bridge/client is the only outbound HTTP caller.
   assert.deepEqual(offenders, ["src/bridge/client/index.js", "src/transport/listener.js"]);
 });
 
 test("pinned KarryGo bridge contract matches a local checkout when one is available", (t) => {
   const checkout = process.env.KARRYGO_CHECKOUT || "/home/user/cosmicforgehealthnet/karrygo";
-  if (!fs.existsSync(path.join(checkout, "services/admin-backoffice-service/docs/openapi"))) { t.skip("KarryGo checkout not available"); return; }
+  if (!fs.existsSync(path.join(checkout, "services/admin-backoffice-service/docs/openapi"))) {
+    // CI sets KARRYGO_REQUIRE_CHECKOUT so a missing checkout fails instead of silently skipping.
+    assert.ok(process.env.KARRYGO_REQUIRE_CHECKOUT !== "1", "KARRYGO_CHECKOUT is required but not present: " + checkout);
+    t.skip("KarryGo checkout not available");
+    return;
+  }
   for (const [rel, sha] of Object.entries(PINNED_BRIDGE_CONTRACT.artifacts)) {
     const actual = createHash("sha256").update(fs.readFileSync(path.join(checkout, rel))).digest("hex");
     assert.equal(actual, sha, "drift in " + rel);

@@ -90,6 +90,9 @@ function authorize({ subject, productId = null, action, datasetId = null, reques
 
   const relevant = grants.filter((g) => g && g.staff_id === subject.staffId && g.grant_kind === policy.kind &&
     (policy.kind === "PLATFORM" || g.product_id === productId) && Array.isArray(g.actions) && g.actions.includes(action));
+  // A malformed explicit deny must still deny: ignoring it would fail open.
+  const brokenDeny = relevant.find((g) => g.effect === "DENY" && isActive(g, now) && grantErrors(g).length > 0);
+  if (brokenDeny) return deny("POLICY_INVALID", { grantId: brokenDeny.id });
   const active = relevant.filter((g) => isActive(g, now) && grantErrors(g).length === 0);
 
   // Explicit deny always wins (dataset-specific denies only for that dataset).

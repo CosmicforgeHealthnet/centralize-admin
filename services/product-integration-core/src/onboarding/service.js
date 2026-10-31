@@ -13,6 +13,7 @@ const { recordAudit } = require("../audit");
 const { authorizeStaff } = require("../authz");
 const { resolveEndpoint, clientFor, EndpointError } = require("../registry/endpoints");
 const SM = require("./state-machine");
+const policy = require("../registry/sync-policy");
 
 class OnboardingError extends Error {
   constructor(reason, status = 409, detail) {
@@ -93,6 +94,9 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
 
   // Fetches and verifies the manifest from the registry-pinned destination.
   async function fetchVerifiedManifest(row, { minimumRevision } = {}) {
+    // Never verify against a trust store whose source files changed after it
+    // was loaded (e.g. a revocation written by an operator): restart first.
+    if (trustStore && typeof trustStore.isCurrent === "function" && !trustStore.isCurrent()) throw new OnboardingError("TRUST_STORE_CHANGED", 503);
     let endpoint;
     try { endpoint = resolveEndpoint(endpoints, row); } catch (err) { throw new OnboardingError(err.reason || "ENDPOINT_INVALID", 409); }
     if (endpoint.fingerprint256 || row.identity_fingerprint_ref) {
@@ -127,6 +131,27 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       `SELECT c.* FROM ${T}hq_product_admin_onboarding_approvals a JOIN ${T}hq_product_admin_contracts c ON c.id = a.contract_id
        WHERE a.product_admin_id = $1 AND a.decision = 'CONTRACT_VALIDATED' ORDER BY a.id DESC LIMIT 1`, [productAdminId]);
     return rows[0] || null;
+  }
+
+  // While an ENABLED product has any unresolved drift, nothing new may be
+  // activated for it (dataset approval, subscription creation or enabling):
+  // the drift must first be resolved by re-verification or a reviewed
+  // contract activation.
+  function assertNoUnresolvedDrift(row) {
+    if (row.lifecycle_status !== "ENABLED") return;
+    const blocked = policy.driftBlock(row.drift_status);
+    if (blocked) throw new OnboardingError("CONTRACT_DRIFT_UNRESOLVED", 409, blocked);
+  }
+
+  // A dataset version may be approved or subscribed only if the contract in
+  // force declares exactly that version and schema: the active contract once
+  // ENABLED, the validated onboarding candidate before that.
+  async function assertDeclaredByCurrentContract(client, row, ds) {
+    let current = null;
+    if (row.lifecycle_status === "ENABLED") ({ rows: [current] } = await client.query(`SELECT catalog FROM ${T}hq_product_admin_contracts WHERE id = $1 AND status = 'ACTIVE'`, [row.current_contract_id]));
+    else current = await candidateContract(client, row.id);
+    const declared = current && (current.catalog.datasets || []).find((d) => d.dataset_id === ds.dataset_id && d.version === ds.version);
+    if (!declared || declared.schema_digest !== ds.schema_digest) throw new OnboardingError("DATASET_NOT_IN_CURRENT_CONTRACT", 409);
   }
 
   async function activeContract(client, productAdminId) {
@@ -201,8 +226,10 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       const endpoint = endpoints.get(input.endpoint_ref);
       if (!endpoint) throw new OnboardingError("ENDPOINT_NOT_ALLOWLISTED", 400);
       if (endpoint.productId !== input.product_id || endpoint.environment !== environment) throw new OnboardingError("ENDPOINT_PRODUCT_MISMATCH", 403);
-      const signer = trustStore[input.approved_signer_kid];
+      if (trustStore && typeof trustStore.isCurrent === "function" && !trustStore.isCurrent()) throw new OnboardingError("TRUST_STORE_CHANGED", 503);
+      const signer = trustStore && Object.prototype.hasOwnProperty.call(trustStore, input.approved_signer_kid) ? trustStore[input.approved_signer_kid] : null;
       if (!signer || signer.productId !== input.product_id || signer.environment !== environment) throw new OnboardingError("SIGNER_NOT_ENROLLED", 400);
+      if (policy.signerBlock({ approved_signer_kid: input.approved_signer_kid, product_id: input.product_id, environment }, trustStore, now())) throw new OnboardingError("SIGNER_NOT_CURRENT", 400);
       const id = randomUUID();
       try {
         return await withTx(pool, async (client) => {
@@ -282,6 +309,8 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         const ds = rows[0];
         if (!ds) throw new OnboardingError("UNKNOWN_DATASET", 404);
         if (ds.approval_status !== "PROPOSED") throw new OnboardingError("DATASET_NOT_PROPOSED", 409);
+        assertNoUnresolvedDrift(row);
+        if (decision === "APPROVE") await assertDeclaredByCurrentContract(client, row, ds);
         // HQ can only approve what the product itself declares certified.
         const { rows: [source] } = await client.query(`SELECT catalog FROM ${T}hq_product_admin_contracts WHERE id = $1`, [ds.contract_id]);
         const declared = (source.catalog.datasets || []).find((d) => d.dataset_id === ds.dataset_id && d.version === ds.version);
@@ -424,6 +453,15 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         if (contract.certified_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
         const decision = C.activationDecision(contract.compatibility, { reviewed: true });
         if (!decision.allowed) throw new OnboardingError(decision.reason, 409);
+        // The stored comparison was made when the revision was proposed, by
+        // the comparator of that time, against the contract active then.
+        // Re-compare against the contract active now with the current
+        // comparator: a revision that is no longer purely additive (or that
+        // a since-corrected comparator mis-classified) is refused.
+        const { rows: [current] } = await client.query(`SELECT * FROM ${T}hq_product_admin_contracts WHERE product_admin_id = $1 AND status = 'ACTIVE' FOR UPDATE`, [id]);
+        if (!current || current.id !== row.current_contract_id) throw new OnboardingError("NO_ACTIVE_CONTRACT", 409);
+        const fresh = C.activationDecision(C.compareCatalogs(current.catalog, contract.catalog), { reviewed: true });
+        if (!fresh.allowed) throw new OnboardingError(fresh.reason === "IDENTICAL" ? "NO_CONTRACT_CHANGE" : fresh.reason, 409);
         await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'SUPERSEDED' WHERE product_admin_id = $1 AND status = 'ACTIVE'`, [id]);
         await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'ACTIVE', activated_at = $2 WHERE id = $1`, [contractId, new Date(now())]);
         const { rows: updated } = await client.query(`UPDATE ${T}hq_product_admins SET current_contract_id = $2, drift_status = 'NONE', revision = revision + 1 WHERE id = $1 AND revision = $3 RETURNING *`, [id, contractId, expected_revision]);
@@ -445,6 +483,8 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         const ds = rows[0];
         if (!ds) throw new OnboardingError("UNKNOWN_DATASET", 404);
         if (ds.approval_status !== "APPROVED" || !C.HQ_SYNCABLE_PRIVACY.includes(ds.privacy_class)) throw new OnboardingError("DATASET_NOT_APPROVED", 409);
+        assertNoUnresolvedDrift(row);
+        await assertDeclaredByCurrentContract(client, row, ds);
         if (!ds.authorized_departments.includes(input.consumer_department)) throw new OnboardingError("DEPARTMENT_NOT_AUTHORIZED", 403);
         const required = ["market", "organization"].filter((d) => ds.scope_dimensions.includes(d));
         if (!validScope(input.allowed_scope, { allowedDims: ds.scope_dimensions, required })) throw new OnboardingError("ALLOWED_SCOPE_INVALID", 400);
@@ -473,6 +513,9 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       await authz(subject, "integration.subscriptions.manage", ctx);
       return withTx(pool, async (client) => {
         const row = await lockRow(client, id);
+        // A terminal registration keeps its history; its subscriptions cannot change.
+        if (["REVOKED", "REJECTED"].includes(row.lifecycle_status)) throw new OnboardingError("REGISTRATION_TERMINAL", 409);
+        if (enabled) assertNoUnresolvedDrift(row);
         const { rows } = await client.query(`UPDATE ${T}hq_product_admin_subscriptions SET enabled = $3, status = CASE WHEN $3 THEN 'ACTIVE' ELSE status END, updated_at = now() WHERE id = $1 AND product_admin_id = $2 AND (NOT $3 OR status <> 'POLICY_BLOCKED') RETURNING id, enabled, status`, [subscriptionId, id, Boolean(enabled)]);
         if (!rows[0]) throw new OnboardingError("UNKNOWN_SUBSCRIPTION", 404);
         await approval(client, row, { decision: "SUBSCRIPTION_CHANGED", actorId: subject.staffId, subscriptionId, reasonCode: enabled ? "ENABLED" : "DISABLED" }, ctx);
@@ -516,7 +559,12 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       await authz(subject, "integration.grants.manage", ctx);
       if (!REASON.test(String(reason_code || ""))) throw new OnboardingError("REASON_CODE_REQUIRED", 400);
       return withTx(pool, async (client) => {
-        const { rows } = await client.query(`UPDATE ${T}hq_product_admin_grants SET revoked_at = now(), revoked_by = $2, revocation_reason = $3 WHERE id = $1 AND revoked_at IS NULL RETURNING id, product_id`, [grantId, subject.staffId, reason_code]);
+        // Symmetric with the no-self-grant rule: nobody revokes a grant that
+        // applies to themselves, so an explicit DENY cannot be lifted by the
+        // person it restricts.
+        const { rows: [target] } = await client.query(`SELECT staff_id FROM ${T}hq_product_admin_grants WHERE id = $1 FOR UPDATE`, [grantId]);
+        if (target && target.staff_id === subject.staffId) throw new OnboardingError("SELF_REVOKE_DENIED", 403);
+        const { rows } = await client.query(`UPDATE ${T}hq_product_admin_grants SET revoked_at = now(), revoked_by = $2, revocation_reason = $3 WHERE id = $1 AND revoked_at IS NULL AND staff_id <> $2 RETURNING id, product_id`, [grantId, subject.staffId, reason_code]);
         if (!rows[0]) throw new OnboardingError("UNKNOWN_GRANT", 404);
         await recordAudit(client, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId: rows[0].product_id, action: "integration.grant.revoke", outcome: "RECORDED", metadata: { grant_ref: grantId } });
         return { grant_id: grantId, revoked: true };

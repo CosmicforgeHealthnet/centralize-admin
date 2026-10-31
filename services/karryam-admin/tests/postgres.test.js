@@ -106,6 +106,7 @@ test("migrations, runtime least privilege and durable stores on disposable Postg
   const auditRecord = { correlation_id: "corr-12345678", endpoint: "operationSubmit", method: "POST", service_id: op.serviceId, staff_ref: "staff-17", action: "operation.submit", outcome: "OPERATION_REJECTED", reason_code: "CAPABILITY_DISABLED" };
   assert.equal((await ops.recordRejection(op, auditRecord)).kind, "CREATED");
   assert.equal((await ops.recordRejection(op, auditRecord)).kind, "REPLAY");
+  assert.equal((await ops.recordRejection({ ...op, staffRef: "staff-99" }, auditRecord)).kind, "KEY_CONFLICT", "another requester never gets a replay");
   assert.equal((await ops.recordRejection({ ...op, requestDigest: "sha256:" + "c".repeat(64) }, auditRecord)).kind, "KEY_CONFLICT");
   assert.equal((await ops.recordRejection({ ...op, idempotencyKey: "idem-" + randomUUID() }, auditRecord)).kind, "COMMAND_CONFLICT");
   assert.equal((await ops.get(op.id)).status, "REJECTED");

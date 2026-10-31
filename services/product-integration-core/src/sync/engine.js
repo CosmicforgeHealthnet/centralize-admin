@@ -21,6 +21,7 @@ const { T } = require("../db");
 const { recordAudit } = require("../audit");
 const { clientFor } = require("../registry/endpoints");
 const { checkObservation, applyObservation } = require("../projections/metrics");
+const policy = require("../registry/sync-policy");
 
 const validateEventsPage = C.compile(C.schemas.eventsPage);
 const validateSyncStatus = C.compile(C.schemas.syncStatus);
@@ -32,7 +33,26 @@ function safeCode(value, fallback) {
   return typeof value === "string" && CODE.test(value) ? value : fallback;
 }
 
-function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker-" + randomUUID().slice(0, 8), leaseSeconds = 30, now = Date.now, logger = () => {}, clientOptions = {}, hooks = {} }) {
+// Kept for compatibility: identity drift states (see registry/sync-policy).
+const IDENTITY_BLOCKING_DRIFT = policy.IDENTITY_DRIFT;
+
+// Validation failures that are policy filters rather than integrity
+// failures. The event registry reports these only after identity, schema,
+// digest and payload checks have all passed, so the event is authentic and
+// understood; it is simply not for this subscription. Every other failure
+// holds the partition (see hold()).
+const POLICY_FILTERED = Object.freeze(["SCOPE_DENIED"]);
+
+// The run-start gate. Deny by default (registry/sync-policy): only drift
+// state NONE may synchronize, so identity drift, BREAKING_DETECTED,
+// ADDITIVE_PENDING_REVIEW and any unrecognised state all block. The signer is
+// re-checked against the trust store on every run, so a signer revoked or
+// expired in configuration stops consumption before the next health check.
+function identityBlock(sub, trustStore, nowMs, environment) {
+  return policy.syncBlock({ row: sub, contract: { catalog: sub.catalog }, trustStore, environment, nowMs });
+}
+
+function createSyncEngine({ pool, endpoints, environment, trustStore, workerId = "pic-worker-" + randomUUID().slice(0, 8), leaseSeconds = 30, now = Date.now, logger = () => {}, clientOptions = {}, hooks = {} }) {
   async function alert(code, context) {
     logger({ service: "product-integration-core", event: "integration_alert", code, ...context });
     await recordAudit(pool, { correlationId: context.correlation_id || null, actorType: "SYSTEM", actorId: workerId, productId: context.product_id || null, productAdminId: context.product_admin_id || null, action: "integration.alert", outcome: "ERROR", reasonCode: code, metadata: { subscription_ref: context.subscription_id || null, partition_key: context.partition_key || null } }).catch(() => {});
@@ -41,6 +61,7 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
   async function loadSubscriptions(productAdminId, { scheduled = false } = {}) {
     const { rows } = await pool.query(
       `SELECT s.*, p.product_id, p.service_instance_id, p.environment, p.endpoint_ref, p.lifecycle_status, p.allowed_scope AS product_scope,
+              p.drift_status, p.manifest_expires_at, p.approved_signer_kid,
               d.dataset_id, d.version AS dataset_version, d.schema_digest AS dataset_schema_digest, d.scope_dimensions, d.metrics,
               c.id AS contract_id, c.catalog
        FROM ${T}hq_product_admin_subscriptions s
@@ -70,14 +91,35 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
     await client.query(`UPDATE ${T}hq_product_admin_subscriptions SET quarantined_count = quarantined_count + $2, coverage = 'PARTIAL', updated_at = now() WHERE id = $1`, [sub.id, inserted.rowCount]);
   }
 
+  // The gate again, inside the caller's transaction: a revocation, drift
+  // record, trust change or contract activation that committed after the run
+  // started is seen here, before any effect is applied or acknowledged.
+  function gate(db, sub, lock) {
+    return policy.currentBlock(db, { productAdminId: sub.product_admin_id, contractId: sub.contract_id, trustStore, environment, nowMs: now(), lock });
+  }
+
+  // An event at the next sequence that cannot be verified or applied is
+  // quarantined and the partition is held at that sequence: the cursor does
+  // not move past it, nothing after it is applied, and it is never ACKed.
+  // The hold is recorded like a gap (gap_from = gap_to = sequence) so that it
+  // is visible and recovered only by reconciliation from an approved,
+  // complete snapshot that covers it.
+  async function hold(client, sub, { event, partitionKey, sequence, reason, correlationId }) {
+    await quarantine(client, sub, { event, partitionKey, sequence, reason, correlationId });
+    await client.query(`UPDATE ${T}hq_product_admin_sync_cursors SET gap_from = $3, gap_to = $3, gap_detected_at = now(), hold_reason = $4 WHERE subscription_id = $1 AND partition_key = $2`, [sub.id, partitionKey, sequence, safeCode(reason, "EVENT_REJECTED")]);
+    await client.query(`UPDATE ${T}hq_product_admin_subscriptions SET gap_status = 'GAP_DETECTED', coverage = 'PARTIAL', updated_at = now() WHERE id = $1`, [sub.id]);
+    await client.query("COMMIT");
+    return "QUARANTINED_HELD";
+  }
+
   // Processes one event in its own transaction. Returns an outcome string.
   async function processEvent(sub, registry, datasetDef, partitionKey, token, event, correlationId) {
     const validation = registry.validate(event, { allowedScope: sub.allowed_scope, datasetId: sub.dataset_id, partitionKey, now: now() });
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      const p = await client.query(`SELECT lifecycle_status FROM ${T}hq_product_admins WHERE id = $1 FOR SHARE`, [sub.product_admin_id]);
-      if (p.rows[0].lifecycle_status !== "ENABLED") { await client.query("ROLLBACK"); return "ABORTED_REVOKED"; }
+      const blocked = await gate(client, sub, true);
+      if (blocked) { await client.query("ROLLBACK"); return blocked === "PRODUCT_NOT_ENABLED" ? "ABORTED_REVOKED" : "BLOCKED_SYNC_GATE"; }
       const s = await client.query(`SELECT enabled, status FROM ${T}hq_product_admin_subscriptions WHERE id = $1 FOR SHARE`, [sub.id]);
       if (!s.rows[0].enabled || s.rows[0].status !== "ACTIVE") { await client.query("ROLLBACK"); return "SKIPPED_POLICY"; }
       const c = await client.query(`SELECT last_sequence, lease_token, lease_owner FROM ${T}hq_product_admin_sync_cursors WHERE subscription_id = $1 AND partition_key = $2 FOR UPDATE`, [sub.id, partitionKey]);
@@ -104,7 +146,7 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
         return "QUARANTINED_REPLAY";
       }
       if (decision === "GAP") {
-        await client.query(`UPDATE ${T}hq_product_admin_sync_cursors SET gap_from = $3, gap_to = $4, gap_detected_at = now() WHERE subscription_id = $1 AND partition_key = $2`, [sub.id, partitionKey, last + 1, sequence - 1]);
+        await client.query(`UPDATE ${T}hq_product_admin_sync_cursors SET gap_from = $3, gap_to = $4, gap_detected_at = now(), hold_reason = 'SEQUENCE_GAP' WHERE subscription_id = $1 AND partition_key = $2`, [sub.id, partitionKey, last + 1, sequence - 1]);
         await client.query(`UPDATE ${T}hq_product_admin_subscriptions SET gap_status = 'GAP_DETECTED', coverage = 'PARTIAL', updated_at = now() WHERE id = $1`, [sub.id]);
         await client.query("COMMIT");
         return "GAP";
@@ -114,29 +156,28 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
       const advance = async () => client.query(`UPDATE ${T}hq_product_admin_sync_cursors SET last_sequence = $3, last_event_id = $4, last_success_at = now() WHERE subscription_id = $1 AND partition_key = $2`,
         [sub.id, partitionKey, sequence, event && UUID.test(String(event.event_id)) ? event.event_id : null]);
       if (!validation.ok) {
-        await quarantine(client, sub, { event, partitionKey, sequence, reason: validation.reason, correlationId });
-        await advance();
-        await client.query("COMMIT");
-        return "QUARANTINED";
+        // An authentic, schema-valid event outside the subscription's allowed
+        // scope is a policy filter: recorded, never applied, and skipped.
+        if (POLICY_FILTERED.includes(validation.reason)) {
+          await quarantine(client, sub, { event, partitionKey, sequence, reason: validation.reason, correlationId });
+          await advance();
+          await client.query("COMMIT");
+          return "QUARANTINED_FILTERED";
+        }
+        // Unknown schema or family, invalid identity, digest, payload or
+        // classification: never applied, and the cursor never crosses it.
+        return await hold(client, sub, { event, partitionKey, sequence, reason: validation.reason, correlationId });
       }
       const prior = await client.query(`SELECT event_digest FROM ${T}hq_product_admin_event_inbox WHERE product_admin_id = $1 AND event_id = $2`, [sub.product_admin_id, event.event_id]);
       if (prior.rows[0]) {
-        await quarantine(client, sub, { event, partitionKey, sequence, reason: prior.rows[0].event_digest === validation.eventDigest ? "EVENT_ID_REUSED" : "DIGEST_CONFLICT", correlationId });
-        await advance();
-        await client.query("COMMIT");
-        return "QUARANTINED";
+        return await hold(client, sub, { event, partitionKey, sequence, reason: prior.rows[0].event_digest === validation.eventDigest ? "EVENT_ID_REUSED" : "DIGEST_CONFLICT", correlationId });
       }
 
       let application = "NO_PROJECTION";
       let metricRowId = null;
       if (validation.family.projection === "METRIC_OBSERVATION") {
         const check = checkObservation(datasetDef, event.payload);
-        if (!check.ok) {
-          await quarantine(client, sub, { event, partitionKey, sequence, reason: check.reason, correlationId });
-          await advance();
-          await client.query("COMMIT");
-          return "QUARANTINED";
-        }
+        if (!check.ok) return await hold(client, sub, { event, partitionKey, sequence, reason: check.reason, correlationId });
         const applied = await applyObservation(client, { productAdmin: { id: sub.product_admin_id, product_id: sub.product_id }, subscription: sub, contractId: sub.contract_id, dataset: datasetDef, metric: check.metric, payload: event.payload, scope: event.scope, entityVersion: event.entity.version, sequence, now: now() });
         application = applied.application;
         metricRowId = applied.metricRowId || null;
@@ -165,15 +206,13 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
     }
   }
 
-  async function productEnabled(productAdminId) {
-    const { rows } = await pool.query(`SELECT lifecycle_status FROM ${T}hq_product_admins WHERE id = $1`, [productAdminId]);
-    return rows[0] && rows[0].lifecycle_status === "ENABLED";
-  }
-
-  // ACK only what has been committed; retried on the next run if it fails.
+  // ACK only what has been committed, only while the product still passes the
+  // gate, and only up to the contiguous committed sequence; retried on the
+  // next run if it fails.
   async function ack(client, sub, partitionKey, token, sequence, correlationId) {
-    if (!(await productEnabled(sub.product_admin_id))) return "SKIPPED_REVOKED";
     if (hooks.beforeAck) await hooks.beforeAck({ subscriptionId: sub.id, partitionKey, sequence });
+    const blocked = await gate(pool, sub, false);
+    if (blocked) return blocked === "PRODUCT_NOT_ENABLED" ? "SKIPPED_REVOKED" : "SKIPPED_BLOCKED";
     try {
       const res = await client.ackEvents({ dataset_id: sub.dataset_id, partition_key: partitionKey, sequence }, { correlationId });
       if (res.status !== 200) return "ACK_FAILED";
@@ -232,9 +271,11 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
       const outcome = await ack(client, sub, partitionKey, token, last, correlationId);
       if (outcome !== "ACKED") {
         if (outcome === "ACK_FAILED") await alert("ACK_FAILED", ctx);
-        await finishRun(runId, { status: outcome === "SKIPPED_REVOKED" ? "ABORTED_REVOKED" : "FAILED", ackStatus: outcome, errorCode: outcome });
+        const reason = outcome === "SKIPPED_BLOCKED" ? await gate(pool, sub, false) : null;
+        if (reason) await alert(safeCode(reason, "SYNC_BLOCKED"), ctx);
+        await finishRun(runId, { status: outcome === "SKIPPED_REVOKED" ? "ABORTED_REVOKED" : outcome === "SKIPPED_BLOCKED" ? "BLOCKED" : "FAILED", ackStatus: outcome, errorCode: safeCode(reason || outcome, outcome) });
         await releaseLease(sub, partitionKey, token);
-        return { partitionKey, status: outcome };
+        return { partitionKey, status: outcome === "SKIPPED_BLOCKED" ? "BLOCKED" : outcome, reason: reason || undefined };
       }
       acked = last;
     }
@@ -274,26 +315,38 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
       else if (outcome === "STALE") stats.stale += 1;
       else if (outcome === "DUPLICATE") stats.duplicate += 1;
       else if (outcome.startsWith("QUARANTINED")) stats.quarantined += 1;
-      if (["APPLIED", "STALE", "QUARANTINED"].includes(outcome)) last = event.sequence;
-      if (["GAP", "ABORTED_REVOKED", "LEASE_LOST", "SKIPPED_POLICY", "MALFORMED_PAGE"].includes(outcome)) { terminal = outcome; break; }
+      // Only an applied (or stale-but-recorded) event moves the cursor.
+      if (["APPLIED", "STALE", "QUARANTINED_FILTERED"].includes(outcome)) last = event.sequence;
+      if (["GAP", "QUARANTINED_HELD", "ABORTED_REVOKED", "BLOCKED_SYNC_GATE", "LEASE_LOST", "SKIPPED_POLICY", "MALFORMED_PAGE"].includes(outcome)) { terminal = outcome; break; }
       if (hooks.afterCommit) await hooks.afterCommit({ subscriptionId: sub.id, partitionKey, sequence: event.sequence, outcome });
     }
     if (stats.quarantined) await alert("EVENTS_QUARANTINED", ctx);
     if (terminal === "GAP") await alert("SEQUENCE_GAP_DETECTED", ctx);
+    if (terminal === "QUARANTINED_HELD") await alert("EVENT_INTEGRITY_HOLD", ctx);
+    if (terminal === "BLOCKED_SYNC_GATE") {
+      // Blocked mid-run: nothing after the block is applied or acknowledged.
+      const reason = safeCode(await gate(pool, sub, false), "SYNC_BLOCKED");
+      await alert(reason, ctx);
+      await finishRun(runId, { ...stats, status: "BLOCKED", errorCode: reason });
+      await releaseLease(sub, partitionKey, token);
+      return { partitionKey, status: "BLOCKED", reason, ...stats };
+    }
     if (terminal === "ABORTED_REVOKED" || terminal === "LEASE_LOST" || terminal === "SKIPPED_POLICY") {
       await finishRun(runId, { ...stats, status: terminal, errorCode: terminal === "LEASE_LOST" ? "FENCING_TOKEN_SUPERSEDED" : terminal });
       if (terminal !== "LEASE_LOST") await releaseLease(sub, partitionKey, token);
       return { partitionKey, status: terminal, ...stats };
     }
 
-    // 4. ACK after commit.
+    // 4. ACK after commit: only the contiguous sequence committed before any
+    // gap or hold is eligible.
     let ackStatus = "NOT_REQUIRED";
     if (last > acked) {
       ackStatus = await ack(client, sub, partitionKey, token, last, correlationId);
       if (ackStatus === "ACK_FAILED") await alert("ACK_FAILED", ctx);
     }
-    const status = terminal === "GAP" ? "PARTIAL_GAP" : terminal === "MALFORMED_PAGE" ? "FAILED" : "SUCCEEDED";
-    await finishRun(runId, { ...stats, status, ackStatus, ackedSequence: ackStatus === "ACKED" ? last : null, errorCode: terminal === "MALFORMED_PAGE" ? "EVENTS_PAGE_INVALID" : null });
+    const held = terminal === "GAP" || terminal === "QUARANTINED_HELD";
+    const status = held ? "PARTIAL_GAP" : terminal === "MALFORMED_PAGE" ? "FAILED" : ackStatus === "SKIPPED_BLOCKED" ? "BLOCKED" : "SUCCEEDED";
+    await finishRun(runId, { ...stats, status, ackStatus, ackedSequence: ackStatus === "ACKED" ? last : null, errorCode: terminal === "MALFORMED_PAGE" ? "EVENTS_PAGE_INVALID" : terminal === "QUARANTINED_HELD" ? "EVENT_INTEGRITY_HOLD" : ackStatus === "SKIPPED_BLOCKED" ? "SYNC_BLOCKED" : null });
     await releaseLease(sub, partitionKey, token);
     return { partitionKey, status, ackStatus, last, ...stats };
   }
@@ -330,8 +383,14 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
     const stats = { received: snapshot.records.length, applied: 0, stale: 0, quarantined: 0 };
     try {
       await db.query("BEGIN");
-      const p = await db.query(`SELECT lifecycle_status FROM ${T}hq_product_admins WHERE id = $1 FOR SHARE`, [sub.product_admin_id]);
-      if (p.rows[0].lifecycle_status !== "ENABLED") { await db.query("ROLLBACK"); await finishRun(runId, { status: "ABORTED_REVOKED", errorCode: "ABORTED_REVOKED" }); return "ABORTED_REVOKED"; }
+      const blocked = await gate(db, sub, true);
+      if (blocked) {
+        await db.query("ROLLBACK");
+        const revoked = blocked === "PRODUCT_NOT_ENABLED";
+        await finishRun(runId, { status: revoked ? "ABORTED_REVOKED" : "BLOCKED", errorCode: revoked ? "ABORTED_REVOKED" : safeCode(blocked, "SYNC_BLOCKED") });
+        if (!revoked) { await alert(safeCode(blocked, "SYNC_BLOCKED"), ctx); await releaseLease(sub, partitionKey, token); }
+        return revoked ? "ABORTED_REVOKED" : "BLOCKED";
+      }
       const c = await db.query(`SELECT * FROM ${T}hq_product_admin_sync_cursors WHERE subscription_id = $1 AND partition_key = $2 FOR UPDATE`, [sub.id, partitionKey]);
       if (String(c.rows[0].lease_token) !== String(token) || c.rows[0].lease_owner !== workerId) { await db.query("ROLLBACK"); await finishRun(runId, { status: "LEASE_LOST", errorCode: "FENCING_TOKEN_SUPERSEDED" }); return "LEASE_LOST"; }
       for (const record of snapshot.records) {
@@ -354,7 +413,11 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
       }
       const cursor = c.rows[0];
       if (cursor.gap_to !== null && Number.isSafeInteger(through) && through >= Number(cursor.gap_to) && snapshot.complete) {
-        await db.query(`UPDATE ${T}hq_product_admin_sync_cursors SET last_sequence = GREATEST(last_sequence, $3), gap_from = NULL, gap_to = NULL, gap_detected_at = NULL, last_success_at = now() WHERE subscription_id = $1 AND partition_key = $2`, [sub.id, partitionKey, through]);
+        await db.query(`UPDATE ${T}hq_product_admin_sync_cursors SET last_sequence = GREATEST(last_sequence, $3), gap_from = NULL, gap_to = NULL, gap_detected_at = NULL, hold_reason = NULL, last_success_at = now() WHERE subscription_id = $1 AND partition_key = $2`, [sub.id, partitionKey, through]);
+        // Events held in quarantine within the covered range are superseded by
+        // the authoritative snapshot. The quarantine record itself is kept.
+        await db.query(`UPDATE ${T}hq_product_admin_quarantine SET resolved_at = now(), resolved_by = $4, resolution = 'SUPERSEDED_BY_SNAPSHOT'
+                        WHERE subscription_id = $1 AND partition_key = $2 AND sequence IS NOT NULL AND sequence <= $3 AND resolved_at IS NULL`, [sub.id, partitionKey, through, workerId]);
         result = "RECONCILED";
       }
       await db.query(`UPDATE ${T}hq_product_admin_subscriptions SET last_reconciliation_at = now(), last_source_observation_at = GREATEST(COALESCE(last_source_observation_at, $2::timestamptz), $2::timestamptz), updated_at = now() WHERE id = $1`, [sub.id, asOf]);
@@ -376,7 +439,7 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
       `UPDATE ${T}hq_product_admin_subscriptions s SET
          gap_status = CASE WHEN EXISTS (SELECT 1 FROM ${T}hq_product_admin_sync_cursors c WHERE c.subscription_id = s.id AND c.gap_from IS NOT NULL) THEN 'GAP_DETECTED' ELSE 'NONE' END,
          coverage = CASE
-           WHEN EXISTS (SELECT 1 FROM ${T}hq_product_admin_sync_cursors c WHERE c.subscription_id = s.id AND c.gap_from IS NOT NULL) OR s.quarantined_count > 0 THEN 'PARTIAL'
+           WHEN EXISTS (SELECT 1 FROM ${T}hq_product_admin_sync_cursors c WHERE c.subscription_id = s.id AND c.gap_from IS NOT NULL) OR EXISTS (SELECT 1 FROM ${T}hq_product_admin_quarantine q WHERE q.subscription_id = s.id AND q.resolved_at IS NULL) THEN 'PARTIAL'
            WHEN s.last_success_at IS NULL THEN s.coverage
            ELSE 'COMPLETE' END,
          updated_at = now()
@@ -385,6 +448,15 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
 
   async function syncSubscription(sub) {
     const ctx = { product_id: sub.product_id, product_admin_id: sub.product_admin_id, subscription_id: sub.id };
+    const blocked = identityBlock(sub, trustStore, now(), environment);
+    if (blocked) {
+      // Nothing is requested from the Product Admin (no events, snapshots,
+      // reconciliation or ACK); the cursor and committed data are untouched
+      // and the block is recorded as a sanitized alert.
+      await alert(safeCode(blocked, "SYNC_BLOCKED"), ctx);
+      await pool.query(`UPDATE ${T}hq_product_admins SET sync_status = 'FAILING' WHERE id = $1 AND lifecycle_status = 'ENABLED'`, [sub.product_admin_id]);
+      return { subscriptionId: sub.id, status: policy.blockStatus(blocked), reason: blocked };
+    }
     const datasetDef = (sub.catalog.datasets || []).find((d) => d.dataset_id === sub.dataset_id && d.version === sub.schema_revision);
     if (!datasetDef || datasetDef.schema_digest !== sub.schema_digest) {
       await pool.query(`UPDATE ${T}hq_product_admin_subscriptions SET status = 'POLICY_BLOCKED', policy_block_reason = 'SCHEMA_REVISION_NOT_IN_ACTIVE_CONTRACT', updated_at = now() WHERE id = $1`, [sub.id]);
@@ -415,11 +487,12 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
       return { subscriptionId: sub.id, status: "FAILED", reason, results };
     }
     for (const partition of status.partitions.filter((p) => p.dataset_id === sub.dataset_id)) {
-      if (!(await productEnabled(sub.product_admin_id))) { results.push({ partitionKey: partition.partition_key, status: "ABORTED_REVOKED" }); break; }
+      const stop = await gate(pool, sub, false);
+      if (stop) { results.push({ partitionKey: partition.partition_key, status: stop === "PRODUCT_NOT_ENABLED" ? "ABORTED_REVOKED" : "BLOCKED", reason: stop }); break; }
       results.push(await syncPartition(sub, client, registry, datasetDef, partition));
     }
     await refreshCoverage(sub);
-    const failing = results.some((r) => r.status === "FAILED" || r.status === "ACK_FAILED");
+    const failing = results.some((r) => r.status === "FAILED" || r.status === "ACK_FAILED" || r.status === "BLOCKED" || r.reconcile === "BLOCKED");
     const gap = results.some((r) => r.status === "PARTIAL_GAP");
     await pool.query(`UPDATE ${T}hq_product_admins SET health_status = 'REACHABLE', health_checked_at = now(), sync_status = $2 WHERE id = $1 AND lifecycle_status = 'ENABLED'`,
       [sub.product_admin_id, failing ? "FAILING" : gap ? "GAP_DETECTED" : "HEALTHY"]);
@@ -436,4 +509,4 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
   return { tick, workerId, reconcilePartition, syncSubscription, loadSubscriptions };
 }
 
-module.exports = { createSyncEngine };
+module.exports = { createSyncEngine, identityBlock, IDENTITY_BLOCKING_DRIFT, SYNC_SAFE_DRIFT: policy.SYNC_SAFE_DRIFT };

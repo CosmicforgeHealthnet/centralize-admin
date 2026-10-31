@@ -836,10 +836,11 @@
     "/internal/product-admin/v1/operations/{operationId}": {
       "get": {
         "operationId": "operationGet",
-        "summary": "Operation status",
+        "summary": "Operation status (requesting staff only)",
         "security": [
           {
-            "ServiceHmac": []
+            "ServiceHmac": [],
+            "StaffDelegation": []
           }
         ],
         "parameters": [
@@ -1024,10 +1025,11 @@
     "/internal/product-admin/v1/audit/{operationId}": {
       "get": {
         "operationId": "auditGet",
-        "summary": "Sanitized audit trail for an operation",
+        "summary": "Sanitized audit trail for an operation (requesting staff only)",
         "security": [
           {
-            "ServiceHmac": []
+            "ServiceHmac": [],
+            "StaffDelegation": []
           }
         ],
         "parameters": [

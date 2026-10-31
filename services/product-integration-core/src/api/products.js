@@ -12,6 +12,7 @@ const { loadGrants, authorizeStaff, AuthorizationError } = require("../authz");
 const { resolveEndpoint, clientFor } = require("../registry/endpoints");
 const { integrationStatus } = require("../monitoring");
 const { scopeKey, freshnessOf } = require("../projections/metrics");
+const policy = require("../registry/sync-policy");
 
 const DIMS = ["market", "organization", "zone", "tenant"];
 
@@ -24,19 +25,29 @@ class ProductError extends Error {
   }
 }
 
-function createProducts({ pool, endpoints, environment, now = Date.now, clientOptions = {} }) {
+function createProducts({ pool, endpoints, environment, trustStore = false, now = Date.now, clientOptions = {} }) {
+  // Same gate as the sync engine: a product that may not synchronize is not
+  // offered for live reads either, so navigation, reads and runtime state
+  // cannot disagree. Committed history is kept; it is served again once the
+  // product passes the gate.
+  const gateReason = (row, contract) => policy.syncBlock({ row, contract, trustStore, environment, nowMs: now() });
+
   async function liveRegistration(productId) {
     if (!new RegExp(C.PATTERNS.productId).test(String(productId))) throw new ProductError("NOT_FOUND", "UNKNOWN_PRODUCT");
     const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admins WHERE product_id = $1 AND environment = $2 AND lifecycle_status NOT IN ('REJECTED','REVOKED') ORDER BY created_at DESC LIMIT 1`, [productId, environment]);
     return rows[0] || null;
   }
 
-  async function enabledRegistration(productId) {
+  async function enabledRegistration(productId, { requireSyncGate = true } = {}) {
     const row = await liveRegistration(productId);
     if (!row) throw new ProductError("NOT_FOUND", "PRODUCT_NOT_REGISTERED");
     if (row.lifecycle_status !== "ENABLED") throw new ProductError("UNAVAILABLE", "PRODUCT_NOT_ENABLED");
     const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admin_contracts WHERE id = $1 AND status = 'ACTIVE'`, [row.current_contract_id]);
     if (!rows[0]) throw new ProductError("UNAVAILABLE", "NO_ACTIVE_CONTRACT");
+    if (requireSyncGate) {
+      const reason = policy.availabilityReason(gateReason(row, rows[0]));
+      if (reason) throw new ProductError("UNAVAILABLE", reason);
+    }
     return { row, contract: rows[0] };
   }
 
@@ -45,6 +56,17 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
   }
 
   const envelope = (productId, ctx, fields) => C.okEnvelope({ productId, correlationId: ctx.correlationId, ...fields });
+
+  // Short-lived (30 s) product delegation bound to one GET request, so the
+  // Product Admin can check the staff member, action and scope itself.
+  function productDelegation(subject, row, decision, action, uri) {
+    const endpoint = resolveEndpoint(endpoints, row);
+    return I.signDelegation({
+      iss: "product-integration-core", aud: row.product_id + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
+      auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: row.product_id, action,
+      scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
+    }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+  }
 
   return {
     // Navigation contract: which products this staff member can see and why.
@@ -62,9 +84,9 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
           ? await pool.query(`SELECT catalog, revision, protocol_major, protocol_minor, status FROM ${T}hq_product_admin_contracts WHERE id = $1`, [row.current_contract_id])
           : { rows: [] };
         const enabled = row.lifecycle_status === "ENABLED" && contract && contract.status === "ACTIVE";
-        const compatible = enabled && C.isSupportedProtocol({ major: contract.protocol_major, minor: contract.protocol_minor });
-        const reason = !enabled ? "NOT_ENABLED" : !compatible ? "PROTOCOL_INCOMPATIBLE" : row.drift_status === "BREAKING_DETECTED" ? "CONTRACT_DRIFT" : null;
-        const datasets = enabled ? contract.catalog.datasets.map((d) => ({ dataset_id: d.dataset_id, title: d.title, granted: grants.some((g) => g.product_id === productId && g.effect === "ALLOW" && !g.revoked_at && (g.datasets || []).includes(d.dataset_id)) })) : [];
+        const reason = !enabled ? "NOT_ENABLED" : policy.availabilityReason(gateReason(row, { ...contract, id: row.current_contract_id }));
+        // Same decision as the read path: expiry, explicit deny, dataset and scope all apply.
+        const datasets = enabled ? contract.catalog.datasets.map((d) => ({ dataset_id: d.dataset_id, title: d.title, granted: I.authorize({ subject, productId, action: "metric.read", datasetId: d.dataset_id, grants, productScope: row.allowed_scope, now: now() }).allowed })) : [];
         const states = {};
         if (enabled) for (const cap of contract.catalog.capabilities) states[cap.state] = (states[cap.state] || 0) + 1;
         items.push({
@@ -86,7 +108,8 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
     },
 
     async manifest(subject, productId, ctx) {
-      const { row, contract } = await enabledRegistration(productId);
+      // Diagnostic: the approved contract and the recorded drift stay readable.
+      const { row, contract } = await enabledRegistration(productId, { requireSyncGate: false });
       await authorize(subject, "product.manifest.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
       return envelope(productId, ctx, { result: {
         product_id: productId, display_name: row.display_name, environment: row.environment, contract_revision: contract.revision,
@@ -101,13 +124,7 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
     async capabilities(subject, productId, ctx) {
       const { row } = await enabledRegistration(productId);
       const decision = await authorize(subject, "product.capabilities.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
-      const endpoint = resolveEndpoint(endpoints, row);
-      const uri = C.endpointPath("capabilities");
-      const token = I.signDelegation({
-        iss: "product-integration-core", aud: productId + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
-        auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: productId, action: "product.capabilities.read",
-        scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
-      }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+      const token = productDelegation(subject, row, decision, "product.capabilities.read", C.endpointPath("capabilities"));
       let res;
       try { res = await clientFor(endpoints, row, clientOptions).getCapabilities({ delegation: token, correlationId: ctx.correlationId }); }
       catch { throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE"); }
@@ -198,10 +215,11 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
 
     async operation(subject, productId, operationId, ctx) {
       const { row } = await enabledRegistration(productId);
-      await authorize(subject, "operation.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
+      const decision = await authorize(subject, "operation.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
       if (!new RegExp(C.PATTERNS.pathParam).test(String(operationId))) throw new ProductError("INVALID_REQUEST", "OPERATION_ID_INVALID");
       try {
-        const res = await clientFor(endpoints, row, clientOptions).getOperation(operationId, { correlationId: ctx.correlationId });
+        const delegation = productDelegation(subject, row, decision, "operation.read", C.endpointPath("operationGet", { operationId }));
+        const res = await clientFor(endpoints, row, clientOptions).getOperation(operationId, { correlationId: ctx.correlationId, delegation });
         return { status: res.status, body: res.json };
       } catch {
         throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE");

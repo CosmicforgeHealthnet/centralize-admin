@@ -47,7 +47,7 @@ function readBody(req) {
 
 function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment, enabled = true, nonceStore, now = Date.now, logger = () => {}, clientOptions = {}, syncEngine = null }) {
   const onboarding = createOnboarding({ pool, endpoints, trustStore, environment, now, clientOptions });
-  const products = createProducts({ pool, endpoints, environment, now, clientOptions });
+  const products = createProducts({ pool, endpoints, environment, trustStore, now, clientOptions });
   const health = createHealthChecker({ pool, endpoints, trustStore, now, clientOptions });
 
   const admin = (suffix) => new RegExp("^" + BASE + "/admin/product-integrations/" + ID + suffix + "$");
@@ -113,6 +113,10 @@ function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment,
 
   return async function handler(req, res) {
     const correlationId = randomUUID();
+    // The Central Admin API's correlation ID is kept alongside our own
+    // server-generated ID so logs can be joined across both services.
+    const inbound = String(req.headers["x-correlation-id"] || "");
+    const upstreamCorrelationId = /^[A-Za-z0-9._:-]{8,128}$/.test(inbound) ? inbound : null;
     const started = now();
     let status = 500;
     const send = (code, body) => {
@@ -154,10 +158,10 @@ function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment,
       if (err instanceof AuthorizationError) return send(err.status, { success: false, error: { code: err.status === 503 ? "UNAVAILABLE" : "FORBIDDEN", reason: err.reason } });
       if (err instanceof OnboardingError || err instanceof TransitionError) return send(err.status, { success: false, error: { code: err.status === 404 ? "NOT_FOUND" : err.status === 403 ? "FORBIDDEN" : err.status === 400 ? "INVALID_REQUEST" : err.status === 503 ? "UNAVAILABLE" : err.status === 422 ? "UNPROCESSABLE" : "CONFLICT", reason: err.reason, detail: Array.isArray(err.detail) ? err.detail.map((d) => (typeof d === "string" ? d : d.kind || "")).slice(0, 10) : undefined } });
       if (err instanceof ProductError || err instanceof C.ProtocolError) return send(err.status, { success: false, error: { code: err.code, reason: err.reason } });
-      logger({ service: "product-integration-core", event: "unhandled_error", error: err && err.name, code: err && err.code, correlation_id: correlationId });
+      logger({ service: "product-integration-core", event: "unhandled_error", error: err && err.name, code: err && err.code, correlation_id: correlationId, upstream_correlation_id: upstreamCorrelationId });
       return send(500, { success: false, error: { code: "INTERNAL", reason: "INTERNAL_ERROR" } });
     } finally {
-      logger({ service: "product-integration-core", event: "request", method: req.method, path: String(req.url || "").split("?")[0].slice(0, 160), status, duration_ms: now() - started, correlation_id: correlationId });
+      logger({ service: "product-integration-core", event: "request", method: req.method, path: String(req.url || "").split("?")[0].slice(0, 160), status, duration_ms: now() - started, correlation_id: correlationId, upstream_correlation_id: upstreamCorrelationId });
     }
   };
 }

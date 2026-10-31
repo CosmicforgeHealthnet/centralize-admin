@@ -94,10 +94,42 @@ jobs:
           node-version: "22"
       - run: npm ci
       - run: npm run check
+      - name: Read the pinned KarryGo bridge contract commit
+        id: karrygo-pin
+        run: echo "sha=$(node -p "require('./src/bridge/contracts/karrygo-backoffice-v1.json').source_commit")" >> "$GITHUB_OUTPUT"
+      # KarryGo is public; only the bridge contract artifacts are read (no code is run).
+      - name: Check out KarryGo bridge artifacts at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicforgeHealthnet/KarryGo
+          ref: ${{ steps.karrygo-pin.outputs.sha }}
+          path: _karrygo-pinned
+          persist-credentials: false
+          sparse-checkout: services/admin-backoffice-service/docs/openapi
       - name: Protocol, security-negative, bridge, transport and PostgreSQL tests
         env:
           KARRYAM_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-pinned
+          KARRYGO_REQUIRE_CHECKOUT: "1"
         run: npm test
+      - name: Check out KarryGo staging HEAD for drift detection
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicforgeHealthnet/KarryGo
+          ref: staging
+          path: _karrygo-staging
+          persist-credentials: false
+          sparse-checkout: services/admin-backoffice-service/docs/openapi
+      - name: Report KarryGo bridge contract drift (warning only; re-pin after review)
+        env:
+          KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-staging
+          KARRYGO_REQUIRE_CHECKOUT: "1"
+        run: |
+          if node --test --test-name-pattern="pinned KarryGo" tests/boundaries.test.js; then
+            echo "KarryGo staging matches the pinned bridge contract."
+          else
+            echo "::warning title=KarryGo bridge contract drift::KarryGo staging no longer matches the pinned contract in src/bridge/contracts/karrygo-backoffice-v1.json. Review the change before re-pinning."
+          fi
 
   product-integration-core:
     name: Product Integration Core (registry, onboarding, sync, conformance)

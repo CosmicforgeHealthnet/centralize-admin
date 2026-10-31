@@ -94,21 +94,31 @@ test("revocation mid-synchronization stops consumption at the next event and sen
   } finally { await h.close(); }
 });
 
-test("unknown schemas and unsupported families are quarantined; coverage becomes partial", { skip }, async () => {
+// Previously the cursor advanced (and was ACKed) past both rejected events,
+// so the product could discard events HQ never verified. Now the first
+// unverifiable event holds the partition until reconciliation covers it.
+test("unknown schemas and unsupported families are quarantined and hold the cursor; coverage becomes partial", { skip }, async () => {
   const h = await startHarness();
   try {
     await h.registerAndEnable();
     h.product.emitMetric({ value: 1, overrides: { family: "synthetic.unknown_family" } });
     h.product.emitMetric({ value: 2, overrides: { schema_version: "1.4.0" } });
     h.product.emitMetric({ value: 3, windowStart: "2026-10-09T00:00:00Z", windowEnd: "2026-10-10T00:00:00Z" });
+    h.product.state.snapshotThroughOverride = 0; // no approved snapshot covers the hold yet
     await h.engine.tick();
+    await h.engine.tick(); // redelivery and reconciliation attempts do not get past it
     const reasons = (await rows(h, "SELECT reason_code FROM hq_integration.hq_product_admin_quarantine ORDER BY sequence")).map((r) => r.reason_code);
-    assert.deepEqual(reasons, ["UNKNOWN_EVENT_FAMILY", "SCHEMA_DRIFT"]);
-    const [cursor] = await rows(h, "SELECT last_sequence FROM hq_integration.hq_product_admin_sync_cursors");
-    assert.equal(Number(cursor.last_sequence), 3);
-    const [sub] = await rows(h, "SELECT coverage, quarantined_count FROM hq_integration.hq_product_admin_subscriptions");
+    assert.deepEqual(reasons, ["UNKNOWN_EVENT_FAMILY"]);
+    const [cursor] = await rows(h, "SELECT last_sequence, acked_sequence, gap_from, gap_to, hold_reason FROM hq_integration.hq_product_admin_sync_cursors");
+    assert.equal(Number(cursor.last_sequence), 0);
+    assert.equal(Number(cursor.acked_sequence), 0);
+    assert.deepEqual([Number(cursor.gap_from), Number(cursor.gap_to), cursor.hold_reason], [1, 1, "UNKNOWN_EVENT_FAMILY"]);
+    assert.deepEqual(h.product.state.acks, []);
+    assert.equal((await rows(h, "SELECT count(*)::int AS n FROM hq_integration.hq_product_admin_event_inbox"))[0].n, 0);
+    const [sub] = await rows(h, "SELECT coverage, quarantined_count, gap_status FROM hq_integration.hq_product_admin_subscriptions");
     assert.equal(sub.coverage, "PARTIAL");
-    assert.equal(sub.quarantined_count, 2);
+    assert.equal(sub.gap_status, "GAP_DETECTED");
+    assert.equal(sub.quarantined_count, 1);
     const detail = await rows(h, "SELECT detail FROM hq_integration.hq_product_admin_quarantine");
     assert.ok(detail.every((d) => !("payload" in d.detail))); // quarantine never stores raw payloads
   } finally { await h.close(); }
@@ -174,5 +184,37 @@ test("scheduled runs honour the subscription poll interval; operator runs do not
     assert.equal((await h.engine.tick({ scheduled: true })).length, 1);
     h.clock.offsetMs = 0;
     assert.equal((await h.engine.tick()).length, 1); // operator-triggered: always runs
+  } finally { await h.close(); }
+});
+
+test("a standard non-metric event is validated, persisted without projection, sequenced and ACKed after commit", { skip }, async () => {
+  const h = await startHarness();
+  try {
+    await h.registerAndEnable();
+    const committedAtAck = [];
+    h.product.state.onAck = async (body) => {
+      const r = await rows(h, "SELECT count(*) AS n FROM hq_integration.hq_product_admin_event_inbox WHERE sequence <= $1", [body.sequence]);
+      committedAtAck.push(Number(r[0].n));
+    };
+    const status = h.product.emitStatus({ status: "COMPLETED" });
+    const offSchema = h.product.emitStatus({ payload: { status: "COMPLETED", customer_phone: "+2340000000" } });
+    h.product.state.snapshotThroughOverride = 0;
+    const [run] = await h.engine.tick();
+    assert.equal(run.status, "DONE");
+    const inbox = await rows(h, "SELECT event_id, family, application FROM hq_integration.hq_product_admin_event_inbox ORDER BY sequence");
+    assert.deepEqual(inbox.map((e) => [e.event_id, e.family, e.application]), [[status.event_id, h.product.STATUS_FAMILY || "synthetic.order_status_changed", "NO_PROJECTION"]]);
+    assert.equal((await rows(h, "SELECT count(*) AS n FROM hq_integration.hq_product_admin_metrics"))[0].n, "0", "no metric is fabricated from a status event");
+    const quarantined = await rows(h, "SELECT reason_code, detail FROM hq_integration.hq_product_admin_quarantine");
+    assert.equal(quarantined.length, 1, "payload outside the approved schema is quarantined");
+    assert.match(quarantined[0].reason_code, /SCHEMA|PAYLOAD/, quarantined[0].reason_code);
+    assert.ok(!JSON.stringify(quarantined).includes("+2340000000"), "quarantine does not retain the rejected payload");
+    // The off-schema event holds the cursor: only sequence 1 is committed and ACKed.
+    const [cursor] = await rows(h, "SELECT last_sequence, acked_sequence, gap_from FROM hq_integration.hq_product_admin_sync_cursors");
+    assert.equal(Number(cursor.last_sequence), 1);
+    assert.equal(Number(cursor.acked_sequence), 1);
+    assert.equal(Number(cursor.gap_from), 2);
+    assert.ok(committedAtAck.length > 0 && committedAtAck.every((n) => n >= 1), "ACK observed committed rows");
+    assert.ok(h.product.state.acks.every((a) => a.sequence <= 1), "never ACKed past the held event");
+    assert.equal(offSchema.sequence, 2);
   } finally { await h.close(); }
 });
