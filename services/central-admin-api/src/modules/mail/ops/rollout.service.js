@@ -116,13 +116,15 @@ function createRolloutService({ client, config, audit, stepUp, clock = () => new
       // optional MARKETING processing. Explicit DENY rules remain enforceable.
       const capability = `WORKER_${queue}`;
       const decision = await decide(capability);
+      const isCore = ["INBOUND", "OUTBOUND", "EVENTS"].includes(queue);
       const coreEnabled = queue === "INBOUND"
-        ? config.receivingEnabled && config.inbound?.ownedHere !== false
+        ? config.receivingEnabled && config.inbound?.ownedHere === true
         : queue === "OUTBOUND"
           ? config.sendingEnabled
           : queue === "EVENTS" && config.enabled;
+      if (isCore && !coreEnabled) continue;
       if (decision === "MAIL_ROLLOUT_DENIED") continue;
-      if (decision === null || (decision === "MAIL_ROLLOUT_NOT_ENABLED" && coreEnabled)) allowed.push(queue);
+      if (isCore || decision === null) allowed.push(queue);
     }
     return allowed;
   }
