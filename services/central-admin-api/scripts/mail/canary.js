@@ -92,7 +92,10 @@ async function simulate() {
     const cohort = await mail.services.rollout.createCohort(op, { key: "canary", name: "Canary cohort" }, context);
     await mail.services.rollout.addMember(op, cohort.id, { adminUserId: pilot.id }, context);
     await mail.services.rollout.createRule(op, { capability: "STAFF_MAIL", scopeType: "COHORT", scopeId: cohort.id, effect: "ALLOW", reason: "canary simulation", stepUpId: await stepUp("MAIL_ROLLOUT_CHANGE") }, context);
-    for (const capability of ["WORKER_OUTBOUND", "WORKER_EVENTS"]) await mail.services.rollout.createRule(op, { capability, scopeType: "ENVIRONMENT", effect: "ALLOW", reason: "canary simulation", stepUpId: await stepUp("MAIL_ROLLOUT_CHANGE") }, context);
+    // Core worker queues are backend-managed: no WORKER_* ALLOW rule exists
+    // or is accepted; the worker serves OUTBOUND and EVENTS on its own.
+    const coreAllow = await mail.services.rollout.createRule(op, { capability: "WORKER_OUTBOUND", scopeType: "ENVIRONMENT", effect: "ALLOW", reason: "canary simulation" }, context).then(() => "CREATED", (error) => error?.details?.reason || error?.reason || error?.code);
+    check("core worker ALLOW rules are retired (backend-managed)", coreAllow !== "CREATED", { coreAllow });
     const pilotStatus = await mail.services.rollout.pilotStatus(op, pilot.id);
     check("pilot onboarding checklist", pilotStatus.decisions.STAFF_MAIL === "ALLOWED" && pilotStatus.cohorts.includes("canary"), pilotStatus);
 
