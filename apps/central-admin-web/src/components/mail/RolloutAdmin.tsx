@@ -188,7 +188,7 @@ function Rules({ data, requestStepUp }: { data: RolloutOverview; requestStepUp: 
   const refresh = useRefresh();
   const [form, setForm] = useState({ capability: "STAFF_MAIL", scopeType: "COHORT", scopeId: "", effect: "ALLOW", reason: "" });
   const [msg, setMsg] = useState<string | null>(null);
-  const active = data.rules.filter((rule) => !rule.revokedAt);
+  const active = data.rules.filter((rule) => !rule.revokedAt && !rule.capability.startsWith("WORKER_"));
   const worker = form.capability.startsWith("WORKER_");
   const scopeType = worker ? "ENVIRONMENT" : form.scopeType;
   const payload = { capability: form.capability, scopeType, scopeId: scopeType === "ENVIRONMENT" ? null : form.scopeId.trim(), effect: form.effect, reason: form.reason.trim() };
@@ -222,7 +222,10 @@ function Rules({ data, requestStepUp }: { data: RolloutOverview; requestStepUp: 
     <section className={card} aria-labelledby="rules-h">
       <h2 id="rules-h" className="mb-1 text-[13px] font-semibold">Rollout rules ({data.environment})</h2>
       <p className="mb-2 text-[11px] text-muted-foreground">
-        {data.enforced ? "Enforcement is on: a capability is available only where an ALLOW rule matches and no DENY rule does." : "Enforcement is off in this environment: rules are recorded but only emergency stops take effect."}
+        Core Mail worker queues are configured by the backend; this page controls optional staff and product feature rollouts, not background processing.
+      </p>
+      <p className="mb-2 text-[11px] text-muted-foreground">
+        {data.enforced ? "Enforcement is on for optional capabilities: an ALLOW rule must match, and no DENY rule may apply." : "Feature rollout enforcement is off in this environment; emergency stops still apply."}
       </p>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-[11px]">
@@ -251,7 +254,7 @@ function Rules({ data, requestStepUp }: { data: RolloutOverview; requestStepUp: 
         </label>
         <label className="text-[11px] text-muted-foreground">Capability
           <select value={form.capability} onChange={(e) => setForm({ ...form, capability: e.target.value })} className={input}>
-            {data.capabilities.map((capability) => <option key={capability} value={capability}>{capability}</option>)}
+            {data.capabilities.filter((capability) => !capability.startsWith("WORKER_")).map((capability) => <option key={capability} value={capability}>{capability}</option>)}
           </select>
         </label>
         <label className="text-[11px] text-muted-foreground">Scope
