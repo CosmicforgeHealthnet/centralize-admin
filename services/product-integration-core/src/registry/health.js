@@ -16,6 +16,9 @@ function createHealthChecker({ pool, endpoints, trustStore, now = Date.now, clie
     let reason = null;
     let refreshed = null;
     try {
+      // A trust store whose source files changed since load is stale: never
+      // verify (or refresh) anything with it until the process restarts.
+      if (trustStore && typeof trustStore.isCurrent === "function" && !trustStore.isCurrent()) throw Object.assign(new Error("TRUST_STORE_CHANGED"), { trustChanged: true });
       const client = clientFor(endpoints, row, clientOptions);
       const ready = await client.getHealthReady().catch(() => null);
       if (!ready || ready.status !== 200) health = "DEGRADED";
@@ -45,19 +48,32 @@ function createHealthChecker({ pool, endpoints, trustStore, now = Date.now, clie
         if (verified && drift === "NONE") refreshed = verified;
       }
     } catch (err) {
-      health = "UNREACHABLE";
-      reason = err.reason || err.code || "PRODUCT_ADMIN_UNREACHABLE";
+      if (err.trustChanged) {
+        drift = "IDENTITY_MISMATCH";
+        reason = "TRUST_STORE_CHANGED";
+      } else {
+        health = "UNREACHABLE";
+        reason = err.reason || err.code || "PRODUCT_ADMIN_UNREACHABLE";
+      }
     }
-    await pool.query(
+    // The decision above was made against the contract and approved signer
+    // read at the start of the check. If either changed meanwhile (a contract
+    // activation, a revision proposal, a re-review), this result is stale and
+    // is not written: the next check decides against the new state.
+    const { rowCount } = await pool.query(
       `UPDATE ${T}hq_product_admins SET health_status = $2, health_checked_at = now(),
          drift_status = CASE WHEN $3::text = 'NONE' AND $2 = 'UNREACHABLE' THEN drift_status ELSE $3::text END,
-         drift_detected_at = CASE WHEN $3::text <> 'NONE' AND drift_status IS DISTINCT FROM $3::text THEN now() ELSE drift_detected_at END
-       WHERE id = $1 AND lifecycle_status NOT IN ('REVOKED','REJECTED')`, [row.id, health, drift]);
-    if (refreshed) {
-      await pool.query(
-        `UPDATE ${T}hq_product_admins SET manifest_digest = $2, manifest_revision = $3, manifest_expires_at = $4
-         WHERE id = $1 AND lifecycle_status NOT IN ('REVOKED','REJECTED') AND (manifest_revision IS NULL OR manifest_revision <= $3)`,
-        [row.id, refreshed.manifestDigest, refreshed.manifest.manifest_revision, refreshed.expiresAt]);
+         drift_detected_at = CASE WHEN $3::text <> 'NONE' AND drift_status IS DISTINCT FROM $3::text THEN now() ELSE drift_detected_at END,
+         manifest_digest = CASE WHEN $6::boolean AND (manifest_revision IS NULL OR manifest_revision <= $8) THEN $7 ELSE manifest_digest END,
+         manifest_expires_at = CASE WHEN $6::boolean AND (manifest_revision IS NULL OR manifest_revision <= $8) THEN $9::timestamptz ELSE manifest_expires_at END,
+         manifest_revision = CASE WHEN $6::boolean AND (manifest_revision IS NULL OR manifest_revision <= $8) THEN $8 ELSE manifest_revision END
+       WHERE id = $1 AND lifecycle_status NOT IN ('REVOKED','REJECTED')
+         AND current_contract_id IS NOT DISTINCT FROM $4::uuid AND approved_signer_kid IS NOT DISTINCT FROM $5::text`,
+      [row.id, health, drift, row.current_contract_id || null, row.approved_signer_kid || null, Boolean(refreshed),
+        refreshed ? refreshed.manifestDigest : null, refreshed ? refreshed.manifest.manifest_revision : null, refreshed ? refreshed.expiresAt : null]);
+    if (rowCount === 0) {
+      const { rows: [current] } = await pool.query(`SELECT lifecycle_status FROM ${T}hq_product_admins WHERE id = $1`, [row.id]);
+      if (current && !["REVOKED", "REJECTED"].includes(current.lifecycle_status)) return { health_status: health, drift_status: drift, reason: "STALE_CHECK_DISCARDED", stale: true };
     }
     if (drift !== "NONE" || health !== "REACHABLE") {
       await recordAudit(pool, { actorType: "SYSTEM", actorId: "pic-health", productId: row.product_id, productAdminId: row.id, action: "integration.alert", outcome: "ERROR", reasonCode: /^[A-Z][A-Z0-9_]{2,63}$/.test(String(reason)) ? reason : drift, metadata: { health_status: health, drift_status: drift } }).catch(() => {});

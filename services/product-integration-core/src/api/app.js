@@ -47,7 +47,7 @@ function readBody(req) {
 
 function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment, enabled = true, nonceStore, now = Date.now, logger = () => {}, clientOptions = {}, syncEngine = null }) {
   const onboarding = createOnboarding({ pool, endpoints, trustStore, environment, now, clientOptions });
-  const products = createProducts({ pool, endpoints, environment, now, clientOptions });
+  const products = createProducts({ pool, endpoints, environment, trustStore, now, clientOptions });
   const health = createHealthChecker({ pool, endpoints, trustStore, now, clientOptions });
 
   const admin = (suffix) => new RegExp("^" + BASE + "/admin/product-integrations/" + ID + suffix + "$");

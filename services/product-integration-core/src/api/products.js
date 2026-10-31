@@ -12,9 +12,9 @@ const { loadGrants, authorizeStaff, AuthorizationError } = require("../authz");
 const { resolveEndpoint, clientFor } = require("../registry/endpoints");
 const { integrationStatus } = require("../monitoring");
 const { scopeKey, freshnessOf } = require("../projections/metrics");
+const policy = require("../registry/sync-policy");
 
 const DIMS = ["market", "organization", "zone", "tenant"];
-const IDENTITY_DRIFT = ["IDENTITY_MISMATCH", "MANIFEST_EXPIRED", "MANIFEST_INVALID"];
 
 class ProductError extends Error {
   constructor(code, reason, status) {
@@ -25,19 +25,29 @@ class ProductError extends Error {
   }
 }
 
-function createProducts({ pool, endpoints, environment, now = Date.now, clientOptions = {} }) {
+function createProducts({ pool, endpoints, environment, trustStore = false, now = Date.now, clientOptions = {} }) {
+  // Same gate as the sync engine: a product that may not synchronize is not
+  // offered for live reads either, so navigation, reads and runtime state
+  // cannot disagree. Committed history is kept; it is served again once the
+  // product passes the gate.
+  const gateReason = (row, contract) => policy.syncBlock({ row, contract, trustStore, environment, nowMs: now() });
+
   async function liveRegistration(productId) {
     if (!new RegExp(C.PATTERNS.productId).test(String(productId))) throw new ProductError("NOT_FOUND", "UNKNOWN_PRODUCT");
     const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admins WHERE product_id = $1 AND environment = $2 AND lifecycle_status NOT IN ('REJECTED','REVOKED') ORDER BY created_at DESC LIMIT 1`, [productId, environment]);
     return rows[0] || null;
   }
 
-  async function enabledRegistration(productId) {
+  async function enabledRegistration(productId, { requireSyncGate = true } = {}) {
     const row = await liveRegistration(productId);
     if (!row) throw new ProductError("NOT_FOUND", "PRODUCT_NOT_REGISTERED");
     if (row.lifecycle_status !== "ENABLED") throw new ProductError("UNAVAILABLE", "PRODUCT_NOT_ENABLED");
     const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admin_contracts WHERE id = $1 AND status = 'ACTIVE'`, [row.current_contract_id]);
     if (!rows[0]) throw new ProductError("UNAVAILABLE", "NO_ACTIVE_CONTRACT");
+    if (requireSyncGate) {
+      const reason = policy.availabilityReason(gateReason(row, rows[0]));
+      if (reason) throw new ProductError("UNAVAILABLE", reason);
+    }
     return { row, contract: rows[0] };
   }
 
@@ -74,11 +84,7 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
           ? await pool.query(`SELECT catalog, revision, protocol_major, protocol_minor, status FROM ${T}hq_product_admin_contracts WHERE id = $1`, [row.current_contract_id])
           : { rows: [] };
         const enabled = row.lifecycle_status === "ENABLED" && contract && contract.status === "ACTIVE";
-        const compatible = enabled && C.isSupportedProtocol({ major: contract.protocol_major, minor: contract.protocol_minor });
-        const manifestExpired = !row.manifest_expires_at || new Date(row.manifest_expires_at).getTime() <= now();
-        const reason = !enabled ? "NOT_ENABLED" : !compatible ? "PROTOCOL_INCOMPATIBLE"
-          : IDENTITY_DRIFT.includes(row.drift_status) || manifestExpired ? "IDENTITY_NOT_VERIFIED"
-          : row.drift_status === "BREAKING_DETECTED" ? "CONTRACT_DRIFT" : null;
+        const reason = !enabled ? "NOT_ENABLED" : policy.availabilityReason(gateReason(row, { ...contract, id: row.current_contract_id }));
         // Same decision as the read path: expiry, explicit deny, dataset and scope all apply.
         const datasets = enabled ? contract.catalog.datasets.map((d) => ({ dataset_id: d.dataset_id, title: d.title, granted: I.authorize({ subject, productId, action: "metric.read", datasetId: d.dataset_id, grants, productScope: row.allowed_scope, now: now() }).allowed })) : [];
         const states = {};
@@ -102,7 +108,8 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
     },
 
     async manifest(subject, productId, ctx) {
-      const { row, contract } = await enabledRegistration(productId);
+      // Diagnostic: the approved contract and the recorded drift stay readable.
+      const { row, contract } = await enabledRegistration(productId, { requireSyncGate: false });
       await authorize(subject, "product.manifest.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
       return envelope(productId, ctx, { result: {
         product_id: productId, display_name: row.display_name, environment: row.environment, contract_revision: contract.revision,

@@ -6,7 +6,7 @@
 
 const fs = require("node:fs");
 const net = require("node:net");
-const { buildEndpoints, buildTrustStore } = require("../registry/endpoints");
+const { buildEndpoints, buildTrustStore, bindTrustStoreSources } = require("../registry/endpoints");
 
 const ENVIRONMENTS = ["test", "development", "staging", "production"];
 
@@ -18,10 +18,16 @@ class ConfigError extends Error {
   }
 }
 
-function readJsonFile(env, name) {
+function readConfigFile(env, name) {
   const file = env[name];
   if (!file || !file.startsWith("/") || file.includes("..")) throw new ConfigError(name + "_REQUIRED");
-  try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { throw new ConfigError(name + "_UNREADABLE"); }
+  let bytes;
+  try { bytes = fs.readFileSync(file); } catch { throw new ConfigError(name + "_UNREADABLE"); }
+  try { return { file, bytes, json: JSON.parse(bytes.toString("utf8")) }; } catch { throw new ConfigError(name + "_UNREADABLE"); }
+}
+
+function readJsonFile(env, name) {
+  return readConfigFile(env, name).json;
 }
 
 function isPrivateBind(host) {
@@ -63,7 +69,16 @@ function loadConfig(env = process.env) {
   if (allowInsecureLoopback && !["test", "development"].includes(environment)) throw new ConfigError("INSECURE_LOOPBACK_FORBIDDEN_IN_" + environment.toUpperCase());
 
   const endpoints = buildEndpoints(readJsonFile(env, "PIC_ENDPOINTS_FILE"), { environment, allowInsecureLoopback });
-  const trustStore = buildTrustStore(readJsonFile(env, "PIC_TRUSTED_SIGNERS_FILE"), { environment });
+  // The trust store is bound to the exact bytes it was built from: if the
+  // operator changes it (revocation, rotation), this process fails closed
+  // until it is restarted with the new trust (see bindTrustStoreSources).
+  const trustSource = readConfigFile(env, "PIC_TRUSTED_SIGNERS_FILE");
+  const trustSources = [{ file: trustSource.file, bytes: trustSource.bytes }];
+  let trustStore;
+  try { trustStore = buildTrustStore(trustSource.json, { environment, sources: trustSources }); } catch (err) { throw new ConfigError(err.reason || "PIC_TRUSTED_SIGNERS_FILE_INVALID"); }
+  const recheck = Number(env.PIC_TRUST_STORE_RECHECK_SECONDS || 5);
+  if (!Number.isInteger(recheck) || recheck < 1 || recheck > 60) throw new ConfigError("PIC_TRUST_STORE_RECHECK_INVALID");
+  bindTrustStoreSources(trustStore, trustSources, { recheckMs: recheck * 1000 });
   const hqKeysJson = readJsonFile(env, "PIC_HQ_DELEGATION_KEYS_FILE");
   const hqDelegationKeys = {};
   for (const [kid, entry] of Object.entries(hqKeysJson.keys || {})) {

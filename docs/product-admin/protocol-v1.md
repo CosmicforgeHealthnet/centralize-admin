@@ -125,10 +125,25 @@ incompatible payload schemas, capability kind / risk / request schema, any
 breaking change without a major version, additive change without a version
 bump, a silent schema-digest change, any change to a capability's
 `requires_recent_mfa` or `requires_independent_approval` (authorization
-rules), and any difference the comparator does not recognise
-(`UNCLASSIFIED_CHANGE`) — an unrecognised change can never pass as
-`IDENTICAL`. Capability state, lineage, title, blockers, sunset and pure
-version bumps are additive but always need review. Nothing activates automatically:
+rules), an event family's `version_policy`, a payload schema that drops a
+required property or changes or adds any keyword other than optional
+`properties`, duplicate or malformed catalog entries, an inconsistent
+dataset schema digest, and any difference the comparator does not recognise
+(`UNCLASSIFIED_CHANGE`).
+
+The comparison is exhaustive: every rule records the keys it classified,
+then every matched object (catalog, protocol, dataset, field, metric,
+lineage, event family, capability) is compared key by key in canonical form,
+and any difference no rule accounted for is `UNCLASSIFIED_CHANGE`, also when
+recognised changes accompany it. A change in the relative order of entries
+or set values is unclassified too. Object key order is never a difference
+(canonical form). An unrecognised change can therefore never pass as
+`IDENTICAL` or `COMPATIBLE_ADDITIVE`. `activationDecision` refuses a
+comparison whose decision disagrees with its own change list, and contract
+activation re-compares the candidate against the contract active at that
+moment with the current comparator. Capability state, lineage (known keys),
+title, blockers, sunset and pure version bumps are additive but always need
+review. Nothing activates automatically:
 additive revisions need certification and explicit activation by a different
 person; breaking revisions are recorded as `REJECTED` and need a new
 registration with a dual-read migration plan. Pinned contract and schema

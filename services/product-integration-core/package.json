@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server/index.js",
     "migrate": "node scripts/migrate.js",
+    "config:check": "node scripts/check-config.js",
     "check": "node -e \"for (const f of require('node:fs').readdirSync('src',{recursive:true})) if (f.endsWith('.js')) require('node:child_process').execFileSync(process.execPath,['--check','src/'+f])\"",
     "test": "node --test tests/*.test.js"
   },
