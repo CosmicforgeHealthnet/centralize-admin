@@ -28,6 +28,12 @@
 #                         key is bundled, one mounts file used by every deploy
 #                         path, settings installed by ca-mail-env-install.sh,
 #                         then --storage-check. (--pilot-storage-setup = alias.)
+#   --mail-diagnose       READ-ONLY: Mail processing diagnostic (no content):
+#                         worker container state, image, restart policy and
+#                         database; queue counts per kind/status; every
+#                         inbound job with its webhook event, recipient
+#                         routing and stored copies; rollout rules, emergency
+#                         stops, heartbeats, open alerts; lock holders.
 #   --storage-check       READ-ONLY (one canary object written and removed):
 #                         keyring loaded from the file, store on its own volume
 #                         and bound to this environment, encrypt/write/fsync/
@@ -102,13 +108,13 @@ readonly -a MIGRATIONS=(
 
 mode="${1:-}"
 case "$mode" in
-  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup|--storage-setup|--storage-check) ;;
-  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks [--target=production] | --services-remove|--production-schema-names|--containers|--pilot-storage-setup' >&2; exit 2 ;;
+  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup|--storage-setup|--storage-check|--mail-diagnose) ;;
+  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks|--mail-diagnose [--target=production] | --services-remove|--production-schema-names|--containers|--pilot-storage-setup' >&2; exit 2 ;;
 esac
 [[ "$mode" == --pilot-storage-setup ]] && mode=--storage-setup
 if [[ -n "${2:-}" ]]; then
   case "$mode" in
-    --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks) ok_target=yes ;;
+    --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks|--mail-diagnose) ok_target=yes ;;
     *) ok_target=no ;;
   esac
   [[ "${2:-}" == --target=production && "$ok_target" == yes && -z "${3:-}" ]] \
@@ -117,12 +123,35 @@ fi
 [[ "$(id -u)" -eq 0 ]] || { echo 'Run as root.' >&2; exit 2; }
 for tool in docker python3 flock sha256sum awk; do command -v "$tool" >/dev/null || { echo "Missing $tool" >&2; exit 2; }; done
 
+# Who holds a lock file: "PID command;" per locking process (or empty).
+lock_holder() {
+  local ino; ino="$(stat -c %i "$1" 2>/dev/null)" || return 0
+  awk -v ino="$ino" '$2 == "FLOCK" { n = split($6, a, ":"); if (a[n] == ino) print $5 }' /proc/locks | sort -u | while read -r pid; do
+    [[ "$pid" == "$$" ]] && continue
+    printf '%s %s;' "$pid" "$( { tr '\0' ' ' < "/proc/$pid/cmdline"; } 2>/dev/null | cut -c1-160)"
+  done
+}
+# Read-only modes take both locks SHARED: they may run side by side, never
+# during a mutating Mail operation or the database isolation cutover, and a
+# concurrent production deploy waits for them instead of reporting a cutover.
+readonly_mode=false
+case "$mode" in --migrate-preflight|--services-preflight|--production-schema-names|--containers|--staging-checks|--storage-check|--mail-diagnose) readonly_mode=true ;; esac
+lock_kind=-x; [[ "$readonly_mode" == true ]] && lock_kind=-s
 mkdir -p /run/lock
 exec 8>"/run/lock/centralize-admin-mail-$target.lock"
-flock -n 8 || { echo 'Another CA staging Mail operation is running; refusing overlap. Nothing changed.' >&2; exit 1; }
+flock "$lock_kind" -n 8 || { echo "Another CA $target Mail operation is running (holder: $(lock_holder "/run/lock/centralize-admin-mail-$target.lock")); refusing overlap. Nothing changed." >&2; exit 1; }
 # Never overlap the database isolation cutover either.
 exec 9>/run/lock/centralize-admin-db-isolation.lock
-flock -n 9 || { echo 'The CA database isolation cutover is running; refusing overlap. Nothing changed.' >&2; exit 1; }
+db_lock_note=''
+if ! flock "$lock_kind" -n 9; then
+  holder="$(lock_holder /run/lock/centralize-admin-db-isolation.lock)"
+  if [[ "$mode" == --mail-diagnose ]]; then
+    # The diagnostic only reads; it reports the holder instead of refusing.
+    db_lock_note="the DB isolation lock is held by: ${holder:-unknown}"; exec 9>&-
+  else
+    echo "The CA DB isolation lock is held (holder: ${holder:-unknown}); refusing overlap. Nothing changed." >&2; exit 1
+  fi
+fi
 
 run_dir="$BACKUP_BASE/mail-$target-$RUN_ID"
 mkdir -p "$BACKUP_BASE"; chmod 700 "$BACKUP_BASE"; mkdir -m 700 "$run_dir"
@@ -536,10 +565,12 @@ services_deploy() {
   image="$(docker inspect -f '{{.Config.Image}}' "$APP")"
   [[ "$(docker image inspect -f '{{.Id}}' "$image" 2>/dev/null)" == "$(docker inspect -f '{{.Image}}' "$APP")" ]] \
     || { fail 'the $target app image tag no longer points at the running image'; return 1; }
-  # A disabled worker exits 0 by design; only keep it always-on once Mail and
-  # the worker are enabled (redeploy then), so it never restart-loops.
+  # Core Mail processing is backend-managed: with Mail on, the worker runs
+  # unless MAIL_WORKER_ENABLED=false, and restarts after crashes and reboots.
+  # With Mail off it idles (current images) or exits 0 (older images), so the
+  # restart policy then avoids any restart loop.
   worker_enabled="$(mail_flags)"
-  if [[ ",$worker_enabled," == *,MAIL_ENABLED=true,* && ",$worker_enabled," == *,MAIL_WORKER_ENABLED=true,* ]]; then
+  if [[ ",$worker_enabled," == *,MAIL_ENABLED=true,* && ",$worker_enabled," != *,MAIL_WORKER_ENABLED=false,* ]]; then
     restart=unless-stopped
   else
     restart=on-failure:5
@@ -550,7 +581,7 @@ services_deploy() {
   info "ClamAV image $CLAMAV_IMAGE digest: $(docker image inspect -f '{{index .RepoDigests 0}}' "$CLAMAV_IMAGE" | cut -d@ -f2)"
   mail_compose up -d --no-build clamav mail-worker
   # Mail worker: must start with the app's image and env and behave as configured.
-  local i status code
+  local i status code out
   for ((i = 0; i < 30; i++)); do
     status="$(docker inspect -f '{{.State.Status}}' "${MAIL_PROJECT}-mail-worker")"
     [[ "$status" == running || "$status" == exited ]] && break; sleep 2
@@ -561,11 +592,23 @@ services_deploy() {
   if [[ "$restart" == on-failure:5 ]]; then
     if [[ "$status" == exited && "$code" == 0 ]] && docker logs "${MAIL_PROJECT}-mail-worker" 2>&1 | grep -q 'exiting without processing'; then
       pass "Mail worker deployed (image = $target app image); Mail is OFF so it exits 0 by design (restart: on-failure, no loop)"
+    elif [[ "$status" == running ]] && docker logs "${MAIL_PROJECT}-mail-worker" 2>&1 | grep -q '\[MailWorker\] idle:'; then
+      pass "Mail worker deployed (image = $target app image); idle by configuration, processing nothing (restart: on-failure)"
     else
-      fail "Mail worker: status $status exit $code (expected a clean disabled exit)"; return 1
+      fail "Mail worker: status $status exit $code (expected an idle or cleanly disabled worker)"; return 1
     fi
   else
-    [[ "$status" == running ]] && pass 'Mail worker running (Mail and worker enabled)' || { fail "Mail worker: status $status"; return 1; }
+    [[ "$status" == running ]] || { fail "Mail worker: status $status exit $code although Mail is enabled (an exited worker is never healthy)"; return 1; }
+    local r0 r1; r0="$(docker inspect -f '{{.RestartCount}}' "${MAIL_PROJECT}-mail-worker")"; sleep 12; r1="$(docker inspect -f '{{.RestartCount}}' "${MAIL_PROJECT}-mail-worker")"
+    [[ "$(docker inspect -f '{{.State.Status}}' "${MAIL_PROJECT}-mail-worker")" == running && "$r0" == "$r1" ]] || { fail "Mail worker is not stable (restarts $r0 -> $r1)"; return 1; }
+    if docker exec "$APP" test -f /app/scripts/mail/verify-worker.js; then
+      out="$(docker exec -w /app "$APP" node scripts/mail/verify-worker.js --wait 120 2>/dev/null | grep '^CA_MAIL_WORKER_VERIFY ' | tail -n 1 || true)"
+      out="${out#CA_MAIL_WORKER_VERIFY }"
+      python3 -c 'import json,sys; d=json.loads(sys.argv[1]); sys.exit(0 if d.get("ok") else 1)' "$out" 2>/dev/null         || { fail "Mail worker running but did not prove processing: ${out:-no output}"; return 1; }
+      pass 'Mail worker running and processing (restart: unless-stopped; heartbeat, core queues and self-test job verified)'
+    else
+      pass 'Mail worker running and stable (restart: unless-stopped; image predates worker heartbeats)'
+    fi
   fi
   # ClamAV: wait for signatures, then PING and EICAR through the app's network.
   local ping=''
@@ -877,6 +920,47 @@ PY
   return "$bad"
 }
 
+# --------------------------------------------------------------------------
+# Mail processing diagnostic (read-only; no content).
+# --------------------------------------------------------------------------
+container_settings() { # container -> Mail flag/routing settings and database target (no secrets)
+  docker inspect -f '{{json .Config.Env}}' "$1" | python3 -c '
+import json, sys, urllib.parse as u
+env = dict(x.split("=", 1) for x in json.load(sys.stdin) if "=" in x)
+keys = sorted(k for k in env if (k.startswith("MAIL_") and k.endswith("_ENABLED")) or k in ("MAIL_WORKER_QUEUES", "MAIL_ROLLOUT_ENFORCED", "MAIL_INBOUND_ACTIVE_ENVIRONMENT", "MAIL_DEPLOYMENT_ENV", "MAIL_RELEASE_IMAGE", "MAIL_UNKNOWN_RECIPIENT_POLICY", "MAIL_KMS_PROVIDER", "MAIL_STORAGE_PROVIDER"))
+p = u.urlsplit(env.get("DATABASE_URL", ""))
+print(" ".join(f"{k}={env[k].strip()[:120]}" for k in keys) + " DATABASE=" + (p.hostname or "?") + "/" + u.unquote(p.path.lstrip("/")))'
+}
+
+mail_diagnose() {
+  identity || { fail "$target identity"; return 1; }
+  pass "$target identity (app runs on $DEST)"
+  if [[ -n "$db_lock_note" ]]; then info "$db_lock_note"; else info 'DB isolation lock: no exclusive holder (no cutover running)'; fi
+  info "app: image $(docker inspect -f '{{.Config.Image}}' "$APP") ($(docker inspect -f '{{.Image}}' "$APP" | cut -c1-19)), started $(docker inspect -f '{{.State.StartedAt}}' "$APP"); $(container_settings "$APP")"
+  local w="${MAIL_PROJECT}-mail-worker" out
+  if docker inspect "$w" >/dev/null 2>&1; then
+    info "worker: $(docker inspect -f 'status={{.State.Status}} restarting={{.State.Restarting}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} started={{.State.StartedAt}} finished={{.State.FinishedAt}} restarts={{.RestartCount}} policy={{.HostConfig.RestartPolicy.Name}}{{if .HostConfig.RestartPolicy.MaximumRetryCount}}:{{.HostConfig.RestartPolicy.MaximumRetryCount}}{{end}}' "$w")"
+    local same=NO; [[ "$(docker inspect -f '{{.Image}}' "$w")" == "$(docker inspect -f '{{.Image}}' "$APP")" ]] && same=yes
+    info "worker: image $(docker inspect -f '{{.Config.Image}}' "$w") ($(docker inspect -f '{{.Image}}' "$w" | cut -c1-19)); same image as app: $same; networks: $(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' "$w"); $(container_settings "$w")"
+    # Worker module log lines only (job ids, kinds, codes; no content).
+    docker logs --tail 2000 "$w" 2>&1 | grep -E '\[Mail(Worker|Ops)?\]' | tail -n 40 | cut -c1-400 | sed 's/^/  worker-log: /' || true
+    if [[ "$(docker inspect -f '{{.State.Running}}' "$w")" == true ]]; then
+      out="$(docker exec -i -e CA_DIAG_MODE=identity -w /app "$w" node - < "$BUNDLE_DIR/ca-mail-diagnose.js" 2>/dev/null | grep '^CA_MAIL_DIAG ' | tail -1 || true)"
+      info "worker database identity: ${out#CA_MAIL_DIAG }"
+    else
+      info 'worker is not running; its database identity cannot be read'
+    fi
+  else
+    info "no $target Mail worker container ($w)"
+  fi
+  out="$(docker exec -i -w /app "$APP" node - < "$BUNDLE_DIR/ca-mail-diagnose.js" 2>/dev/null | grep '^CA_MAIL_DIAG ' | tail -1 || true)"
+  [[ -n "$out" ]] || { fail 'app diagnostic produced no output'; return 1; }
+  printf '%s\n' "$out" > "$run_dir/diagnose.json"
+  echo "$out"
+  pass "diagnostic recorded (JSON line CA_MAIL_DIAG above)"
+  info "readiness endpoint: $(docker exec "$APP" node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/api/mail/v1/health/ready').then(r=>r.text()).then(t=>process.stdout.write(t.slice(0,1500)))" 2>/dev/null || echo unavailable)"
+}
+
 list_containers() {
   local id
   for id in $(docker ps -aq --no-trunc); do
@@ -887,6 +971,7 @@ list_containers() {
 
 case "$mode" in
   --containers) list_containers ;;
+  --mail-diagnose) mail_diagnose ;;
   --staging-checks) staging_checks ;;
   --storage-setup) storage_setup ;;
   --storage-check) storage_check ;;

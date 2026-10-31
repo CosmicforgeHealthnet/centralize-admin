@@ -20,7 +20,7 @@ const PROVIDER_DEGRADED = /^(RESEND_HTTP_(429|5\d\d)|PROVIDER_(TIMEOUT|NETWORK_E
 // "unusual exports"). Counted per actor per hour; never the content itself.
 const EXPORT_ACTIONS = ["MAIL_ATTACHMENT_DOWNLOADED", "MAIL_RAW_MIME_DOWNLOADED", "MAIL_ORIGINAL_HEADERS_READ", "MAIL_BREAK_GLASS_READ", "MAIL_BREAK_GLASS_ATTACHMENT_DOWNLOAD", "MAIL_BREAK_GLASS_RAW_DOWNLOAD", "MAIL_BREAK_GLASS_HEADERS_READ", "MAIL_BREAK_GLASS_SEARCH"];
 
-function createOpsMonitor({ client, config, notifications, health = async () => ({}), runtime = null, metrics = null, searchIndex = null, features = null, storageDeletions = null, clock = () => new Date(), logger = null }) {
+function createOpsMonitor({ client, config, notifications, health = async () => ({}), runtime = null, metrics = null, searchIndex = null, features = null, storageDeletions = null, workers = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
   const thresholds = config.ops.thresholds;
 
@@ -31,7 +31,7 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     const day = new Date(at.getTime() - 86400000);
     const hour = new Date(at.getTime() - 3600000);
     const [queue, oldest, deadLetters24h, webhookBacklog, webhookFailed24h, scanBacklog, outcomeUnknown24h, recipients24h, broadcastRecipients24h, integrationRejections1h, retention, usageToday, limits, openAlerts] = await Promise.all([
-      client.mailOutboxJob.groupBy({ by: ["queue", "status"], _count: { _all: true } }),
+      client.mailOutboxJob.groupBy({ by: ["queue", "status"], where: { kind: { not: "WORKER_HEARTBEAT" } }, _count: { _all: true } }),
       client.mailOutboxJob.groupBy({ by: ["queue"], where: { status: { in: ["PENDING", "RETRY_SCHEDULED"] }, nextAttemptAt: { lte: at } }, _min: { nextAttemptAt: true } }),
       client.mailOutboxJob.groupBy({ by: ["queue", "kind"], where: { status: "DEAD_LETTER", updatedAt: { gt: day } }, _count: { _all: true } }),
       client.mailWebhookEvent.aggregate({ where: { status: "RECEIVED" }, _count: { _all: true }, _min: { receivedAt: true } }),
@@ -62,6 +62,12 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
       client.mailAuditEvent.findMany({ where: { action: "MAIL_INBOUND_UNRECOVERED", createdAt: { gt: day } }, select: { metadata: true }, take: 200 }),
       client.mailAuditEvent.groupBy({ by: ["action"], where: { action: { in: ["MAIL_MAILBOX_OVER_QUOTA", "MAIL_INBOUND_OVER_QUOTA_REJECTED"] }, createdAt: { gt: day } }, _count: { _all: true } }),
       searchIndex ? searchIndex.freshness().catch(() => null) : null,
+    ]);
+    // Durable worker heartbeats and the last delivered inbound email (when
+    // processing stops, this is the user-visible symptom).
+    const [workerState, lastInbound] = await Promise.all([
+      workers ? workers().catch(() => null) : null,
+      client.mailMessage.findFirst({ where: { direction: "INBOUND" }, orderBy: { createdAt: "desc" }, select: { createdAt: true } }).catch(() => null),
     ]);
     const quotaBytes = config.quota.mailboxStorageBytes;
     const mailboxUsage = storageByMailbox.map((row) => ({ mailboxId: row.mailboxId, bytes: Number(row._sum.sizeBytes || 0) }));
@@ -121,6 +127,8 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
       features: features ? { gapClosureSchema: await features.isReady() } : null,
       // Gap 5: durable storage deletion queue (null before migration 37).
       storageDeletions: storageDeletions ? await storageDeletions.stats().catch(() => null) : null,
+      workers: workerState ? { state: workerState.state, enabled: workerState.enabled, running: workerState.running, lastHeartbeatAgeSeconds: workerState.lastHeartbeatAgeSeconds, servedQueues: workerState.servedQueues, unservedCoreQueues: workerState.unservedCoreQueues, pausedCoreQueues: workerState.pausedCoreQueues, releases: workerState.releases, instances: workerState.workers.map((worker) => ({ instance: worker.instance, state: worker.state, ageSeconds: worker.ageSeconds, activeQueues: worker.activeQueues, pausedQueues: worker.pausedQueues, release: worker.release, database: worker.database, counters: worker.counters, lastError: worker.lastError })) } : null,
+      inbound: { lastDeliveredAt: lastInbound?.createdAt?.toISOString() || null, lastDeliveredAgeSeconds: lastInbound?.createdAt ? ageSeconds(lastInbound.createdAt) : null },
       openAlerts: openAlerts.map(serializeAlert),
     };
   }
@@ -168,6 +176,16 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     if (snap.inboundUnrecovered24h > 0) push("MAIL_INBOUND_UNRECOVERED", "critical", { count: snap.inboundUnrecovered24h });
     if (snap.storageDeletions?.dead > 0) push("MAIL_STORAGE_DELETIONS_DEAD", "warning", { dead: snap.storageDeletions.dead });
     if (snap.storageDeletions?.due && snap.storageDeletions.oldestDueSeconds > thresholds.queueOldestPendingSeconds) push("MAIL_STORAGE_DELETION_BACKLOG", "warning", { due: snap.storageDeletions.due, oldestDueSeconds: snap.storageDeletions.oldestDueSeconds });
+    // Worker liveness (durable heartbeats). Core processing is backend
+    // managed, so a missing or idle worker is an incident, not a setting.
+    if (config.enabled && snap.workers) {
+      if (!config.workerEnabled) push("MAIL_WORKER_DISABLED", "warning", { key: "config", reason: "MAIL_WORKER_ENABLED=false" });
+      else if (snap.workers.state === "NOT_RUNNING" || snap.workers.state === "DISABLED") push("MAIL_WORKER_NOT_RUNNING", "critical", { key: "fleet", lastHeartbeatAgeSeconds: snap.workers.lastHeartbeatAgeSeconds, staleAfterSeconds: config.worker.staleAfterSeconds });
+      else for (const queue of snap.workers.unservedCoreQueues || []) {
+        const paused = (snap.workers.pausedCoreQueues || []).find((entry) => entry.queue === queue);
+        push("MAIL_WORKER_QUEUE_UNSERVED", queue === "INBOUND" ? "critical" : "warning", { key: queue, queue, reason: paused?.reason || "NO_WORKER_FOR_QUEUE" });
+      }
+    }
     if (snap.process?.rateLimitFallbacks > 0) push("MAIL_RATE_LIMIT_DEGRADED", "warning", { fallbacks: snap.process.rateLimitFallbacks });
     if (snap.runtimeHalt?.staffMail || snap.runtimeHalt?.marketing) push("MAIL_EMERGENCY_STOP_ACTIVE", "warning", { key: "halt", staffMail: snap.runtimeHalt.staffMail, marketing: snap.runtimeHalt.marketing });
     if (healthReport.storage && healthReport.storage.ok === false && config.enabled) push("MAIL_STORAGE_UNHEALTHY", "critical", { detail: healthReport.storage.detail });
@@ -209,6 +227,8 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     }
     // Conditions that cleared resolve automatically.
     for (const stale of openByFingerprint.values()) await client.mailOpsAlert.update({ where: { id: stale.id }, data: { resolvedAt: at } });
+    // Content-free alert line for log-based monitoring (codes, counts, ages).
+    for (const alert of toNotify) logger?.error?.(`[MailOps] ALERT ${alert.severity} ${alert.code} ${JSON.stringify(alert.detail || {}).slice(0, 500)}`);
     if (toNotify.length) {
       const recipients = await adminRecipients();
       for (const alert of toNotify) await notifications.notifyUsers(recipients, { icon: alert.severity === "critical" ? "xcircle" : "alert", title: `Mail ${alert.severity}: ${alert.code}`, subtitle: "Open Mail operations for details." }).catch((error) => logger?.warn?.(`[MailOps] notify failed: ${error?.code || error?.message}`));
@@ -248,6 +268,11 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     metric("cf_mail_queue_oldest_due_seconds", "Age of the oldest due job", "gauge", Object.entries(snap.queue.oldestDueSeconds).map(([queue, value]) => [{ queue }, value]));
     metric("cf_mail_dead_letters_24h", "Dead-lettered jobs in the last 24h", "gauge", snap.queue.deadLetters24h.map((row) => [{ queue: row.queue, kind: row.kind }, row.count]));
     metric("cf_mail_webhook_backlog", "Unprocessed provider webhooks", "gauge", [[null, snap.webhooks.backlog]]);
+    if (snap.workers) {
+      metric("cf_mail_workers_running", "Mail worker processes with a fresh heartbeat", "gauge", [[null, snap.workers.running]]);
+      metric("cf_mail_worker_heartbeat_age_seconds", "Age of the newest Mail worker heartbeat", "gauge", [[null, snap.workers.lastHeartbeatAgeSeconds ?? -1]]);
+      metric("cf_mail_worker_unserved_core_queues", "Enabled core queues no running worker serves", "gauge", [[null, (snap.workers.unservedCoreQueues || []).length]]);
+    }
     metric("cf_mail_webhook_backlog_oldest_seconds", "Age of the oldest unprocessed webhook", "gauge", [[null, snap.webhooks.oldestBacklogSeconds]]);
     metric("cf_mail_scan_backlog", "Attachments waiting for a malware verdict", "gauge", [[null, snap.scanning.backlog]]);
     metric("cf_mail_outcome_unknown_24h", "Recipients with unknown send outcome (24h)", "gauge", [[null, snap.delivery.outcomeUnknown24h]]);

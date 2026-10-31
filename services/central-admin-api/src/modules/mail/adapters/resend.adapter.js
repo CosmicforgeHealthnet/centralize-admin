@@ -436,7 +436,15 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     const payload = await call("GET", `/emails/receiving?${query.toString()}`, { operation: "listReceivedEmails" });
     const rows = Array.isArray(payload?.data) ? payload.data : [];
     return {
-      items: rows.filter((row) => row?.id).map((row) => ({ providerEmailId: String(row.id), to: parsePartyList(row.to || []).parties.map((party) => party.address), createdAt: row.created_at ? new Date(row.created_at) : null })),
+      items: rows.filter((row) => row?.id).map((row) => ({
+        providerEmailId: String(row.id),
+        to: parsePartyList(row.to || []).parties.map((party) => party.address),
+        // Cc/Bcc (when listed) let reconciliation recognise mail for our
+        // addresses that is not in the header To.
+        cc: parsePartyList(Array.isArray(row.cc) ? row.cc : []).parties.map((party) => party.address),
+        bcc: parsePartyList(Array.isArray(row.bcc) ? row.bcc : []).parties.map((party) => party.address),
+        createdAt: row.created_at ? new Date(row.created_at) : null,
+      })),
       hasMore: Boolean(payload?.has_more),
     };
   }

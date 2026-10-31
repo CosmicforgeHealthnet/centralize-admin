@@ -192,11 +192,36 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
   }
 
   async function stats() {
-    const rows = await client.mailOutboxJob.groupBy({ by: ["queue", "status"], _count: { _all: true } });
+    // Worker heartbeat rows (worker-heartbeat.js) are not jobs.
+    const rows = await client.mailOutboxJob.groupBy({ by: ["queue", "status"], where: { kind: { not: "WORKER_HEARTBEAT" } }, _count: { _all: true } });
     return rows.map((row) => ({ queue: row.queue, status: row.status, count: row._count._all }));
   }
 
-  return { enqueue, claim, heartbeat, updatePayload, complete, fail, defer, expedite, cancelPending, recoverExpiredLeases, requeue, stats };
+  // Per core queue: due backlog, oldest due job age, retries and dead
+  // letters. Counts and ages only (no ids, payloads or addresses).
+  async function queueHealth() {
+    const now = clock();
+    const [byStatus, oldestDue, failed24h] = await Promise.all([
+      client.mailOutboxJob.groupBy({ by: ["queue", "status"], where: { kind: { not: "WORKER_HEARTBEAT" }, status: { in: ["PENDING", "LEASED", "RETRY_SCHEDULED", "RECONCILING", "DEAD_LETTER"] } }, _count: { _all: true } }),
+      client.mailOutboxJob.groupBy({ by: ["queue"], where: { status: { in: ["PENDING", "RETRY_SCHEDULED", "RECONCILING"] }, nextAttemptAt: { lte: now } }, _min: { nextAttemptAt: true } }),
+      client.mailOutboxJob.groupBy({ by: ["queue"], where: { status: "FAILED", completedAt: { gt: new Date(now.getTime() - 86400000) }, kind: { not: "WORKER_HEARTBEAT" } }, _count: { _all: true } }),
+    ]);
+    const summary = {};
+    const entry = (queue) => (summary[queue] = summary[queue] || { pending: 0, leased: 0, retrying: 0, deadLetter: 0, failed24h: 0, oldestDueSeconds: null });
+    for (const row of byStatus) {
+      const target = entry(row.queue);
+      const count = row._count._all;
+      if (row.status === "PENDING" || row.status === "RECONCILING") target.pending += count;
+      else if (row.status === "LEASED") target.leased += count;
+      else if (row.status === "RETRY_SCHEDULED") target.retrying += count;
+      else if (row.status === "DEAD_LETTER") target.deadLetter += count;
+    }
+    for (const row of oldestDue) if (row._min.nextAttemptAt) entry(row.queue).oldestDueSeconds = Math.max(0, Math.round((now.getTime() - row._min.nextAttemptAt.getTime()) / 1000));
+    for (const row of failed24h) entry(row.queue).failed24h = row._count._all;
+    return summary;
+  }
+
+  return { enqueue, claim, heartbeat, updatePayload, complete, fail, defer, expedite, cancelPending, recoverExpiredLeases, requeue, stats, queueHealth };
 }
 
 const CORRELATION_KEY = "correlationId";

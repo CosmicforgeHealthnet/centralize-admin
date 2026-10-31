@@ -222,15 +222,42 @@ validator() { # the app's own Mail config check, names and booleans only
   docker exec -w /app "$APP" node scripts/mail/validate-infrastructure.js 2>/dev/null | tail -1 || true
 }
 
+app_mail_flags() { # MAIL_*_ENABLED of the running app (booleans only)
+  docker inspect -f '{{json .Config.Env}}' "$APP" | python3 -c '
+import json, sys
+env = dict(x.split("=", 1) for x in json.load(sys.stdin) if "=" in x)
+print(",".join(f"{k}={env[k].strip().lower()}" for k in sorted(env) if k.startswith("MAIL_") and k.endswith("_ENABLED")) or "none")'
+}
+
+# The recreated worker must match the new settings. Mail on (worker not
+# explicitly shut down with MAIL_WORKER_ENABLED=false): running, stable and,
+# on images with scripts/mail/verify-worker.js, proving it processes work.
+# An exited worker is never accepted while Mail is on.
 sync_worker() {
   docker inspect "$WORKER" >/dev/null 2>&1 || { info "no $target Mail worker deployed; nothing to sync"; return 0; }
   local -a files=(-f docker-compose.yml)
   [[ -f "$WORKER_ROOT/docker-compose.release.yml" ]] && files+=(-f docker-compose.release.yml)
   (cd "$WORKER_ROOT" && env -i HOME=/root PATH="$SAFE_PATH" docker compose "${files[@]}" up -d --no-deps --no-build --pull never --force-recreate mail-worker) >/dev/null
   sleep 8
-  local st code; st="$(docker inspect -f '{{.State.Status}}' "$WORKER")"; code="$(docker inspect -f '{{.State.ExitCode}}' "$WORKER")"
-  [[ "$st" == running || ( "$st" == exited && "$code" == 0 ) ]] && pass "Mail worker recreated with the new settings ($st)" \
-    || { fail "Mail worker: status $st exit $code"; return 1; }
+  local st code flags expected=false; st="$(docker inspect -f '{{.State.Status}}' "$WORKER")"; code="$(docker inspect -f '{{.State.ExitCode}}' "$WORKER")"
+  flags="$(app_mail_flags)"
+  [[ ",$flags," == *,MAIL_ENABLED=true,* && ",$flags," != *,MAIL_WORKER_ENABLED=false,* ]] && expected=true
+  if [[ "$expected" == false ]]; then
+    [[ "$st" == running || ( "$st" == exited && "$code" == 0 ) ]] && { pass "Mail worker recreated with the new settings ($st; idle by configuration)"; return 0; }
+    fail "Mail worker: status $st exit $code"; return 1
+  fi
+  [[ "$st" == running ]] || { fail "Mail worker: status $st exit $code although Mail is enabled (an exited worker is never healthy)"; return 1; }
+  local r0 r1; r0="$(docker inspect -f '{{.RestartCount}}' "$WORKER")"; sleep 12; r1="$(docker inspect -f '{{.RestartCount}}' "$WORKER")"
+  [[ "$(docker inspect -f '{{.State.Status}}' "$WORKER")" == running && "$r0" == "$r1" ]] || { fail "Mail worker is not stable (restarts $r0 -> $r1)"; return 1; }
+  if docker exec "$APP" test -f /app/scripts/mail/verify-worker.js; then
+    local out; out="$(docker exec -w /app "$APP" node scripts/mail/verify-worker.js --wait 120 2>/dev/null | grep '^CA_MAIL_WORKER_VERIFY ' | tail -n 1 || true)"
+    out="${out#CA_MAIL_WORKER_VERIFY }"
+    python3 -c 'import json,sys; d=json.loads(sys.argv[1]); sys.exit(0 if d.get("ok") else 1)' "$out" 2>/dev/null \
+      || { fail "Mail worker recreated but did not prove processing: ${out:-no output}"; return 1; }
+    pass "Mail worker recreated with the new settings (running; heartbeat, core queues and self-test job verified)"
+  else
+    pass "Mail worker recreated with the new settings (running, stable; image predates worker heartbeats)"
+  fi
 }
 
 rollback() {

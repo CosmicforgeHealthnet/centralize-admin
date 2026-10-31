@@ -25,6 +25,7 @@ const SEND_CAPABILITIES = ["STAFF_MAIL", "SUPPORT", "MARKETING_BROADCAST", "MARK
 const CAPABILITIES = [...SEND_CAPABILITIES, "PRODUCT_INTEGRATION", "WORKER_OUTBOUND", "WORKER_INBOUND", "WORKER_EVENTS", "WORKER_MARKETING"];
 const SCOPE_TYPES = ["ENVIRONMENT", "ORGANIZATION", "DOMAIN", "MAILBOX", "COHORT"];
 const MARKETING = new Set(["MARKETING_BROADCAST", "MARKETING_AUTOMATION", "MARKETING_CONFIRMATION"]);
+const CORE_WORKER_QUEUES = new Set(["OUTBOUND", "INBOUND", "EVENTS"]);
 const CACHE_MS = 5000;
 
 function iso(value) {
@@ -108,25 +109,40 @@ function createRolloutService({ client, config, audit, stepUp, clock = () => new
   // Resolver plugged into runtime controls (send purposes == capabilities).
   const resolver = (purpose, scope) => decide(purpose, scope);
 
-  async function workerQueuesAllowed(queues) {
-    if (!enforced) return queues;
-    const allowed = [];
+  // Core queues (OUTBOUND, INBOUND, EVENTS) are backend-managed: they run
+  // whenever backend configuration enables what they serve. No ALLOW rule,
+  // cohort or frontend action is ever needed for them. An explicit DENY rule
+  // for WORKER_<QUEUE> (enforced deployments) remains an emergency pause and
+  // is reported as such. The optional MARKETING queue still needs an ALLOW
+  // rule where rollout is enforced.
+  function coreQueueEnabled(queue) {
+    if (queue === "INBOUND") return config.receivingEnabled && config.inbound?.ownedHere === true ? null : config.receivingEnabled ? "INBOUND_NOT_OWNED_HERE" : "RECEIVING_DISABLED";
+    if (queue === "OUTBOUND") return config.sendingEnabled ? null : "SENDING_DISABLED";
+    if (queue === "EVENTS") return config.enabled ? null : "MAIL_DISABLED";
+    return "UNKNOWN_QUEUE";
+  }
+
+  async function workerQueueDecisions(queues) {
+    const decisions = [];
     for (const queue of queues) {
-      // Essential queues follow backend service flags; rollout still controls
-      // optional MARKETING processing. Explicit DENY rules remain enforceable.
-      const capability = `WORKER_${queue}`;
-      const decision = await decide(capability);
-      const isCore = ["INBOUND", "OUTBOUND", "EVENTS"].includes(queue);
-      const coreEnabled = queue === "INBOUND"
-        ? config.receivingEnabled && config.inbound?.ownedHere === true
-        : queue === "OUTBOUND"
-          ? config.sendingEnabled
-          : queue === "EVENTS" && config.enabled;
-      if (isCore && !coreEnabled) continue;
-      if (decision === "MAIL_ROLLOUT_DENIED") continue;
-      if (isCore || decision === null) allowed.push(queue);
+      if (CORE_WORKER_QUEUES.has(queue)) {
+        const disabled = coreQueueEnabled(queue);
+        if (disabled) {
+          decisions.push({ queue, allowed: false, reason: disabled });
+          continue;
+        }
+        const decision = enforced ? await decide(`WORKER_${queue}`) : null;
+        decisions.push(decision === "MAIL_ROLLOUT_DENIED" ? { queue, allowed: false, reason: "EMERGENCY_DENY_RULE" } : { queue, allowed: true, reason: null });
+        continue;
+      }
+      const decision = await decide(`WORKER_${queue}`);
+      decisions.push({ queue, allowed: decision === null, reason: decision });
     }
-    return allowed;
+    return decisions;
+  }
+
+  async function workerQueuesAllowed(queues) {
+    return (await workerQueueDecisions(queues)).filter((entry) => entry.allowed).map((entry) => entry.queue);
   }
 
   // ---- administration -------------------------------------------------
@@ -175,6 +191,10 @@ function createRolloutService({ client, config, audit, stepUp, clock = () => new
     if (!CAPABILITIES.includes(capability)) throw mailError("MAIL_VALIDATION_FAILED", { field: "capability" });
     if (!["ALLOW", "DENY"].includes(effect)) throw mailError("MAIL_VALIDATION_FAILED", { field: "effect" });
     if (capability.startsWith("WORKER_") && scopeType !== "ENVIRONMENT") throw mailError("MAIL_VALIDATION_FAILED", { field: "scopeType", reason: "WORKER_RULES_ARE_ENVIRONMENT_WIDE" });
+    // Retired: core worker queues are backend-managed, so an ALLOW rule for
+    // them would do nothing and mislead operators. DENY stays available as an
+    // emergency pause.
+    if (effect === "ALLOW" && CORE_WORKER_QUEUES.has(capability.replace(/^WORKER_/, ""))) throw mailError("MAIL_VALIDATION_FAILED", { field: "capability", reason: "CORE_WORKER_BACKEND_MANAGED" });
     const text = String(reason || "").trim();
     if (text.length < 5) throw mailError("MAIL_VALIDATION_FAILED", { field: "reason" });
     const id = await validateScope(scopeType, scopeId);
@@ -298,7 +318,7 @@ function createRolloutService({ client, config, audit, stepUp, clock = () => new
     return serializeStop(released);
   }
 
-  return { decide, resolver, workerQueuesAllowed, overview, createRule, revokeRule, createCohort, addMember, removeMember, pilotStatus, activateStop, releaseStop, invalidate, CAPABILITIES, SCOPE_TYPES };
+  return { decide, resolver, workerQueuesAllowed, workerQueueDecisions, overview, createRule, revokeRule, createCohort, addMember, removeMember, pilotStatus, activateStop, releaseStop, invalidate, CAPABILITIES, SCOPE_TYPES };
 }
 
 module.exports = { createRolloutService, CAPABILITIES, SCOPE_TYPES, SEND_CAPABILITIES };

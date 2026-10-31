@@ -118,6 +118,7 @@ const startServer = async () => {
   let marketingSyncCron = null;
   let intelligenceSchedulers = null;
   let advertisingExecution = null;
+  let mailWatchdog = null;
   try {
     const socialConfig = validateSocialOperationsEnvironment();
     logger.info(
@@ -148,6 +149,15 @@ const startServer = async () => {
     const server = http.createServer(app);
     initializeWebSocket(server);
 
+    // CosmicForge Mail alert watchdog: reports a stopped or stalled Mail
+    // worker even when the worker itself cannot (never processes jobs).
+    try {
+      mailWatchdog = app.locals.mail?.startWatchdog?.() || null;
+      if (mailWatchdog?.started) logger.info("[MailOps] API alert watchdog started");
+    } catch (error) {
+      logger.warn(`[MailOps] API alert watchdog not started: ${error?.message}`);
+    }
+
     server.listen(PORT, () => {
       logger.info(
         `Admin server running on port ${PORT} [${process.env.NODE_ENV}]` +
@@ -169,6 +179,7 @@ const startServer = async () => {
           await socialWorkers.shutdown();
         }
         await advertisingExecution?.shutdownWorkers();
+        await mailWatchdog?.stop?.().catch(() => {});
         await intelligenceSchedulers?.stop();
         await marketingSyncCron?.stop();
         await prisma.$disconnect();

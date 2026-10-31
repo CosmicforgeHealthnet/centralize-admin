@@ -28,6 +28,7 @@ const { createStepUpService } = require("./authz/step-up.service");
 const { createBreakGlassService } = require("./authz/break-glass.service");
 const { createMailJobRepository } = require("./jobs/mail-job.repository");
 const { createMailWorker } = require("./jobs/mail-worker");
+const { createWorkerHeartbeat, listWorkerHeartbeats, summarizeWorkers } = require("./jobs/worker-heartbeat");
 const { createInboundProcessor } = require("./pipelines/inbound.processor");
 const { loadSenderAuthPolicy } = require("./security/sender-auth");
 const { createOutboundProcessor } = require("./pipelines/outbound.processor");
@@ -262,13 +263,28 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   // Gap 6: IT quarantine (list read-only before migration 37; actions 503).
   const quarantine = createQuarantineService({ client, audit, stepUp, feature: finalGapFeature, archiveFeature: features, deletions: storageDeletions, attachmentReview, notifications, clock, logger });
   // `health` is a hoisted function declaration below.
-  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, searchIndex, features, storageDeletions, clock, logger });
+  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, searchIndex, features, storageDeletions, workers: () => workerStatus(), clock, logger });
   const readiness = createReadiness({ client, config, ops, health: () => health() });
-  const dependencyReadiness = createDependencyReadiness({ config, schema, encryption: resolvedEncryption, storage, scanner: resolvedScanner, provider: resolvedAdapter, jobs, infrastructureViolations, sessionAssessment: () => assessMailSession({ env, config }), clock: () => clock().getTime() });
+  const dependencyReadiness = createDependencyReadiness({ config, schema, encryption: resolvedEncryption, storage, scanner: resolvedScanner, provider: resolvedAdapter, jobs, workers: () => workerStatus(), infrastructureViolations, sessionAssessment: () => assessMailSession({ env, config }), clock: () => clock().getTime() });
   const inboundReconciler = createInboundReconciler({ client, config, adapter: resolvedAdapter, jobs, audit, clock });
   const deliveryStatusPoller = createDeliveryStatusPoller({ client, config, adapter: resolvedAdapter, audit, notifications, features: { finalGap: finalGapFeature }, clock, logger });
 
+  // Core queues this deployment's backend configuration enables (what a
+  // healthy worker fleet must be serving).
+  const coreQueuesEnabled = () => [
+    ...(config.sendingEnabled ? ["OUTBOUND"] : []),
+    ...(config.receivingEnabled && config.inbound?.ownedHere === true ? ["INBOUND"] : []),
+    ...(config.enabled ? ["EVENTS"] : []),
+  ];
+
+  async function workerStatus() {
+    const workers = await listWorkerHeartbeats(client, { clock, staleAfterSeconds: config.worker.staleAfterSeconds });
+    return { ...summarizeWorkers(workers, { coreQueues: config.workerEnabled ? coreQueuesEnabled() : [] }), enabled: config.workerEnabled, workers };
+  }
+
   function createWorker(options = {}) {
+    const queues = options.queues || ["OUTBOUND", "INBOUND", "EVENTS"];
+    const heartbeat = options.heartbeat === false ? null : options.heartbeat || createWorkerHeartbeat({ client, config, queues, clock, logger });
     return createMailWorker({
       jobs,
       config,
@@ -293,6 +309,9 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         RECONCILE_INBOUND: inboundReconciler.process,
         POLL_DELIVERY_STATUS: deliveryStatusPoller.process,
         MARKETING_TEST_SEND: testSends.process,
+        // Deploy verification: proves an active worker on the API's database
+        // claims and completes work. Reads and writes nothing else.
+        WORKER_SELF_TEST: async (job) => ({ ok: true, queue: job.queue, requestedAt: job.payload?.requestedAt || null }),
         // Gap 2: provider re-subscription retries.
         MARKETING_RESUBSCRIBE: resubscriptions.process,
         // Re-enqueues itself while more messages need (re)indexing.
@@ -307,7 +326,10 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
       onFailed: { SEND_MESSAGE: outbound.onTerminalFailure },
       // A MARKETING worker schedules one automation tick per minute bucket;
       // the idempotency key makes concurrent workers enqueue it once.
-      queueFilter: config.rollout.enforced ? rollout.workerQueuesAllowed : null,
+      // Core queues follow backend flags (explicit DENY = emergency pause);
+      // MARKETING follows rollout where enforced. Decisions are recorded in
+      // the durable heartbeat.
+      queueDecisions: rollout.workerQueueDecisions,
       beforeTick: async ({ queues }) => {
         const once = (spec) => jobs.enqueue(null, spec).catch((error) => {
           if (error?.code !== "P2002") throw error;
@@ -340,15 +362,56 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
       },
       schemaReady: schema.isReady,
       ...options,
+      queues,
+      heartbeat,
     });
   }
 
+  // API-side alert watchdog: the worker evaluates ops alerts, but a stopped,
+  // crashed or idle worker cannot report itself. The API process evaluates
+  // the same rules (deduplicated by fingerprint) so stalled processing still
+  // raises MAIL_WORKER_NOT_RUNNING / MAIL_QUEUE_STALLED and notifies Mail
+  // admins. It never claims or processes jobs.
+  function startWatchdog({ intervalMs = null, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
+    if (!config.enabled || !config.ops.alertsEnabled || !config.ops.apiWatchdogEnabled) return { started: false, stop: async () => {} };
+    let timer = null;
+    let stopped = false;
+    let running = null;
+    const every = intervalMs || config.ops.evaluateIntervalSeconds * 1000;
+    const run = async () => {
+      if (!(await schema.isReady().catch(() => false))) return;
+      const result = await ops.processEvaluate();
+      if (result?.notified) logger.warn?.(`[MailOps] watchdog raised ${result.notified} alert(s)`);
+    };
+    const schedule = (delay) => {
+      if (stopped) return;
+      timer = setTimer(async () => {
+        running = run().catch((error) => logger.warn?.(`[MailOps] watchdog evaluation failed (${error?.code || "error"})`));
+        await running;
+        running = null;
+        schedule(every);
+      }, delay);
+      timer?.unref?.();
+    };
+    // First evaluation shortly after startup, spread across replicas.
+    schedule(Math.min(every, 30000 + Math.floor(Math.random() * 30000)));
+    return {
+      started: true,
+      stop: async () => {
+        stopped = true;
+        if (timer) clearTimer(timer);
+        if (running) await running;
+      },
+    };
+  }
+
   async function health() {
-    const [storageHealth, provider, queue, scannerHealth] = await Promise.all([
+    const [storageHealth, provider, queue, scannerHealth, worker] = await Promise.all([
       storage.health().catch(() => ({ ok: false, detail: "error" })),
       config.enabled ? resolvedAdapter.healthProbe().catch(() => ({ ok: false, detail: "error" })) : { ok: false, detail: "mail disabled" },
       jobs.stats().catch(() => []),
       (resolvedScanner.health ? resolvedScanner.health() : Promise.resolve({ ok: resolvedScanner.available, detail: "no probe" })).catch(() => ({ ok: false, detail: "error" })),
+      config.enabled ? workerStatus().catch(() => null) : null,
     ]);
     return {
       storage: { ...storageHealth, backend: storage.name },
@@ -357,6 +420,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
       encryption: { available: resolvedEncryption.available, provider: keyProvider === "injected" ? "env" : keyProvider, keyVersions: resolvedEncryption.versions?.length ?? null, activeVersion: resolvedEncryption.activeVersion || null, error: resolvedEncryption.loadError || null },
       infrastructure: { deploymentEnvironment: config.deploymentEnvironment, violations: infrastructureViolations(config) },
       queue,
+      worker,
     };
   }
 
@@ -390,6 +454,8 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
       res.status(result.status).json(result.body);
     },
     createWorker,
+    workerStatus,
+    startWatchdog,
     health,
     schema,
     features,

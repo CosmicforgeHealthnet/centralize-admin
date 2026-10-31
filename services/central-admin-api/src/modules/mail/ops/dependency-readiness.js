@@ -18,7 +18,7 @@
 
 const PROVIDER_CACHE_MS = 30000;
 
-function createDependencyReadiness({ config, schema, encryption, storage, scanner, provider, jobs, infrastructureViolations, sessionAssessment = null, clock = () => Date.now() }) {
+function createDependencyReadiness({ config, schema, encryption, storage, scanner, provider, jobs, workers = null, infrastructureViolations, sessionAssessment = null, clock = () => Date.now() }) {
   let providerCache = null;
 
   async function providerState() {
@@ -55,12 +55,14 @@ function createDependencyReadiness({ config, schema, encryption, storage, scanne
       return { ready: false, enabled: false, state: "DISABLED", checks: {}, dependencies: configOnly(), session: sessionAssessment ? sessionAssessment() : null };
     }
     const transportNeeded = config.sendingEnabled || config.receivingEnabled;
-    const [schemaState, storageHealth, scannerHealth, providerHealth, queue] = await Promise.all([
+    const [schemaState, storageHealth, scannerHealth, providerHealth, queue, queueHealth, workerState] = await Promise.all([
       schema.check().catch(() => ({ ready: false })),
       storage.health().catch(() => ({ ok: false })),
       (scanner.health ? scanner.health() : Promise.resolve({ ok: scanner.available })).catch(() => ({ ok: false })),
       transportNeeded ? providerState() : Promise.resolve("DISABLED"),
       jobs.stats().catch(() => null),
+      typeof jobs.queueHealth === "function" ? jobs.queueHealth().catch(() => null) : null,
+      workers ? workers().catch(() => null) : null,
     ]);
     const dependencies = {
       schema: schemaState.ready ? "OK" : "UNAVAILABLE",
@@ -82,10 +84,37 @@ function createDependencyReadiness({ config, schema, encryption, storage, scanne
       storage: dependencies.storage === "OK",
       infrastructure: dependencies.infrastructure === "OK",
     };
-    return { ready, enabled: true, state: ready ? "READY" : "NOT_READY", checks, dependencies, queue: summarizeQueue(queue), session: sessionAssessment ? sessionAssessment() : null };
+    const operational = schemaState.ready ? operationalState({ config, queueHealth, workerState }) : null;
+    return { ready, enabled: true, state: ready ? "READY" : "NOT_READY", checks, dependencies, queue: summarizeQueue(queue), ...(operational ? { operational } : {}), session: sessionAssessment ? sessionAssessment() : null };
   }
 
   return { evaluate };
+}
+
+// Processing health, reported but never gating `ready`: the API keeps
+// accepting durable work (webhooks, sends) while a worker is down; the
+// backlog is then visible as DEGRADED and raised by the ops alerts.
+// Codes, counts and ages only.
+function operationalState({ config, queueHealth, workerState }) {
+  const reasons = [];
+  const stalledAfter = config.ops?.thresholds?.queueOldestPendingSeconds || 900;
+  if (!config.workerEnabled) reasons.push("WORKER_DISABLED");
+  else if (workerState && (workerState.state === "NOT_RUNNING" || workerState.state === "DISABLED")) reasons.push("WORKER_NOT_RUNNING");
+  else if (workerState) for (const queue of workerState.unservedCoreQueues || []) reasons.push(`QUEUE_UNSERVED:${queue}`);
+  const queues = {};
+  for (const name of ["INBOUND", "EVENTS", "OUTBOUND"]) {
+    const entry = queueHealth?.[name];
+    if (!entry) continue;
+    queues[name] = entry;
+    if (entry.oldestDueSeconds !== null && entry.oldestDueSeconds > stalledAfter) reasons.push(`QUEUE_STALLED:${name}`);
+    if (entry.deadLetter > 0) reasons.push(`DEAD_LETTERS:${name}`);
+  }
+  return {
+    state: reasons.length ? "DEGRADED" : "OK",
+    reasons,
+    worker: workerState ? { state: workerState.state, running: workerState.running, lastHeartbeatAgeSeconds: workerState.lastHeartbeatAgeSeconds, servedQueues: workerState.servedQueues } : { state: "UNKNOWN" },
+    queues,
+  };
 }
 
 // Counts only (no ids): jobs waiting and dead-lettered per queue.
@@ -94,11 +123,12 @@ function summarizeQueue(rows) {
   const summary = {};
   for (const row of rows) {
     const queue = String(row.queue || "UNKNOWN");
-    summary[queue] = summary[queue] || { pending: 0, deadLetter: 0 };
+    summary[queue] = summary[queue] || { pending: 0, retrying: 0, deadLetter: 0 };
     if (["PENDING", "RECONCILING", "LEASED"].includes(row.status)) summary[queue].pending += Number(row.count || row._count || 0);
+    if (row.status === "RETRY_SCHEDULED") summary[queue].retrying += Number(row.count || row._count || 0);
     if (row.status === "DEAD_LETTER") summary[queue].deadLetter += Number(row.count || row._count || 0);
   }
   return summary;
 }
 
-module.exports = { createDependencyReadiness, PROVIDER_CACHE_MS };
+module.exports = { createDependencyReadiness, operationalState, PROVIDER_CACHE_MS };
