@@ -110,6 +110,15 @@ export function classifyMailError(error: unknown): MailErrorInfo {
   if (info.status === 503 && (code === "MAIL_DISABLED" || code?.startsWith("MAIL_"))) {
     return { kind: "disabled", status: 503, code, message, detail: firstError };
   }
+  if (info.status === 403 && code) {
+    const friendly: Record<string, string> = {
+      MAIL_ROLLOUT_NOT_ENABLED: "Sending hasn't been enabled for this mailbox yet. Ask a Mail administrator to open IT → Mail Administration → Sending permissions and authorize this mailbox. Your message was not sent.",
+      MAIL_ROLLOUT_DENIED: "Sending is restricted for this mailbox. Contact your Mail administrator. Your message was not sent.",
+      MAIL_SENDER_NOT_AUTHORIZED: "You can't send from this address. Select an approved sender identity or contact your Mail administrator.",
+      MAIL_EMERGENCY_STOP: "Email sending is temporarily paused by an administrator. Your message was not sent.",
+    };
+    if (friendly[code]) return { kind: "forbidden", status: 403, code, message: friendly[code], detail: firstError };
+  }
   if (info.status === 403) return { kind: "forbidden", status: 403, code, message, detail: firstError };
   if (info.status === 404) return { kind: "notFound", status: 404, code, message, detail: firstError };
   if (info.status === 409) return { kind: "conflict", status: 409, code, message, detail: firstError };

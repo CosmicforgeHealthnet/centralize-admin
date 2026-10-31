@@ -18,16 +18,18 @@ import StepUpDialog from "@/components/marketing/email-marketing/StepUpDialog";
 import * as adminApi from "@/lib/mail-admin.service";
 import MailForwardingAdmin from "@/components/it/MailForwardingAdmin";
 import MailQuarantine from "@/components/it/MailQuarantine";
+import MailSendingPermissions from "@/components/it/MailSendingPermissions";
 import PersonalMailboxForm from "@/components/it/PersonalMailboxForm";
 import type { AdminDomain, ProvisionRequest } from "@/types/mail-admin.types";
 import type { MembershipRole, StaffDirectoryEntry } from "@/types/mail.types";
 
-type Tab = "domains" | "mailboxes" | "memberships" | "provisioning" | "grants" | "forwarding" | "quarantine" | "holds" | "audit";
+type Tab = "domains" | "mailboxes" | "memberships" | "provisioning" | "sending" | "grants" | "forwarding" | "quarantine" | "holds" | "audit";
 const TABS: { id: Tab; label: string }[] = [
   { id: "domains", label: "Domains" },
   { id: "mailboxes", label: "Shared mailboxes" },
   { id: "memberships", label: "Mailbox access" },
   { id: "provisioning", label: "Provisioning" },
+  { id: "sending", label: "Sending permissions" },
   { id: "grants", label: "Send-as grants" },
   { id: "forwarding", label: "Forwarding & recovery" },
   { id: "quarantine", label: "Quarantine" },
@@ -727,6 +729,7 @@ export default function MailAdministration() {
               {tab === "mailboxes" && <Mailboxes canEdit={canEdit} />}
               {tab === "memberships" && <SharedMembershipAdministration canEdit={canEdit} />}
               {tab === "provisioning" && <Provisioning canEdit={canEdit} />}
+              {tab === "sending" && <MailSendingPermissions canEdit={canEdit} />}
               {tab === "grants" && <Grants canEdit={canEdit} />}
               {tab === "forwarding" && <MailForwardingAdmin canEdit={canEdit} />}
               {tab === "quarantine" && <MailQuarantine canEdit={canEdit} />}
