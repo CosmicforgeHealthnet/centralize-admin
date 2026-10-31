@@ -492,15 +492,42 @@ jobs:
               echo "Mail worker exists but $mail_dir/docker-compose.yml is not readable by this account; re-run ca-mail-staging-ops services-deploy."
               exit 1
             fi
+            # Core Mail processing is backend-managed: with Mail on (and not
+            # explicitly shut down with MAIL_WORKER_ENABLED=false) the worker
+            # must run, survive crashes/reboots and prove it processes work.
+            # An exited worker is never accepted while Mail is on.
+            app_env="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$container")"
+            worker_expected=false
+            if printf '%s\n' "$app_env" | grep -qi '^MAIL_ENABLED=true$' && ! printf '%s\n' "$app_env" | grep -qi '^MAIL_WORKER_ENABLED=false$'; then worker_expected=true; fi
             worker_override="$HOME/docker-compose.github-staging-mail.yml"
-            printf 'services:\n  mail-worker:\n    image: %s\n    pull_policy: never\n' "$IMAGE_TAG" > "$worker_override"
+            { printf 'services:\n  mail-worker:\n    image: %s\n    pull_policy: never\n' "$IMAGE_TAG"
+              if [ "$worker_expected" = true ]; then printf '    restart: unless-stopped\n'; fi
+              printf '    environment:\n      MAIL_RELEASE_IMAGE: "%s"\n' "$IMAGE_TAG"
+            } > "$worker_override"
             (cd "$mail_dir" && docker compose -f docker-compose.yml -f "$worker_override" up -d --no-deps --no-build --pull never --force-recreate mail-worker)
             sleep 8
             w_status="$(docker inspect -f '{{.State.Status}}' "$worker")"
             w_code="$(docker inspect -f '{{.State.ExitCode}}' "$worker")"
             w_image="$(docker inspect -f '{{.Config.Image}}' "$worker")"
-            if [ "$w_image" = "$IMAGE_TAG" ] && { [ "$w_status" = running ] || { [ "$w_status" = exited ] && [ "$w_code" = 0 ]; }; }; then
-              echo "Mail worker now runs $IMAGE_TAG ($w_status)."
+            if [ "$w_image" != "$IMAGE_TAG" ]; then
+              echo "Mail worker did not come up on the new image ($w_image, status $w_status). The app release stands; fix the worker."
+              exit 1
+            fi
+            if [ "$worker_expected" = true ]; then
+              if [ "$w_status" != running ]; then
+                echo "Mail worker is not running (status $w_status, exit $w_code) although Mail is enabled; an exited worker is never healthy."
+                exit 1
+              fi
+              w_out="$(docker exec -w /app "$container" node scripts/mail/verify-worker.js --expect-release "$IMAGE_TAG" --wait 150 2>/dev/null | grep '^CA_MAIL_WORKER_VERIFY ' | tail -n 1 || true)"
+              w_out="${w_out#CA_MAIL_WORKER_VERIFY }"
+              echo "Mail worker verification: $w_out"
+              if ! printf '%s' "$w_out" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("ok") and d.get("checks",{}).get("selfTest") else 1)'; then
+                echo "Mail worker runs $IMAGE_TAG but did not prove processing (heartbeat, core queues, self-test job). The app release stands; fix the worker."
+                exit 1
+              fi
+              echo "Mail worker now runs $IMAGE_TAG and processes work (heartbeat, core queues and self-test job verified)."
+            elif [ "$w_status" = running ] || { [ "$w_status" = exited ] && [ "$w_code" = 0 ]; }; then
+              echo "Mail worker now runs $IMAGE_TAG ($w_status; idle by configuration)."
             else
               echo "Mail worker did not come up on the new image (status $w_status, exit $w_code). The app release stands; fix the worker."
               exit 1

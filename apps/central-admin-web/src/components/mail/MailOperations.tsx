@@ -43,6 +43,9 @@ const PURPOSE_LABEL: Record<string, string> = {
 
 const ALERT_HELP: Record<string, string> = {
   MAIL_QUEUE_STALLED: "Jobs are due but not being picked up. Check that workers are running.",
+  MAIL_WORKER_NOT_RUNNING: "No Mail worker has reported in recently, so incoming mail and delivery events are not being processed. The worker restarts automatically; if this persists, check the worker service.",
+  MAIL_WORKER_QUEUE_UNSERVED: "A Mail queue the backend enables has no running worker (for example an emergency DENY rule pauses it). Incoming mail waits safely until it is served.",
+  MAIL_WORKER_DISABLED: "The Mail worker is shut down by configuration (MAIL_WORKER_ENABLED=false). Nothing is processed until it is re-enabled.",
   MAIL_DEAD_LETTERS: "Jobs exhausted their retries. Review them before re-queueing anything.",
   MAIL_WEBHOOK_BACKLOG: "Provider events are waiting to be processed.",
   MAIL_SCAN_BACKLOG: "Attachments are waiting for a malware verdict.",

@@ -32,7 +32,7 @@ function instanceKey({ environment, queues, instance }) {
 function createWorkerHeartbeat({ client, config, queues, instance = process.env.MAIL_WORKER_INSTANCE, clock = () => new Date(), logger = null }) {
   const key = instanceKey({ environment: config.deploymentEnvironment, queues, instance });
   const startedAt = clock().toISOString();
-  let lastWriteAt = 0;
+  let lastWriteAt = null;
   let database = null;
   let failures = 0;
 
@@ -51,7 +51,7 @@ function createWorkerHeartbeat({ client, config, queues, instance = process.env.
   async function beat(state, { force = false } = {}) {
     const now = clock();
     const intervalMs = (config.worker.heartbeatIntervalSeconds || 30) * 1000;
-    if (!force && now.getTime() - lastWriteAt < intervalMs) return false;
+    if (!force && lastWriteAt !== null && now.getTime() - lastWriteAt < intervalMs) return false;
     lastWriteAt = now.getTime();
     const payload = {
       state: state.state,
