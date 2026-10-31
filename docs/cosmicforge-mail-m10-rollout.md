@@ -1,6 +1,6 @@
 # CosmicForge Mail M10: production pilot and expansion readiness
 
-Status: code complete. **Nothing has been activated.** No rule, cohort, stop,
+Status: original M10 rollout specification. **Core-worker policy revised 2026-10-31:** OUTBOUND, INBOUND and EVENTS use backend enable flags rather than manual ALLOW rules; explicit legacy DENY rules still block a queue, and MARKETING remains opt-in. The statement below describes the original activation baseline. No rule, cohort, stop,
 DNS record, provider route, worker or flag was created or changed in any
 shared environment. The live canary was never executed.
 
@@ -30,7 +30,8 @@ Three layers apply, and each can only narrow what the layer above allows:
 | `STAFF_MAIL`, `SUPPORT` | Compose (external recipients only) and outbound dispatch | ENVIRONMENT, ORGANIZATION, DOMAIN (sender), MAILBOX, COHORT (sender) |
 | `MARKETING_BROADCAST`, `MARKETING_AUTOMATION`, `MARKETING_CONFIRMATION` | Worker before each provider call | ENVIRONMENT, ORGANIZATION |
 | `PRODUCT_INTEGRATION` | Event ingestion (503, retryable, so products lose nothing) | ENVIRONMENT, ORGANIZATION |
-| `WORKER_OUTBOUND`, `WORKER_INBOUND`, `WORKER_EVENTS`, `WORKER_MARKETING` | Each worker tick; a deployed worker idles for queues without a rule | ENVIRONMENT only |
+| `WORKER_OUTBOUND`, `WORKER_INBOUND`, `WORKER_EVENTS` (legacy controls) | Core processing follows backend Mail flags; no ALLOW rule required. Explicit DENY rules remain enforceable. Worker entrypoint still requires MAIL_ENABLED and MAIL_WORKER_ENABLED. | ENVIRONMENT only (legacy) |
+| `WORKER_MARKETING` | Optional marketing queue is still opt-in via rollout | ENVIRONMENT only |
 
 Rules are never edited, only revoked; every change is audited.
 - Changes that **widen** exposure (create ALLOW, revoke DENY) need a step-up
@@ -39,7 +40,7 @@ Rules are never edited, only revoked; every change is audited.
 - Rule state is cached for at most 5 seconds per process; changes made through
   the same API process apply instantly.
 
-UI: `/dashboard/mail/rollout` (stops, readiness, cohorts, rules) and
+UI: `/dashboard/mail/rollout` (stops, readiness, cohorts, **optional feature rules; no worker queue controls**) and
 `/dashboard/mail/operations` (M9).
 
 ## 2. Pilot staff onboarding and offboarding
@@ -149,11 +150,10 @@ here.
 4. Run the S0 gates on staging. Run `mail:backup:verify` and
    `mail:rollback:drill` against disposable copies.
 5. Configure staging-only secrets in the secret manager, then:
-   - add the WORKER rules;
+   - verify core queues are running under Mail backend flags (no rollout ALLOW rules required);
    - create the staging pilot cohort and ALLOW rule;
    - run the live canary against staging (operator, with a change ticket).
-6. Repeat 1–5 for production with production secrets, KMS and S3. Enforcement
-   is default-on, so nothing is allowed until rules exist.
+6. Repeat 1–5 for production with production secrets, KMS and S3. Optional staff/marketing/product capabilities still require explicit rollout approval. Core queues run when enabled by backend configuration; validate inbound ownership, domain verification and mailbox routing before release.
 7. Progress S1 → S4 only when each stage's automated gates pass **and** its
    manual sign-offs are recorded.
 
