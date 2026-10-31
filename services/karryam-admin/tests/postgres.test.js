@@ -57,7 +57,7 @@ test("migrations, runtime least privilege and durable stores on disposable Postg
 
   // Fresh install, then an idempotent re-run.
   const first = await migrate({ connectionString: migrationUrl, runtimeRole: runtime });
-  assert.deepEqual(first.applied, ["001_karryam_admin_foundation"]);
+  assert.deepEqual(first.applied, ["001_karryam_admin_foundation", "002_sections_6_8_modules_and_pipeline"]);
   const again = await migrate({ connectionString: migrationUrl, runtimeRole: runtime });
   assert.deepEqual(again.applied, []);
 
@@ -82,7 +82,10 @@ test("migrations, runtime least privilege and durable stores on disposable Postg
   await denied("TRUNCATE karryam_admin.integration_audit", "42501");
   await denied("CREATE TABLE karryam_admin.evil (id int)", "42501");
   await denied("DROP TABLE karryam_admin.operation_requests", "42501");
-  await denied("UPDATE karryam_admin.operation_requests SET status = 'EXECUTED'", "42501");
+  await denied("DELETE FROM karryam_admin.operation_requests", "42501");
+  for (const t of ["hq_outbox", "projection_lineage", "sensitive_access_log", "bridge_contract_revisions"]) await denied(`UPDATE karryam_admin.${t} SET id = id`.replace("SET id = id", t === "bridge_contract_revisions" ? "SET revision = revision" : "SET id = id"), "42501");
+  await denied("DELETE FROM karryam_admin.bridge_event_inbox", "42501");
+  await denied("TRUNCATE karryam_admin.hq_outbox", "42501");
 
   // Even the owner cannot mutate audit rows (trigger), and nothing but REJECTED can be stored.
   const owner = new Client({ connectionString: migrationUrl });
@@ -102,7 +105,7 @@ test("migrations, runtime least privilege and durable stores on disposable Postg
 
   // Durable rejection + audit in one transaction; idempotent replay and conflicts.
   const ops = pgOperations(pool);
-  const op = { id: randomUUID(), serviceId: "hq-product-integration-core", idempotencyKey: "idem-" + randomUUID(), requestDigest: "sha256:" + "b".repeat(64), capabilityId: "karryam.wallet.refund", staffRef: "staff-17", reasonCode: "CAPABILITY_DISABLED" };
+  const op = { id: randomUUID(), serviceId: "hq-product-integration-core", idempotencyKey: "idem-" + randomUUID(), requestDigest: "sha256:" + "b".repeat(64), capabilityId: "karryam.wallet.command.submit", staffRef: "staff-17", reasonCode: "CAPABILITY_DISABLED" };
   const auditRecord = { correlation_id: "corr-12345678", endpoint: "operationSubmit", method: "POST", service_id: op.serviceId, staff_ref: "staff-17", action: "operation.submit", outcome: "OPERATION_REJECTED", reason_code: "CAPABILITY_DISABLED" };
   assert.equal((await ops.recordRejection(op, auditRecord)).kind, "CREATED");
   assert.equal((await ops.recordRejection(op, auditRecord)).kind, "REPLAY");
@@ -110,6 +113,9 @@ test("migrations, runtime least privilege and durable stores on disposable Postg
   assert.equal((await ops.recordRejection({ ...op, requestDigest: "sha256:" + "c".repeat(64) }, auditRecord)).kind, "KEY_CONFLICT");
   assert.equal((await ops.recordRejection({ ...op, idempotencyKey: "idem-" + randomUUID() }, auditRecord)).kind, "COMMAND_CONFLICT");
   assert.equal((await ops.get(op.id)).status, "REJECTED");
+  // A terminal operation can never be moved again, even by the runtime role.
+  await assert.rejects(pool.query("UPDATE karryam_admin.operation_requests SET status = 'SUCCEEDED' WHERE id = $1", [op.id]), /not allowed|immutable/);
+  assert.equal(await ops.transition(op.id, "RECORDED", "DISPATCHING", {}, null), null);
   const trail = await audit.listForOperation(op.id);
   assert.equal(trail.length, 1);
   assert.equal(trail[0].outcome, "OPERATION_REJECTED");

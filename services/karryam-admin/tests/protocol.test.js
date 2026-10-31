@@ -22,7 +22,7 @@ function command(overrides = {}) {
   return {
     command_id: randomUUID(),
     idempotency_key: "idem-" + randomUUID(),
-    capability_id: "karryam.wallet.refund",
+    capability_id: "karryam.wallet.command.submit",
     target: { type: "karryam.wallet_transaction", id: "txn-1", expected_version: 3 },
     params: {},
     reason_code: "CUSTOMER_REQUEST",
@@ -75,8 +75,15 @@ test("manifest is signed, verifies for product 'karryam' and advertises honest s
   assert.equal(verified.manifest.product_id, "karryam");
   assert.equal(verified.manifest.display_name, "Karryam");
   const usable = verified.manifest.capabilities.filter((c) => contracts.USABLE_CAPABILITY_STATES.includes(c.state));
-  assert.deepEqual(usable, [], "nothing is usable without bridge enrollment");
-  assert.ok(verified.manifest.capabilities.filter((c) => c.kind === "COMMAND").every((c) => c.state === "DISABLED" && c.blockers.length >= 2));
+  // Without Bridge enrollment only local, source-free capabilities are usable:
+  // the connector-health report and the two local approval records.
+  assert.deepEqual(usable.map((c) => c.id).sort(), ["karryam.governance.approval.decide", "karryam.governance.approval.propose", "karryam.report.connector_health"]);
+  const sourceCommands = verified.manifest.capabilities.filter((c) => c.kind === "COMMAND" && !c.id.startsWith("karryam.governance."));
+  assert.equal(sourceCommands.length, 58);
+  assert.ok(sourceCommands.every((c) => c.state === "DISABLED" && c.blockers.length >= 1 && c.request_schema === null));
+  assert.ok(sourceCommands.filter((c) => c.risk === "R3" || c.risk === "R4").every((c) => c.requires_independent_approval && c.blockers.some((b) => ["HIGH_RISK_CERTIFICATION_REQUIRED", "SOURCE_DISABLED", "SOURCE_BLOCKED_DEPENDENCY"].includes(b.code))));
+  assert.ok(verified.manifest.capabilities.length <= 256);
+  assert.deepEqual(contracts.catalogErrors(verified.manifest), []);
   assert.ok(verified.manifest.datasets.every((d) => d.readiness === "NOT_CERTIFIED" && d.privacy_class !== "RESTRICTED_PII"));
   assert.equal(JSON.stringify(signed).includes("http"), false, "manifest carries no endpoint URLs");
   const wrongTrust = { "karryam-test-signer-1": { ...trustStore["karryam-test-signer-1"], productId: "healthnet" } };
@@ -107,24 +114,30 @@ test("capabilities include the pinned bridge contract; bridge is a blocked depen
 test("datasets are cataloged; snapshots and events never return a fabricated empty success", async (t) => {
   const { client } = await enabled(t);
   const ds = await client.getDatasets();
-  assert.deepEqual(ds.json.result.datasets.map((d) => d.dataset_id), ["karryam.operations_daily", "karryam.finance_daily"]);
+  assert.deepEqual(ds.json.result.datasets.map((d) => d.dataset_id), ["karryam.support_operations", "karryam.verification_pipeline", "karryam.marketing_campaigns", "karryam.sync_health"]);
+  assert.ok(ds.json.result.datasets.every((d) => d.readiness === "NOT_CERTIFIED" && d.blockers[0].code === "STAGING_CERTIFICATION_PENDING"));
   assert.equal((await client.getDatasetSnapshot("karryam.unknown")).json.error.reason, "UNKNOWN_DATASET");
-  const snap = await client.getDatasetSnapshot("karryam.operations_daily");
+  const snap = await client.getDatasetSnapshot("karryam.support_operations", { query: { partition_key: "NG-LAGOS" } });
   assert.equal(snap.status, 503);
-  assert.equal(snap.json.error.reason, "SOURCE_NOT_CERTIFIED");
+  assert.equal(snap.json.error.reason, "DATASET_NOT_CERTIFIED");
   assert.equal(snap.json.result, null);
   assert.equal(snap.json.as_of, null);
-  assert.equal((await client.getEvents({ dataset_id: "karryam.operations_daily" })).json.error.reason, "MISSING_PARAMETER");
-  assert.equal((await client.getEvents({ dataset_id: "karryam.operations_daily", partition_key: "NG", after_sequence: 0, extra: 1 })).json.error.reason, "UNKNOWN_PARAMETER");
+  assert.equal((await client.getEvents({ dataset_id: "karryam.support_operations" })).json.error.reason, "MISSING_PARAMETER");
+  assert.equal((await client.getEvents({ dataset_id: "karryam.support_operations", partition_key: "NG", after_sequence: 0, extra: 1 })).json.error.reason, "UNKNOWN_PARAMETER");
   assert.equal((await client.getEvents({ dataset_id: "karryam.nope", partition_key: "NG", after_sequence: 0 })).status, 404);
-  const events = await client.getEvents({ dataset_id: "karryam.operations_daily", partition_key: "NG-LAGOS", after_sequence: 0, limit: 10 });
+  const events = await client.getEvents({ dataset_id: "karryam.support_operations", partition_key: "NG-LAGOS", after_sequence: 0, limit: 10 });
   assert.equal(events.status, 503);
-  assert.equal(events.json.error.reason, "EVENT_SOURCE_NOT_CERTIFIED");
+  assert.equal(events.json.error.reason, "DATASET_NOT_CERTIFIED");
   assert.equal(events.json.result, null);
-  assert.equal((await client.ackEvents({ dataset_id: "karryam.operations_daily" })).json.error.reason, "ACK_INVALID");
-  const ack = await client.ackEvents({ dataset_id: "karryam.operations_daily", partition_key: "NG-LAGOS", sequence: 1 });
+  assert.equal((await client.ackEvents({ dataset_id: "karryam.support_operations" })).json.error.reason, "ACK_INVALID");
+  const ack = await client.ackEvents({ dataset_id: "karryam.support_operations", partition_key: "NG-LAGOS", sequence: 1 });
   assert.equal(ack.status, 503);
-  assert.equal(ack.json.error.reason, "EVENT_SOURCE_NOT_CERTIFIED");
+  assert.equal(ack.json.error.reason, "DATASET_NOT_CERTIFIED");
+  // Certifying a dataset without a running Stage A pipeline is still honest.
+  const certifiedOnly = await enabled(t, { KARRYAM_ADMIN_CERTIFIED_DATASETS: "karryam.support_operations" });
+  const noPipeline = await certifiedOnly.client.getEvents({ dataset_id: "karryam.support_operations", partition_key: "NG-LAGOS", after_sequence: 0 });
+  assert.equal(noPipeline.status, 503);
+  assert.equal(noPipeline.json.error.reason, "EVENT_SOURCE_NOT_CERTIFIED");
 });
 
 test("sync status is honest and matches the sync-status.v1 schema", async (t) => {

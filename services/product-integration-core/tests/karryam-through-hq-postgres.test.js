@@ -37,8 +37,10 @@ test("Karryam Admin onboards through the generic registry and remains unavailabl
     assert.equal(contract.status, "VALIDATED");
     const [{ catalog }] = (await h.pool.query("SELECT catalog FROM hq_integration.hq_product_admin_contracts WHERE id = $1", [contract.id])).rows;
     assert.equal(catalog.product_id, "karryam");
-    assert.ok(catalog.capabilities.every((c) => c.state !== "AVAILABLE")); // nothing claims to be executable
-    assert.ok(catalog.capabilities.filter((c) => c.kind === "COMMAND").every((c) => c.state === "DISABLED"));
+    // Nothing that reaches the source claims to be executable; only the two
+    // local approval-record commands (no source call) are available.
+    assert.deepEqual(catalog.capabilities.filter((c) => c.state === "AVAILABLE").map((c) => c.id).sort(), ["karryam.governance.approval.decide", "karryam.governance.approval.propose"]);
+    assert.ok(catalog.capabilities.filter((c) => c.kind === "COMMAND" && !c.id.startsWith("karryam.governance.")).every((c) => c.state === "DISABLED"));
     assert.ok(catalog.datasets.every((d) => d.readiness === "NOT_CERTIFIED"));
 
     for (const ds of catalog.datasets) {

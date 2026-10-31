@@ -30,11 +30,17 @@ function listMigrations(dir = MIGRATIONS_DIR) {
   });
 }
 
+// Least privilege: append-only tables get SELECT/INSERT only; tables with
+// guarded state transitions get UPDATE (the triggers enforce the allowed
+// changes); nothing gets DDL, TRUNCATE or DELETE except replay nonces.
 const RUNTIME_GRANTS = (role) => [
   `GRANT USAGE ON SCHEMA karryam_admin TO ${role}`,
   `GRANT SELECT, INSERT ON karryam_admin.integration_audit TO ${role}`,
-  `GRANT SELECT, INSERT ON karryam_admin.operation_requests TO ${role}`,
   `GRANT SELECT, INSERT, DELETE ON karryam_admin.request_nonces TO ${role}`,
+  ...["operation_requests", "approval_references", "bridge_feed_partitions", "bridge_event_inbox", "entity_projections",
+    "entity_version_gaps", "event_quarantine", "source_coverage", "sync_runs", "metric_snapshots", "hq_outbox_heads", "hq_outbox_acks"]
+    .map((t) => `GRANT SELECT, INSERT, UPDATE ON karryam_admin.${t} TO ${role}`),
+  ...["sensitive_access_log", "projection_lineage", "hq_outbox", "bridge_contract_revisions"].map((t) => `GRANT SELECT, INSERT ON karryam_admin.${t} TO ${role}`),
   `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA karryam_admin TO ${role}`,
   `REVOKE CREATE ON SCHEMA karryam_admin FROM ${role}`,
 ];

@@ -6,6 +6,7 @@
 // and valid; any problem stops startup with a sanitized reason code.
 
 const net = require("node:net");
+const { X509Certificate } = require("node:crypto");
 const { contracts, clients } = require("../packages");
 const { parseListen } = require("../transport/listen-spec");
 const K = require("../security/keys");
@@ -56,7 +57,38 @@ function bridgeOrigin(value) {
   return origin;
 }
 
-function loadBridgeConfig(env) {
+const WORKLOAD_URI = /^(?:spiffe|cf):\/\/[a-z0-9.-]{1,63}(?:\/[A-Za-z0-9._-]{1,63}){1,6}$/;
+const SCOPE_VALUE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/;
+
+function fingerprintList(value, name) {
+  if (value === undefined || value.trim() === "") return [];
+  const list = value.split(",").map((v) => v.trim().replace(/:/g, "").toLowerCase()).filter(Boolean);
+  if (list.some((f) => !FINGERPRINT.test(f))) throw new ConfigError(name + "_INVALID");
+  return [...new Set(list)];
+}
+
+// Approved zone/tenant enrollment for zone- and tenant-scoped Bridge routes.
+function scopeList(value, name) {
+  if (value === undefined || value.trim() === "") return [];
+  const list = value.split(",").map((v) => v.trim()).filter(Boolean);
+  if (list.length > 64 || list.some((v) => !SCOPE_VALUE.test(v) || v === "*")) throw new ConfigError(name + "_INVALID");
+  return [...new Set(list)];
+}
+
+// The enrolled client certificate must be currently valid, carry exactly the
+// approved workload URI SAN and not be on the revocation list.
+function checkClientCertificate(pem, expectedUri, revoked, now) {
+  let cert;
+  try { cert = new X509Certificate(pem); } catch { throw new ConfigError("KARRYAM_BRIDGE_CLIENT_CERT_INVALID"); }
+  if (Date.parse(cert.validFrom) > now || Date.parse(cert.validTo) <= now) throw new ConfigError("KARRYAM_BRIDGE_CLIENT_CERT_NOT_CURRENTLY_VALID");
+  const uris = String(cert.subjectAltName || "").split(",").map((s) => s.trim()).filter((s) => s.startsWith("URI:")).map((s) => s.slice(4));
+  if (uris.length !== 1 || uris[0] !== expectedUri) throw new ConfigError("KARRYAM_BRIDGE_CLIENT_CERT_URI_MISMATCH");
+  const fingerprint = cert.fingerprint256.replace(/:/g, "").toLowerCase();
+  if (revoked.includes(fingerprint)) throw new ConfigError("KARRYAM_BRIDGE_CLIENT_CERT_REVOKED");
+  return Object.freeze({ uri: expectedUri, fingerprint, notAfter: new Date(Date.parse(cert.validTo)).toISOString() });
+}
+
+function loadBridgeConfig(env, now = Date.now()) {
   const enabled = bool(env.KARRYAM_BRIDGE_ENABLED, "KARRYAM_BRIDGE_ENABLED");
   if (!enabled) return Object.freeze({ enabled: false });
   const origin = bridgeOrigin(required(env, "KARRYAM_BRIDGE_ORIGIN"));
@@ -79,6 +111,10 @@ function loadBridgeConfig(env) {
       Object.entries(roleMap).some(([k, v]) => !PRODUCT_ROLE.test(k) || ["SUPER", "EXECUTIVE", "ADMIN", "EMPLOYEE"].includes(k.toUpperCase()) || typeof v !== "string" || !BRIDGE_ROLE.test(v))) {
     throw new ConfigError("KARRYAM_ADMIN_ROLE_MAP_INVALID");
   }
+  const serverCa = K.readSecretFile(required(env, "KARRYAM_BRIDGE_CA_FILE"), "KARRYAM_BRIDGE_CA_FILE");
+  const clientCert = K.readSecretFile(required(env, "KARRYAM_BRIDGE_CLIENT_CERT_FILE"), "KARRYAM_BRIDGE_CLIENT_CERT_FILE");
+  const revokedServerFingerprints = fingerprintList(env.KARRYAM_BRIDGE_REVOKED_FINGERPRINTS, "KARRYAM_BRIDGE_REVOKED_FINGERPRINTS");
+  const clientIdentity = checkClientCertificate(clientCert, required(env, "KARRYAM_BRIDGE_CLIENT_URI", WORKLOAD_URI), revokedServerFingerprints, now);
   return Object.freeze({
     enabled: true,
     origin: origin.href,
@@ -86,9 +122,15 @@ function loadBridgeConfig(env) {
     port: Number(origin.port || 443),
     address,
     market, organization, acr, serviceKid, staffKid, issuer, audience,
+    zones: Object.freeze(scopeList(env.KARRYAM_ADMIN_ZONES, "KARRYAM_ADMIN_ZONES")),
+    tenants: Object.freeze(scopeList(env.KARRYAM_ADMIN_TENANTS, "KARRYAM_ADMIN_TENANTS")),
+    mfaMaxAgeSeconds: intInRange(env.KARRYAM_ADMIN_BRIDGE_MFA_MAX_AGE_SECONDS, "KARRYAM_ADMIN_BRIDGE_MFA_MAX_AGE_SECONDS", 30, 300, 300),
+    serverFingerprints: Object.freeze(fingerprintList(env.KARRYAM_BRIDGE_SERVER_FINGERPRINTS, "KARRYAM_BRIDGE_SERVER_FINGERPRINTS")),
+    revokedServerFingerprints: Object.freeze(revokedServerFingerprints),
+    clientIdentity,
     roleMap: Object.freeze({ ...roleMap }),
-    serverCa: K.readSecretFile(required(env, "KARRYAM_BRIDGE_CA_FILE"), "KARRYAM_BRIDGE_CA_FILE"),
-    clientCert: K.readSecretFile(required(env, "KARRYAM_BRIDGE_CLIENT_CERT_FILE"), "KARRYAM_BRIDGE_CLIENT_CERT_FILE"),
+    serverCa,
+    clientCert,
     clientKey: K.readSecretFile(required(env, "KARRYAM_BRIDGE_CLIENT_KEY_FILE"), "KARRYAM_BRIDGE_CLIENT_KEY_FILE"),
     serviceKey: K.loadBase64UrlKeyFile(required(env, "KARRYAM_BRIDGE_HMAC_KEY_FILE"), "KARRYAM_BRIDGE_HMAC_KEY_FILE"),
     staffPrivateKey: K.loadEd25519PrivateKey(required(env, "KARRYAM_BRIDGE_STAFF_PRIVATE_KEY_FILE"), "KARRYAM_BRIDGE_STAFF_PRIVATE_KEY_FILE"),
@@ -132,13 +174,23 @@ function loadConfig(env = process.env, { now = Date.now() } = {}) {
   }
   const serviceKeys = K.loadServiceKeys(required(env, "KARRYAM_ADMIN_HQ_SERVICE_KEYS_FILE"), { now, name: "KARRYAM_ADMIN_HQ_SERVICE_KEYS_FILE" });
   const delegationKeys = K.loadDelegationKeys(required(env, "KARRYAM_ADMIN_DELEGATION_KEYS_FILE"), { now, name: "KARRYAM_ADMIN_DELEGATION_KEYS_FILE" });
-  const bridge = loadBridgeConfig(env);
+  const bridge = loadBridgeConfig(env, now);
+  // Continuation tokens are sealed with their own key (required whenever the
+  // Bridge is enabled, because only then are paginated reads possible).
+  const cursorKey = env.KARRYAM_ADMIN_CURSOR_KEY_FILE || bridge.enabled
+    ? K.loadBase64UrlKeyFile(required(env, "KARRYAM_ADMIN_CURSOR_KEY_FILE"), "KARRYAM_ADMIN_CURSOR_KEY_FILE")
+    : null;
+  const enabledCommands = commandAllowlist(env.KARRYAM_ADMIN_ENABLED_COMMANDS, bridge);
+  const certifiedDatasets = idList(env.KARRYAM_ADMIN_CERTIFIED_DATASETS, "KARRYAM_ADMIN_CERTIFIED_DATASETS", KNOWN_DATASETS);
+  const feed = loadFeedConfig(env, bridge, environment);
   // Each trust boundary needs its own key: service authentication, staff
-  // delegation and the bridge HMAC key must never share key material.
+  // delegation, the bridge HMAC key and the continuation-token key must
+  // never share key material.
   const boundaries = [
     Object.values(serviceKeys).map((k) => k.key),
     Object.values(delegationKeys).map((k) => k.key),
     bridge.enabled && bridge.serviceKey ? [bridge.serviceKey] : [],
+    cursorKey ? [cursorKey] : [],
   ];
   for (let i = 0; i < boundaries.length; i += 1) {
     for (let j = i + 1; j < boundaries.length; j += 1) {
@@ -172,6 +224,76 @@ function loadConfig(env = process.env, { now = Date.now() } = {}) {
     manifestRevision: intInRange(env.KARRYAM_ADMIN_MANIFEST_REVISION, "KARRYAM_ADMIN_MANIFEST_REVISION", 1, 2147483647, 1),
     manifestTtlSeconds: intInRange(env.KARRYAM_ADMIN_MANIFEST_TTL_SECONDS, "KARRYAM_ADMIN_MANIFEST_TTL_SECONDS", 300, 7 * 24 * 3600, 3600),
     bridge,
+    cursorKey,
+    enabledCommands,
+    certifiedDatasets,
+    feed,
+  });
+}
+
+// Dataset IDs this Product Admin can publish (see sync/datasets.js).
+const KNOWN_DATASETS = Object.freeze(["karryam.support_operations", "karryam.verification_pipeline", "karryam.marketing_campaigns", "karryam.sync_health"]);
+const CATALOG_ID = /^[a-z][a-z0-9_.-]{1,95}$/;
+
+function idList(value, name, known) {
+  if (value === undefined || value.trim() === "") return Object.freeze([]);
+  const list = [...new Set(value.split(",").map((v) => v.trim()).filter(Boolean))];
+  if (list.some((v) => !CATALOG_ID.test(v) || (known && !known.includes(v)))) throw new ConfigError(name + "_INVALID");
+  return Object.freeze(list);
+}
+
+// Explicitly enabled source commands. Only exact pinned COMMAND/RETRIEVAL
+// capabilities qualify, R3/R4 are refused until a separate certification,
+// and nothing can be enabled without an enrolled Bridge.
+function commandAllowlist(value, bridge) {
+  const list = idList(value, "KARRYAM_ADMIN_ENABLED_COMMANDS");
+  if (list.length === 0) return list;
+  if (!bridge.enabled) throw new ConfigError("KARRYAM_ADMIN_ENABLED_COMMANDS_REQUIRE_BRIDGE");
+  const registry = require("../bridge/contracts/registry");
+  for (const id of list) {
+    const cap = id.startsWith("karryam.") ? registry.capability(id.slice("karryam.".length)) : null;
+    if (!cap || !["COMMAND", "RETRIEVAL"].includes(cap.kind) || ["BLOCKED_DEPENDENCY", "DISABLED"].includes(cap.matrix_state)) throw new ConfigError("KARRYAM_ADMIN_ENABLED_COMMANDS_INVALID");
+    if (cap.risk === "R3" || cap.risk === "R4") throw new ConfigError("KARRYAM_ADMIN_COMMAND_RISK_REQUIRES_CERTIFICATION");
+  }
+  return list;
+}
+
+// Stage A consumer (worker process). Disabled unless explicitly enabled with
+// an enrolled Bridge and an operator-approved consumer principal.
+function loadFeedConfig(env, bridge, environment) {
+  if (!bool(env.KARRYAM_BRIDGE_FEED_ENABLED, "KARRYAM_BRIDGE_FEED_ENABLED")) return Object.freeze({ enabled: false });
+  if (!bridge.enabled) throw new ConfigError("KARRYAM_BRIDGE_FEED_REQUIRES_BRIDGE");
+  let scopes;
+  try { scopes = JSON.parse(required(env, "KARRYAM_BRIDGE_FEED_SCOPES")); } catch (err) {
+    if (err instanceof ConfigError) throw err;
+    throw new ConfigError("KARRYAM_BRIDGE_FEED_SCOPES_INVALID");
+  }
+  if (!Array.isArray(scopes) || scopes.length === 0 || scopes.length > 32) throw new ConfigError("KARRYAM_BRIDGE_FEED_SCOPES_INVALID");
+  const seen = new Set();
+  for (const s of scopes) {
+    if (!s || typeof s !== "object" || Object.keys(s).sort().join(",") !== "market,organization,tenant,zone") throw new ConfigError("KARRYAM_BRIDGE_FEED_SCOPES_INVALID");
+    if (s.market !== bridge.market || s.organization !== bridge.organization || !bridge.zones.includes(s.zone) || !bridge.tenants.includes(s.tenant)) throw new ConfigError("KARRYAM_BRIDGE_FEED_SCOPE_NOT_ENROLLED");
+    // Stage B publishes partition scopes to HQ, whose scope values are stricter.
+    if (!SCOPE_VALUE.test(s.market) || !SCOPE_VALUE.test(s.organization)) throw new ConfigError("KARRYAM_BRIDGE_FEED_SCOPE_NOT_HQ_REPRESENTABLE");
+    const key = [s.market, s.organization, s.zone, s.tenant].join("|");
+    if (seen.has(key)) throw new ConfigError("KARRYAM_BRIDGE_FEED_SCOPES_DUPLICATE");
+    seen.add(key);
+  }
+  return Object.freeze({
+    enabled: true,
+    scopes: Object.freeze(scopes.map((s) => Object.freeze({ ...s }))),
+    consumer: required(env, "KARRYAM_BRIDGE_FEED_CONSUMER", OPAQUE),
+    subject: required(env, "KARRYAM_BRIDGE_FEED_SUBJECT", OPAQUE),
+    role: required(env, "KARRYAM_BRIDGE_FEED_ROLE", BRIDGE_ROLE),
+    acr: required(env, "KARRYAM_BRIDGE_FEED_ACR", OPAQUE),
+    purpose: env.KARRYAM_BRIDGE_FEED_PURPOSE ? required(env, "KARRYAM_BRIDGE_FEED_PURPOSE", OPAQUE) : "hq_event_sync",
+    pageSize: intInRange(env.KARRYAM_BRIDGE_FEED_PAGE_SIZE, "KARRYAM_BRIDGE_FEED_PAGE_SIZE", 1, 100, 50),
+    pollSeconds: intInRange(env.KARRYAM_BRIDGE_FEED_POLL_SECONDS, "KARRYAM_BRIDGE_FEED_POLL_SECONDS", 5, 3600, 15),
+    rewindEvents: intInRange(env.KARRYAM_BRIDGE_FEED_REWIND_EVENTS, "KARRYAM_BRIDGE_FEED_REWIND_EVENTS", 0, 10000, 200),
+    reconcileSeconds: intInRange(env.KARRYAM_BRIDGE_RECONCILE_INTERVAL_SECONDS, "KARRYAM_BRIDGE_RECONCILE_INTERVAL_SECONDS", 300, 7 * 86400, 86400),
+    retentionDays: intInRange(env.KARRYAM_ADMIN_INBOX_RETENTION_DAYS, "KARRYAM_ADMIN_INBOX_RETENTION_DAYS", 7, 3650, 90),
+    leaseSeconds: intInRange(env.KARRYAM_BRIDGE_FEED_LEASE_SECONDS, "KARRYAM_BRIDGE_FEED_LEASE_SECONDS", 10, 600, 60),
+    environment,
   });
 }
 
@@ -186,6 +308,9 @@ function describeConfig(config) {
     mtls: Boolean(config.tls),
     manifest_signer: config.manifestSigner ? "PROVISIONED" : "NOT_PROVISIONED",
     bridge: config.bridge.enabled ? "CONFIGURED_NOT_CERTIFIED" : "DISABLED",
+    enabled_commands: config.enabledCommands.length,
+    certified_datasets: config.certifiedDatasets.length,
+    bridge_feed: config.feed.enabled ? { partitions: config.feed.scopes.length } : "DISABLED",
   };
 }
 

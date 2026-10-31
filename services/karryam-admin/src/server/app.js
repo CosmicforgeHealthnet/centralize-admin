@@ -12,6 +12,12 @@ const { buildCatalog } = require("../protocol/catalog");
 const { createManifestProvider } = require("../protocol/manifest");
 const { createHandlers } = require("../protocol/handlers");
 const { createBridgeClient } = require("../bridge/client");
+const { createContinuation } = require("../modules/continuation");
+const { createReads } = require("../modules/reads");
+const { createReports } = require("../modules/reports");
+const { createOperations } = require("../operations/service");
+const { memoryAccessLog } = require("../db/access-log");
+const { memoryApprovals } = require("../db/approvals");
 
 function disabledHandler({ logger = () => {} } = {}) {
   return function handler(req, res) {
@@ -36,15 +42,22 @@ function disabledHandler({ logger = () => {} } = {}) {
 }
 
 /**
- * deps: { nonceStore, audit, operations, dbReady, bridgeClient?, logger, now }
+ * deps: { nonceStore, audit, operations, approvals, accessLog, pipeline, dbReady, bridgeClient?, logger, now }
  */
 function createApp(config, deps) {
   if (!config.enabled) return disabledHandler(deps);
   const now = deps.now || Date.now;
-  const catalog = buildCatalog({ bridge: config.bridge });
+  const catalog = buildCatalog(config);
   const manifest = createManifestProvider({ config, catalog, now });
-  const bridgeClient = deps.bridgeClient !== undefined ? deps.bridgeClient : (config.bridge.enabled ? createBridgeClient(config.bridge) : null);
-  const handlers = createHandlers({ config, catalog, manifest, bridgeClient, operations: deps.operations, audit: deps.audit, dbReady: deps.dbReady, logger: deps.logger, now });
+  const bridgeMetrics = deps.bridgeMetrics || {};
+  const bridgeClient = deps.bridgeClient !== undefined ? deps.bridgeClient : (config.bridge.enabled ? createBridgeClient(config.bridge, { metrics: bridgeMetrics }) : null);
+  const continuation = config.cursorKey ? createContinuation(config.cursorKey, { now }) : null;
+  const accessLog = deps.accessLog || memoryAccessLog();
+  const approvals = deps.approvals || memoryApprovals({ now });
+  const reads = createReads({ config, bridgeClient, continuation, audit: deps.audit, accessLog, now, logger: deps.logger });
+  const reports = createReports({ config, bridgeClient, store: deps.pipeline || null, audit: deps.audit, bridgeMetrics, now });
+  const operationsService = createOperations({ config, catalog, operations: deps.operations, approvals, bridgeClient, now, logger: deps.logger });
+  const handlers = createHandlers({ config, catalog, manifest, bridgeClient, operations: deps.operations, operationsService, reads, reports, pipeline: deps.pipeline || null, audit: deps.audit, dbReady: deps.dbReady, logger: deps.logger, now });
   return clients.createProductAdminHandler({
     productId: config.productId,
     serviceInstanceId: config.serviceInstanceId,

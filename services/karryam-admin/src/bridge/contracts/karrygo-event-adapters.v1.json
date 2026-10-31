@@ -1,0 +1,77 @@
+{
+ "contract": "karryam.admin-events.v1",
+ "export_schema": "cosmicforge.product-admin-event.v1",
+ "max_event_bytes": 16384,
+ "source_files": {
+  "shared/go/adminevents/registry.go": "65250ea605114a31c60c02be4d73dbea460a84848b76128077c2a38c7eb2b09f",
+  "shared/go/adminevents/adapters.go": "dc356c0ea571e048b5d2c03fd7d6857e79c2d7e0469667d9d293a3a1494d52d6"
+ },
+ "exportable_classifications": ["PUBLIC", "INTERNAL", "OPERATIONS_MINIMIZED", "FINANCIAL_SENSITIVE", "SAFETY_EVIDENCE"],
+ "adapters": [
+  {
+   "source_service": "support-dispute-service",
+   "export_type": "karryam.support.case.updated.v1",
+   "entity_type": "support_case",
+   "classification": "OPERATIONS_MINIMIZED",
+   "fields": {
+    "status": { "kind": "ENUM", "required": true, "enum": ["OPEN", "UNDER_REVIEW", "AWAITING_EVIDENCE", "RESOLVED", "CLOSED", "ESCALATED"] },
+    "priority": { "kind": "ENUM", "required": true, "enum": ["NORMAL", "HIGH", "EMERGENCY"] },
+    "service_type": { "kind": "OPAQUE", "required": true },
+    "category": { "kind": "OPAQUE_NULLABLE" },
+    "complainant_type": { "kind": "OPAQUE", "required": true },
+    "context_type": { "kind": "OPAQUE_NULLABLE" },
+    "locale": { "kind": "OPAQUE_NULLABLE" },
+    "sla_state": { "kind": "ENUM", "required": true, "enum": ["POLICY_UNAVAILABLE"] },
+    "consent_classification": { "kind": "ENUM", "required": true, "enum": ["OPERATIONS_MINIMIZED", "SAFETY_EVIDENCE"] },
+    "assignee": { "kind": "OPAQUE_NULLABLE" },
+    "escalation_level": { "kind": "OPAQUE_NULLABLE" },
+    "mission_ref": { "kind": "OPAQUE_NULLABLE" },
+    "order_ref": { "kind": "OPAQUE_NULLABLE" },
+    "dispute_ref": { "kind": "OPAQUE_NULLABLE" },
+    "unread_count": { "kind": "COUNT", "required": true },
+    "message_count": { "kind": "COUNT", "required": true },
+    "evidence_count": { "kind": "COUNT", "required": true },
+    "created_at": { "kind": "TIME", "required": true },
+    "updated_at": { "kind": "TIME", "required": true }
+   }
+  },
+  {
+   "source_service": "verification-compliance-service",
+   "export_type": "karryam.verification.case.updated.v1",
+   "entity_type": "vendor_verification_case",
+   "classification": "OPERATIONS_MINIMIZED",
+   "fields": {
+    "status": { "kind": "ENUM", "required": true, "enum": ["NOT_STARTED", "IN_PROGRESS", "PENDING_REVIEW", "VERIFIED", "REJECTED", "EXPIRED", "SUSPENDED"] },
+    "dimension": { "kind": "ENUM", "required": true, "enum": ["IDENTITY", "BUSINESS", "BANK", "LOCATION", "BRAND", "FOOD_KITCHEN"] },
+    "subject_type": { "kind": "OPAQUE", "required": true },
+    "business_ref": { "kind": "OPAQUE", "required": true },
+    "automation_recommendation": { "kind": "ENUM", "enum": ["FORMAT_VALID", "SOURCE_UNVERIFIED", "REVIEW_REQUIRED", "AUTO_ELIGIBLE", "NOT_EVALUATED"] },
+    "reason_code": { "kind": "OPAQUE_NULLABLE" },
+    "expires_at": { "kind": "TIME_NULLABLE" },
+    "updated_at": { "kind": "TIME", "required": true }
+   }
+  },
+  {
+   "source_service": "notification-service",
+   "export_type": "karryam.marketing.campaign.updated.v1",
+   "entity_type": "campaign_revision",
+   "classification": "INTERNAL",
+   "fields": {
+    "campaign_id": { "kind": "OPAQUE", "required": true },
+    "revision": { "kind": "COUNT", "required": true },
+    "state": { "kind": "ENUM", "required": true, "enum": ["ACCEPTED_BY_KARRYGO", "PLANNED", "QUEUED", "SENT", "DELIVERED", "REJECTED", "FAILED", "SUPPRESSED", "CANCELLED", "COMPLETED"] },
+    "rejection_code": { "kind": "OPAQUE_NULLABLE" },
+    "audience_count": { "kind": "COUNT", "required": true },
+    "eligible_count": { "kind": "COUNT", "required": true },
+    "suppressed_count": { "kind": "COUNT", "required": true },
+    "queued_count": { "kind": "COUNT", "required": true },
+    "sent_count": { "kind": "COUNT", "required": true },
+    "logged_only_count": { "kind": "COUNT", "required": true },
+    "failed_count": { "kind": "COUNT", "required": true },
+    "delivered_count": { "kind": "COUNT" },
+    "delivery_confirmation": { "kind": "ENUM", "required": true, "enum": ["UNAVAILABLE", "PROVIDER_RECEIPTS"] },
+    "updated_at": { "kind": "TIME", "required": true }
+   }
+  }
+ ]
+}

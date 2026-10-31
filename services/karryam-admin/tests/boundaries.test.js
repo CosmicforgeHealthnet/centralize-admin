@@ -59,3 +59,71 @@ test("pinned KarryGo bridge contract matches a local checkout when one is availa
   assert.equal(Object.keys(openapi.paths).length, PINNED_BRIDGE_CONTRACT.openapi.path_count);
   assert.equal(openapi.info.version, PINNED_BRIDGE_CONTRACT.openapi.info_version);
 });
+
+test("pinned KarryGo capability registry, schemas and event adapters regenerate identically from the checkout", (t) => {
+  const checkout = process.env.KARRYGO_CHECKOUT || "/home/user/cosmicforgehealthnet/karrygo";
+  if (!fs.existsSync(path.join(checkout, "services/admin-backoffice-service/docs/openapi"))) {
+    assert.ok(process.env.KARRYGO_REQUIRE_CHECKOUT !== "1", "KARRYGO_CHECKOUT is required but not present: " + checkout);
+    t.skip("KarryGo checkout not available");
+    return;
+  }
+  const { buildPinnedRegistry, serialize, REGISTRY_FILE, SCHEMAS_FILE } = require("../scripts/pin-bridge-contract");
+  const { registry, schemas } = buildPinnedRegistry(checkout);
+  const committed = (file) => fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+  assert.equal(committed(REGISTRY_FILE), serialize(registry), "capability registry drifted: review and re-pin (scripts/pin-bridge-contract.js)");
+  assert.equal(committed(SCHEMAS_FILE), serialize(schemas), "Bridge schemas drifted: review and re-pin");
+  const adapters = require("../src/bridge/contracts/karrygo-event-adapters.v1.json");
+  for (const [rel, sha] of Object.entries(adapters.source_files)) {
+    const file = path.join(checkout, rel);
+    if (!fs.existsSync(file)) {
+      assert.ok(process.env.KARRYGO_REQUIRE_CHECKOUT !== "1", "event adapter source missing from checkout: " + rel);
+      continue;
+    }
+    const actual = createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+    assert.equal(actual, sha, "event adapter drift in " + rel + ": review karrygo-event-adapters.v1.json");
+  }
+});
+
+test("pinned registry agrees with the pinned contract metadata and every schema compiles", () => {
+  const R = require("../src/bridge/contracts/registry");
+  const { compileBridgeSchema } = require("../src/bridge/contracts/schema");
+  const components = require("../src/bridge/contracts/karrygo-bridge-schemas.v1.json").components.schemas;
+  const s = R.summary();
+  assert.equal(s.totals.capabilities, PINNED_BRIDGE_CONTRACT.capability_matrix.total);
+  assert.deepEqual(s.totals.by_state, PINNED_BRIDGE_CONTRACT.capability_matrix.by_state);
+  assert.equal(s.source_artifacts.openapi_sha256, PINNED_BRIDGE_CONTRACT.artifacts["services/admin-backoffice-service/docs/openapi/openapi.json"]);
+  assert.equal(s.source_artifacts.capability_matrix_sha256, PINNED_BRIDGE_CONTRACT.artifacts["services/admin-backoffice-service/docs/openapi/KARRYGO_ADMIN_CAPABILITY_MATRIX.json"]);
+  for (const cap of R.CAPABILITIES) {
+    if (cap.result_schema && cap.success_media === "application/json") compileBridgeSchema(cap.result_schema, components);
+    if (cap.request_body) compileBridgeSchema(cap.request_body, components);
+    assert.ok(cap.path.startsWith("/") && !cap.path.includes(".."), cap.id);
+  }
+  // The read-oriented POST contracts keep their source method.
+  assert.equal(R.capability("hq.finance.report").method, "POST");
+  assert.equal(R.capability("hq.finance.report").kind, "READ");
+  assert.equal(R.capability("hq.events.ack").kind, "SYNC");
+  // Unsupported schema keywords are refused at compile time.
+  assert.throws(() => compileBridgeSchema({ type: "object", unevaluatedProperties: false }, components), /unsupported_schema_keyword/);
+  assert.throws(() => compileBridgeSchema({ $ref: "#/components/schemas/Nope" }, components), /unresolved_ref/);
+});
+
+test("request URIs are built only from the pinned shape with validated values", () => {
+  const R = require("../src/bridge/contracts/registry");
+  const cap = R.capability("customer.resources.customers.detail");
+  const now = Date.parse("2026-10-31T12:00:00Z");
+  const base = { market: "NG-LAGOS", organization: "karryam-ng", purpose: "case_review", zone: "lagos-island", tenant: "tenant-a", start: "2026-10-30T12:00:00Z", end: "2026-10-31T12:00:00Z", limit: 1 };
+  const id = cap.path_params[0].format === "uuid" ? "6f1d2c3b-4a5e-4f60-8a71-92b3c4d5e6f7" : "ref-1";
+  assert.equal(R.buildUri(cap, { query: base, pathParams: { [cap.path_params[0].name]: id }, now }),
+    "/internal/karryam-admin/v1/customer/resources/customers/" + id + "?market=NG-LAGOS&organization=karryam-ng&purpose=case_review&zone=lagos-island&tenant=tenant-a&start=2026-10-30T12%3A00%3A00Z&end=2026-10-31T12%3A00%3A00Z&limit=1");
+  const bad = [
+    [{ ...base, extra: "x" }, "QUERY_PARAMETER_NOT_IN_CONTRACT"],
+    [{ ...base, zone: undefined }, "QUERY_PARAMETER_REQUIRED"],
+    [{ ...base, limit: 101 }, "QUERY_PARAMETER_INVALID"],
+    [{ ...base, market: "bad value" }, "QUERY_PARAMETER_INVALID"],
+    [{ ...base, start: "2026-09-01T00:00:00Z" }, "TIME_WINDOW_INVALID"],
+    [{ ...base, end: "2026-11-30T00:00:00Z", start: "2026-11-29T00:00:00Z" }, "TIME_WINDOW_INVALID"],
+  ];
+  for (const [query, reason] of bad) assert.throws(() => R.buildUri(cap, { query, pathParams: { [cap.path_params[0].name]: id }, now }), (e) => e.reason === reason, reason);
+  for (const value of ["../x", "a/b", "", "%2e%2e"]) assert.throws(() => R.buildUri(cap, { query: base, pathParams: { [cap.path_params[0].name]: value }, now }), (e) => e.reason === "PATH_PARAMETER_INVALID", value);
+  assert.throws(() => R.buildUri(cap, { query: base, pathParams: { id, host: "evil" }, now }), (e) => e.reason === "PATH_PARAMETER_NOT_IN_CONTRACT");
+});

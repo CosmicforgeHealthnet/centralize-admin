@@ -1,23 +1,28 @@
 "use strict";
 
-// Product Admin Protocol v1 endpoint handlers for Karryam. These are
+// Product Admin Protocol v1.1 endpoint handlers for Karryam. These are
 // Product Admin -> HQ endpoints, not aliases for Backoffice Bridge routes.
 //
-// Honesty rules: no endpoint claims data it does not have. Event and
-// snapshot sources are not certified, so they answer UNAVAILABLE rather than
-// an empty (fabricated) success. Operation submissions are durably recorded
-// as REJECTED and never executed.
+// Honesty rules: no endpoint claims data it does not have. Stage B events,
+// snapshots and sync status come only from the durable derived outbox; a
+// dataset the product has not certified, or a pipeline that is not running,
+// answers UNAVAILABLE rather than an empty success. Commands go through the
+// governed pipeline (operations/service.js); module reads and reports go
+// through modules/reads.js and modules/reports.js.
 
 const { contracts } = require("../packages");
-const { findCapability } = require("./catalog");
 const { bridgeContractSummary } = require("../bridge/contracts");
+const R = require("../bridge/contracts/registry");
 const { bridgeStaffContext, StaffContextError } = require("../bridge/capabilities");
+const { capabilityMap, MODULES, collectionsOf, readExposure } = require("../modules/catalog");
+const { REPORTS } = require("../modules/reports");
+const { withinScope } = require("../operations/service");
 
 const P = contracts.ProtocolError;
 const validateAck = contracts.compile(contracts.schemas.SCHEMAS["events-ack.v1"]);
-const validateCommand = contracts.compile(contracts.schemas.SCHEMAS["operation-command.v1"]);
 const validateSyncStatus = contracts.compile(contracts.schemas.SCHEMAS["sync-status.v1"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const FRESH_MS = 3600 * 1000;
 
 const EVENTS_QUERY = {
   dataset_id: { type: "id", required: true },
@@ -31,11 +36,18 @@ const SNAPSHOT_QUERY = {
   cursor: { type: "cursor", max: 512 },
 };
 
-function createHandlers({ config, catalog, manifest, bridgeClient, operations, audit, dbReady, logger = () => {}, now = Date.now }) {
+function createHandlers({ config, catalog, manifest, bridgeClient, operations, operationsService, reads, reports, pipeline, audit, dbReady, logger = () => {}, now = Date.now }) {
   const productId = config.productId;
   const ok = (ctx, result, extra = {}) => ({ body: contracts.okEnvelope({ productId, correlationId: ctx.correlationId, result, ...extra }, now()) });
   const datasetIds = new Set(catalog.datasets.map((d) => d.dataset_id));
+  const certified = new Set(config.certifiedDatasets || []);
   const requireKnownDataset = (id) => { if (!datasetIds.has(id)) throw new P("NOT_FOUND", "UNKNOWN_DATASET"); };
+  const pipelineLive = () => Boolean(pipeline && config.feed && config.feed.enabled);
+  const requireCertified = (id) => {
+    requireKnownDataset(id);
+    if (!certified.has(id)) throw new P("UNAVAILABLE", "DATASET_NOT_CERTIFIED");
+    if (!pipelineLive()) throw new P("UNAVAILABLE", "EVENT_SOURCE_NOT_CERTIFIED");
+  };
 
   async function bridgeLive(ctx) {
     if (!config.bridge.enabled || !bridgeClient) return { state: "BLOCKED_DEPENDENCY", reason: "BRIDGE_TRUST_NOT_ENROLLED" };
@@ -66,6 +78,20 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
     return operation;
   }
 
+  function modulesSummary() {
+    return MODULES.map((m) => {
+      const collections = collectionsOf(m);
+      const exposures = collections.map((c) => readExposure(c, config).state);
+      const inventory = R.capabilitiesFor(m.id);
+      return {
+        module: m.id, title: m.title, read_capability_id: m.read, rules: m.rules,
+        inventory_capabilities: inventory.length,
+        collections: collections.map((c, i) => ({ collection_id: c.id, detail: c.path_params.length > 0, exposure_state: exposures[i], privacy: c.privacy, risk: c.risk })),
+        commands: inventory.filter((c) => c.kind === "COMMAND" || c.kind === "RETRIEVAL").map((c) => "karryam." + c.id),
+      };
+    });
+  }
+
   return {
     async healthLive() {
       return { status: 200, body: { status: "live", service: "karryam-admin" } };
@@ -81,6 +107,7 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
           database,
           manifest_signer: manifest.signerProvisioned ? "PROVISIONED" : "NOT_PROVISIONED",
           bridge: config.bridge.enabled ? "CONFIGURED_NOT_CERTIFIED" : "DISABLED",
+          bridge_feed: config.feed && config.feed.enabled ? "CONFIGURED_NOT_CERTIFIED" : "DISABLED",
           upstream_certified: false,
         },
       };
@@ -93,8 +120,11 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
     async capabilities(ctx) {
       return ok(ctx, {
         capabilities: catalog.capabilities,
-        bridge_contract: bridgeContractSummary(),
+        bridge_contract: { ...bridgeContractSummary(), registry: R.summary() },
         bridge_live: await bridgeLive(ctx),
+        modules: modulesSummary(),
+        reports: REPORTS.map((r) => ({ report_id: "karryam.report." + r.id, kind: r.kind, grain: r.grain, units: r.units, definition: r.definition })),
+        capability_map: capabilityMap(config),
       });
     },
 
@@ -103,75 +133,78 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
     },
 
     async datasetSnapshots(ctx) {
-      contracts.parseQuery(ctx.query, SNAPSHOT_QUERY);
-      requireKnownDataset(ctx.params.datasetId);
-      throw new P("UNAVAILABLE", "SOURCE_NOT_CERTIFIED");
+      const query = contracts.parseQuery(ctx.query, SNAPSHOT_QUERY);
+      requireCertified(ctx.params.datasetId);
+      if (!query.partition_key) throw new P("INVALID_REQUEST", "PARTITION_KEY_REQUIRED");
+      const snap = await pipeline.snapshot(ctx.params.datasetId, query.partition_key);
+      if (!snap.partition) throw new P("NOT_FOUND", "UNKNOWN_PARTITION");
+      if (snap.rows.length === 0) throw new P("UNAVAILABLE", "NO_SOURCE_OBSERVATION", { retryable: true });
+      const p = snap.partition;
+      const records = snap.rows.map((r) => ({
+        entity: { type: "metric_observation", id: r.metric_id + ":" + r.window_start.toISOString().slice(0, 10), version: Number(r.entity_version) },
+        scope: { market: p.market, organization: p.organization, zone: p.zone, tenant: p.tenant },
+        payload: {
+          metric_id: r.metric_id, definition_version: "1.0.0", window_start: r.window_start.toISOString(), window_end: r.window_end.toISOString(),
+          value: r.value === null ? null : Number(r.value), value_state: r.value_state, unit: "count", currency: null, coverage: r.coverage,
+          observed_at: r.observed_at ? r.observed_at.toISOString() : null,
+        },
+      }));
+      const observed = snap.rows.map((r) => r.updated_at).sort((a, b) => a - b)[0];
+      return ok(ctx, {
+        snapshot_id: "snap-" + ctx.correlationId.slice(0, 32).replace(/[^A-Za-z0-9._:-]/g, ""), dataset_id: ctx.params.datasetId, dataset_version: "1.0.0",
+        partitions: [{ partition_key: query.partition_key, through_sequence: snap.headSequence }], records, complete: snap.complete,
+      }, { asOf: observed.toISOString(), freshness: now() - observed.getTime() <= FRESH_MS ? "FRESH" : "STALE", coverage: snap.complete ? "COMPLETE" : "PARTIAL" });
     },
 
     async events(ctx) {
       const query = contracts.parseQuery(ctx.query, EVENTS_QUERY);
-      requireKnownDataset(query.dataset_id);
-      throw new P("UNAVAILABLE", "EVENT_SOURCE_NOT_CERTIFIED");
+      requireCertified(query.dataset_id);
+      const page = await pipeline.outboxEvents(query.dataset_id, query.partition_key, query.after_sequence, query.limit);
+      return ok(ctx, { dataset_id: query.dataset_id, partition_key: query.partition_key, events: page.events, head_sequence: page.headSequence });
     },
 
     async eventsAck(ctx) {
       if (!ctx.body || !validateAck(ctx.body).valid) throw new P("INVALID_REQUEST", "ACK_INVALID");
-      requireKnownDataset(ctx.body.dataset_id);
-      throw new P("UNAVAILABLE", "EVENT_SOURCE_NOT_CERTIFIED");
+      requireCertified(ctx.body.dataset_id);
+      const outcome = await pipeline.outboxAck(ctx.service.serviceId, ctx.body.dataset_id, ctx.body.partition_key, ctx.body.sequence);
+      if (outcome === "UNKNOWN_PARTITION") throw new P("NOT_FOUND", "UNKNOWN_PARTITION");
+      if (outcome === "BEYOND_HEAD") throw new P("CONFLICT", "ACK_BEYOND_HEAD");
+      if (outcome === "REGRESSION") throw new P("CONFLICT", "ACK_REGRESSION");
+      return ok(ctx, { dataset_id: ctx.body.dataset_id, partition_key: ctx.body.partition_key, acknowledged_sequence: ctx.body.sequence });
     },
 
     async syncStatus(ctx) {
+      const live = pipelineLive() && certified.size > 0;
+      let partitions = [];
+      let lastObservation = null;
+      let partial = false;
+      if (pipelineLive()) {
+        partitions = (await pipeline.outboxPartitions()).filter((p) => certified.has(p.dataset_id));
+        const summary = await pipeline.pipelineSummary();
+        const times = summary.partitions.map((p) => p.last_success_at).filter(Boolean).sort((a, b) => b - a);
+        lastObservation = times.length ? times[0].toISOString() : null;
+        partial = summary.partitions.some((p) => p.hold_sequence !== null || p.open_gaps > 0 || p.open_quarantine > 0);
+      }
       const result = {
-        event_source: "NOT_CERTIFIED",
-        partitions: [],
+        event_source: live ? "CERTIFIED" : "NOT_CERTIFIED",
+        partitions,
         datasets: catalog.datasets.map((d) => ({ dataset_id: d.dataset_id, readiness: d.readiness, blockers: d.blockers })),
-        last_source_observation: null,
+        last_source_observation: lastObservation,
       };
       if (!validateSyncStatus(result).valid) throw new P("INTERNAL", "SYNC_STATUS_INVALID");
-      return ok(ctx, result, { freshness: "UNKNOWN", coverage: "NONE" });
+      return ok(ctx, result, lastObservation
+        ? { asOf: lastObservation, freshness: now() - Date.parse(lastObservation) <= FRESH_MS ? "FRESH" : "STALE", coverage: partial ? "PARTIAL" : "COMPLETE" }
+        : { freshness: "UNKNOWN", coverage: live ? "UNKNOWN" : "NONE" });
     },
 
     async operationGet(ctx) {
       const operation = await ownOperation(ctx);
-      return ok(ctx, {
-        operation_id: operation.operation_id,
-        capability_id: operation.capability_id,
-        status: operation.status,
-        reason_code: operation.reason_code,
-        created_at: operation.created_at,
-        executed: false,
-      });
+      const { operation: current, readback } = await operationsService.readback(ctx, operation);
+      return ok(ctx, { ...operationsService.view(current), readback });
     },
 
     async operationSubmit(ctx) {
-      if (!ctx.body || !validateCommand(ctx.body).valid) throw new P("INVALID_REQUEST", "COMMAND_INVALID");
-      if (!ctx.delegation || ctx.delegation.action !== "operation.submit") throw new P("FORBIDDEN", "DELEGATION_ACTION_MISMATCH");
-      const command = ctx.body;
-      if (!withinScope(command.scope, ctx.delegation.scope)) throw new P("FORBIDDEN", "SCOPE_DENIED");
-      const cap = findCapability(catalog, command.capability_id);
-      if (!cap) throw new P("NOT_FOUND", "UNKNOWN_CAPABILITY");
-      if (cap.kind !== "COMMAND") throw new P("INVALID_REQUEST", "CAPABILITY_NOT_COMMAND");
-      // There is no executor in this service: every command is rejected.
-      const code = cap.state === "BLOCKED_POLICY" ? "BLOCKED_POLICY" : "DISABLED";
-      const reasonCode = cap.state === "BLOCKED_POLICY" ? "CAPABILITY_BLOCKED_POLICY" : cap.state === "DISABLED" ? "CAPABILITY_DISABLED" : "COMMAND_EXECUTION_NOT_IMPLEMENTED";
-      const outcome = await operations.recordRejection({
-        id: command.command_id,
-        serviceId: ctx.service.serviceId,
-        idempotencyKey: command.idempotency_key,
-        requestDigest: contracts.digestOf(command),
-        capabilityId: cap.id,
-        staffRef: ctx.delegation.sub,
-        reasonCode,
-      }, {
-        correlation_id: ctx.correlationId, request_id: ctx.requestId, endpoint: "operationSubmit", method: "POST",
-        service_id: ctx.service.serviceId, staff_ref: ctx.delegation.sub, action: "operation.submit",
-        outcome: "OPERATION_REJECTED", reason_code: reasonCode, metadata: { capability_id: cap.id, risk: cap.risk },
-      });
-      if (outcome.kind === "KEY_CONFLICT") throw new P("CONFLICT", "IDEMPOTENCY_KEY_REUSED");
-      if (outcome.kind === "COMMAND_CONFLICT") throw new P("CONFLICT", "COMMAND_ID_REUSED");
-      const prior = outcome.operation;
-      const priorCode = prior.reason_code === "CAPABILITY_BLOCKED_POLICY" ? "BLOCKED_POLICY" : code;
-      throw new P(priorCode, prior.reason_code, { operationId: prior.operation_id, retryable: false });
+      return operationsService.submit(ctx);
     },
 
     async auditGet(ctx) {
@@ -180,24 +213,11 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, a
       if (rows.length === 0) throw new P("NOT_FOUND", "OPERATION_NOT_FOUND");
       return ok(ctx, { operation_id: operation.operation_id, records: rows });
     },
-  };
-}
 
-// A command must name its scope explicitly and stay inside the delegation:
-// every dimension the delegation restricts must be present and non-empty in
-// the request (an omitted dimension would mean "everywhere"), market and
-// organization are always required, and every requested value must already
-// be delegated.
-const REQUIRED_SCOPE_DIMENSIONS = Object.freeze(["market", "organization"]);
-function withinScope(requested, delegated) {
-  if (!requested || typeof requested !== "object" || Array.isArray(requested)) return false;
-  if (!delegated || typeof delegated !== "object" || Array.isArray(delegated)) return false;
-  const required = new Set([...REQUIRED_SCOPE_DIMENSIONS, ...Object.keys(delegated)]);
-  for (const dim of required) {
-    if (!Array.isArray(requested[dim]) || requested[dim].length === 0) return false;
-  }
-  return Object.entries(requested).every(([dim, values]) =>
-    Array.isArray(values) && values.length > 0 && Array.isArray(delegated[dim]) && values.every((v) => delegated[dim].includes(v)));
+    resourceList: (ctx) => reads.list(ctx),
+    resourceGet: (ctx) => reads.get(ctx),
+    reportGet: (ctx) => reports.get(ctx),
+  };
 }
 
 module.exports = { createHandlers, EVENTS_QUERY, withinScope };
