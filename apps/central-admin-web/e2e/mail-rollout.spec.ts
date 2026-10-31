@@ -54,16 +54,18 @@ test.describe("M10 rollout controls", () => {
     await expect(page.getByRole("cell", { name: "cohort pilot-wave-1" })).toBeVisible();
     const rules = page.getByRole("region", { name: /Rollout rules/ });
     const scope = rules.getByRole("combobox", { name: /^Scope/ });
-    await rules.getByLabel("Capability").selectOption("WORKER_OUTBOUND");
-    await expect(scope).toBeDisabled();
+    await expect(rules.getByLabel("Capability").locator("option[value=WORKER_OUTBOUND]")).toHaveCount(0);
+    await rules.getByLabel("Capability").selectOption("STAFF_MAIL");
+    await scope.selectOption("COHORT");
+    await rules.getByLabel("Cohort", { exact: true }).selectOption("co-1");
     const ruleReason = rules.getByLabel("Reason");
-    await ruleReason.fill("Enable outbound worker for pilot");
+    await ruleReason.fill("Allow pilot staff mailbox sends");
     await page.getByRole("button", { name: "Allow… (needs 2FA)" }).click();
     expect(api.callsTo("POST", `${ADM}/rollout/rules`)).toHaveLength(0);
     await page.getByRole("dialog").getByLabel("Authentication code").fill("654321");
     await page.getByRole("dialog").getByRole("button", { name: "Verify" }).click();
     await expect.poll(() => api.callsTo("POST", `${ADM}/rollout/rules`).length).toBe(1);
-    expect(api.callsTo("POST", `${ADM}/rollout/rules`)[0].body).toEqual({ capability: "WORKER_OUTBOUND", scopeType: "ENVIRONMENT", scopeId: null, effect: "ALLOW", reason: "Enable outbound worker for pilot", stepUpId: "su-rule" });
+    expect(api.callsTo("POST", `${ADM}/rollout/rules`)[0].body).toEqual({ capability: "STAFF_MAIL", scopeType: "COHORT", scopeId: "co-1", effect: "ALLOW", reason: "Allow pilot staff mailbox sends", stepUpId: "su-rule" });
     expect(api.callsTo("POST", "/api/mail/v1/security/step-up")[0].body).toEqual({ code: "654321", purpose: "MAIL_ROLLOUT_CHANGE" });
 
     await rules.getByLabel("Effect").selectOption("DENY");

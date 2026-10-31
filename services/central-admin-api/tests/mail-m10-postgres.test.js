@@ -117,15 +117,21 @@ test("CosmicForge Mail M10 rollout controls on real PostgreSQL", { timeout: 3000
       assert.equal(pilot.body.data.ready, true);
     });
 
-    await t.test("worker queues need their own environment rules", async () => {
+    await t.test("core workers automatically claim queued mail; explicit backend DENY still stops jobs", async () => {
       await work();
       let recipient = await client.mailMessageRecipient.findFirst({ where: { messageId: state.queuedMessageId } });
-      assert.equal(recipient.status, "PENDING", "no WORKER_OUTBOUND rule: the job is not claimed");
-      for (const capability of ["WORKER_OUTBOUND", "WORKER_EVENTS"]) {
-        assert.equal((await rule({ capability, scopeType: "ENVIRONMENT", effect: "ALLOW" }, await stepUp("MAIL_ROLLOUT_CHANGE"))).status, 201);
-      }
+      assert.equal(recipient.status, "PROVIDER_ACCEPTED", "no manual WORKER_OUTBOUND rule is required");
+      const denied = await rule({ capability: "WORKER_OUTBOUND", scopeType: "ENVIRONMENT", effect: "DENY" });
+      assert.equal(denied.status, 201, denied.text);
+      const paused = await send("dave", state.daveBox, "worker-paused@partner.example");
+      assert.equal(paused.status, 202);
       await work();
-      recipient = await client.mailMessageRecipient.findFirst({ where: { messageId: state.queuedMessageId } });
+      recipient = await client.mailMessageRecipient.findFirst({ where: { messageId: paused.body.data.messageId } });
+      assert.equal(recipient.status, "PENDING", "an explicit DENY blocks core dispatch");
+      const resumed = await call("ops", "POST", `/admin/rollout/rules/${denied.body.data.id}/revoke`, { stepUpId: await stepUp("MAIL_ROLLOUT_CHANGE") });
+      assert.equal(resumed.status, 200);
+      await work();
+      recipient = await client.mailMessageRecipient.findFirst({ where: { messageId: paused.body.data.messageId } });
       assert.equal(recipient.status, "PROVIDER_ACCEPTED");
     });
 

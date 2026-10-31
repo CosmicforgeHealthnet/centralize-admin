@@ -8,7 +8,6 @@
 // private mailbox access from it.
 
 import { Fragment, useState, type FormEvent, type ReactNode } from "react";
-import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { useEntitlements } from "@/components/mail/hooks";
@@ -695,7 +694,7 @@ export default function MailAdministration() {
       <div>
         <h2 className="font-poppins text-[15px] font-semibold">Mail Administration</h2>
         <p className="text-[12px] text-muted-foreground">CosmicForge Mail domains, mailboxes, approvals and audit. Provider keys and DNS credentials are never shown here.</p>
-        <Link href="/dashboard/mail/rollout" className="mt-2 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">Configure Mail rollout permissions and worker rules</Link>
+
       </div>
       <PermissionBoundary isLoading={ents.isLoading} error={ents.error} forbiddenMessage={FORBIDDEN}>
         {ents.data && !ents.data.mailEnabled && (
