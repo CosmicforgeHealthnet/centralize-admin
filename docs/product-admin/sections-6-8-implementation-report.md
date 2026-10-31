@@ -221,8 +221,22 @@ paths); they pass on Linux CI. The wider Central Admin API Prisma/PostgreSQL
 suites could not run on this workstation (no configured test database); they
 do not touch the changed files and run in GitHub Actions.
 
-GitHub Actions results for the pushed SHA are recorded in the delivery note
-below (section H) once the runs finish.
+GitHub Actions on `131e9f5` (Linux, PostgreSQL 16, KarryGo pinned checkout required):
+
+| Workflow / job | Tests | Pass | Fail | Skip |
+|---|---:|---:|---:|---:|
+| [Product Admin Platform CI](https://github.com/CosmicforgeHealthnet/centralize-admin/actions/runs/41231665006) — packages | 57 | 57 | 0 | 0 |
+| — Karryam Admin (registry, connector security, modules, operations, reports, Stage A/B, PostgreSQL) | 82 | 82 | 0 | 0 |
+| — KarryGo staging drift report | 2 | 2 | 0 | 0 |
+| — PIC migrations / 20-step conformance / full suite incl. two-stage E2E | 5 / 17 / 68 | 5 / 17 / 68 | 0 | 0 |
+| — Containers: non-root (uid 10001/10002), live=200 ready=503 while disabled, worker refuses to start | — | pass | — | — |
+| — Product-admin secret scan | 199 files | 0 findings | — | — |
+| [Monorepo Layout and Container CI](https://github.com/CosmicforgeHealthnet/centralize-admin/actions/runs/41231664952) | — | success | — | — |
+| [Social Operations CI](https://github.com/CosmicforgeHealthnet/centralize-admin/actions/runs/41231664947) (Central Admin API, incl. gateway and secret-scan changes) | — | success | — | — |
+
+The first push (`534995b`) failed one drift check: the event-adapter source
+hashes had been computed from a Windows checkout with CRLF line endings. Fixed
+in `131e9f5` (hashes LF-normalized on every platform); all workflows green.
 
 ## G. Two-stage integration results
 
@@ -258,9 +272,17 @@ Real staging Bridge results: **none** (no enrollment exists).
 ## H. Git delivery
 
 - Starting `staging` SHA: `0397114`.
-- Work-package commits and final SHA: recorded in the delivery note appended
-  after push.
-- No staging deployment was performed; `main` and production were not touched.
+- Commits (fast-forward pushes to `origin/staging`, no force-push):
+  - `4c0be66` Product Admin Protocol 1.1 scoped reads through HQ (WP6-A, HQ side);
+  - `37aa4b3` Karryam Admin Sections 6–8: modules, connector, operations, pipeline (WP6-A…WP8-C);
+  - `534995b` CI, secret scanning, worker template, this report;
+  - `131e9f5` LF-normalized adapter hashes (CI drift fix).
+- Remote `staging` verified equal to the local SHA after each push.
+- The work packages were developed together because the module, connector and
+  pipeline code share one registry and catalog; intermediate commits were not
+  individually CI-tested, the pushed head was.
+- No staging deployment occurred (no deploy workflow ran or was triggered);
+  `main` and production were not touched.
 
 ## I. External blockers (operator actions)
 
