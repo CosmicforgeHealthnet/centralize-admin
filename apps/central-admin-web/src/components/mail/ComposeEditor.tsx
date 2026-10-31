@@ -505,7 +505,7 @@ export default function ComposeEditor({
         <AttachmentViewer attachments={attachments} onRemove={removeAttachment} />
         {error && (
           <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100">
-            <p className="font-semibold">We couldn't complete that action</p>
+            <p className="font-semibold">We couldn&apos;t complete that action</p>
             <p className="mt-1 leading-relaxed">{error}</p>
           </div>
         )}
