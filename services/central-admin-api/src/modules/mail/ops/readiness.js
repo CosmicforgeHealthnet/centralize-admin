@@ -54,7 +54,7 @@ function createReadiness({ client, config, ops, health }) {
         gate("enforced", "Rollout enforcement on", config.rollout.enforced === true),
         gate("cohort", "A pilot cohort with at least one member", cohorts.some((cohort) => cohort.members.length > 0)),
         gate("cohort-rule", "STAFF_MAIL allowed for a cohort (not environment-wide)", allow("STAFF_MAIL", "COHORT") && !allow("STAFF_MAIL", "ENVIRONMENT")),
-        gate("workers", "Outbound, inbound and events workers allowed", ["WORKER_OUTBOUND", "WORKER_INBOUND", "WORKER_EVENTS"].every((capability) => !config.rollout.enforced || allow(capability))),
+        gate("workers", "Core Mail queues configured by backend", config.workerEnabled && config.sendingEnabled && config.receivingEnabled && config.inbound.ownedHere && ["OUTBOUND", "INBOUND", "EVENTS"].every((queue) => config.workerQueues.includes(queue) && !rules.some((rule) => rule.capability === `WORKER_${queue}` && rule.effect === "DENY"))),
         gate("not-stopped", "No emergency stop active", !snap.runtimeHalt?.staffMail),
         manual("dns", "DNS coexistence checklist complete for the pilot domain (SPF/DKIM/DMARC, MX unchanged or approved)"),
         manual("pilot-briefing", "Pilot staff briefed; support contact published"),
