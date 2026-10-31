@@ -255,8 +255,9 @@ verify_worker() {
   [[ "$wdb" == "$DEST_DB" && "$(runtime_db)" == "$DEST_DB" ]] || { fail "production Mail worker database is '${wdb:-unknown}', the app's is '$(runtime_db)' (must both be $DEST_DB)"; return 1; }
   pass "production Mail worker running, stable, restart=$policy, same image and database ($DEST_DB) as the app"
   if docker exec "$APP" test -f /app/scripts/mail/verify-worker.js; then
-    local out rc=0
-    out="$(docker exec -w /app "$APP" node scripts/mail/verify-worker.js --expect-release "$image" --wait 150 2>/dev/null | grep '^CA_MAIL_WORKER_VERIFY ' | tail -n 1)" || rc=$?
+    local out
+    # Verdict comes from the JSON line (the exit code is non-zero on failure).
+    out="$(docker exec -w /app "$APP" node scripts/mail/verify-worker.js --expect-release "$image" --wait 150 2>/dev/null | grep '^CA_MAIL_WORKER_VERIFY ' | tail -n 1 || true)"
     out="${out#CA_MAIL_WORKER_VERIFY }"
     if python3 -c 'import json,sys; d=json.loads(sys.argv[1]); sys.exit(0 if d.get("ok") and d.get("checks",{}).get("selfTest") else 1)' "$out" 2>/dev/null; then
       pass "production Mail worker processes work: heartbeat for this release on $DEST_DB, core queues served, isolated self-test job completed ($(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print("queues=" + ",".join(d.get("coreQueues", [])) + " selfTestSeconds=" + str(d.get("selfTest", {}).get("latencySeconds")))' "$out"))"
