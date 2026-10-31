@@ -8,7 +8,6 @@
 // private mailbox access from it.
 
 import { Fragment, useState, type FormEvent, type ReactNode } from "react";
-import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { useEntitlements } from "@/components/mail/hooks";
