@@ -57,7 +57,7 @@ test.describe("M10 rollout controls", () => {
     await expect(rules.getByLabel("Capability").locator("option[value=WORKER_OUTBOUND]")).toHaveCount(0);
     await rules.getByLabel("Capability").selectOption("STAFF_MAIL");
     await scope.selectOption("COHORT");
-    await rules.getByLabel("Cohort").selectOption("co-1");
+    await rules.getByLabel("Cohort", { exact: true }).selectOption("co-1");
     const ruleReason = rules.getByLabel("Reason");
     await ruleReason.fill("Allow pilot staff mailbox sends");
     await page.getByRole("button", { name: "Allow… (needs 2FA)" }).click();
