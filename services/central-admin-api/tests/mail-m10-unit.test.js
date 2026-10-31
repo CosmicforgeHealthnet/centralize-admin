@@ -44,7 +44,25 @@ test("rollout decisions: default deny, scope matching, DENY precedence, cohorts,
   const domain = make({ rules: [rule("STAFF_MAIL", "DOMAIN", "d1")], addresses: { a1: "d1", a2: "d2" } });
   assert.equal(await domain.decide("STAFF_MAIL", { senderAddressId: "a1" }), null, "domain resolved from the sender address");
   assert.equal(await domain.decide("STAFF_MAIL", { senderAddressId: "a2" }), "MAIL_ROLLOUT_NOT_ENABLED");
-  assert.deepEqual(await make({ rules: [rule("WORKER_OUTBOUND", "ENVIRONMENT", null)] }).workerQueuesAllowed(["OUTBOUND", "MARKETING"]), ["OUTBOUND"]);
+  assert.deepEqual(await make({ rules: [rule("WORKER_OUTBOUND", "ENVIRONMENT", null)] }).workerQueuesAllowed(["OUTBOUND", "MARKETING"]), [], "a rollout rule never overrides disabled backend Mail flags");
+});
+
+test("core Mail workers follow backend flags and resume without UI rollout permissions", async () => {
+  const config = loadMailConfig({
+    NODE_ENV: "production", MAIL_ENABLED: "true", MAIL_WORKER_ENABLED: "true",
+    MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true",
+    MAIL_INBOUND_ACTIVE_ENVIRONMENT: "production", MAIL_ROLLOUT_ENFORCED: "true",
+  });
+  const make = (rules = [], cfg = config) => createRolloutService({ client: stubClient({ rules }), config: cfg, audit: {}, stepUp: {} });
+  assert.deepEqual(await make().workerQueuesAllowed(["OUTBOUND", "INBOUND", "EVENTS", "MARKETING"]), ["OUTBOUND", "INBOUND", "EVENTS"]);
+  assert.deepEqual(await make([rule("WORKER_INBOUND", "ENVIRONMENT", null, "DENY")]).workerQueuesAllowed(["OUTBOUND", "INBOUND", "EVENTS"]), ["OUTBOUND", "EVENTS"], "explicit operator DENY is respected");
+  const receiveOff = loadMailConfig({ NODE_ENV: "production", MAIL_ENABLED: "true", MAIL_WORKER_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "false", MAIL_INBOUND_ACTIVE_ENVIRONMENT: "production" });
+  assert.deepEqual(await make([], receiveOff).workerQueuesAllowed(["OUTBOUND", "INBOUND", "EVENTS"]), ["OUTBOUND", "EVENTS"]);
+  const wrongOwner = loadMailConfig({ NODE_ENV: "production", MAIL_ENABLED: "true", MAIL_WORKER_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true", MAIL_INBOUND_ACTIVE_ENVIRONMENT: "staging" });
+  assert.deepEqual(await make([], wrongOwner).workerQueuesAllowed(["OUTBOUND", "INBOUND", "EVENTS"]), ["OUTBOUND", "EVENTS"]);
+  const sendingOff = loadMailConfig({ NODE_ENV: "production", MAIL_ENABLED: "true", MAIL_WORKER_ENABLED: "true", MAIL_SENDING_ENABLED: "false", MAIL_RECEIVING_ENABLED: "true", MAIL_INBOUND_ACTIVE_ENVIRONMENT: "production" });
+  assert.deepEqual(await make([], sendingOff).workerQueuesAllowed(["OUTBOUND", "INBOUND", "EVENTS"]), ["INBOUND", "EVENTS"]);
+  assert.deepEqual(await make([rule("WORKER_MARKETING", "ENVIRONMENT", null)]).workerQueuesAllowed(["INBOUND", "MARKETING"]), ["INBOUND", "MARKETING"], "marketing rollout remains opt-in");
 });
 
 test("emergency stops apply even without enforcement and only to their scope", async () => {

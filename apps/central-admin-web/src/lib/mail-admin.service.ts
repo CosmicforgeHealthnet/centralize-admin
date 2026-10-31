@@ -41,6 +41,18 @@ export const createSharedMailbox = async (input: { organizationId: string; name:
       address: { domainId: input.domainId, localPart: input.localPart, displayName: input.displayName || input.name },
     }),
   );
+export const createPersonalMailbox = async (input: { organizationId: string; ownerAdminUserId: string; name: string; domainId: string; localPart: string }) =>
+  unwrap<AdminMailbox>(
+    await api.post(`${BASE}/admin/mailboxes`, {
+      organizationId: input.organizationId,
+      ownerAdminUserId: input.ownerAdminUserId,
+      type: "PERSONAL",
+      name: input.name,
+      purpose: "GENERAL",
+      address: { domainId: input.domainId, localPart: input.localPart, displayName: input.name },
+    }),
+  );
+
 export const setMailboxStatus = async (mailboxId: string, action: "suspend" | "reactivate") =>
   unwrap<AdminMailbox>(await api.post(`${BASE}/admin/mailboxes/${mailboxId}/${action}`, {}));
 

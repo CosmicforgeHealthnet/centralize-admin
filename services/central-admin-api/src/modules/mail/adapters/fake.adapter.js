@@ -51,7 +51,7 @@ function createFakeAdapter() {
       const failure = nextFailure("listReceivedEmails");
       if (failure) throw new MailProviderError(failure.kind, failure.code, "fake failure");
       const all = [...state.inbound.entries()]
-        .map(([providerEmailId, message]) => ({ providerEmailId, to: (message.to || []).map((party) => party.address), createdAt: message.receivedAt ? new Date(message.receivedAt) : null }))
+        .map(([providerEmailId, message]) => ({ providerEmailId, to: (message.to || []).map((party) => party.address), cc: (message.cc || []).map((party) => party.address), bcc: [], createdAt: message.receivedAt ? new Date(message.receivedAt) : null }))
         .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
       const start = after ? all.findIndex((item) => item.providerEmailId === after) + 1 : 0;
       const items = all.slice(start, start + limit);

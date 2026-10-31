@@ -7,9 +7,21 @@
 // idempotent per mailbox and RFC Message-ID, so a late webhook for the same
 // email never creates a duplicate. Emails younger than the grace period are
 // skipped so in-flight webhooks win. Only ids and recipients are read here.
+//
+// Shared provider account: GET /emails/receiving lists every email the
+// account received, including other products' mail. Only emails that list at
+// least one address on our MAIL_DOMAIN_ALLOWLIST (To, Cc or Bcc) are
+// considered; anything else is counted as foreign and never fetched, queued or
+// stored, and only our own addresses are kept in the job payload. Each run
+// enqueues at most MAIL_INBOUND_RECONCILE_MAX_ENQUEUE emails and reads at most
+// MAIL_INBOUND_RECONCILE_MAX_PAGES pages; a provider rate limit fails the run
+// with the provider's Retry-After so the worker backs off.
 
 function createInboundReconciler({ client, config, adapter, jobs, audit, clock = () => new Date() }) {
   const settings = config.reconciliation;
+  const ownedDomains = new Set((config.domainAllowlist || []).map((domain) => String(domain).toLowerCase()));
+  const ownedRecipients = (item) => [...new Set([...(item.to || []), ...(item.cc || []), ...(item.bcc || [])].map((address) => String(address || "").trim().toLowerCase()).filter((address) => ownedDomains.has(address.split("@")[1])))];
+  const maxEnqueue = settings.inboundMaxEnqueuePerRun || 50;
 
   const IN_FLIGHT = new Set(["PENDING", "LEASED", "RETRY_SCHEDULED", "RECONCILING"]);
   // FAILED is a permanent, deliberate decision (malformed sender, unknown
@@ -66,10 +78,23 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
     let retried = 0;
     let unrecovered = 0;
     let domainHeld = 0;
+    let foreign = 0;
+    let capped = false;
     const unrecoveredIds = [];
     let complete = false;
-    while (pages < settings.inboundMaxPages) {
-      const page = await adapter.listReceivedEmails({ limit: 100, after });
+    while (pages < settings.inboundMaxPages && !capped) {
+      let page;
+      try {
+        page = await adapter.listReceivedEmails({ limit: 100, after });
+      } catch (error) {
+        // Rate limited / provider unavailable: retry the run later with the
+        // provider's Retry-After when it sent one (never a tight loop).
+        if (error && error.retryable !== false) {
+          error.retryable = true;
+          if (error.retryAfterSeconds == null && (error.category === "RATE_LIMITED" || error.kind === "RATE_LIMITED")) error.retryAfterSeconds = 60;
+        }
+        throw error;
+      }
       pages += 1;
       for (const item of page.items) {
         const created = item.createdAt ? item.createdAt.getTime() : null;
@@ -79,8 +104,17 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
         }
         scanned += 1;
         if (created === null || created > grace) continue;
+        const owned = ownedRecipients(item);
+        if (!owned.length) {
+          foreign += 1;
+          continue;
+        }
         const known = await classify(item.providerEmailId);
         if (known === "DELIVERED" || known === "IN_FLIGHT" || known === "PROCESSED") continue;
+        if (recovered + retried >= maxEnqueue) {
+          capped = true;
+          break;
+        }
         if (known?.state === "UNRECOVERED") {
           // The webhook's job failed. Retry once through reconciliation; if
           // that also failed, report it (operators requeue after fixing the
@@ -97,7 +131,7 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
           queue: "INBOUND",
           kind: "PROCESS_INBOUND",
           idempotencyKey: `inbound:reconcile:${item.providerEmailId}`,
-          payload: { providerEmailId: item.providerEmailId, to: item.to.slice(0, 100), source: "reconciliation" },
+          payload: { providerEmailId: item.providerEmailId, to: owned.slice(0, 100), source: "reconciliation" },
           maxAttempts: config.worker.maxAttempts,
         }).catch((error) => {
           if (error?.code === "P2002") return null;
@@ -105,17 +139,18 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
         });
         if (job?.created !== false && job) recovered += 1;
       }
+      if (capped) break;
       if (complete || !page.hasMore || !page.items.length) {
         complete = true;
         break;
       }
       after = page.items[page.items.length - 1].providerEmailId;
     }
-    await audit.record({ action: "MAIL_INBOUND_RECONCILED", targetType: "reconciliation", outcome: recovered || unrecovered ? "PARTIAL" : "SUCCESS", metadata: { scanned, recovered, retried, unrecovered, pages, complete } });
+    await audit.record({ action: "MAIL_INBOUND_RECONCILED", targetType: "reconciliation", outcome: recovered || unrecovered ? "PARTIAL" : "SUCCESS", metadata: { scanned, recovered, retried, unrecovered, foreign, pages, complete, capped } });
     if (unrecovered) {
       await audit.record({ action: "MAIL_INBOUND_UNRECOVERED", targetType: "reconciliation", outcome: "FAILURE", metadata: { count: unrecovered, domainHeld, providerEmailIds: unrecoveredIds } });
     }
-    return { scanned, recovered, retried, unrecovered, domainHeld, pages, complete };
+    return { scanned, recovered, retried, unrecovered, domainHeld, foreign, pages, complete, capped };
   }
 
   return { process };

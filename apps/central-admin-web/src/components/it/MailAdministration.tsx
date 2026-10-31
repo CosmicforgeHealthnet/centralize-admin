@@ -8,7 +8,6 @@
 // private mailbox access from it.
 
 import { Fragment, useState, type FormEvent, type ReactNode } from "react";
-import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { useEntitlements } from "@/components/mail/hooks";
@@ -19,15 +18,18 @@ import StepUpDialog from "@/components/marketing/email-marketing/StepUpDialog";
 import * as adminApi from "@/lib/mail-admin.service";
 import MailForwardingAdmin from "@/components/it/MailForwardingAdmin";
 import MailQuarantine from "@/components/it/MailQuarantine";
+import MailSendingPermissions from "@/components/it/MailSendingPermissions";
+import PersonalMailboxForm from "@/components/it/PersonalMailboxForm";
 import type { AdminDomain, ProvisionRequest } from "@/types/mail-admin.types";
 import type { MembershipRole, StaffDirectoryEntry } from "@/types/mail.types";
 
-type Tab = "domains" | "mailboxes" | "memberships" | "provisioning" | "grants" | "forwarding" | "quarantine" | "holds" | "audit";
+type Tab = "domains" | "mailboxes" | "memberships" | "provisioning" | "sending" | "grants" | "forwarding" | "quarantine" | "holds" | "audit";
 const TABS: { id: Tab; label: string }[] = [
   { id: "domains", label: "Domains" },
   { id: "mailboxes", label: "Shared mailboxes" },
   { id: "memberships", label: "Mailbox access" },
   { id: "provisioning", label: "Provisioning" },
+  { id: "sending", label: "Sending permissions" },
   { id: "grants", label: "Send-as grants" },
   { id: "forwarding", label: "Forwarding & recovery" },
   { id: "quarantine", label: "Quarantine" },
@@ -344,8 +346,9 @@ function Mailboxes({ canEdit }: { canEdit: boolean }) {
           <ErrorLine error={status.error} />
         </PermissionBoundary>
       </Section>
+      {canEdit && <PersonalMailboxForm />}
       {canEdit && (
-        <Section id="mail-admin-new-mailbox" title="Create shared mailbox" description="Personal mailboxes are created by approving an HR provisioning request.">
+        <Section id="mail-admin-new-mailbox" title="Create shared mailbox" description="Employees can also request a personal mailbox through HR provisioning; Mail administrators may create personal mailboxes directly above.">
           <form className="grid gap-2 md:grid-cols-2" onSubmit={(e: FormEvent) => { e.preventDefault(); create.mutate(form); }}>
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-semibold" htmlFor="mb-org">Brand</label>
@@ -693,7 +696,7 @@ export default function MailAdministration() {
       <div>
         <h2 className="font-poppins text-[15px] font-semibold">Mail Administration</h2>
         <p className="text-[12px] text-muted-foreground">CosmicForge Mail domains, mailboxes, approvals and audit. Provider keys and DNS credentials are never shown here.</p>
-        <Link href="/dashboard/mail/rollout" className="mt-2 inline-block text-[12px] font-semibold text-primary underline-offset-2 hover:underline">Configure Mail rollout permissions and worker rules</Link>
+
       </div>
       <PermissionBoundary isLoading={ents.isLoading} error={ents.error} forbiddenMessage={FORBIDDEN}>
         {ents.data && !ents.data.mailEnabled && (
@@ -726,6 +729,7 @@ export default function MailAdministration() {
               {tab === "mailboxes" && <Mailboxes canEdit={canEdit} />}
               {tab === "memberships" && <SharedMembershipAdministration canEdit={canEdit} />}
               {tab === "provisioning" && <Provisioning canEdit={canEdit} />}
+              {tab === "sending" && <MailSendingPermissions canEdit={canEdit} />}
               {tab === "grants" && <Grants canEdit={canEdit} />}
               {tab === "forwarding" && <MailForwardingAdmin canEdit={canEdit} />}
               {tab === "quarantine" && <MailQuarantine canEdit={canEdit} />}

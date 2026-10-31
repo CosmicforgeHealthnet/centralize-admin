@@ -479,7 +479,7 @@ test("§20 readiness: each dependency is reported; provider probe is cached; rat
   const ok = readinessFixture();
   const state = await ok.readiness.evaluate();
   assert.equal(state.ready, true);
-  assert.deepEqual(state.queue, { OUTBOUND: { pending: 2, deadLetter: 1 } });
+  assert.deepEqual(state.queue, { OUTBOUND: { pending: 2, retrying: 0, deadLetter: 1 } });
   await ok.readiness.evaluate();
   assert.equal(ok.calls.provider, 1, "the public endpoint cannot be used to hammer the provider");
   const storageDown = await readinessFixture({ storage: { health: async () => ({ ok: false }) } }).readiness.evaluate();

@@ -30,9 +30,9 @@ function jobRef(job) {
   return `job ${job?.id} ${job?.kind}${job?.idempotencyKey ? ` key=${String(job.idempotencyKey).slice(0, 80)}` : ""}${correlationId ? ` correlationId=${correlationId}` : ""}`;
 }
 
-function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, onFailed = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], beforeTick = null, queueFilter = null, schemaReady = null, setTimer = setTimeout, clearTimer = clearTimeout, heartbeatIntervalMs = null, livenessLogIntervalMs = 60000, now = () => Date.now() }) {
+function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, onFailed = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], beforeTick = null, queueFilter = null, queueDecisions = null, heartbeat = null, schemaReady = null, setTimer = setTimeout, clearTimer = clearTimeout, heartbeatIntervalMs = null, livenessLogIntervalMs = 60000, now = () => Date.now() }) {
   const leaseOwner = leaseOwnerId();
-  const metrics = { claimed: 0, succeeded: 0, retried: 0, failed: 0, deadLettered: 0, deferred: 0, recovered: 0, leasesLost: 0, settleErrors: 0, cleanupErrors: 0, ticks: 0, inFlight: 0, lastTickAt: null, lastTickCompletedAt: null, lastError: null };
+  const metrics = { claimed: 0, succeeded: 0, retried: 0, failed: 0, deadLettered: 0, deferred: 0, recovered: 0, leasesLost: 0, settleErrors: 0, cleanupErrors: 0, ticks: 0, inFlight: 0, lastTickAt: null, lastTickCompletedAt: null, lastError: null, activeQueues: [], pausedQueues: [] };
   let running = false;
   let stopping = false;
   let timer = null;
@@ -165,11 +165,22 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, o
       await runCleanup(onDeadLetter, entry.job, { code: "LEASE_EXPIRED", reconcile: true }, "dead-letter");
     }
     if (stopping) return 0;
+    // Which queues this tick serves. Core queues (OUTBOUND, INBOUND, EVENTS)
+    // follow backend configuration; an explicit DENY rule is an emergency
+    // pause. Paused queues and their reason are recorded in the heartbeat so
+    // an idle worker is never mistaken for a healthy one.
+    let active = queues;
+    if (queueDecisions) {
+      const decisions = await queueDecisions(queues);
+      active = decisions.filter((entry) => entry.allowed).map((entry) => entry.queue);
+      metrics.pausedQueues = decisions.filter((entry) => !entry.allowed).map((entry) => ({ queue: entry.queue, reason: entry.reason || "NOT_ENABLED" }));
+    } else if (queueFilter) {
+      active = await queueFilter(queues);
+      metrics.pausedQueues = queues.filter((queue) => !active.includes(queue)).map((queue) => ({ queue, reason: "FILTERED" }));
+    } else metrics.pausedQueues = [];
+    metrics.activeQueues = active;
     const capacity = config.worker.concurrency - inFlight.size;
     if (capacity <= 0) return 0;
-    // M10: rollout rules can keep a deployed worker idle for a queue.
-    const active = queueFilter ? await queueFilter(queues) : queues;
-    metrics.activeQueues = active;
     if (!active.length || stopping) return 0;
     const claimed = await jobs.claim({ queues: active, leaseOwner, leaseSeconds: config.worker.leaseSeconds, limit: capacity });
     metrics.claimed += claimed.length;
@@ -186,6 +197,11 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, o
 
   // Liveness (spec 20): last completed tick, exported via metrics and logged
   // periodically so a stalled worker is visible in the logs.
+  function beat(state, options) {
+    if (!heartbeat) return Promise.resolve(false);
+    return Promise.resolve(heartbeat.beat({ state, leaseOwner, activeQueues: metrics.activeQueues, pausedQueues: metrics.pausedQueues, metrics: { ...metrics, inFlight: inFlight.size } }, options)).catch(() => false);
+  }
+
   function noteLiveness() {
     metrics.lastTickCompletedAt = new Date(now()).toISOString();
     if (!livenessLogIntervalMs || now() - lastLivenessLog < livenessLogIntervalMs) return;
@@ -210,6 +226,8 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, o
         try {
           await tick();
           noteLiveness();
+          // Durable heartbeat (throttled). Skipped while the schema is missing.
+          if (metrics.schemaReady !== false) await beat("RUNNING");
         } catch (error) {
           metrics.lastError = error?.code || "tick-error";
           logger?.error?.(`[MailWorker] tick failed (${error?.code || "error"}) leaseOwner=${leaseOwner} queues=${queues.join(",")}: ${error?.message}`);
@@ -253,10 +271,11 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, o
     clearTimeout(deadlineTimer);
     const remaining = [...inFlight.values()];
     if (remaining.length) logger?.warn?.(`[MailWorker] drain timeout after ${limit}ms; ${remaining.length} job(s) still running are left to lease recovery: ${remaining.join(", ")}`);
+    if (metrics.schemaReady !== false) await beat("STOPPED", { force: true });
     return { stopped: true, drained: outcome === "drained" && !remaining.length, inFlight: remaining.length, inFlightJobIds: remaining };
   }
 
-  return { start, stop, tick, drain, metrics, leaseOwner, get running() { return running; } };
+  return { start, stop, tick, drain, beat, metrics, leaseOwner, get running() { return running; } };
 }
 
 module.exports = { createMailWorker, HEARTBEAT_QUEUES };

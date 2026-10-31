@@ -157,14 +157,19 @@ test("Mail inbound routing + domain lifecycle on real PostgreSQL", { timeout: 30
     inbound(harness.adapter, "defer_1", ["dave@cosmicforge.example"]);
     assert.deepEqual(await off.processors.inbound.process({ payload: { providerEmailId: "defer_1" } }), { defer: { seconds: 300, code: "MAIL_RECEIVING_DISABLED", message: "receiving disabled" } });
     const { job } = await off.jobs.enqueue(null, { queue: "INBOUND", kind: "PROCESS_INBOUND", idempotencyKey: "inbound:test:defer_1", payload: { providerEmailId: "defer_1", to: ["dave@cosmicforge.example"] }, maxAttempts: 2 });
+    // Backend-managed core queues: with receiving off the worker does not
+    // serve INBOUND at all (paused, reported in its heartbeat), so the job
+    // keeps every attempt and is never dead-lettered.
+    let worker = null;
     for (let i = 0; i < 3; i += 1) {
-      await off.createWorker().drain();
+      worker = off.createWorker({ heartbeat: false });
+      await worker.drain();
       await client.mailOutboxJob.update({ where: { id: job.id }, data: { nextAttemptAt: harness.clock() } });
     }
+    assert.deepEqual(worker.metrics.pausedQueues.find((entry) => entry.queue === "INBOUND"), { queue: "INBOUND", reason: "RECEIVING_DISABLED" });
     const after = await client.mailOutboxJob.findUnique({ where: { id: job.id } });
-    assert.equal(after.status, "RETRY_SCHEDULED", "never dead-lettered");
+    assert.ok(["PENDING", "RETRY_SCHEDULED"].includes(after.status), "never dead-lettered");
     assert.equal(after.attemptCount, 0);
-    assert.equal(after.lastErrorCode, "MAIL_RECEIVING_DISABLED");
     await client.mailOutboxJob.update({ where: { id: job.id }, data: { status: "CANCELLED" } });
   });
 
