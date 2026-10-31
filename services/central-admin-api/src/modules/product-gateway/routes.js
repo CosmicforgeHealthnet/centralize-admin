@@ -49,6 +49,7 @@ const PRODUCT_ROUTES = [
   ["GET", re(`/${PRODUCT}/reports/${OPAQUE}`), REPORT_QUERY_KEYS],
   ["GET", re(`/${PRODUCT}/events/status`), false],
   ["GET", re(`/${PRODUCT}/operations/${OPAQUE}`), false],
+  ["GET", re(`/${PRODUCT}/operations/${OPAQUE}/audit`), false],
   ["POST", re(`/${PRODUCT}/operations`), false],
 ];
 const INTEGRATION_ROUTES = [
@@ -60,6 +61,7 @@ const INTEGRATION_ROUTES = [
   ["POST", re(`/${UUID}/datasets/${OPAQUE}/approve`), false],
   ["POST", re(`/${UUID}/subscriptions`), false],
   ["POST", re(`/${UUID}/subscriptions/${UUID}/(?:enable|disable)`), false],
+  ["POST", re(`/${UUID}/operations/(?:enable|disable)`), false],
   ["POST", re(`/${UUID}/contracts/propose`), false],
   ["POST", re(`/${UUID}/contracts/${UUID}/(?:certify|activate)`), false],
 ];

@@ -91,13 +91,25 @@ test("product access needs explicit grants: no SUPER bypass, expiry, revocation,
     const noMfa = await h.call("staff-viewer", "GET", "/products/" + P.PRODUCT_ID + "/capabilities", undefined, { mfa: false });
     assert.equal(noMfa.json.error.reason, "RECENT_MFA_REQUIRED");
 
-    // Disabled writes cannot execute and are never forwarded.
+    // Malformed commands are invalid (400); a well-formed command for a
+    // disabled capability, or for a product whose operations are not enabled,
+    // is refused (403). None of them is ever forwarded (Section 10.3).
     const before = P.state.requests;
     for (const body of [{ capability_id: "synthetic.order.cancel", params: {} }, { capability_id: "wallet.refund" }, { command: "DROP TABLE" }]) {
       const op = await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", body);
-      assert.equal(op.status, 403);
-      assert.equal(op.json.error.code, "DISABLED");
+      assert.equal(op.status, 400);
+      assert.equal(op.json.error.reason, "COMMAND_INVALID");
     }
+    const typed = (capability_id) => ({ command_id: "4c1e3c2a-9d7b-4f1e-8a2b-3c4d5e6f7a8b", idempotency_key: "idem-0123456789abcdef", capability_id, target: { type: "order", id: "order-1", expected_version: 1 },
+      params: {}, reason_code: "CUSTOMER_REQUEST", case_reference: null, scope: { market: ["NG"], organization: ["cosmicforge"], tenant: ["tenant-a"] } });
+    const disabled = await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", typed("synthetic.order.cancel"));
+    assert.equal(disabled.status, 403);
+    assert.deepEqual([disabled.json.error.code, disabled.json.error.reason], ["DISABLED", "CAPABILITY_DISABLED"]);
+    assert.equal((await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", typed("synthetic.unknown"))).status, 404);
+    assert.equal((await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", typed("synthetic.metrics.read"))).json.error.reason, "NOT_A_COMMAND");
+    const outside = typed("synthetic.order.cancel");
+    outside.scope.tenant = ["tenant-b"];
+    assert.equal((await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", outside)).json.error.reason, "SCOPE_DENIED");
     assert.equal(P.state.requests, before);
 
     // Denials are audited.

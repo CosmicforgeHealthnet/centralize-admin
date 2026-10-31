@@ -1,0 +1,1738 @@
+{
+  "catalog": "karryam-admin-api-catalog",
+  "protocol": {
+    "name": "cosmicforge.product-admin",
+    "major": 1,
+    "minor": 1,
+    "base_path": "/internal/product-admin/v1"
+  },
+  "bridge_contract": {
+    "contract": "karryam-backoffice-bridge",
+    "version": "1.0.0",
+    "source_commit": "a4adee680f88705641c6a204caac83125d1970a5",
+    "base_path": "/internal/karryam-admin/v1",
+    "capabilities": 435
+  },
+  "exposure_environment": "unenrolled default (no Bridge enrollment, no enabled commands, no high-risk certification)",
+  "http_status_policy": {
+    "UNAUTHENTICATED": 401,
+    "FORBIDDEN": 403,
+    "NOT_FOUND": 404,
+    "METHOD_NOT_ALLOWED": 405,
+    "CONFLICT": 409,
+    "RATE_LIMITED": 429,
+    "PAYLOAD_TOO_LARGE": 413,
+    "INVALID_REQUEST": 400,
+    "DISABLED": 403,
+    "BLOCKED_POLICY": 403,
+    "UNAVAILABLE": 503,
+    "CONTRACT_MISMATCH": 502,
+    "INTERNAL": 500
+  },
+  "operation_states": [
+    "REJECTED",
+    "RECORDED",
+    "DISPATCHING",
+    "SUCCEEDED",
+    "FAILED",
+    "UNKNOWN_OUTCOME"
+  ],
+  "families": [
+    {
+      "family": "10.1.1 Integration",
+      "notes": "Signed manifest, capability states with the pinned contract revision and live Bridge discovery (cached as runtime snapshots), datasets, sync status, liveness/readiness.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "manifest",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/manifest",
+          "auth": "service",
+          "hq_gateway": "GET /api/products/{product}/manifest",
+          "pic": "GET /internal/pic/v1/products/{product}/manifest"
+        },
+        {
+          "protocol_endpoint": "capabilities",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/capabilities",
+          "auth": "service",
+          "hq_gateway": "GET /api/products/{product}/capabilities",
+          "pic": "GET /internal/pic/v1/products/{product}/capabilities"
+        },
+        {
+          "protocol_endpoint": "datasets",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/datasets",
+          "auth": "service",
+          "hq_gateway": "GET /api/products/{product}/datasets",
+          "pic": "GET /internal/pic/v1/products/{product}/datasets"
+        },
+        {
+          "protocol_endpoint": "syncStatus",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/sync/status",
+          "auth": "service",
+          "hq_gateway": "GET /api/products/{product}/events/status",
+          "pic": "GET /internal/pic/v1/products/{product}/events/status"
+        },
+        {
+          "protocol_endpoint": "healthLive",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/health/live",
+          "auth": "none",
+          "hq_gateway": null,
+          "pic": "PIC health checker"
+        },
+        {
+          "protocol_endpoint": "healthReady",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/health/ready",
+          "auth": "none",
+          "hq_gateway": null,
+          "pic": "PIC health checker"
+        }
+      ],
+      "bridge_capability_count": 1,
+      "exposure_states_unenrolled": {
+        "BLOCKED_DEPENDENCY": 1
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "bridge.capabilities",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/capabilities",
+          "kind": "READ",
+          "module": "platform",
+          "karryam_capability_id": "karryam.operations.overview.read",
+          "risk": "R0",
+          "privacy": "MINIMIZED_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        }
+      ]
+    },
+    {
+      "family": "10.1.2 Overview and metrics",
+      "notes": "14 reports with source, grain, units, scope, coverage and freshness; unavailable sources answer explicit blockers, never invented values.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "reportGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/reports/{reportId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/reports/{reportId}",
+          "pic": "GET /internal/pic/v1/products/{product}/reports/{reportId}"
+        }
+      ],
+      "metric_route": [
+        "GET /api/products/{product}/metrics/{metricId}",
+        "GET /internal/pic/v1/products/{product}/metrics/{metricId}",
+        "HQ projection (derived outbox, Stage B)"
+      ],
+      "reports": [
+        "karryam.report.operational_activity",
+        "karryam.report.taxi_status",
+        "karryam.report.dispatch_status",
+        "karryam.report.hauling_status",
+        "karryam.report.fleet_status",
+        "karryam.report.vendor_readiness",
+        "karryam.report.support_queue",
+        "karryam.report.wallet_by_currency",
+        "karryam.report.payment_reconciliation",
+        "karryam.report.verification_pipeline",
+        "karryam.report.marketing_evidence",
+        "karryam.report.connector_health",
+        "karryam.report.sync_lag",
+        "karryam.report.quarantine_reconciliation"
+      ],
+      "bridge_capability_count": 14,
+      "exposure_states_unenrolled": {
+        "BLOCKED_DEPENDENCY": 14
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "analytics.scoped.mission-success.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/mission-success",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.mission-success-rate.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/mission-success/rate",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.mission-outcomes.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/mission-outcomes",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.recovery.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/recovery",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.capability-mismatches.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/capability-mismatches",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.declines.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/declines",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.demand.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/demand",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.demand-forecast.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/demand-forecast",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.supply.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/supply",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.provider-quality.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/provider-quality",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.recovery-resolution.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/recovery-resolution",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.provider-quality-score.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/provider-quality-score",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "analytics.scoped.readiness-components.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/analytics/scoped/network/readiness",
+          "kind": "READ",
+          "module": "analytics",
+          "karryam_capability_id": "karryam.analytics.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "hq.projections.status",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/hq/projections/status",
+          "kind": "READ",
+          "module": "governance",
+          "karryam_capability_id": "karryam.governance.read",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        }
+      ]
+    },
+    {
+      "family": "10.1.3 Resources",
+      "notes": "Bounded, scoped, stably sorted reads of exact pinned collections with opaque continuation tokens bound to staff/scope/filters; every read audited.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "resourceList",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}"
+        },
+        {
+          "protocol_endpoint": "resourceGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}"
+        }
+      ],
+      "module_read_capabilities": [
+        "karryam.customers.read",
+        "karryam.taxi.read",
+        "karryam.dispatch.read",
+        "karryam.hauling.read",
+        "karryam.fleet.read",
+        "karryam.vendor.read",
+        "karryam.wallet.read",
+        "karryam.pricing.read",
+        "karryam.referral.read",
+        "karryam.verification.read",
+        "karryam.support.read",
+        "karryam.analytics.read",
+        "karryam.marketing.read",
+        "karryam.finance.read",
+        "karryam.governance.read",
+        "karryam.operations.overview.read"
+      ],
+      "bridge_capability_count": 375,
+      "exposure_states_unenrolled": {
+        "BLOCKED_DEPENDENCY": 373,
+        "DISABLED": 2
+      }
+    },
+    {
+      "family": "10.1.4 Operations",
+      "notes": "Typed commands only; durable intent and audit before one dispatch; UNKNOWN_OUTCOME settled only by owner readback; R3/R4 need certification, runtime availability and an independent approval.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "operationSubmit",
+          "method": "POST",
+          "product_admin_path": "/internal/product-admin/v1/operations",
+          "auth": "service+delegation",
+          "hq_gateway": "POST /api/products/{product}/operations",
+          "pic": "POST /internal/pic/v1/products/{product}/operations"
+        },
+        {
+          "protocol_endpoint": "operationGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/operations/{operationId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/operations/{operationId}",
+          "pic": "GET /internal/pic/v1/products/{product}/operations/{operationId}"
+        },
+        {
+          "protocol_endpoint": "auditGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/audit/{operationId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/operations/{operationId}/audit",
+          "pic": "GET /internal/pic/v1/products/{product}/operations/{operationId}/audit"
+        }
+      ],
+      "local_governance_commands": [
+        "karryam.governance.approval.propose",
+        "karryam.governance.approval.decide",
+        "karryam.governance.approval.revoke"
+      ],
+      "bridge_capability_count": 58,
+      "exposure_states_unenrolled": {
+        "DISABLED": 58
+      }
+    },
+    {
+      "family": "10.1.5 Events",
+      "notes": "Stage A Bridge feed/ACK (worker) and Stage B derived HQ outbox, ACKs, snapshots and partition/quarantine/gap status.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "events",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/events",
+          "auth": "service",
+          "hq_gateway": null,
+          "pic": "PIC sync engine (service-to-service)"
+        },
+        {
+          "protocol_endpoint": "eventsAck",
+          "method": "POST",
+          "product_admin_path": "/internal/product-admin/v1/events/ack",
+          "auth": "service",
+          "hq_gateway": null,
+          "pic": "PIC sync engine (service-to-service)"
+        },
+        {
+          "protocol_endpoint": "datasetSnapshots",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/datasets/{datasetId}/snapshots",
+          "auth": "service",
+          "hq_gateway": null,
+          "pic": "PIC sync engine (service-to-service)"
+        },
+        {
+          "protocol_endpoint": "syncStatus",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/sync/status",
+          "auth": "service",
+          "hq_gateway": "GET /api/products/{product}/events/status",
+          "pic": "GET /internal/pic/v1/products/{product}/events/status"
+        }
+      ],
+      "bridge_capability_count": 3,
+      "exposure_states_unenrolled": {
+        "INTERNAL_SYNC_ONLY": 2,
+        "BLOCKED_DEPENDENCY": 1
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "hq.events.feed",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/hq/events",
+          "kind": "SYNC",
+          "module": "governance",
+          "karryam_capability_id": null,
+          "risk": "R1",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "READ_ONLY",
+          "exposure_state": "INTERNAL_SYNC_ONLY",
+          "blocker_codes": []
+        },
+        {
+          "bridge_capability_id": "hq.events.ack",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/event-acknowledgements",
+          "kind": "SYNC",
+          "module": "governance",
+          "karryam_capability_id": null,
+          "risk": "R1",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "AVAILABLE",
+          "exposure_state": "INTERNAL_SYNC_ONLY",
+          "blocker_codes": []
+        },
+        {
+          "bridge_capability_id": "hq.projections.status",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/hq/projections/status",
+          "kind": "READ",
+          "module": "governance",
+          "karryam_capability_id": "karryam.governance.read",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        }
+      ]
+    },
+    {
+      "family": "10.1.6 Finance reports",
+      "notes": "Read-oriented HQ interface; the Bridge adapter uses the source's real POST method. Per-currency minor units, never summed across currencies, wallet movement never revenue.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "reportGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/reports/{reportId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/reports/{reportId}",
+          "pic": "GET /internal/pic/v1/products/{product}/reports/{reportId}"
+        },
+        {
+          "protocol_endpoint": "resourceList",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}"
+        }
+      ],
+      "reports": [
+        "karryam.report.wallet_by_currency",
+        "karryam.report.payment_reconciliation"
+      ],
+      "bridge_capability_count": 1,
+      "exposure_states_unenrolled": {
+        "BLOCKED_DEPENDENCY": 1
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "hq.finance.report",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/finance/reports",
+          "kind": "READ",
+          "module": "governance",
+          "karryam_capability_id": "karryam.governance.read",
+          "risk": "R1",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        }
+      ]
+    },
+    {
+      "family": "10.1.7 Support",
+      "notes": "Cases, SOS queue, case events/evidence (classified), controlled native actions through governed operations with owner readback.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "resourceList",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}"
+        },
+        {
+          "protocol_endpoint": "resourceGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}"
+        },
+        {
+          "protocol_endpoint": "operationSubmit",
+          "method": "POST",
+          "product_admin_path": "/internal/product-admin/v1/operations",
+          "auth": "service+delegation",
+          "hq_gateway": "POST /api/products/{product}/operations",
+          "pic": "POST /internal/pic/v1/products/{product}/operations"
+        },
+        {
+          "protocol_endpoint": "reportGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/reports/{reportId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/reports/{reportId}",
+          "pic": "GET /internal/pic/v1/products/{product}/reports/{reportId}"
+        }
+      ],
+      "reports": [
+        "karryam.report.support_queue"
+      ],
+      "bridge_capability_count": 18,
+      "exposure_states_unenrolled": {
+        "BLOCKED_DEPENDENCY": 15,
+        "DISABLED": 3
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "support.cases.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/cases",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R1",
+          "privacy": "MINIMIZED_METADATA",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.cases.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/cases",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R2",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.cases.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/cases/{id}",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R2",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.sos-cases.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/sos-cases",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.sos-cases.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/sos-cases/{id}",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.disputes.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/disputes",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.disputes.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/disputes/{id}",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.case-messages.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/case-messages",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.case-messages.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/case-messages/{id}",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.case-evidence.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/case-evidence",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.resources.case-evidence.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/resources/case-evidence/{id}",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.command.submit",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/support/commands",
+          "kind": "COMMAND",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.command.submit",
+          "risk": "R3",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED",
+            "HIGH_RISK_CERTIFICATION_REQUIRED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.command.readback",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/commands/{operation_id}",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R1",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.command.history",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/command-history/{subject_kind}/{subject_id}",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R2",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.command.approval.propose",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/support/command-approvals",
+          "kind": "COMMAND",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.command.approval.propose",
+          "risk": "R2",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.command.approval.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/support/command-approvals/{approval_id}",
+          "kind": "READ",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.read",
+          "risk": "R1",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "support.command.approval.decide",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/support/command-approvals/{approval_id}/decisions",
+          "kind": "COMMAND",
+          "module": "support",
+          "karryam_capability_id": "karryam.support.command.approval.decide",
+          "risk": "R3",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED",
+            "HIGH_RISK_CERTIFICATION_REQUIRED"
+          ]
+        },
+        {
+          "bridge_capability_id": "hq.support.queue",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/hq/support/cases",
+          "kind": "READ",
+          "module": "governance",
+          "karryam_capability_id": "karryam.governance.read",
+          "risk": "R1",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        }
+      ]
+    },
+    {
+      "family": "10.1.8 Verification",
+      "notes": "Cases, stages, findings; decisions only through the source's independent decision workflow; automated recommendations are never approvals.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "resourceList",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}"
+        },
+        {
+          "protocol_endpoint": "resourceGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}"
+        },
+        {
+          "protocol_endpoint": "operationSubmit",
+          "method": "POST",
+          "product_admin_path": "/internal/product-admin/v1/operations",
+          "auth": "service+delegation",
+          "hq_gateway": "POST /api/products/{product}/operations",
+          "pic": "POST /internal/pic/v1/products/{product}/operations"
+        },
+        {
+          "protocol_endpoint": "reportGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/reports/{reportId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/reports/{reportId}",
+          "pic": "GET /internal/pic/v1/products/{product}/reports/{reportId}"
+        }
+      ],
+      "reports": [
+        "karryam.report.verification_pipeline"
+      ],
+      "bridge_capability_count": 15,
+      "exposure_states_unenrolled": {
+        "BLOCKED_DEPENDENCY": 12,
+        "DISABLED": 3
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "verification.cases.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/cases",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R1",
+          "privacy": "MINIMIZED_METADATA",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.resources.vendor-cases.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/resources/vendor-cases",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.resources.vendor-cases.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/resources/vendor-cases/{id}",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.resources.vendor-case-findings.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/resources/vendor-case-findings",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.resources.vendor-case-findings.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/resources/vendor-case-findings/{id}",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.resources.asset-capability-cases.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/resources/asset-capability-cases",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.resources.asset-capability-cases.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/resources/asset-capability-cases/{id}",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.resources.organization-submissions.list",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/resources/organization-submissions",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.resources.organization-submissions.detail",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/resources/organization-submissions/{id}",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R3",
+          "privacy": "MINIMIZED_OPERATIONAL_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.command.submit",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/verification/commands",
+          "kind": "COMMAND",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.command.submit",
+          "risk": "R3",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED",
+            "HIGH_RISK_CERTIFICATION_REQUIRED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.command.readback",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/commands/{operation_id}",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R1",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.command.history",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/command-history/{subject_kind}/{subject_id}",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R2",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.command.approval.propose",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/verification/command-approvals",
+          "kind": "COMMAND",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.command.approval.propose",
+          "risk": "R2",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.command.approval.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/verification/command-approvals/{approval_id}",
+          "kind": "READ",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.read",
+          "risk": "R1",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.command.approval.decide",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/verification/command-approvals/{approval_id}/decisions",
+          "kind": "COMMAND",
+          "module": "verification",
+          "karryam_capability_id": "karryam.verification.command.approval.decide",
+          "risk": "R3",
+          "privacy": "MINIMIZED_DECISION_RECORD",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED",
+            "HIGH_RISK_CERTIFICATION_REQUIRED"
+          ]
+        }
+      ]
+    },
+    {
+      "family": "10.1.9 Campaigns",
+      "notes": "Campaign intents, readback and cancellation; consent rechecked by the source; LOGGED_ONLY never reported as delivered. The HQ Marketing module remains the group-wide marketing application.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "operationSubmit",
+          "method": "POST",
+          "product_admin_path": "/internal/product-admin/v1/operations",
+          "auth": "service+delegation",
+          "hq_gateway": "POST /api/products/{product}/operations",
+          "pic": "POST /internal/pic/v1/products/{product}/operations"
+        },
+        {
+          "protocol_endpoint": "operationGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/operations/{operationId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/operations/{operationId}",
+          "pic": "GET /internal/pic/v1/products/{product}/operations/{operationId}"
+        },
+        {
+          "protocol_endpoint": "resourceGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}"
+        },
+        {
+          "protocol_endpoint": "reportGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/reports/{reportId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/reports/{reportId}",
+          "pic": "GET /internal/pic/v1/products/{product}/reports/{reportId}"
+        }
+      ],
+      "reports": [
+        "karryam.report.marketing_evidence"
+      ],
+      "bridge_capability_count": 3,
+      "exposure_states_unenrolled": {
+        "DISABLED": 2,
+        "BLOCKED_DEPENDENCY": 1
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "hq.campaigns.submit",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/campaigns",
+          "kind": "COMMAND",
+          "module": "governance",
+          "karryam_capability_id": "karryam.hq.campaigns.submit",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED",
+            "HIGH_RISK_CERTIFICATION_REQUIRED"
+          ]
+        },
+        {
+          "bridge_capability_id": "hq.campaigns.readback",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/hq/campaign-operations/{operation_id}",
+          "kind": "READ",
+          "module": "governance",
+          "karryam_capability_id": "karryam.governance.read",
+          "risk": "R1",
+          "privacy": "INTERNAL",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "hq.campaigns.cancel",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/campaign-operations/{operation_id}/cancellations",
+          "kind": "COMMAND",
+          "module": "governance",
+          "karryam_capability_id": "karryam.hq.campaigns.cancel",
+          "risk": "R2",
+          "privacy": "INTERNAL",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        }
+      ]
+    },
+    {
+      "family": "10.1.10 Privacy requests",
+      "notes": "Register, read, record fulfilment; fulfilled only on source-native confirmation; local erasure only after an owner-confirmed fulfilment and never under legal hold.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "operationSubmit",
+          "method": "POST",
+          "product_admin_path": "/internal/product-admin/v1/operations",
+          "auth": "service+delegation",
+          "hq_gateway": "POST /api/products/{product}/operations",
+          "pic": "POST /internal/pic/v1/products/{product}/operations"
+        },
+        {
+          "protocol_endpoint": "operationGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/operations/{operationId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/operations/{operationId}",
+          "pic": "GET /internal/pic/v1/products/{product}/operations/{operationId}"
+        },
+        {
+          "protocol_endpoint": "resourceGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}"
+        }
+      ],
+      "bridge_capability_count": 3,
+      "exposure_states_unenrolled": {
+        "DISABLED": 2,
+        "BLOCKED_DEPENDENCY": 1
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "hq.privacy.register",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/privacy-requests",
+          "kind": "COMMAND",
+          "module": "governance",
+          "karryam_capability_id": "karryam.hq.privacy.register",
+          "risk": "R2",
+          "privacy": "RESTRICTED_PII_DIGEST_ONLY",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "hq.privacy.read",
+          "method": "GET",
+          "bridge_path": "/internal/karryam-admin/v1/hq/privacy-requests/{request_id}",
+          "kind": "READ",
+          "module": "governance",
+          "karryam_capability_id": "karryam.governance.read",
+          "risk": "R1",
+          "privacy": "INTERNAL",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "hq.privacy.fulfilment",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/privacy-requests/{request_id}/fulfilments",
+          "kind": "COMMAND",
+          "module": "governance",
+          "karryam_capability_id": "karryam.hq.privacy.fulfilment",
+          "risk": "R2",
+          "privacy": "INTERNAL",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        }
+      ]
+    },
+    {
+      "family": "10.1.11 Exports",
+      "notes": "Scoped export creation (R3: certification + independent approval); single-use, short-lived download through the source; download tokens never stored or returned in receipts.",
+      "endpoints": [
+        {
+          "protocol_endpoint": "operationSubmit",
+          "method": "POST",
+          "product_admin_path": "/internal/product-admin/v1/operations",
+          "auth": "service+delegation",
+          "hq_gateway": "POST /api/products/{product}/operations",
+          "pic": "POST /internal/pic/v1/products/{product}/operations"
+        },
+        {
+          "protocol_endpoint": "operationGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/operations/{operationId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/operations/{operationId}",
+          "pic": "GET /internal/pic/v1/products/{product}/operations/{operationId}"
+        }
+      ],
+      "bridge_capability_count": 3,
+      "exposure_states_unenrolled": {
+        "DISABLED": 2,
+        "BLOCKED_DEPENDENCY": 1
+      },
+      "bridge_capabilities": [
+        {
+          "bridge_capability_id": "hq.exports.create",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/exports",
+          "kind": "COMMAND",
+          "module": "governance",
+          "karryam_capability_id": "karryam.hq.exports.create",
+          "risk": "R3",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "AVAILABLE",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED",
+            "HIGH_RISK_CERTIFICATION_REQUIRED"
+          ]
+        },
+        {
+          "bridge_capability_id": "hq.exports.download",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/exports/{export_id}/download",
+          "kind": "RETRIEVAL",
+          "module": "governance",
+          "karryam_capability_id": "karryam.hq.exports.download",
+          "risk": "R2",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "READ_ONLY",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "hq.media.legacy-mapping",
+          "method": "POST",
+          "bridge_path": "/internal/karryam-admin/v1/hq/media/legacy-mappings",
+          "kind": "READ",
+          "module": "governance",
+          "karryam_capability_id": "karryam.governance.read",
+          "risk": "R2",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
+          ]
+        }
+      ]
+    }
+  ],
+  "section_10_2_hq_bridge_contracts": [
+    {
+      "bridge_capability_id": "hq.events.feed",
+      "method": "GET",
+      "bridge_path": "/internal/karryam-admin/v1/hq/events",
+      "kind": "SYNC",
+      "module": "governance",
+      "karryam_capability_id": null,
+      "risk": "R1",
+      "privacy": "OPERATIONS_MINIMIZED",
+      "source_state": "READ_ONLY",
+      "exposure_state": "INTERNAL_SYNC_ONLY",
+      "blocker_codes": [],
+      "specified_method": "GET",
+      "specified_suffix": "/hq/events",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.events.ack",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/event-acknowledgements",
+      "kind": "SYNC",
+      "module": "governance",
+      "karryam_capability_id": null,
+      "risk": "R1",
+      "privacy": "OPERATIONS_MINIMIZED",
+      "source_state": "AVAILABLE",
+      "exposure_state": "INTERNAL_SYNC_ONLY",
+      "blocker_codes": [],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/event-acknowledgements",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.projections.status",
+      "method": "GET",
+      "bridge_path": "/internal/karryam-admin/v1/hq/projections/status",
+      "kind": "READ",
+      "module": "governance",
+      "karryam_capability_id": "karryam.governance.read",
+      "risk": "R0",
+      "privacy": "INTERNAL",
+      "source_state": "READ_ONLY",
+      "exposure_state": "BLOCKED_DEPENDENCY",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "GET",
+      "specified_suffix": "/hq/projections/status",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.support.queue",
+      "method": "GET",
+      "bridge_path": "/internal/karryam-admin/v1/hq/support/cases",
+      "kind": "READ",
+      "module": "governance",
+      "karryam_capability_id": "karryam.governance.read",
+      "risk": "R1",
+      "privacy": "OPERATIONS_MINIMIZED",
+      "source_state": "READ_ONLY",
+      "exposure_state": "BLOCKED_DEPENDENCY",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "GET",
+      "specified_suffix": "/hq/support/cases",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.approvals.propose",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/approvals",
+      "kind": "COMMAND",
+      "module": "governance",
+      "karryam_capability_id": "karryam.hq.approvals.propose",
+      "risk": "R2",
+      "privacy": "INTERNAL",
+      "source_state": "AVAILABLE",
+      "exposure_state": "DISABLED",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/approvals",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.approvals.read",
+      "method": "GET",
+      "bridge_path": "/internal/karryam-admin/v1/hq/approvals/{approval_id}",
+      "kind": "READ",
+      "module": "governance",
+      "karryam_capability_id": "karryam.governance.read",
+      "risk": "R1",
+      "privacy": "INTERNAL",
+      "source_state": "READ_ONLY",
+      "exposure_state": "BLOCKED_DEPENDENCY",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "GET",
+      "specified_suffix": "/hq/approvals/{approval_id}",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.approvals.decide",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/approvals/{approval_id}/decisions",
+      "kind": "COMMAND",
+      "module": "governance",
+      "karryam_capability_id": "karryam.hq.approvals.decide",
+      "risk": "R3",
+      "privacy": "INTERNAL",
+      "source_state": "AVAILABLE",
+      "exposure_state": "DISABLED",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED",
+        "HIGH_RISK_CERTIFICATION_REQUIRED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/approvals/{approval_id}/decisions",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.campaigns.submit",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/campaigns",
+      "kind": "COMMAND",
+      "module": "governance",
+      "karryam_capability_id": "karryam.hq.campaigns.submit",
+      "risk": "R3",
+      "privacy": "INTERNAL",
+      "source_state": "AVAILABLE",
+      "exposure_state": "DISABLED",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED",
+        "HIGH_RISK_CERTIFICATION_REQUIRED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/campaigns",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.campaigns.readback",
+      "method": "GET",
+      "bridge_path": "/internal/karryam-admin/v1/hq/campaign-operations/{operation_id}",
+      "kind": "READ",
+      "module": "governance",
+      "karryam_capability_id": "karryam.governance.read",
+      "risk": "R1",
+      "privacy": "INTERNAL",
+      "source_state": "READ_ONLY",
+      "exposure_state": "BLOCKED_DEPENDENCY",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "GET",
+      "specified_suffix": "/hq/campaign-operations/{operation_id}",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.campaigns.cancel",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/campaign-operations/{operation_id}/cancellations",
+      "kind": "COMMAND",
+      "module": "governance",
+      "karryam_capability_id": "karryam.hq.campaigns.cancel",
+      "risk": "R2",
+      "privacy": "INTERNAL",
+      "source_state": "AVAILABLE",
+      "exposure_state": "DISABLED",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/campaign-operations/{operation_id}/cancellations",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.finance.report",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/finance/reports",
+      "kind": "READ",
+      "module": "governance",
+      "karryam_capability_id": "karryam.governance.read",
+      "risk": "R1",
+      "privacy": "FINANCIAL_SENSITIVE",
+      "source_state": "READ_ONLY",
+      "exposure_state": "BLOCKED_DEPENDENCY",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/finance/reports",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.privacy.register",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/privacy-requests",
+      "kind": "COMMAND",
+      "module": "governance",
+      "karryam_capability_id": "karryam.hq.privacy.register",
+      "risk": "R2",
+      "privacy": "RESTRICTED_PII_DIGEST_ONLY",
+      "source_state": "AVAILABLE",
+      "exposure_state": "DISABLED",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/privacy-requests",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.privacy.read",
+      "method": "GET",
+      "bridge_path": "/internal/karryam-admin/v1/hq/privacy-requests/{request_id}",
+      "kind": "READ",
+      "module": "governance",
+      "karryam_capability_id": "karryam.governance.read",
+      "risk": "R1",
+      "privacy": "INTERNAL",
+      "source_state": "READ_ONLY",
+      "exposure_state": "BLOCKED_DEPENDENCY",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "GET",
+      "specified_suffix": "/hq/privacy-requests/{request_id}",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.privacy.fulfilment",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/privacy-requests/{request_id}/fulfilments",
+      "kind": "COMMAND",
+      "module": "governance",
+      "karryam_capability_id": "karryam.hq.privacy.fulfilment",
+      "risk": "R2",
+      "privacy": "INTERNAL",
+      "source_state": "AVAILABLE",
+      "exposure_state": "DISABLED",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/privacy-requests/{request_id}/fulfilments",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.exports.create",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/exports",
+      "kind": "COMMAND",
+      "module": "governance",
+      "karryam_capability_id": "karryam.hq.exports.create",
+      "risk": "R3",
+      "privacy": "OPERATIONS_MINIMIZED",
+      "source_state": "AVAILABLE",
+      "exposure_state": "DISABLED",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED",
+        "HIGH_RISK_CERTIFICATION_REQUIRED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/exports",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.media.legacy-mapping",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/media/legacy-mappings",
+      "kind": "READ",
+      "module": "governance",
+      "karryam_capability_id": "karryam.governance.read",
+      "risk": "R2",
+      "privacy": "OPERATIONS_MINIMIZED",
+      "source_state": "READ_ONLY",
+      "exposure_state": "BLOCKED_DEPENDENCY",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/media/legacy-mappings",
+      "matches_specification": true
+    },
+    {
+      "bridge_capability_id": "hq.exports.download",
+      "method": "POST",
+      "bridge_path": "/internal/karryam-admin/v1/hq/exports/{export_id}/download",
+      "kind": "RETRIEVAL",
+      "module": "governance",
+      "karryam_capability_id": "karryam.hq.exports.download",
+      "risk": "R2",
+      "privacy": "OPERATIONS_MINIMIZED",
+      "source_state": "READ_ONLY",
+      "exposure_state": "DISABLED",
+      "blocker_codes": [
+        "BRIDGE_TRUST_NOT_ENROLLED"
+      ],
+      "specified_method": "POST",
+      "specified_suffix": "/hq/exports/{export_id}/download",
+      "matches_specification": true
+    }
+  ]
+}

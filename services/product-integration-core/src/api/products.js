@@ -14,8 +14,24 @@ const { resolveEndpoint, clientFor } = require("../registry/endpoints");
 const { integrationStatus } = require("../monitoring");
 const { scopeKey, freshnessOf } = require("../projections/metrics");
 const policy = require("../registry/sync-policy");
+const { recordAudit } = require("../audit");
 
 const DIMS = ["market", "organization", "zone", "tenant"];
+const validateCommand = C.compile(C.schemas.SCHEMAS["operation-command.v1"]);
+const SCOPE_VALUE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/;
+
+// The requested scope of a command, when well formed: known dimensions,
+// non-empty exact values, market and organization always present.
+function commandScope(body) {
+  const s = body && body.scope;
+  if (!s || typeof s !== "object" || Array.isArray(s)) return null;
+  const out = {};
+  for (const [dim, values] of Object.entries(s)) {
+    if (!DIMS.includes(dim) || !Array.isArray(values) || values.length === 0 || values.some((v) => !SCOPE_VALUE.test(String(v)))) return null;
+    out[dim] = values;
+  }
+  return out.market && out.organization ? out : null;
+}
 
 class ProductError extends Error {
   constructor(code, reason, status) {
@@ -296,20 +312,61 @@ function createProducts({ pool, endpoints, environment, trustStore = false, now 
       return forwardRead(subject, row, "report.read", "reportGet", { reportId }, readQuery(query, C.REPORT_QUERY), ctx);
     },
 
-    // Command submission stays disabled in this phase. The request is
-    // authorized and checked against the certified contract, then refused;
-    // no request body is ever forwarded as an arbitrary command.
+    // Governed command submission (Sections 10.1.4 and 11.3), product-neutral.
+    // HQ authorizes the staff grant, recent MFA and the requested scope,
+    // validates the typed command against the protocol schema, checks that
+    // the capability is an AVAILABLE command of the ACTIVE contract and that
+    // operations were enabled for this product by an independent approver,
+    // then forwards the exact command bytes with a 30 s delegation bound to
+    // POST /operations and those bytes. The Product Admin re-checks
+    // everything (capability, risk, approvals, source policy); HQ never talks
+    // to a product bridge and never decides a source outcome.
     async submitOperation(subject, productId, body, ctx) {
       const { row, contract } = await enabledRegistration(productId);
-      await authorize(subject, "operation.submit", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
-      const capabilityId = body && typeof body.capability_id === "string" ? body.capability_id : null;
-      const capability = capabilityId ? contract.catalog.capabilities.find((c) => c.id === capabilityId) : null;
-      const reason = !capability ? "UNKNOWN_CAPABILITY"
-        : capability.kind !== "COMMAND" ? "NOT_A_COMMAND"
-        : capability.state !== "AVAILABLE" ? "CAPABILITY_" + capability.state
-        : !row.operations_enabled ? "OPERATIONS_NOT_ENABLED_FOR_PRODUCT"
-        : "COMMAND_EXECUTION_NOT_CERTIFIED";
-      return { status: 403, body: C.errorEnvelope({ productId, correlationId: ctx.correlationId, code: "DISABLED", reason, retryable: false }) };
+      const requestedScope = commandScope(body) || {};
+      const decision = await authorize(subject, "operation.submit", ctx, { productId, productAdminId: row.id, requestedScope, productScope: row.allowed_scope });
+      const refuse = (status, code, reason) => ({ status, body: C.errorEnvelope({ productId, correlationId: ctx.correlationId, code, reason, retryable: false }) });
+      if (!body || !validateCommand(body).valid || !commandScope(body)) return refuse(400, "INVALID_REQUEST", "COMMAND_INVALID");
+      const capability = contract.catalog.capabilities.find((c) => c.id === body.capability_id);
+      if (!capability) return refuse(404, "NOT_FOUND", "UNKNOWN_CAPABILITY");
+      if (capability.kind !== "COMMAND") return refuse(400, "INVALID_REQUEST", "NOT_A_COMMAND");
+      if (capability.state !== "AVAILABLE") return refuse(403, "DISABLED", "CAPABILITY_" + capability.state);
+      if (!row.operations_enabled) return refuse(403, "DISABLED", "OPERATIONS_NOT_ENABLED_FOR_PRODUCT");
+      const bytes = Buffer.from(JSON.stringify(body));
+      const endpoint = resolveEndpoint(endpoints, row);
+      const token = I.signDelegation({
+        iss: "product-integration-core", aud: row.product_id + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
+        auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: row.product_id, action: "operation.submit",
+        scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("POST", C.endpointPath("operationSubmit"), bytes),
+      }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+      let res;
+      try { res = await clientFor(endpoints, row, clientOptions).submitOperation(body, { delegation: token, correlationId: ctx.correlationId }); }
+      catch {
+        // The request may or may not have reached the Product Admin: the
+        // operation ID is returned so the caller reads back, never resubmits blindly.
+        await recordAudit(pool, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId, productAdminId: row.id, action: "operation.submit.forward", outcome: "ERROR", reasonCode: "PRODUCT_ADMIN_UNREACHABLE", metadata: { capability_id: capability.id, command_digest: C.digestOf(body) } }).catch(() => {});
+        return { status: 503, body: C.errorEnvelope({ productId, correlationId: ctx.correlationId, code: "UNAVAILABLE", reason: "PRODUCT_ADMIN_UNREACHABLE", retryable: false, operationId: body.command_id }) };
+      }
+      const result = res.json && res.json.result;
+      await recordAudit(pool, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId, productAdminId: row.id, action: "operation.submit.forward",
+        outcome: res.json && res.json.error ? "DENIED" : "RECORDED", reasonCode: res.json && res.json.error ? res.json.error.reason : null,
+        metadata: { capability_id: capability.id, command_digest: C.digestOf(body), operation_status: result && typeof result.status === "string" ? result.status : null } }).catch(() => {});
+      return { status: res.status, body: res.json };
+    },
+
+    // The original requester's audit trail of one operation (same owner rule
+    // as the operation itself: another staff member's operation is not found).
+    async operationAudit(subject, productId, operationId, ctx) {
+      const { row } = await enabledRegistration(productId);
+      const decision = await authorize(subject, "operation.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
+      if (!new RegExp(C.PATTERNS.pathParam).test(String(operationId))) throw new ProductError("INVALID_REQUEST", "OPERATION_ID_INVALID");
+      try {
+        const delegation = productDelegation(subject, row, decision, "operation.read", C.endpointPath("auditGet", { operationId }));
+        const res = await clientFor(endpoints, row, clientOptions).getAudit(operationId, { correlationId: ctx.correlationId, delegation });
+        return { status: res.status, body: res.json };
+      } catch {
+        throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE");
+      }
     },
   };
 }

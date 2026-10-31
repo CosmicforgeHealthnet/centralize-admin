@@ -523,17 +523,47 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       });
     },
 
+    // Product-level switch for governed command forwarding (Section 11.3).
+    // Enabling needs integration.approve by someone other than the person
+    // who requested the registration or activated it, evidence, the
+    // current revision and an ENABLED product without unresolved drift.
+    // Disabling is an immediate stop (integration.suspend, reason code).
+    // It never makes a capability executable by itself: the Product Admin
+    // and its source still decide every command.
+    async setOperations(subject, id, { expected_revision, enabled, evidence_ref, reason_code } = {}, ctx) {
+      if (typeof enabled !== "boolean") throw new OnboardingError("ENABLED_FLAG_REQUIRED", 400);
+      await authz(subject, enabled ? "integration.approve" : "integration.suspend", ctx);
+      if (enabled && !EVIDENCE.test(String(evidence_ref || ""))) throw new OnboardingError("EVIDENCE_REQUIRED", 400);
+      if (!enabled && !REASON.test(String(reason_code || ""))) throw new OnboardingError("REASON_CODE_REQUIRED", 400);
+      return withTx(pool, async (client) => {
+        const row = await lockRow(client, id);
+        if (row.revision !== expected_revision) throw new SM.TransitionError("STALE_REVISION");
+        if (enabled) {
+          if (row.lifecycle_status !== "ENABLED") throw new OnboardingError("PRODUCT_NOT_ENABLED", 409);
+          assertNoUnresolvedDrift(row);
+          if (!I.requireIndependentActor(subject.staffId, [row.requested_by, row.activated_by])) throw new SM.TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
+        }
+        if (row.operations_enabled === enabled) return { id, operations_enabled: enabled, revision: row.revision, changed: false };
+        const { rows: [updated] } = await client.query(`UPDATE ${T}hq_product_admins SET operations_enabled = $2, revision = revision + 1 WHERE id = $1 AND revision = $3 RETURNING revision`, [id, enabled, expected_revision]);
+        if (!updated) throw new SM.TransitionError("STALE_REVISION");
+        await approval(client, row, { decision: enabled ? "OPERATIONS_ENABLED" : "OPERATIONS_DISABLED", actorId: subject.staffId, evidenceRef: enabled ? evidence_ref : null, reasonCode: enabled ? null : reason_code, expectedRevision: expected_revision, resultingRevision: updated.revision }, ctx);
+        await audit(client, subject, row, "integration.operations." + (enabled ? "enable" : "disable"), ctx, { revision: updated.revision });
+        return { id, operations_enabled: enabled, revision: updated.revision, changed: true };
+      });
+    },
+
     async grant(subject, input = {}, ctx) {
       await authz(subject, "integration.grants.manage", ctx);
       const grant = {
         id: randomUUID(), grant_kind: input.grant_kind, product_id: input.grant_kind === "PRODUCT" ? input.product_id : null, staff_id: input.staff_id,
         role: input.role || null, effect: input.effect || "ALLOW", actions: input.actions, datasets: input.datasets || [], scope: input.scope || {},
-        expires_at: input.expires_at || null, revoked_at: null,
+        expires_at: input.expires_at || null, not_before: input.not_before || null, revoked_at: null,
       };
       const errors = I.grantErrors(grant);
       if (errors.length) throw new OnboardingError("GRANT_INVALID", 400, errors.slice(0, 5));
       if (grant.role !== null && !/^[a-z][a-z0-9_.-]{1,63}$/.test(grant.role)) throw new OnboardingError("GRANT_INVALID", 400);
       if (grant.expires_at !== null && !(Date.parse(grant.expires_at) > now())) throw new OnboardingError("GRANT_EXPIRY_INVALID", 400);
+      if (grant.not_before !== null && (!Number.isFinite(Date.parse(grant.not_before)) || (grant.expires_at !== null && Date.parse(grant.expires_at) <= Date.parse(grant.not_before)))) throw new OnboardingError("GRANT_EFFECTIVE_DATE_INVALID", 400);
       if (grant.staff_id === subject.staffId) throw new OnboardingError("SELF_GRANT_DENIED", 403);
       return withTx(pool, async (client) => {
         let row = null;
@@ -548,8 +578,8 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
           }
         }
         await client.query(
-          `INSERT INTO ${T}hq_product_admin_grants (id, grant_kind, product_id, staff_id, role, effect, actions, datasets, scope, expires_at, granted_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-          [grant.id, grant.grant_kind, grant.product_id, grant.staff_id, grant.role, grant.effect, grant.actions, grant.datasets, JSON.stringify(grant.scope), grant.expires_at, subject.staffId]);
+          `INSERT INTO ${T}hq_product_admin_grants (id, grant_kind, product_id, staff_id, role, effect, actions, datasets, scope, expires_at, not_before, granted_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+          [grant.id, grant.grant_kind, grant.product_id, grant.staff_id, grant.role, grant.effect, grant.actions, grant.datasets, JSON.stringify(grant.scope), grant.expires_at, grant.not_before, subject.staffId]);
         await audit(client, subject, row, "integration.grant.create", ctx, { grant_ref: grant.id, grant_kind: grant.grant_kind, staff_ref: grant.staff_id, actions: grant.actions, effect: grant.effect });
         return { grant_id: grant.id };
       });

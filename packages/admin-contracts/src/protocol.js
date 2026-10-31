@@ -59,6 +59,8 @@ const ERROR_CODES = Object.freeze({
   NOT_FOUND: 404,
   METHOD_NOT_ALLOWED: 405,
   CONFLICT: 409,
+  // Additive (Section 10.3): an approved rate limit, retryable later.
+  RATE_LIMITED: 429,
   PAYLOAD_TOO_LARGE: 413,
   INVALID_REQUEST: 400,
   DISABLED: 403,
