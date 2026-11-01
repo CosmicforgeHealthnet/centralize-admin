@@ -31,7 +31,10 @@ test("a required implementation path missing blocks closure",()=>{
 });
 test("failing and not-run gates block code acceptance",()=>{
   assert.equal(evaluate({sha:SHA,gatesReport:gates({9:"FAIL"})}).code_accepted,false);
-  assert.equal(evaluate({sha:SHA,gatesReport:gates({5:"NOT_RUN"})}).code_accepted,false);
+  const pending=evaluate({sha:SHA,gatesReport:gates({5:"NOT_RUN"})});
+  assert.equal(pending.code_accepted,false);
+  assert.equal(pending.ci_exit_code,0); // async cross-workflow evidence may be incomplete
+  assert.equal(evaluate({sha:SHA,gatesReport:gates({9:"FAIL"})}).ci_exit_code,1);
 });
 test("all live gates pass still requires an independently verified owner decision",()=>{
   const o=Object.fromEntries([...PENDING].map(x=>[x,"PASS"]));

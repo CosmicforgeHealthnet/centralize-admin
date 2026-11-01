@@ -81,11 +81,16 @@ export function evaluate({sha, gatesReport, missingFiles=[]}) {
     backend_dod.every(d=>!["FAIL","NOT_RUN"].includes(d.status)) &&
     hq_dod.every(d=>!["FAIL","NOT_RUN"].includes(d.status));
   const all_live=code_ok && gates.every(g=>g.status==="PASS");
+  const hasFailedGate=valid && gates.some(g=>g.status==="FAIL");
+  // Independent workflow runs finish asynchronously. NOT_RUN is incomplete
+  // acceptance evidence, but not a failed engineering test. Keep the report
+  // non-accepted and let the gate be re-evaluated after those runs finish.
+  const ci_exit_code=!valid || missingFiles.length>0 || hasFailedGate ? 1 : 0;
   const result=!code_ok ? "EVIDENCE_INCOMPLETE_OR_FAILED" :
     all_live ? "STAGING_GATES_PASSED_SIGNOFF_PENDING" : "CODE_ACCEPTED_STAGING_PENDING";
   return {report:"product-admin-section14-closure",schema_version:1,sha,generated_at:now,
     source_gate_result:gatesReport?.result || null,valid_gate_evidence:valid,
-    result,code_accepted:code_ok,all_staging_gates_passed:all_live,
+    result,code_accepted:code_ok,ci_exit_code,all_staging_gates_passed:all_live,
     owner_signed_go_no_go_verified:false,production_promotion:"NO_GO",
     reason:!valid?"Missing, stale or malformed Section 13.3 gate evidence":
       !code_ok?"At least one implementation or evidence gate failed or was not run":
@@ -124,5 +129,5 @@ if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.
     const file=arg(flag);if(file){fs.mkdirSync(path.dirname(path.resolve(file)),{recursive:true});fs.writeFileSync(file,contents+"\n");}
   }
   process.stdout.write(markdown(r));
-  process.exit(r.code_accepted?0:1);
+  process.exit(r.ci_exit_code);
 }

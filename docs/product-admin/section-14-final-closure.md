@@ -59,4 +59,4 @@ The S0–S7 tracker in `infrastructure/product-admin/release/stages.json` remain
 
 ## CI artifact
 
-The Product Admin Platform CI job now writes `product-admin-section14-closure.json` and Markdown alongside the Section 13.3 staging gate artifact. It fails on missing/stale/malformed gate evidence, missing required source paths or failing required gates, while correctly allowing the expected `CODE_ACCEPTED_STAGING_PENDING` outcome.
+The Product Admin Platform CI job now writes `product-admin-section14-closure.json` and Markdown alongside the Section 13.3 staging gate artifact. It fails on missing/stale/malformed gate evidence, missing required source paths or failing required gates. A `NOT_RUN` gate while an independent GitHub workflow is still executing remains **unaccepted/incomplete evidence**, but does not fail an otherwise healthy build merely for cross-workflow scheduling; the acceptance result must be re-evaluated once all workflows finish. `CODE_ACCEPTED_STAGING_PENDING` remains the expected result when all required CI evidence is available.
