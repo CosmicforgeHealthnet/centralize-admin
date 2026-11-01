@@ -453,7 +453,7 @@ backup() {
   for p in "${parts[@]}"; do
     local f="${p%%:*}" image="${p#*:}" name pw; name="pa-restore-$ts-$RANDOM"; pw="$(head -c 18 /dev/urandom | base64 | tr -dc A-Za-z0-9)"
     docker run -d --rm --name "$name" --network none -e POSTGRES_PASSWORD="$pw" -v "$d:/backup:ro" "$image" >/dev/null
-    for _ in $(seq 1 30); do docker exec "$name" pg_isready -q -U postgres 2>/dev/null && break; sleep 2; done
+    for _ in $(seq 1 30); do docker exec "$name" pg_isready -q -h 127.0.0.1 -U postgres 2>/dev/null && break; sleep 2; done
     local listed restored
     listed="$(docker exec "$name" sh -c 'pg_restore --list "/backup/$1" | grep -c " TABLE DATA "' _ "$f" || echo -1)"
     if docker exec "$name" sh -c 'createdb -U postgres restored && pg_restore -U postgres --no-owner --no-privileges --exit-on-error -d restored "/backup/$1"' _ "$f" >/dev/null 2>&1; then

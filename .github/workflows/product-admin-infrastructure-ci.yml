@@ -195,7 +195,7 @@ jobs:
         run: |
           set -euo pipefail
           docker run -d --name rehearsal-hq-db -e POSTGRES_PASSWORD="$(openssl rand -hex 16)" -e POSTGRES_DB=cosmicforge_admin postgres:16-alpine >/dev/null
-          for i in $(seq 1 30); do docker exec rehearsal-hq-db pg_isready -q -U postgres && break; sleep 2; done
+          for i in $(seq 1 30); do docker exec rehearsal-hq-db pg_isready -q -h 127.0.0.1 -U postgres && break; sleep 2; done
       - name: prepare-host (networks, socket dirs, config dirs, DB-A attachment, DOCKER-USER rules)
         run: |
           set -euo pipefail
@@ -211,7 +211,7 @@ jobs:
       - name: Deploy disabled-by-default (release 1)
         run: |
           set -euo pipefail
-          sudo node infrastructure/product-admin/release/rehearsal-fixtures.mjs --config-root "$PA_CONFIG_ROOT" --out "$PA_OUT" --mode disabled --release-sha "$GITHUB_SHA"
+          sudo "$(command -v node)" infrastructure/product-admin/release/rehearsal-fixtures.mjs --config-root "$PA_CONFIG_ROOT" --out "$PA_OUT" --mode disabled --release-sha "$GITHUB_SHA"
           ops preflight
           PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy
           has() { grep -q "PA_CHECK {\"id\":\"$1\",\"status\":\"$2\"" "$PA_LOGS/deploy.log" || { echo "::error::expected $1=$2"; exit 1; }; }
@@ -221,7 +221,7 @@ jobs:
       - name: Database roles, audit, preview, verified backup and migrations
         run: |
           set -euo pipefail
-          sudo node infrastructure/product-admin/release/rehearsal-fixtures.mjs --config-root "$PA_CONFIG_ROOT" --out "$PA_OUT" --mode enabled --release-sha "$GITHUB_SHA"
+          sudo "$(command -v node)" infrastructure/product-admin/release/rehearsal-fixtures.mjs --config-root "$PA_CONFIG_ROOT" --out "$PA_OUT" --mode enabled --release-sha "$GITHUB_SHA"
           # Roles: the exact operator templates, on DB-A and the dedicated DB-B.
           docker exec -i rehearsal-hq-db psql -U postgres -d cosmicforge_admin -v ON_ERROR_STOP=1 $(sudo cat "$PA_OUT/db-a.psqlvars") -f - < infrastructure/product-admin/staging/db-a-roles.sql
           docker exec -i cf-product-admin-staging-karryam-admin-db-1 sh -c 'PGPASSWORD="$(cat /run/secrets/karryam-admin-db/postgres-password)" psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 "$@" -f -' _ $(sudo cat "$PA_OUT/db-b.psqlvars") < infrastructure/product-admin/staging/db-b-roles.sql

@@ -79,7 +79,7 @@ case "$MODE" in
       read -r -a r <<< "${wanted[$i]}"
       if iptables -C DOCKER-USER "${r[@]}" 2>/dev/null; then echo "present: ${wanted[$i]}"; else iptables -I DOCKER-USER 1 "${r[@]}"; echo "added:   ${wanted[$i]}"; fi
     done
-    "$0" verify
+    bash "${BASH_SOURCE[0]}" verify
     ;;
   verify)
     need_chain
