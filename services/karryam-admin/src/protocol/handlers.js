@@ -37,7 +37,7 @@ const SNAPSHOT_QUERY = {
   cursor: { type: "cursor", max: 512 },
 };
 
-function createHandlers({ config, catalog, manifest, bridgeClient, operations, operationsService, reads, reports, pipeline, audit, governance = null, dbReady, logger = () => {}, now = Date.now }) {
+function createHandlers({ config, catalog, manifest, bridgeClient, operations, operationsService, reads, reports, pipeline, audit, governance = null, dbReady, readinessDetail = null, logger = () => {}, now = Date.now }) {
   const productId = config.productId;
   const ok = (ctx, result, extra = {}) => ({ body: contracts.okEnvelope({ productId, correlationId: ctx.correlationId, result, ...extra }, now()) });
   const datasetIds = new Set(catalog.datasets.map((d) => d.dataset_id));
@@ -123,6 +123,9 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, o
           bridge: config.bridge.enabled ? "CONFIGURED_NOT_CERTIFIED" : "DISABLED",
           bridge_feed: config.feed && config.feed.enabled ? "CONFIGURED_NOT_CERTIFIED" : "DISABLED",
           upstream_certified: false,
+          // Recorded dependency state (never secrets): last Bridge outcome
+          // and Stage A worker progress from the database.
+          ...(readinessDetail && database === "OK" ? await readinessDetail().catch(() => ({ dependencies: "UNKNOWN" })) : {}),
         },
       };
     },

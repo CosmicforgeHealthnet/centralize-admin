@@ -42,7 +42,7 @@ function tlsOptions(bridge) {
 
 const SECURITY_CODES = new Set(["EPROTO", "SERVER_CERT_REVOKED", "FINGERPRINT_MISMATCH", "CERT_HAS_EXPIRED", "DEPTH_ZERO_SELF_SIGNED_CERT", "UNABLE_TO_VERIFY_LEAF_SIGNATURE", "SELF_SIGNED_CERT_IN_CHAIN", "ERR_TLS_CERT_ALTNAME_INVALID", "ERR_SSL_TLSV1_ALERT_PROTOCOL_VERSION"]);
 
-function createBridgeClient(bridge, { now = () => Math.floor(Date.now() / 1000), nowMs = () => Date.now(), timeoutMs = TIMEOUT_MS, commandTimeoutMs = 8000, metrics = null } = {}) {
+function createBridgeClient(bridge, { now = () => Math.floor(Date.now() / 1000), nowMs = () => Date.now(), timeoutMs = TIMEOUT_MS, commandTimeoutMs = 8000, metrics = null, observe = null } = {}) {
   if (!bridge || !bridge.enabled) throw new BridgeError("BRIDGE_DISABLED");
   const hostHeader = bridge.port === 443 ? bridge.hostname : bridge.hostname + ":" + bridge.port;
   const count = (name) => { if (metrics) metrics[name] = (metrics[name] || 0) + 1; };
@@ -100,7 +100,19 @@ function createBridgeClient(bridge, { now = () => Math.floor(Date.now() / 1000),
    * Resolves { capability, result, asOf, freshness, bridgeCorrelationId, status }
    * or { binary: Buffer, contentType } for binary retrievals.
    */
-  async function call(capabilityId, { staff, query = {}, pathParams = {}, body } = {}) {
+  // observe({ outcome }): SUCCESS or the sanitized BridgeError category, for metrics only.
+  async function call(capabilityId, options) {
+    try {
+      const res = await callOnce(capabilityId, options);
+      if (observe) { try { observe({ outcome: "SUCCESS" }); } catch { /* never break a call */ } }
+      return res;
+    } catch (err) {
+      if (observe) { try { observe({ outcome: err && err.category ? err.category : "ERROR" }); } catch { /* never break a call */ } }
+      throw err;
+    }
+  }
+
+  async function callOnce(capabilityId, { staff, query = {}, pathParams = {}, body } = {}) {
     let cap;
     let uri;
     let bytes = Buffer.alloc(0);

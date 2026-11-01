@@ -16,6 +16,7 @@ const { createProducts, ProductError } = require("./products");
 const { AuthorizationError, authorizeStaff } = require("../authz");
 const { integrationStatus } = require("../monitoring");
 const { createHealthChecker } = require("../registry/health");
+const { createPicMetrics, routeClass } = require("../observability/metrics");
 
 const BASE = "/internal/pic/v1";
 const MAX_BODY = 64 * 1024;
@@ -45,7 +46,9 @@ function readBody(req) {
   });
 }
 
-function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment, enabled = true, nonceStore, now = Date.now, logger = () => {}, clientOptions = {}, syncEngine = null }) {
+function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment, enabled = true, nonceStore, now = Date.now, logger = () => {}, clientOptions = {}, syncEngine = null, observability = null, syncEnabled = false }) {
+  // Private Prometheus metrics (this listener only; never proxied by HQ).
+  const metrics = observability || createPicMetrics({ pool: enabled ? pool : null, enabled, syncEnabled, environment: enabled ? environment : null, trustStore, hqDelegationKeys, now });
   const onboarding = createOnboarding({ pool, endpoints, trustStore, environment, now, clientOptions });
   const products = createProducts({ pool, endpoints, environment, trustStore, now, clientOptions });
   const health = createHealthChecker({ pool, endpoints, trustStore, now, clientOptions });
@@ -96,6 +99,7 @@ function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment,
     ["POST", new RegExp("^" + BASE + "/admin/product-integration-grants$"), (c) => onboarding.grant(c.subject, c.body || {}, c).then(created)],
     ["POST", new RegExp("^" + BASE + "/admin/product-integration-grants/" + ID + "/revoke$"), (c, m) => onboarding.revokeGrant(c.subject, m[1], c.body || {}, c).then(ok)],
   ];
+  const routeLabels = new Map(routes.map(([, pattern]) => [pattern, routeClass(pattern, BASE)]));
 
   function ok(data) { return { status: 200, body: { success: true, data } }; }
   function created(data) { return { status: 201, body: { success: true, data } }; }
@@ -125,6 +129,8 @@ function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment,
     const upstreamCorrelationId = /^[A-Za-z0-9._:-]{8,128}$/.test(inbound) ? inbound : null;
     const started = now();
     let status = 500;
+    let route = "unmatched";
+    let outcome = { code: null, reason: null, kind: null, detail: null };
     const send = (code, body) => {
       status = code;
       res.writeHead(code, { ...HEADERS, "X-Correlation-Id": correlationId });
@@ -134,18 +140,30 @@ function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment,
       const raw = String(req.url || "");
       if (!raw.startsWith("/") || raw.startsWith("//") || raw.length > 2048 || raw.includes("..") || /[\\%]/.test(raw.split("?")[0])) throw new HttpError(400, "INVALID_REQUEST", "REQUEST_TARGET_INVALID");
       const url = new URL(raw, "http://pic.local");
-      if (url.pathname === "/health/live") return send(200, { status: "live", service: "product-integration-core" });
+      if (url.pathname === "/metrics") {
+        route = "/metrics";
+        if (req.method !== "GET") throw new HttpError(405, "METHOD_NOT_ALLOWED", "METHOD_NOT_ALLOWED");
+        const text = await metrics.render();
+        status = 200;
+        res.writeHead(200, { "Content-Type": "text/plain; version=0.0.4; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "X-Correlation-Id": correlationId });
+        return res.end(text);
+      }
+      if (url.pathname === "/health/live") { route = "/health/live"; return send(200, { status: "live", service: "product-integration-core" }); }
       if (url.pathname === "/health/ready") {
+        route = "/health/ready";
         if (!enabled) return send(503, { status: "DISABLED", service: "product-integration-core" });
-        try { await pool.query("SELECT 1"); return send(200, { status: "READY", service: "product-integration-core", database: "OK", upstream_products: "SEE_MONITORING" }); }
+        const trust = trustStore && typeof trustStore.isCurrent === "function" ? (trustStore.isCurrent() ? "CURRENT" : "CHANGED_RESTART_REQUIRED") : "UNBOUND";
+        try { await pool.query("SELECT 1"); return send(trust === "CHANGED_RESTART_REQUIRED" ? 503 : 200, { status: trust === "CHANGED_RESTART_REQUIRED" ? "NOT_READY" : "READY", service: "product-integration-core", database: "OK", trust_store: trust, sync: syncEngine ? (syncEnabled ? "SCHEDULED" : "OPERATOR_ONLY") : "DISABLED", upstream_products: "SEE_MONITORING" }); }
         catch { return send(503, { status: "NOT_READY", service: "product-integration-core", database: "UNAVAILABLE" }); }
       }
       if (!enabled) throw new HttpError(503, "UNAVAILABLE", "PRODUCT_INTEGRATION_DISABLED");
-      const route = routes.find(([method, pattern]) => pattern.test(url.pathname) && method === req.method);
-      if (!route) {
-        if (routes.some(([, pattern]) => pattern.test(url.pathname))) throw new HttpError(405, "METHOD_NOT_ALLOWED", "METHOD_NOT_ALLOWED");
+      const matched = routes.find(([method, pattern]) => pattern.test(url.pathname) && method === req.method);
+      if (!matched) {
+        const any = routes.find(([, pattern]) => pattern.test(url.pathname));
+        if (any) { route = routeLabels.get(any[1]); throw new HttpError(405, "METHOD_NOT_ALLOWED", "METHOD_NOT_ALLOWED"); }
         throw new HttpError(404, "NOT_FOUND", "UNKNOWN_ROUTE");
       }
+      route = routeLabels.get(matched[1]);
       let body = Buffer.alloc(0);
       if (req.method === "POST") {
         if (!/^application\/json(?:;|$)/i.test(String(req.headers["content-type"] || ""))) throw new HttpError(400, "INVALID_REQUEST", "CONTENT_TYPE_REQUIRED");
@@ -157,9 +175,11 @@ function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment,
         try { parsed = JSON.parse(body.toString("utf8")); } catch { throw new HttpError(400, "INVALID_REQUEST", "BODY_NOT_JSON"); }
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new HttpError(400, "INVALID_REQUEST", "BODY_NOT_OBJECT");
       }
-      const result = await route[2]({ subject, body: parsed, query: url.searchParams, correlationId }, route[1].exec(url.pathname));
+      const result = await matched[2]({ subject, body: parsed, query: url.searchParams, correlationId }, matched[1].exec(url.pathname));
+      if (result.body && result.body.error) outcome = { ...outcome, code: result.body.error.code || "ERROR", reason: result.body.error.reason || null };
       return send(result.status, result.body);
     } catch (err) {
+      outcome = { code: err.code || (err instanceof AuthorizationError ? "FORBIDDEN" : "INTERNAL"), reason: err.reason || "INTERNAL_ERROR", kind: err instanceof AuthorizationError ? "authorization" : err instanceof HttpError && err.status === 401 ? "delegation" : null, detail: err instanceof HttpError ? err.detail || null : null };
       if (err instanceof HttpError) return send(err.status, { success: false, error: { code: err.code, reason: err.reason } });
       if (err instanceof AuthorizationError) return send(err.status, { success: false, error: { code: err.status === 503 ? "UNAVAILABLE" : "FORBIDDEN", reason: err.reason } });
       if (err instanceof OnboardingError || err instanceof TransitionError) return send(err.status, { success: false, error: { code: err.status === 404 ? "NOT_FOUND" : err.status === 403 ? "FORBIDDEN" : err.status === 400 ? "INVALID_REQUEST" : err.status === 503 ? "UNAVAILABLE" : err.status === 422 ? "UNPROCESSABLE" : "CONFLICT", reason: err.reason, detail: Array.isArray(err.detail) ? err.detail.map((d) => (typeof d === "string" ? d : d.kind || "")).slice(0, 10) : undefined } });
@@ -167,6 +187,7 @@ function createApp({ pool, endpoints, trustStore, hqDelegationKeys, environment,
       logger({ service: "product-integration-core", event: "unhandled_error", error: err && err.name, code: err && err.code, correlation_id: correlationId, upstream_correlation_id: upstreamCorrelationId });
       return send(500, { success: false, error: { code: "INTERNAL", reason: "INTERNAL_ERROR" } });
     } finally {
+      try { metrics.observeRequest({ route, status, ...outcome, duration_ms: now() - started }); } catch { /* metrics never break a request */ }
       logger({ service: "product-integration-core", event: "request", method: req.method, path: String(req.url || "").split("?")[0].slice(0, 160), status, duration_ms: now() - started, correlation_id: correlationId, upstream_correlation_id: upstreamCorrelationId });
     }
   };

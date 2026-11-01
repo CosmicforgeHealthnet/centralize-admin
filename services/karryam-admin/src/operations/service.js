@@ -97,7 +97,9 @@ function evidenceOf(res, sourceStatus) {
   return { source_status: sourceStatus, source_version: version, observed_at: res.asOf, bridge_correlation_id: res.bridgeCorrelationId, bridge_capability_id: res.capability.id };
 }
 
-function createOperations({ config, catalog, operations, approvals, bridgeClient, certifications = null, governance = null, now = Date.now, logger = () => {} }) {
+function createOperations({ config, catalog, operations, approvals, bridgeClient, certifications = null, governance = null, now = Date.now, logger = () => {}, signal = () => {} }) {
+  // signal(kind, value): bounded command signals for metrics (dispatch outcome, readback state).
+  const emit = (kind, value) => { try { signal(kind, value); } catch { /* metrics never break a command */ } };
   const findCapability = (id) => catalog.capabilities.find((c) => c.id === id) || null;
   const HIGH = (risk) => risk === "R3" || risk === "R4";
   const revision = contractRevision();
@@ -295,12 +297,19 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
         : { status: "FAILED", fields: { reasonCode: mapped.reason, evidence: { dispatch_error: err.category, source_operation_id: err.operationId || null } } };
       logger({ event: "operation_dispatch_failed", capability: source.id, category: err.category || "UNKNOWN", correlation_id: ctx.correlationId });
     }
+    emit("dispatch", next.status);
     const final = await operations.transition(command.command_id, "DISPATCHING", next.status, next.fields, auditBase(ctx, cap, "OPERATION_" + next.status, next.fields.reasonCode));
     return { body: contracts.okEnvelope({ productId: config.productId, correlationId: ctx.correlationId, result: view(final || dispatching) }, now()) };
   }
 
   // Authoritative readback of an unsettled operation. Never resubmits.
   async function readback(ctx, op) {
+    const r = await readbackOnce(ctx, op);
+    if (r.readback) emit("readback", r.readback.state);
+    return r;
+  }
+
+  async function readbackOnce(ctx, op) {
     let current = op;
     if (current.status === "DISPATCHING" && now() - Date.parse(current.dispatched_at || current.updated_at) > STALE_DISPATCH_MS) {
       current = (await operations.transition(op.operation_id, "DISPATCHING", "UNKNOWN_OUTCOME", { reasonCode: "DISPATCH_INTERRUPTED" }, null)) || await operations.get(op.operation_id);

@@ -81,6 +81,8 @@ jobs:
             docker compose -f infrastructure/product-admin/staging/docker-compose.yml config --format json > /tmp/mutable.json
           if node infrastructure/scripts/product-admin-infra-check.mjs --compose-json /tmp/mutable.json --require-digests; then echo "::error::mutable tags were accepted"; exit 1; fi
           if docker compose -f infrastructure/product-admin/staging/docker-compose.yml config >/dev/null 2>&1; then echo "::error::compose resolved without image references"; exit 1; fi
+      - name: Alert rules are valid Prometheus rules (promtool)
+        run: docker run --rm -v "$PWD/infrastructure/product-admin/monitoring:/w:ro" --entrypoint promtool prom/prometheus:v2.53.0 check rules /w/alerts.yml
       - name: Redacted secret scan (includes infrastructure/product-admin)
         run: node services/central-admin-api/scripts/social-operations/secret-scan.js --product-admin
       - uses: actions/upload-artifact@v4

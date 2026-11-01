@@ -1,0 +1,280 @@
+# Prometheus alert rules for the private Product Admin services (Karryam
+# Admin and the HQ Product Integration Core). Thresholds are conservative
+# operational DEFAULTS for staging, not business SLOs; tune them per
+# environment (see README.md). Format rules for the repository test:
+# one `expr:` per line, every rule has `for:`, `severity` and `summary`.
+#
+# Scrape targets (private only, never through public Nginx):
+#   job="karryam-admin"            GET /metrics on the Karryam Admin socket
+#   job="product-integration-core" GET /metrics on the PIC socket
+groups:
+  - name: product-admin-availability
+    rules:
+      - alert: ProductAdminServiceDown
+        expr: up{job=~"karryam-admin|product-integration-core"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} metrics endpoint unreachable for 5 minutes"
+          runbook: "docs/product-admin/release-runbook.md#7-rollback"
+      - alert: ProductAdminDatabaseUnavailable
+        expr: karryam_admin_database_up == 0 or pic_database_up == 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} cannot reach its own database (readiness is failing closed)"
+          runbook: "infrastructure/product-admin/monitoring/README.md#database-outage"
+      - alert: ProductAdminCrashLoop
+        expr: changes(karryam_admin_process_start_time_seconds[30m]) > 3 or changes(pic_process_start_time_seconds[30m]) > 3
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} restarted more than 3 times in 30 minutes"
+          runbook: "infrastructure/product-admin/monitoring/README.md#crash-loop"
+      - alert: ProductAdminMetricsCollectorFailing
+        expr: increase(karryam_admin_metrics_collector_errors_total[15m]) > 5 or increase(pic_metrics_collector_errors_total[15m]) > 5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.job }} scrape-time collector {{ $labels.collector }} keeps failing; gauges may be stale"
+
+  - name: product-admin-security
+    rules:
+      - alert: ProductAdminCertificateExpiringSoon
+        expr: (karryam_admin_certificate_expiry_timestamp_seconds - time()) < 14 * 86400
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Karryam Admin {{ $labels.kind }} {{ $labels.kid }} expires in under 14 days"
+          runbook: "docs/product-admin/release-runbook.md#5-trust-changes-revocation-expiry-rotation"
+      - alert: ProductIntegrationKeyExpiringSoon
+        expr: (pic_key_expiry_timestamp_seconds - time()) < 14 * 86400
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "PIC {{ $labels.kind }} {{ $labels.kid }} ({{ $labels.product }}) expires in under 14 days"
+          runbook: "docs/product-admin/release-runbook.md#5-trust-changes-revocation-expiry-rotation"
+      - alert: ProductManifestNearExpiry
+        expr: pic_product_manifest_expires_in_seconds < 600
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Accepted signed manifest for {{ $labels.product }} expires within 10 minutes (health checks not refreshing it)"
+      - alert: ProductIntegrationTrustStoreChanged
+        expr: pic_trust_store_current == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PIC signer trust store changed on disk (revocation or rotation); PIC fails closed until restarted"
+          runbook: "docs/product-admin/release-runbook.md#5-trust-changes-revocation-expiry-rotation"
+      - alert: ProductAdminSignerMismatch
+        expr: pic_product_admin_state{dimension="drift",state=~"IDENTITY_MISMATCH|MANIFEST_INVALID|MANIFEST_EXPIRED"} == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.product }} identity/manifest drift {{ $labels.state }}: synchronization stopped"
+          runbook: "docs/product-admin/release-runbook.md#6-drift-and-holds-what-blocks-and-how-to-clear-it"
+      - alert: ProductAdminRevokedKeyInUse
+        expr: increase(karryam_admin_service_auth_failures_total{reason=~".*REVOKED.*"}[10m]) > 0 or increase(pic_delegation_failures_total{reason=~".*REVOKED.*"}[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "A revoked key is still being presented to {{ $labels.job }}"
+      - alert: KarryamBridgeTransportSecurityFailure
+        expr: increase(karryam_admin_bridge_requests_total{outcome="TRANSPORT_SECURITY"}[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Karryam Admin refused the Bridge TLS identity (revoked, unpinned or invalid certificate)"
+      - alert: ProductAdminAuthenticationFailures
+        expr: sum by (job) (increase(karryam_admin_service_auth_failures_total[10m])) > 20 or sum by (job) (increase(pic_delegation_failures_total[10m])) > 20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Sustained authentication failures on {{ $labels.job }} (invalid service identity, delegation or JWT)"
+      - alert: ProductAdminReplayAttempts
+        expr: increase(karryam_admin_replay_rejections_total[10m]) > 0 or increase(pic_replay_rejections_total[10m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Replayed nonce or delegation refused by {{ $labels.job }}"
+      - alert: ProductAdminCrossScopeDenials
+        expr: increase(pic_cross_scope_denials_total[15m]) > 10
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Repeated cross-tenant/cross-scope access attempts refused by HQ"
+      - alert: ProductAdminAuditPersistenceFailure
+        expr: increase(karryam_admin_audit_persistence_failures_total[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Karryam Admin failed requests closed because audit records could not be persisted"
+
+  - name: product-admin-synchronization
+    rules:
+      - alert: KarryamSourcePolicyUnavailable
+        expr: increase(karryam_admin_bridge_requests_total{outcome="POLICY_UNAVAILABLE"}[15m]) > 0 or pic_subscription_state{dimension="status",state="POLICY_BLOCKED"} == 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Source owner policy unavailable or subscription policy-blocked"
+      - alert: KarryamBridgeFeedLagSustained
+        expr: karryam_admin_bridge_feed_lag_events > 500
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Partition {{ $labels.partition }} is more than 500 Bridge events behind for 15 minutes"
+      - alert: KarryamBridgeFeedStalled
+        expr: karryam_admin_bridge_feed_enabled == 1 and on() max(karryam_admin_bridge_feed_last_success_age_seconds) > 1800
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Stage A worker has not completed a successful run for 30 minutes (crash loop or Bridge outage)"
+          runbook: "infrastructure/product-admin/monitoring/README.md#crash-loop"
+      - alert: KarryamBridgeUnackedEvents
+        expr: karryam_admin_bridge_unacked_events > 100
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Partition {{ $labels.partition }} holds more than 100 committed but unacknowledged Bridge events"
+      - alert: KarryamHqOutboxUnacked
+        expr: karryam_admin_hq_outbox_unacked_events > 1000
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HQ has not acknowledged more than 1000 derived events for {{ $labels.dataset }} (HQ offline or PIC sync stopped)"
+      - alert: ProductIntegrationUnackedEvents
+        expr: pic_cursor_unacked_events > 100
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HQ committed events for {{ $labels.product }}/{{ $labels.dataset }} not acknowledged to the Product Admin"
+      - alert: ProductIntegrationSourceStale
+        expr: pic_subscription_source_observation_age_seconds > 3600
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No new source observation for {{ $labels.product }}/{{ $labels.dataset }} in over an hour"
+      - alert: KarryamIntegrityHold
+        expr: karryam_admin_bridge_integrity_hold == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Partition {{ $labels.partition }} is held at an unverified event (never ACKed past); reconciliation required"
+          runbook: "docs/product-admin/release-runbook.md#6-drift-and-holds-what-blocks-and-how-to-clear-it"
+      - alert: KarryamEntityVersionGap
+        expr: karryam_admin_entity_version_gaps_open > 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unrepaired entity-version gaps in {{ $labels.partition }} (coverage PARTIAL until backfill)"
+      - alert: ProductIntegrationGapOpen
+        expr: pic_cursor_gaps_open > 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HQ sequence gap open for {{ $labels.product }}/{{ $labels.dataset }}"
+      - alert: ProductAdminRepeatedQuarantine
+        expr: karryam_admin_quarantine_open > 5 or pic_quarantine_open > 5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 5 unresolved quarantined events on {{ $labels.job }}"
+      - alert: ProductAdminSyncRunsFailing
+        expr: sum by (job) (karryam_admin_sync_runs_failed_1h) > 10 or sum by (job) (pic_sync_runs_1h{status=~"FAILED|LEASE_LOST|BLOCKED"}) > 10
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 10 failed, blocked or lease-lost sync runs in the last hour on {{ $labels.job }}"
+      - alert: ProductIntegrationAckFailures
+        expr: pic_sync_ack_failures_24h > 10
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Repeated ACK transmission failures from HQ to {{ $labels.product }}"
+
+  - name: product-admin-commands
+    rules:
+      - alert: KarryamUnknownOutcomePersistent
+        expr: karryam_admin_operations_unknown_outcome_oldest_age_seconds > 900
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "A source command has been UNKNOWN_OUTCOME for over 15 minutes; resolve by authoritative readback only, never resubmit"
+      - alert: KarryamSourceRateLimitSaturation
+        expr: sum(rate(karryam_admin_bridge_requests_total{outcome="RATE_LIMITED"}[10m])) / clamp_min(sum(rate(karryam_admin_bridge_requests_total[10m])), 1e-9) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 20% of Bridge calls are rate-limited by the source"
+      - alert: KarryamSourceUnavailable
+        expr: sum(rate(karryam_admin_bridge_requests_total{outcome=~"BRIDGE_UNAVAILABLE|BRIDGE_TIMEOUT|SOURCE_UNAVAILABLE"}[10m])) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Karryam Bridge or source owners unavailable (sustained failures)"
+      - alert: KarryamReadbackFailures
+        expr: increase(karryam_admin_command_readback_total{state=~"READBACK_UNAVAILABLE|NO_READBACK_CONTRACT"}[30m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Authoritative readback of unsettled commands is failing"
+      - alert: KarryamApprovalsExpiring
+        expr: karryam_admin_approvals_expired_unused > 5
+        for: 1h
+        labels:
+          severity: info
+        annotations:
+          summary: "More than 5 approvals expired unused in 24 hours (review the approval workflow)"
+
+  - name: product-admin-database
+    rules:
+      - alert: ProductAdminMigrationPending
+        expr: karryam_admin_schema_migrations_applied < karryam_admin_schema_migrations_expected or pic_schema_migrations_applied < pic_schema_migrations_expected
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} runs an image with migrations its database has not applied (failed or skipped migration)"
+          runbook: "docs/product-admin/database-migration-runbook.md"
+      - alert: ProductAdminMigrationChecksumMismatch
+        expr: karryam_admin_schema_migrations_checksum_mismatch > 0 or pic_schema_migrations_checksum_mismatch > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} ledger checksum differs from the shipped migration file (tampered or wrong image)"
+          runbook: "docs/product-admin/database-migration-runbook.md"

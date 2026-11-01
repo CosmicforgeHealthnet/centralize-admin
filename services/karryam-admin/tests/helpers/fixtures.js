@@ -69,6 +69,8 @@ async function startApp(config, deps = {}) {
     ...(deps.certifications ? { certifications: deps.certifications } : {}),
     ...(deps.governance ? { governance: deps.governance } : {}),
     ...(deps.now ? { now: deps.now } : {}),
+    ...(deps.pool ? { pool: deps.pool } : {}),
+    ...(deps.observability ? { observability: deps.observability } : {}),
   };
   const server = http.createServer(createApp(config, full));
   server.listen(0, "127.0.0.1");

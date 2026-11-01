@@ -37,6 +37,7 @@ async function start(env = process.env, { logger = createLogger() } = {}) {
     deps = {
       logger, audit, nonceStore: pgNonceStore(pool), operations: pgOperations(pool), approvals: pgApprovals(pool), accessLog: pgAccessLog(pool),
       pipeline: createPipelineStore(pool, { serviceInstanceId: config.serviceInstanceId }), governance: createGovernanceStore(pool), certifications, dbReady: () => ping(pool),
+      pool, // scrape-time metrics (runtime role, read-only queries)
     };
   }
   const server = createServer(createApp(config, deps), config);
