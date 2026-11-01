@@ -455,7 +455,12 @@ backup() {
     docker run -d --rm --name "$name" --network none -e POSTGRES_PASSWORD="$pw" -v "$d:/backup:ro" "$image" >/dev/null
     for _ in $(seq 1 30); do docker exec "$name" pg_isready -q -h 127.0.0.1 -U postgres 2>/dev/null && break; sleep 2; done
     local listed restored
-    listed="$(docker exec "$name" sh -c 'pg_restore --list "/backup/$1" | grep -c " TABLE DATA "' _ "$f" || echo -1)"
+    # The archive must list cleanly; then count its table-data entries (0 is valid for an empty database).
+    if docker exec "$name" pg_restore --list "/backup/$f" > /dev/null 2>&1; then
+      listed="$(docker exec "$name" sh -c 'pg_restore --list "/backup/$1" | grep -c " TABLE DATA " || true' _ "$f")"
+    else
+      listed=-1
+    fi
     if docker exec "$name" sh -c 'createdb -U postgres restored && pg_restore -U postgres --no-owner --no-privileges --exit-on-error -d restored "/backup/$1"' _ "$f" >/dev/null 2>&1; then
       restored="$(docker exec "$name" psql -U postgres -d restored -tAc "SELECT count(*) FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema')")"
       detail+="$f: $listed table data entries, $restored tables restored; "
