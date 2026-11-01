@@ -395,6 +395,14 @@ jobs:
           node infrastructure/scripts/product-admin-staging-gates.mjs --sha "$GITHUB_SHA" "${base_args[@]}" --artifacts _artifacts --ci-status ci-status.json \
             --report _gates/product-admin-staging-gates.json --markdown _gates/product-admin-staging-gates.md
           cat _gates/product-admin-staging-gates.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Section 14 WP/DoD and release closure (never self-certify live staging)
+        if: always()
+        run: |
+          set -euo pipefail
+          node --test infrastructure/scripts/tests/product-admin-section14-closure.test.mjs
+          node infrastructure/scripts/product-admin-section14-closure.mjs --sha "$GITHUB_SHA" --gates _gates/product-admin-staging-gates.json \
+            --report _gates/product-admin-section14-closure.json --markdown _gates/product-admin-section14-closure.md
+          cat _gates/product-admin-section14-closure.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -1,6 +1,6 @@
 # Product Admin platform (Karryam Admin and Centralized Admin HQ integration)
 
-Implementation of Sections 1–11 of *Karryam Admin and Centralized Admin
+Implementation evidence for Sections 1–14 of *Karryam Admin and Centralized Admin
 Headquarters — Complete Backend Implementation Specification v1.0*.
 
 | Document | Covers |
@@ -16,7 +16,7 @@ Headquarters — Complete Backend Implementation Specification v1.0*.
 | [karryam-admin-api-catalog.json](karryam-admin-api-catalog.json) | Generated API catalog (CI drift-checked) |
 | [section-11-implementation-report.md](section-11-implementation-report.md) | Section 11: authorization intersection, identity chain, key rotation/revocation, R3/R4 approvals, privacy, threat tests |
 | [sections-09-11-final-acceptance.md](sections-09-11-final-acceptance.md) | Consolidated Sections 9–11 acceptance, CI evidence, operator-only items |
-| [database-migration-runbook.md](database-migration-runbook.md) | Migration preflight, backup, apply, rollback/restore |
+| [section-14-final-closure.md](section-14-final-closure.md) | Section 14: WP0–WP11, two definitions of done, release groups and real staging/signoff blockers |\n| [sections-12-13-implementation-report.md](sections-12-13-implementation-report.md) | Sections 12–13: infrastructure, CI, 12 journeys, S0–S7 and 14 staging gates |\n| [database-migration-runbook.md](database-migration-runbook.md) | Migration preflight, backup, apply, rollback/restore |
 
 Code:
 
