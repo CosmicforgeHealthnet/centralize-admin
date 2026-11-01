@@ -6,7 +6,7 @@
 // and valid; any problem stops startup with a sanitized reason code.
 
 const net = require("node:net");
-const { X509Certificate } = require("node:crypto");
+const { X509Certificate, createPrivateKey } = require("node:crypto");
 const { contracts, clients } = require("../packages");
 const { parseListen } = require("../transport/listen-spec");
 const K = require("../security/keys");
@@ -88,6 +88,27 @@ function checkClientCertificate(pem, expectedUri, revoked, now) {
   return Object.freeze({ uri: expectedUri, fingerprint, notAfter: new Date(Date.parse(cert.validTo)).toISOString() });
 }
 
+// The Bridge CA bundle must hold at least one currently valid CA certificate.
+function checkCaBundle(pem, now) {
+  const blocks = String(pem).match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g) || [];
+  if (blocks.length === 0) throw new ConfigError("KARRYAM_BRIDGE_CA_FILE_INVALID");
+  let current = 0;
+  for (const block of blocks) {
+    let cert;
+    try { cert = new X509Certificate(block); } catch { throw new ConfigError("KARRYAM_BRIDGE_CA_FILE_INVALID"); }
+    if (!cert.ca) throw new ConfigError("KARRYAM_BRIDGE_CA_FILE_NOT_A_CA");
+    if (Date.parse(cert.validFrom) <= now && Date.parse(cert.validTo) > now) current += 1;
+  }
+  if (current === 0) throw new ConfigError("KARRYAM_BRIDGE_CA_NOT_CURRENTLY_VALID");
+}
+
+// The client private key must belong to the enrolled client certificate.
+function checkKeyPair(certPem, keyPem) {
+  let key;
+  try { key = createPrivateKey(keyPem); } catch { throw new ConfigError("KARRYAM_BRIDGE_CLIENT_KEY_INVALID"); }
+  if (!new X509Certificate(certPem).checkPrivateKey(key)) throw new ConfigError("KARRYAM_BRIDGE_CLIENT_KEY_CERT_MISMATCH");
+}
+
 function loadBridgeConfig(env, now = Date.now()) {
   const enabled = bool(env.KARRYAM_BRIDGE_ENABLED, "KARRYAM_BRIDGE_ENABLED");
   if (!enabled) return Object.freeze({ enabled: false });
@@ -115,6 +136,9 @@ function loadBridgeConfig(env, now = Date.now()) {
   const clientCert = K.readSecretFile(required(env, "KARRYAM_BRIDGE_CLIENT_CERT_FILE"), "KARRYAM_BRIDGE_CLIENT_CERT_FILE");
   const revokedServerFingerprints = fingerprintList(env.KARRYAM_BRIDGE_REVOKED_FINGERPRINTS, "KARRYAM_BRIDGE_REVOKED_FINGERPRINTS");
   const clientIdentity = checkClientCertificate(clientCert, required(env, "KARRYAM_BRIDGE_CLIENT_URI", WORKLOAD_URI), revokedServerFingerprints, now);
+  checkCaBundle(serverCa, now);
+  const clientKey = K.readSecretFile(required(env, "KARRYAM_BRIDGE_CLIENT_KEY_FILE"), "KARRYAM_BRIDGE_CLIENT_KEY_FILE");
+  checkKeyPair(clientCert, clientKey);
   return Object.freeze({
     enabled: true,
     origin: origin.href,
@@ -131,7 +155,7 @@ function loadBridgeConfig(env, now = Date.now()) {
     roleMap: Object.freeze({ ...roleMap }),
     serverCa,
     clientCert,
-    clientKey: K.readSecretFile(required(env, "KARRYAM_BRIDGE_CLIENT_KEY_FILE"), "KARRYAM_BRIDGE_CLIENT_KEY_FILE"),
+    clientKey,
     serviceKey: K.loadBase64UrlKeyFile(required(env, "KARRYAM_BRIDGE_HMAC_KEY_FILE"), "KARRYAM_BRIDGE_HMAC_KEY_FILE"),
     staffPrivateKey: K.loadEd25519PrivateKey(required(env, "KARRYAM_BRIDGE_STAFF_PRIVATE_KEY_FILE"), "KARRYAM_BRIDGE_STAFF_PRIVATE_KEY_FILE"),
   });
@@ -310,6 +334,7 @@ function describeConfig(config) {
     mtls: Boolean(config.tls),
     manifest_signer: config.manifestSigner ? "PROVISIONED" : "NOT_PROVISIONED",
     bridge: config.bridge.enabled ? "CONFIGURED_NOT_CERTIFIED" : "DISABLED",
+    bridge_client_cert_expires_in_days: config.bridge.enabled ? Math.floor((Date.parse(config.bridge.clientIdentity.notAfter) - Date.now()) / 86400000) : null,
     enabled_commands: config.enabledCommands.length,
     certified_datasets: config.certifiedDatasets.length,
     bridge_feed: config.feed.enabled ? { partitions: config.feed.scopes.length } : "DISABLED",

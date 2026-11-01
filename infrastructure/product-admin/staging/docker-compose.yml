@@ -1,0 +1,195 @@
+# Product Admin private services on the shared staging VPS (Section 12.1/12.2).
+#
+# Deployed ONLY by .github/workflows/product-admin-staging-ops.yml through
+# infrastructure/product-admin/release/pa-staging-ops.sh, never by hand and
+# never from main. Compose project: cf-product-admin-staging.
+#
+# Boundary (see network-policy.json, the single source of truth):
+#   Central Admin API --unix socket--> Product Integration Core --unix socket--> Karryam Admin
+#   Karryam Admin (+ worker) --TLS 1.3 mTLS :8110 on cf-staging-karryam-bridge--> Karryam Backoffice Bridge
+#   Product Integration Core --cf-staging-hq-private--> DB-A (existing HQ database, alias hq-db)
+#   Karryam Admin (+ worker) --cf-staging-karryam-admin-db--> DB-B (karryam-admin-db below)
+# Every network is internal (no route to the internet, no masquerade). No
+# service publishes a host port. Images are immutable digest references
+# chosen by the release workflow. Every service starts DISABLED unless the
+# operator-managed env file enables it.
+#
+# Host layout (created by `pa-staging-ops.sh prepare-host`):
+#   ${PA_HOST_ROOT}/run/pic            10002:10002 0750  PIC socket (read by the API)
+#   ${PA_HOST_ROOT}/run/karryam-admin  10001:10001 0750  Karryam Admin socket (read by PIC)
+#   ${PA_CONFIG_ROOT}/*.env            root 0640         operator-managed, never in git
+#   ${PA_CONFIG_ROOT}/secrets/<svc>/   root 0750, files 0640, mounted read-only
+
+name: cf-product-admin-staging
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  privileged: false
+  init: true
+  restart: unless-stopped
+  stop_grace_period: 15s
+  pids_limit: 128
+  mem_limit: 384m
+  memswap_limit: 384m
+  cpus: 0.50
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=16m
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  product-integration-core:
+    <<: *hardening
+    image: ${PIC_IMAGE:?PIC_IMAGE must be an immutable ghcr.io digest reference}
+    user: "10002:10002"
+    # Connects to the Karryam Admin socket (group 10001, mode 0660).
+    group_add: ["10001"]
+    environment:
+      PIC_ENVIRONMENT: staging
+      PIC_EXPECT_ENVIRONMENT: staging
+      PIC_LISTEN: unix:/run/cosmicforge/pic/product-integration-core.sock
+    env_file:
+      - ${PA_CONFIG_ROOT:-/etc/cosmicforge/staging}/product-integration-core.env
+    volumes:
+      - type: bind
+        source: ${PA_HOST_ROOT:-/srv/cosmicforge/staging}/run/pic
+        target: /run/cosmicforge/pic
+      - type: bind
+        source: ${PA_HOST_ROOT:-/srv/cosmicforge/staging}/run/karryam-admin
+        target: /run/cosmicforge/karryam
+        read_only: true
+      - type: bind
+        source: ${PA_CONFIG_ROOT:-/etc/cosmicforge/staging}/secrets/product-integration-core
+        target: /run/secrets/product-integration-core
+        read_only: true
+    networks:
+      hq-private: {}
+      admin-private: {}
+    labels:
+      com.cosmicforge.product-admin.role: hq-integration
+      com.cosmicforge.product-admin.public: "false"
+
+  karryam-admin:
+    <<: *hardening
+    image: ${KARRYAM_ADMIN_IMAGE:?KARRYAM_ADMIN_IMAGE must be an immutable ghcr.io digest reference}
+    user: "10001:10001"
+    environment:
+      KARRYAM_ADMIN_ENVIRONMENT: staging
+      KARRYAM_ADMIN_EXPECT_ENVIRONMENT: staging
+      KARRYAM_ADMIN_LISTEN: unix:/run/cosmicforge/karryam/karryam-admin.sock
+    env_file:
+      - ${PA_CONFIG_ROOT:-/etc/cosmicforge/staging}/karryam-admin.env
+    volumes:
+      - type: bind
+        source: ${PA_HOST_ROOT:-/srv/cosmicforge/staging}/run/karryam-admin
+        target: /run/cosmicforge/karryam
+      - type: bind
+        source: ${PA_CONFIG_ROOT:-/etc/cosmicforge/staging}/secrets/karryam-admin
+        target: /run/secrets/karryam-admin
+        read_only: true
+    networks:
+      admin-private: {}
+      karryam-bridge: {}
+      karryam-admin-db: {}
+    depends_on:
+      karryam-admin-db:
+        condition: service_healthy
+    labels:
+      com.cosmicforge.product-admin.role: product-admin
+      com.cosmicforge.product-admin.public: "false"
+
+  # Stage A worker: same image, separate process, no listener. Talks only to
+  # the Bridge and DB-B; never to HQ.
+  karryam-admin-worker:
+    <<: *hardening
+    image: ${KARRYAM_ADMIN_IMAGE:?KARRYAM_ADMIN_IMAGE must be an immutable ghcr.io digest reference}
+    command: ["node", "src/worker/index.js"]
+    user: "10001:10001"
+    # Disabled (the default) the worker exits 1 by design; do not restart-loop it.
+    restart: "no"
+    healthcheck:
+      disable: true
+    environment:
+      KARRYAM_ADMIN_ENVIRONMENT: staging
+      KARRYAM_ADMIN_EXPECT_ENVIRONMENT: staging
+    env_file:
+      - ${PA_CONFIG_ROOT:-/etc/cosmicforge/staging}/karryam-admin.env
+    volumes:
+      - type: bind
+        source: ${PA_CONFIG_ROOT:-/etc/cosmicforge/staging}/secrets/karryam-admin
+        target: /run/secrets/karryam-admin
+        read_only: true
+    networks:
+      karryam-bridge: {}
+      karryam-admin-db: {}
+    depends_on:
+      karryam-admin-db:
+        condition: service_healthy
+    labels:
+      com.cosmicforge.product-admin.role: product-admin-worker
+      com.cosmicforge.product-admin.public: "false"
+
+  # DB-B: the dedicated Karryam Admin database. Reachable only on its own
+  # internal network. Roles (migrator/runtime) are created by the operator
+  # from infrastructure/product-admin/postgres-roles.example.sql; the
+  # superuser password is a secret file and is never given to a service.
+  karryam-admin-db:
+    <<: *hardening
+    image: ${KARRYAM_ADMIN_DB_IMAGE:?KARRYAM_ADMIN_DB_IMAGE must be an immutable digest reference}
+    user: "70:70"
+    mem_limit: 512m
+    memswap_limit: 512m
+    shm_size: 128m
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/karryam-admin-db/postgres-password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m
+      - /var/run/postgresql:rw,noexec,nosuid,nodev,size=1m,uid=70,gid=70,mode=0700
+    volumes:
+      - type: volume
+        source: karryam-admin-db-data
+        target: /var/lib/postgresql/data
+      - type: bind
+        source: ${PA_CONFIG_ROOT:-/etc/cosmicforge/staging}/secrets/karryam-admin-db
+        target: /run/secrets/karryam-admin-db
+        read_only: true
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-h", "127.0.0.1", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      karryam-admin-db: {}
+    labels:
+      com.cosmicforge.product-admin.role: database-b
+      com.cosmicforge.product-admin.public: "false"
+
+volumes:
+  karryam-admin-db-data:
+    name: cf-staging-karryam-admin-db-data
+
+# Created and owned by `pa-staging-ops.sh prepare-host` (internal, fixed
+# subnets from network-policy.json) so membership can be audited and the
+# source-owned Bridge and the existing HQ database can be attached by their
+# owners without joining this compose project.
+networks:
+  hq-private:
+    name: cf-staging-hq-private
+    external: true
+  admin-private:
+    name: cf-staging-admin-private
+    external: true
+  karryam-bridge:
+    name: cf-staging-karryam-bridge
+    external: true
+  karryam-admin-db:
+    name: cf-staging-karryam-admin-db
+    external: true

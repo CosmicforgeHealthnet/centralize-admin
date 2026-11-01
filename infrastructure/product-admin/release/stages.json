@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "description": "Section 12.4 staging release stages S0-S7 for the private Product Admin services. Consumed by release-state.mjs (state machine), product-admin-staging-ops.yml (orchestration) and the Section 13.3 staging gate evaluator. A stage is PASSED only with valid staging evidence for the current release commit; local or disposable tests never satisfy a stage, and evidence never carries over to a new commit (prepared host state does; it is re-verified).",
+  "statuses": ["PENDING", "IN_PROGRESS", "PASSED", "FAILED", "BLOCKED_EXTERNAL", "ROLLED_BACK"],
+  "stages": [
+    {
+      "id": "S0",
+      "title": "Reviewed staging code and CI",
+      "requires": [],
+      "authorization": { "required": false },
+      "automated_checks": ["commit_on_staging", "required_ci_green", "contract_drift_none", "database_security_suites", "container_build_smoke", "image_digests_recorded", "no_unrelated_changes"],
+      "operator_evidence": [],
+      "external_prerequisites": [],
+      "exit_criteria": ["Exact commit is the reviewed tip (or an ancestor) of origin/staging", "Product Admin Platform CI, Infrastructure Security CI and Monorepo CI succeeded for that commit", "Both images built from that commit with recorded sha256 digests"],
+      "rollback": "Nothing deployed; choose another commit."
+    },
+    {
+      "id": "S1",
+      "title": "Database and network preparation",
+      "requires": ["S0"],
+      "authorization": { "required": true, "by": "operator", "confirm": "APPLY_STAGING_PRODUCT_ADMIN_CHANGES" },
+      "automated_checks": ["networks_internal_and_isolated", "socket_dirs_owned", "config_files_protected", "firewall_docker_user", "nginx_internal_denied", "db_roles_separated", "db_no_cross_credentials", "backup_restorable", "migration_preview_ok", "migrations_applied"],
+      "operator_evidence": ["db_roles_created", "public_connect_revoked", "nginx_snippet_installed"],
+      "external_prerequisites": ["Operator creates DB-A/DB-B migration and runtime roles", "Operator writes env and secret files under /etc/cosmicforge/staging", "Operator includes the deny snippet in the live Nginx server block"],
+      "exit_criteria": ["Four internal networks with policy membership only", "DOCKER-USER rules verified", "Public probe: no private path answers", "Verified pre-migration backup with checksum and restore drill", "Preview reports ok, then approved migrations applied"],
+      "rollback": "Forward-only migrations: restore the verified backup (database-migration-runbook.md); networks and firewall rules are removable with prepare-host --remove."
+    },
+    {
+      "id": "S2",
+      "title": "Deploy private services",
+      "requires": ["S0", "S1"],
+      "authorization": { "required": true, "by": "operator", "confirm": "APPLY_STAGING_PRODUCT_ADMIN_CHANGES" },
+      "automated_checks": ["images_match_tested_digests", "containers_running_non_root", "no_published_ports", "network_membership_matches_policy", "socket_permissions", "health_live", "health_ready_expected", "unauthenticated_refused", "pic_to_karryam_socket", "hq_gateway_socket_reachable"],
+      "operator_evidence": [],
+      "external_prerequisites": [],
+      "exit_criteria": ["Exact tested digests running", "Live 200; readiness matches the configured activation state", "Unauthenticated protocol calls refused", "No host port published"],
+      "rollback": "Redeploy the previous recorded digests (pa-staging-ops.sh rollback) or disable (KARRYAM_ADMIN_ENABLED/PIC_ENABLED=false); data and evidence are preserved."
+    },
+    {
+      "id": "S3",
+      "title": "Trust enrollment and scoped discovery",
+      "requires": ["S2"],
+      "authorization": { "required": true, "by": "source-owner", "confirm": null },
+      "automated_checks": ["karryam_config_valid_staging", "bridge_client_identity_current", "bridge_tls13_mtls_reachable", "manifest_signer_enrolled", "capability_discovery_read_only", "unauthorized_scope_denied"],
+      "operator_evidence": ["bridge_enrollment_approved", "source_policy_signed", "read_only_pilot_scope"],
+      "external_prerequisites": ["Karryam Backoffice enrolls the client certificate, HMAC key, staff signing key, issuer/audience and scopes", "Signed source owner policy for a READ_ONLY pilot scope"],
+      "exit_criteria": ["Discovery reports the actual Bridge capability state", "Out-of-scope requests denied by the Bridge"],
+      "rollback": "Revoke enrollment (key revocation runbook); set KARRYAM_BRIDGE_ENABLED=false."
+    },
+    {
+      "id": "S4",
+      "title": "Pilot event synchronization",
+      "requires": ["S3"],
+      "authorization": { "required": true, "by": "operator", "confirm": null },
+      "automated_checks": ["pilot_partition_certified", "inbox_commit_before_ack", "restart_recovery", "replay_and_duplicates", "late_commit_reconciliation", "backfill", "freshness_within_target", "quarantine_and_gap_handling"],
+      "operator_evidence": ["pilot_partition_approved"],
+      "external_prerequisites": ["Authorized event feed for one pilot partition"],
+      "exit_criteria": ["Durable cursor advances only after commit", "No integrity hold open", "Freshness within the configured target"],
+      "rollback": "KARRYAM_BRIDGE_FEED_ENABLED=false; inbox, cursors and ACK history are kept."
+    },
+    {
+      "id": "S5",
+      "title": "Certified resource reads and dashboards",
+      "requires": ["S4"],
+      "authorization": { "required": true, "by": "independent-approver", "confirm": null },
+      "automated_checks": ["datasets_certified", "staff_grants_scoped", "scope_checks", "freshness_and_lineage", "partial_coverage_reported", "no_commands_enabled"],
+      "operator_evidence": ["dataset_certification", "staff_grants_reviewed"],
+      "external_prerequisites": ["HQ onboarding with independent reviewers", "Dataset certification"],
+      "exit_criteria": ["Dashboards show source freshness/lineage", "Missing sources remain null/blocked", "No command capability enabled"],
+      "rollback": "Suspend the product or revoke grants through the HQ API."
+    },
+    {
+      "id": "S6",
+      "title": "Authorized command-family activation",
+      "requires": ["S5"],
+      "authorization": { "required": true, "by": "independent-approver", "confirm": null },
+      "automated_checks": ["family_capabilities_available", "source_policy_current", "allowlist_matches_approval", "risk_certification_in_force", "operations_switch_independent", "idempotency_and_readback"],
+      "operator_evidence": ["command_family_approval", "source_owner_policy"],
+      "external_prerequisites": ["Source owner approval per capability family", "R3/R4 high-risk certification where applicable"],
+      "exit_criteria": ["Only approved families listed in KARRYAM_ADMIN_ENABLED_COMMANDS", "Every execution has a durable receipt and owner readback"],
+      "rollback": "Remove the family from the allowlist, revoke certification, switch HQ operations off; receipts and audit kept."
+    },
+    {
+      "id": "S7",
+      "title": "Legacy shadow comparison and cutover",
+      "requires": ["S6"],
+      "authorization": { "required": true, "by": "owner", "confirm": null },
+      "automated_checks": ["legacy_inventory_complete", "response_parity", "permission_parity", "scoped_version_parity", "observation_window_24h"],
+      "operator_evidence": ["owner_cutover_approval", "observation_window_signoff"],
+      "external_prerequisites": ["Owner approval after verified parity", "24-hour observation window (or an independently approved alternative)"],
+      "exit_criteria": ["Parity report without unexplained differences", "Route-level switch flipped by the owner", "24 h observation without regression"],
+      "rollback": "Route-level switch back to legacy (LEGACY_KARRYGO_DISPATCH_MODE=legacy); audit and receipts preserved."
+    }
+  ]
+}

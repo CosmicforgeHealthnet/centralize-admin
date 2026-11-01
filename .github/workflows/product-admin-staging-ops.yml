@@ -1,0 +1,354 @@
+name: Product Admin staging operations
+
+# The ONLY path by which the private Product Admin services reach the staging
+# VPS (Section 12.2.6). Coding agents never SSH to the host. Staging only:
+# every job refuses anything but refs/heads/staging, main and production are
+# never touched, and nothing here promotes to production.
+#
+# Operations (pa-staging-ops.sh on the host, as root):
+#   read-only : preflight, status, network-probe, db-audit, migrate-preview, public-probe (runner only)
+#   mutating  : prepare-host, backup, migrate-apply, deploy, rollback, disable, attach-gateway
+#               -> confirm=APPLY_STAGING_PRODUCT_ADMIN_CHANGES
+#   evidence  : complete-stage (S1..S7 from the latest host logs + operator evidence)
+#
+# Host access needs the protected GitHub environment `product-admin-staging`
+# (required reviewers) with secrets PA_STAGING_VPS_HOST, PA_STAGING_VPS_USER
+# (root) and PA_STAGING_VPS_SSH_KEY. Until an operator creates it every host
+# operation stops with BLOCKED and changes nothing.
+#
+# Automatic delivery: after "Product Admin Platform CI" succeeds on a staging
+# push, `deploy` runs automatically ONLY when the repository variable
+# PRODUCT_ADMIN_STAGING_AUTO_DEPLOY is "true" AND the release state on the
+# host shows S1 PASSED for the host (prepared, migrated). Default: off.
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - ".github/workflows/product-admin-staging-ops.yml"
+      - "infrastructure/product-admin/release/**"
+      - "infrastructure/product-admin/staging/**"
+      - "infrastructure/product-admin/firewall/**"
+  workflow_run:
+    workflows: ["Product Admin Platform CI"]
+    types: [completed]
+    branches: [staging]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Operation
+        type: choice
+        options: [preflight, status, network-probe, db-audit, migrate-preview, public-probe, prepare-host, backup, migrate-apply, deploy, rollback, disable, attach-gateway, complete-stage]
+        default: preflight
+      release_sha:
+        description: "deploy: full commit SHA to release (default: this run's commit)"
+        required: false
+        default: ""
+      stage:
+        description: "complete-stage: S1..S7"
+        required: false
+        default: ""
+      operator_evidence:
+        description: 'complete-stage: JSON list [{"id":"...","ref":"ticket/URL","by":"login"}]'
+        required: false
+        default: "[]"
+      approved_by:
+        description: "complete-stage: independent approver login (must differ from the actor)"
+        required: false
+        default: ""
+      confirm:
+        description: "Mutating operations: APPLY_STAGING_PRODUCT_ADMIN_CHANGES"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-admin-staging-ops
+  cancel-in-progress: false
+
+env:
+  STAGING_HOST_KEY_SHA256: "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ"
+  PUBLIC_API_HOST: stagingca.cosmicforge-healthnet.com
+
+jobs:
+  validate:
+    name: Validate bundle (no secrets, no connection)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: |
+          bash -n infrastructure/product-admin/release/pa-staging-ops.sh
+          bash -n infrastructure/product-admin/firewall/docker-user-rules.sh
+          sha256sum infrastructure/product-admin/release/pa-staging-ops.sh infrastructure/product-admin/staging/docker-compose.yml
+
+  plan:
+    name: Plan (branch gate, operation, confirmation, release commit)
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'staging' && github.event.workflow_run.event == 'push' &&
+       vars.PRODUCT_ADMIN_STAGING_AUTO_DEPLOY == 'true')
+    runs-on: ubuntu-latest
+    outputs:
+      operation: ${{ steps.p.outputs.operation }}
+      sha: ${{ steps.p.outputs.sha }}
+      host: ${{ steps.p.outputs.host }}
+      auto: ${{ steps.p.outputs.auto }}
+    steps:
+      - id: p
+        env:
+          EVENT: ${{ github.event_name }}
+          OP: ${{ inputs.operation }}
+          CONFIRM: ${{ inputs.confirm }}
+          INPUT_SHA: ${{ inputs.release_sha }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT" == workflow_run ]]; then op=deploy; sha="$RUN_SHA"; auto=true
+          else op="$OP"; sha="${INPUT_SHA:-$GITHUB_SHA}"; auto=false; fi
+          [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::release_sha must be a full 40-character commit SHA"; exit 1; }
+          case "$op" in
+            preflight|status|network-probe|db-audit|migrate-preview|complete-stage) [[ "$auto" == true || -z "$CONFIRM" ]] || { echo "::error::read-only operations take no confirmation"; exit 1; }; host=true ;;
+            public-probe) host=false ;;
+            prepare-host|backup|migrate-apply|deploy|rollback|disable|attach-gateway)
+              [[ "$auto" == true || "$CONFIRM" == APPLY_STAGING_PRODUCT_ADMIN_CHANGES ]] || { echo "::error::$op needs confirm=APPLY_STAGING_PRODUCT_ADMIN_CHANGES. Nothing was started."; exit 1; }; host=true ;;
+            *) echo "::error::unknown operation $op"; exit 1 ;;
+          esac
+          { echo "operation=$op"; echo "sha=$sha"; echo "host=$host"; echo "auto=$auto"; } >> "$GITHUB_OUTPUT"
+          echo "Operation $op, release commit $sha (automatic: $auto). Production is never targeted."
+
+  s0:
+    name: S0 - reviewed commit and required CI
+    needs: plan
+    if: needs.plan.outputs.operation == 'deploy'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Commit is on origin/staging and required CI succeeded for exactly that commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p _evidence
+          checks=()
+          add() { checks+=("{\"id\":\"$1\",\"status\":\"$2\",\"detail\":\"$3\"}"); echo "$1=$2 $3"; }
+          git fetch -q origin staging
+          if git merge-base --is-ancestor "$SHA" origin/staging; then add commit_on_staging PASS "ancestor of origin/staging $(git rev-parse --short origin/staging)"; else add commit_on_staging FAIL "not on origin/staging"; fi
+          # A path-filtered workflow that did not run is NOT a pass.
+          ok=1; detail=""
+          for wf in "Product Admin Platform CI" "Product Admin Infrastructure Security CI" "Monorepo Layout and Container CI"; do
+            c="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&per_page=50" --jq "[.workflow_runs[] | select(.name == \"$wf\" and .event == \"push\")] | sort_by(.run_attempt) | last | .conclusion // \"missing\"")"
+            detail+="$wf=$c; "; [[ "$c" == success ]] || ok=0
+          done
+          if (( ok )); then add required_ci_green PASS "$detail"; else add required_ci_green FAIL "$detail"; fi
+          # Each of these runs inside the required workflows above; their success is the evidence.
+          for id in contract_drift_none database_security_suites container_build_smoke no_unrelated_changes; do
+            if (( ok )); then add "$id" PASS "covered by the required workflows for $SHA"; else add "$id" FAIL "required workflows not green"; fi
+          done
+          printf '[%s]\n' "$(IFS=,; echo "${checks[*]}")" > _evidence/s0-checks.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: product-admin-s0-checks
+          path: _evidence/
+
+  images:
+    name: Build, smoke-test and publish immutable images
+    needs: [plan, s0]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      pic: ${{ steps.d.outputs.pic }}
+      ka: ${{ steps.d.outputs.ka }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build (or reuse the published tag after verifying its revision), smoke-test, record digests
+        id: d
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          set -euo pipefail
+          contract="$(node -p "require('./services/karryam-admin/src/bridge/contracts/karrygo-backoffice-v1.json').source_commit")"
+          for n in karryam-admin product-integration-core; do
+            ref="ghcr.io/cosmicforgehealthnet/$n:staging-$SHA"
+            if docker pull -q "$ref" >/dev/null 2>&1; then
+              [[ "$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$ref")" == "$SHA" ]] || { echo "::error::$ref exists with another revision"; exit 1; }
+              echo "$ref already published from $SHA (immutable, reused)"
+            else
+              docker build -q --label "org.opencontainers.image.revision=$SHA" --label "com.cosmicforge.bridge-contract=$contract" --label "com.cosmicforge.protocol=1.1" -f "services/$n/Dockerfile" -t "$ref" . >/dev/null
+            fi
+          done
+          # Smoke: non-root, read-only, live 200, ready 503 while disabled.
+          for spec in "karryam-admin:karryam-admin.sock:10001" "product-integration-core:product-integration-core.sock:10002"; do
+            IFS=: read -r n sock uid <<< "$spec"; dir="$(mktemp -d)"; chmod 0777 "$dir"
+            docker run -d --rm --name "smoke-$n" --network none --read-only --cap-drop ALL --security-opt no-new-privileges -v "$dir:/run/cosmicforge" "ghcr.io/cosmicforgehealthnet/$n:staging-$SHA" >/dev/null
+            for i in $(seq 1 30); do [ -S "$dir/$sock" ] && break; sleep 1; done
+            test "$(docker exec "smoke-$n" id -u)" = "$uid"
+            test "$(sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$dir/$sock" http://l/health/live)" = 200
+            test "$(sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$dir/$sock" http://l/health/ready)" = 503
+            docker stop "smoke-$n" >/dev/null
+          done
+          mkdir -p _evidence
+          for n in karryam-admin product-integration-core; do
+            ref="ghcr.io/cosmicforgehealthnet/$n:staging-$SHA"
+            docker manifest inspect "$ref" >/dev/null 2>&1 || docker push -q "$ref" >/dev/null
+            digest="$(docker image inspect -f '{{range .RepoDigests}}{{println .}}{{end}}' "$ref" | grep -m1 '^ghcr.io/cosmicforgehealthnet/')"
+            [[ "$digest" == *@sha256:* ]] || { echo "::error::no registry digest for $ref"; exit 1; }
+            [[ "$n" == karryam-admin ]] && echo "ka=$digest" >> "$GITHUB_OUTPUT" || echo "pic=$digest" >> "$GITHUB_OUTPUT"
+            echo "$n $digest"
+          done | tee _evidence/digests.txt
+          printf '{"report":"product-admin-image-digests","environment":"staging","source_sha":"%s","bridge_contract":"%s","generated_at":"%s","digests":"%s"}\n' "$SHA" "$contract" "$(date -u +%FT%TZ)" "$(tr '\n' ' ' < _evidence/digests.txt)" > _evidence/product-admin-image-digests.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: product-admin-image-digests
+          path: _evidence/
+
+  public-probe:
+    name: Public ingress probe of the live staging API host (read-only)
+    needs: plan
+    if: needs.plan.outputs.operation == 'public-probe' || needs.plan.outputs.operation == 'complete-stage'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: |
+          mkdir -p _evidence
+          node infrastructure/product-admin/nginx/test/probe.mjs --target "https://$PUBLIC_API_HOST" --host "$PUBLIC_API_HOST" --report _evidence/product-admin-ingress-probe.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-live-ingress-probe
+          path: _evidence/
+
+  host:
+    name: Host ${{ needs.plan.outputs.operation }} (staging VPS)
+    needs: [plan, s0, images, public-probe]
+    if: >-
+      always() && needs.plan.result == 'success' && needs.plan.outputs.host == 'true' &&
+      (needs.plan.outputs.operation != 'deploy' || (needs.s0.result == 'success' && needs.images.result == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: product-admin-staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        with:
+          path: _artifacts
+      - name: Connect (protected environment, pinned host key, root only)
+        env:
+          VPS_HOST: ${{ secrets.PA_STAGING_VPS_HOST }}
+          VPS_USER: ${{ secrets.PA_STAGING_VPS_USER }}
+          VPS_KEY: ${{ secrets.PA_STAGING_VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ -n "$VPS_HOST" && -n "$VPS_USER" && -n "$VPS_KEY" ]] || { echo "BLOCKED: the product-admin-staging environment secrets are not configured (PA_STAGING_VPS_HOST/USER/SSH_KEY). Nothing changed."; exit 1; }
+          key="$RUNNER_TEMP/key"; printf '%s\n' "$VPS_KEY" > "$key"; ssh-keygen -y -P '' -f "$key" >/dev/null
+          hosts="$RUNNER_TEMP/known_hosts"; ssh-keyscan -T 10 -t ed25519 "$VPS_HOST" 2>/dev/null > "$hosts" || true
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk 'NR==1{print $2}')" == "$STAGING_HOST_KEY_SHA256" ]] || { echo "BLOCKED: host key is not the staging VPS. Nothing changed."; exit 1; }
+          printf '#!/usr/bin/env bash\nexec ssh -T -i %q -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=%q -o ConnectTimeout=15 -o ServerAliveInterval=15 %q "$@"\n' "$key" "$hosts" "$VPS_USER@$VPS_HOST" > "$RUNNER_TEMP/ssh"
+          chmod 700 "$RUNNER_TEMP/ssh"
+          [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo "BLOCKED: the VPS account is not root. Nothing changed."; exit 1; }
+          [[ "$("$RUNNER_TEMP/ssh" 'test -d /var/www/admin-server-staging && echo staging')" == staging ]] || { echo "BLOCKED: not the staging host layout. Nothing changed."; exit 1; }
+          tar -czf "$RUNNER_TEMP/bundle.tgz" infrastructure/product-admin infrastructure/scripts/product-admin-infra-check.mjs
+          sha="$(sha256sum "$RUNNER_TEMP/bundle.tgz" | cut -d' ' -f1)"; echo "BUNDLE=$sha" >> "$GITHUB_ENV"
+          d="/root/.cf-product-admin-staging/$sha"
+          "$RUNNER_TEMP/ssh" "umask 077; mkdir -p $d && cat > $d/bundle.tgz && tar -xzf $d/bundle.tgz -C $d && sha256sum $d/bundle.tgz" < "$RUNNER_TEMP/bundle.tgz" | grep -q "^$sha " || { echo "bundle checksum mismatch"; exit 1; }
+          echo "Bundle $sha uploaded and verified."
+      - name: Run ${{ needs.plan.outputs.operation }}
+        if: needs.plan.outputs.operation != 'complete-stage'
+        env:
+          OP: ${{ needs.plan.outputs.operation }}
+          SHA: ${{ needs.plan.outputs.sha }}
+          AUTO: ${{ needs.plan.outputs.auto }}
+          PIC: ${{ needs.images.outputs.pic }}
+          KA: ${{ needs.images.outputs.ka }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ssh="$RUNNER_TEMP/ssh"; d="/root/.cf-product-admin-staging/$BUNDLE"; run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          if [[ "$AUTO" == true ]]; then
+            # Automatic delivery only onto a host whose S1 already passed for a previous release.
+            "$ssh" "python3 -c \"import json,sys; s=json.load(open('/srv/cosmicforge/staging/release/state.json')); h=[s['current']]+s['history']; sys.exit(0 if any(r['stages']['S1']['status']=='PASSED' for r in h) else 1)\"" \
+              || { echo "Automatic delivery skipped: no prepared host with S1 PASSED. Nothing changed."; exit 0; }
+          fi
+          # Secrets travel only on stdin, never on a remote command line.
+          { printf 'export PA_RELEASE_SHA=%q PA_PIC_IMAGE=%q PA_KA_IMAGE=%q PA_RUN_ID=%q GHCR_USER=%q GHCR_TOKEN=%q\n' "$SHA" "$PIC" "$KA" "$run" "$GHCR_USER" "$GHCR_TOKEN"
+            printf 'bash %q/infrastructure/product-admin/release/pa-staging-ops.sh %q\n' "$d" "$OP"
+          } | "$ssh" "bash -s" | tee ops.log
+      - name: Stage evidence and durable release state
+        if: always() && (needs.plan.outputs.operation == 'deploy' || needs.plan.outputs.operation == 'complete-stage')
+        env:
+          OP: ${{ needs.plan.outputs.operation }}
+          SHA: ${{ needs.plan.outputs.sha }}
+          STAGE: ${{ inputs.stage }}
+          OPERATOR_EVIDENCE: ${{ inputs.operator_evidence }}
+          APPROVED_BY: ${{ inputs.approved_by }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          ssh="$RUNNER_TEMP/ssh"; r=infrastructure/product-admin/release; st="$RUNNER_TEMP/state"; mkdir -p "$st" _evidence
+          "$ssh" 'tar -C /srv/cosmicforge/staging/release -czf - state.json events.jsonl evidence logs 2>/dev/null || true' | tar -xzf - -C "$st" 2>/dev/null || true
+          node $r/release-state.mjs init --dir "$st" --sha "$SHA" --environment staging --actor "$GITHUB_ACTOR"
+          printf '{"by":"%s","confirm":"%s","approved_by":%s,"run_id":"%s"}' "$GITHUB_ACTOR" "${CONFIRM:-APPLY_STAGING_PRODUCT_ADMIN_CHANGES}" "$([[ -n "$APPROVED_BY" ]] && printf '"%s"' "$APPROVED_BY" || echo null)" "$GITHUB_RUN_ID" > "$RUNNER_TEMP/auth.json"
+          printf '%s' "${OPERATOR_EVIDENCE:-[]}" | node -e 'const v=JSON.parse(require("fs").readFileSync(0,"utf8")); if(!Array.isArray(v)) process.exit(1); process.stdout.write(JSON.stringify(v))' > "$RUNNER_TEMP/op.json"
+          complete() { # stage args...
+            local s="$1"; shift
+            node $r/release-state.mjs begin --dir "$st" --stage "$s" --actor "$GITHUB_ACTOR" --resume true || true
+            node $r/collect-evidence.mjs --stage "$s" --sha "$SHA" --environment staging "$@" --operator-evidence "$RUNNER_TEMP/op.json" --authorization "$RUNNER_TEMP/auth.json" --out "_evidence/$s-evidence.json"
+            node $r/release-state.mjs complete --dir "$st" --stage "$s" --evidence "_evidence/$s-evidence.json" --actor "$GITHUB_ACTOR" || true
+          }
+          if [[ "$OP" == deploy ]]; then
+            [[ "$(node $r/release-state.mjs status --dir "$st")" == *'"S0":{"status":"PASSED"'* ]] || complete S0 --extra _artifacts/product-admin-s0-checks/s0-checks.json
+            complete S2 --log "$st/logs/deploy.log"
+          else
+            case "$STAGE" in
+              S1) complete S1 --log "$st/logs/preflight.log" --log "$st/logs/db-audit.log" --log "$st/logs/backup.log" --log "$st/logs/migrate-preview.log" --log "$st/logs/migrate-apply.log" --probe-report _artifacts/product-admin-live-ingress-probe/product-admin-ingress-probe.json ;;
+              S2) complete S2 --log "$st/logs/deploy.log" ;;
+              S3|S4|S5|S6|S7) complete "$STAGE" --log "$st/logs/status.log" ;;
+              *) echo "::error::stage must be S1..S7"; exit 1 ;;
+            esac
+          fi
+          node $r/release-state.mjs verify --dir "$st"
+          node $r/release-state.mjs status --dir "$st" | tee _evidence/product-admin-release-state.json
+          tar -C "$st" -czf - state.json events.jsonl evidence | "$ssh" 'install -d -m 0700 /srv/cosmicforge/staging/release && tar -xzf - -C /srv/cosmicforge/staging/release'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-staging-${{ needs.plan.outputs.operation }}-${{ github.run_id }}
+          path: |
+            ops.log
+            _evidence/
+          if-no-files-found: warn

@@ -214,6 +214,14 @@ test("configuration: client certificate URI/expiry/revocation, command allowlist
   assert.throws(() => F.loadConfig({ ...env, KARRYAM_BRIDGE_CLIENT_URI: "cf://test/hq/other" }), reason("KARRYAM_BRIDGE_CLIENT_CERT_URI_MISMATCH"));
   assert.throws(() => F.loadConfig({ ...env, KARRYAM_BRIDGE_REVOKED_FINGERPRINTS: fp }), reason("KARRYAM_BRIDGE_CLIENT_CERT_REVOKED"));
   assert.throws(() => F.loadConfig(env, { now: Date.now() - 86400000 }), reason("KARRYAM_BRIDGE_CLIENT_CERT_NOT_CURRENTLY_VALID"));
+  // Section 12.3: the client key must belong to the certificate; the CA file must hold a current CA.
+  const otherPki = generatePki({ serverName: "bridge.karryam.internal" });
+  t.after(() => otherPki.cleanup());
+  assert.throws(() => F.loadConfig({ ...env, KARRYAM_BRIDGE_CLIENT_KEY_FILE: m.write("other.key", otherPki.clientKey) }), reason("KARRYAM_BRIDGE_CLIENT_KEY_CERT_MISMATCH"));
+  assert.throws(() => F.loadConfig({ ...env, KARRYAM_BRIDGE_CLIENT_KEY_FILE: m.write("bad.key", "not a key") }), reason("KARRYAM_BRIDGE_CLIENT_KEY_INVALID"));
+  assert.throws(() => F.loadConfig({ ...env, KARRYAM_BRIDGE_CA_FILE: m.write("leaf-as-ca.pem", pki.clientCert) }), reason("KARRYAM_BRIDGE_CA_FILE_NOT_A_CA"));
+  assert.throws(() => F.loadConfig({ ...env, KARRYAM_BRIDGE_CA_FILE: m.write("junk-ca.pem", "junk") }), reason("KARRYAM_BRIDGE_CA_FILE_INVALID"));
+  assert.equal(typeof require("../src/config").describeConfig(ok).bridge_client_cert_expires_in_days, "number");
   assert.throws(() => F.loadConfig({ ...env, KARRYAM_ADMIN_CURSOR_KEY_FILE: "" }), reason("KARRYAM_ADMIN_CURSOR_KEY_FILE_REQUIRED"));
   assert.throws(() => F.loadConfig({ ...env, KARRYAM_ADMIN_ZONES: "*" }), reason("KARRYAM_ADMIN_ZONES_INVALID"));
   // Commands: only exact pinned commands. R3/R4 may be listed, but listing
