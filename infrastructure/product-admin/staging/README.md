@@ -44,6 +44,14 @@ operations fail with `BLOCKED_PRIVILEGED_HOST_OPERATION` until a trusted
 operator independently provisions and audits a narrowly scoped privileged
 entry point. Never grant passwordless sudo for an uploaded, mutable script.
 Application and Bridge keys remain under `/etc/cosmicforge/staging` on the VPS.
+The successful connection check additionally records a **read-only VPS inventory**
+as the `product-admin-staging-readonly-inventory.json` Actions artifact.
+It reports the expected container/network presence, Docker access, and whether
+the staging secret/release directories are visible to the deploy account. It
+does not read secret values or modify anything. This inventory is *not* S1/S2
+certification; do not mistake missing directory visibility for permission to
+perform root operations.
+
 ## 1. Topology
 
 ```

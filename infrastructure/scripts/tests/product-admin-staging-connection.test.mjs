@@ -25,6 +25,9 @@ test("connection-check never attempts root or uploads a bundle",()=>{
   assert.ok(p.includes("connection-check|preflight|status"));
   assert.ok(p.includes('if [[ "$OP" != connection-check ]]; then'));
   assert.ok(p.includes("BLOCKED_PRIVILEGED_HOST_OPERATION"));
+  assert.ok(p.includes("product-admin-staging-readonly-inventory.json"));
+  assert.ok(p.includes("sudo_noninteractive_listing_available"));
+  assert.ok(p.includes("private_networks"));
   assert.ok(p.includes("needs.plan.outputs.operation != 'connection-check'"));
   assert.ok(!p.includes("environment: product-admin-staging"));
 });

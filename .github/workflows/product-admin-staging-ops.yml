@@ -293,6 +293,35 @@ jobs:
           # existing staging Docker metadata are read.
           "$RUNNER_TEMP/ssh" 'test "$(id -un)" = cf-staging-deploy && test -d /var/www/admin-server-staging && docker inspect -f "{{index .Config.Labels \"com.docker.compose.project\"}}" admin-server-staging-app-1' | grep -Fx admin-server-staging >/dev/null || { echo "::error::BLOCKED: staging account or Docker project could not be verified."; exit 1; }
           echo "PASS: existing staging deploy account, pinned SSH keys and Docker project reachable (read-only)."
+          # Inventory reads metadata only: no Docker mutations, file writes, or
+          # secret values are read on the VPS. Persist sanitized JSON in CI.
+          mkdir -p _evidence
+          "$RUNNER_TEMP/ssh" 'python3 -c '"'"'
+import json, os, subprocess
+def call(*args):
+    try:
+        p=subprocess.run(args, capture_output=True, text=True, timeout=8, check=False)
+        return p.returncode, p.stdout.strip()
+    except Exception:
+        return 127, ""
+def docker_exists(kind, name):
+    return call("docker",kind,"inspect",name)[0]==0
+sudo_rc,_=call("sudo","-n","-l")
+networks=["cf-staging-hq-private","cf-staging-admin-private","cf-staging-karryam-bridge","cf-staging-karryam-admin-db"]
+names=["admin-server-staging-app-1","admin-server-staging-db-1","cf-product-admin-staging-product-integration-core-1","cf-product-admin-staging-karryam-admin-1","cf-product-admin-staging-karryam-admin-db-1"]
+result={
+ "report":"product-admin-staging-readonly-inventory","environment":"staging",
+ "user":os.environ.get("USER","unknown"),"euid":os.geteuid(),
+ "sudo_noninteractive_listing_available":sudo_rc==0,
+ "docker_access":call("docker","info","--format","{{.ServerVersion}}")[0]==0,
+ "private_networks":{n:docker_exists("network",n) for n in networks},
+ "expected_containers":{n:docker_exists("container",n) for n in names},
+ "staging_api_dir_exists":os.path.isdir("/var/www/admin-server-staging"),
+ "product_admin_state_dir_visible":os.path.isdir("/srv/cosmicforge/staging/release"),
+ "product_admin_secret_dir_visible":os.path.isdir("/etc/cosmicforge/staging/secrets")
+}
+print(json.dumps(result,sort_keys=True))
+'"'"'' | tee _evidence/product-admin-staging-readonly-inventory.json
           if [[ "$OP" != connection-check ]]; then
             echo "::error::BLOCKED_PRIVILEGED_HOST_OPERATION: S1/S2 require an operator-reviewed, narrowly scoped elevation path. Do not give cf-staging-deploy unrestricted sudo over a runner-uploaded script. No host files were changed."
             exit 1
