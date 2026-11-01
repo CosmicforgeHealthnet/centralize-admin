@@ -315,8 +315,8 @@ restore_previous() {
 }
 
 verify_deploy() {
-  local pic="$1" ka="$2" i
-  for i in $(seq 1 40); do [[ -S "$PIC_SOCK" && -S "$KA_SOCK" ]] && break; sleep 2; done
+  local pic="$1" ka="$2"
+  for _ in $(seq 1 40); do [[ -S "$PIC_SOCK" && -S "$KA_SOCK" ]] && break; sleep 2; done
   local okimg=1
   [[ "$(docker inspect -f '{{.Config.Image}}' "$CTR_PIC" 2>/dev/null)" == "$pic" ]] || okimg=0
   [[ "$(docker inspect -f '{{.Config.Image}}' "$CTR_KA" 2>/dev/null)" == "$ka" ]] || okimg=0
@@ -330,6 +330,11 @@ verify_deploy() {
     [[ "$(docker exec "${c%%:*}" id -u 2>/dev/null)" == "${c#*:}" ]] || nr+="${c%%:*} uid; "
   done
   running "$CTR_KDB" || nr+="$CTR_KDB not running; "
+  # The Stage A worker runs only when the feed is enabled; then it must be up and non-root.
+  if enabled_in "$PA_CONFIG_ROOT/karryam-admin.env" KARRYAM_BRIDGE_FEED_ENABLED; then
+    running "$CTR_KW" || nr+="$CTR_KW not running although the feed is enabled; "
+    [[ "$(docker exec "$CTR_KW" id -u 2>/dev/null || true)" == 10001 ]] || nr+="$CTR_KW uid; "
+  fi
   [[ "$(docker exec "$CTR_KDB" id -u 2>/dev/null || true)" == 70 ]] || nr+="$CTR_KDB uid; "
   if [[ -z "$nr" ]]; then check containers_running_non_root PASS "PIC uid 10002, Karryam Admin uid 10001, DB-B uid 70"; else check containers_running_non_root FAIL "$nr"; fi
 
@@ -359,7 +364,7 @@ verify_deploy() {
   enabled_in "$PA_CONFIG_ROOT/product-integration-core.env" PIC_ENABLED && e1=200
   enabled_in "$PA_CONFIG_ROOT/karryam-admin.env" KARRYAM_ADMIN_ENABLED && e2=200
   local r1 r2
-  for i in $(seq 1 15); do r1="$(sock_status "$PIC_SOCK" /health/ready)"; r2="$(sock_status "$KA_SOCK" /health/ready)"; [[ "$r1" == "$e1" && "$r2" == "$e2" ]] && break; sleep 2; done
+  for _ in $(seq 1 15); do r1="$(sock_status "$PIC_SOCK" /health/ready)"; r2="$(sock_status "$KA_SOCK" /health/ready)"; [[ "$r1" == "$e1" && "$r2" == "$e2" ]] && break; sleep 2; done
   if [[ "$r1" == "$e1" && "$r2" == "$e2" ]]; then check health_ready_expected PASS "ready PIC $r1 (expected $e1), Karryam Admin $r2 (expected $e2)"; else check health_ready_expected FAIL "ready PIC $r1 (expected $e1), Karryam Admin $r2 (expected $e2)"; fi
 
   local u1 u2; u1="$(sock_status "$PIC_SOCK" /internal/pic/v1/products)"; u2="$(sock_status "$KA_SOCK" /internal/product-admin/v1/manifest)"
@@ -448,7 +453,7 @@ backup() {
   for p in "${parts[@]}"; do
     local f="${p%%:*}" image="${p#*:}" name pw; name="pa-restore-$ts-$RANDOM"; pw="$(head -c 18 /dev/urandom | base64 | tr -dc A-Za-z0-9)"
     docker run -d --rm --name "$name" --network none -e POSTGRES_PASSWORD="$pw" -v "$d:/backup:ro" "$image" >/dev/null
-    local i; for i in $(seq 1 30); do docker exec "$name" pg_isready -q -U postgres 2>/dev/null && break; sleep 2; done
+    for _ in $(seq 1 30); do docker exec "$name" pg_isready -q -U postgres 2>/dev/null && break; sleep 2; done
     local listed restored
     listed="$(docker exec "$name" sh -c 'pg_restore --list "/backup/$1" | grep -c " TABLE DATA "' _ "$f" || echo -1)"
     if docker exec "$name" sh -c 'createdb -U postgres restored && pg_restore -U postgres --no-owner --no-privileges --exit-on-error -d restored "/backup/$1"' _ "$f" >/dev/null 2>&1; then
