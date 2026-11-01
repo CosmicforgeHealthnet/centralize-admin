@@ -61,6 +61,10 @@ jobs:
           set -euo pipefail
           for f in infrastructure/product-admin/release/pa-staging-ops.sh infrastructure/product-admin/firewall/docker-user-rules.sh; do bash -n "$f"; done
           shellcheck -S warning infrastructure/product-admin/release/pa-staging-ops.sh infrastructure/product-admin/firewall/docker-user-rules.sh
+      - name: Empty placeholder env files at the real host paths (disposable runner; compose requires them to exist)
+        run: |
+          sudo install -d /etc/cosmicforge/staging
+          sudo touch /etc/cosmicforge/staging/product-integration-core.env /etc/cosmicforge/staging/karryam-admin.env
       - name: Resolved staging compose model passes the policy (digest-pinned)
         run: |
           set -euo pipefail
