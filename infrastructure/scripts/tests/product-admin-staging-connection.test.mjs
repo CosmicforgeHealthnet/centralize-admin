@@ -8,7 +8,9 @@ const p=fs.readFileSync(path.join(root,".github/workflows/product-admin-staging-
 const original=fs.readFileSync(path.join(root,".github/workflows/staging.yml"),"utf8");
 test("reuses the existing staging environment and SSH credentials",()=>{
   assert.match(p,/environment: staging\b/);
-  for(const n of ["STAGING_HOST","STAGING_USER","STAGING_SSH_KEY"])assert.ok(p.includes("secrets."+n));
+  assert.ok(p.includes("VPS_HOST: 173.249.30.55"));
+  assert.ok(p.includes("VPS_USER: cf-staging-deploy"));
+  assert.ok(p.includes("VPS_KEY: ${{ secrets.STAGING_SSH_KEY }}"));
   assert.ok(!p.includes("secrets.PA_STAGING_VPS_"));
   assert.ok(p.includes("cf-staging-deploy"));
   assert.ok(original.includes("cf-staging-deploy"));

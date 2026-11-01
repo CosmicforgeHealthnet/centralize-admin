@@ -274,8 +274,8 @@ jobs:
           path: _artifacts
       - name: Verify existing staging SSH connection (read-only)
         env:
-          VPS_HOST: ${{ secrets.STAGING_HOST }}
-          VPS_USER: ${{ secrets.STAGING_USER }}
+          VPS_HOST: 173.249.30.55
+          VPS_USER: cf-staging-deploy
           VPS_KEY: ${{ secrets.STAGING_SSH_KEY }}
           OP: ${{ needs.plan.outputs.operation }}
         run: |

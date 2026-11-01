@@ -20,7 +20,11 @@ API image, Mail and source-owned Karryam services are never touched.
 ## Existing staging SSH identity — read-only connection check
 
 The Product Admin workflow now reuses the protected GitHub `staging` environment and
-the existing `STAGING_HOST`, `STAGING_USER`, and `STAGING_SSH_KEY` secrets.
+the existing `STAGING_SSH_KEY` secret. As in the established `staging.yml`,
+the already-verified host `173.249.30.55` and deploy account
+`cf-staging-deploy` are pinned directly in the workflow rather than
+assuming the optional `STAGING_HOST`/`STAGING_USER` environment secrets
+contain those values.
 Do **not** create a second SSH key or a `product-admin-staging` environment for
 this initial check. It checks the pinned Contabo host and the established
 `cf-staging-deploy` account against the existing SSH client and server key fingerprints.
