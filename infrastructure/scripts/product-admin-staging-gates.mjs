@@ -95,7 +95,7 @@ export function evaluate(inp) {
   stagingGate(5, "Private Bridge", ["S3"], ok(inp.boundaryStatic), ["rehearsal:bridge-network-probe", "ci:connector-security (TLS 1.3 mTLS, pinned fingerprints)"], "Karryam Backoffice enrollment and attachment to cf-staging-karryam-bridge (S3)");
   // 6. Capability discovery
   const audit = art.contract_audit;
-  stagingGate(6, "Capability discovery", ["S3"], audit === undefined ? null : audit.result === "PASS", ["ci:product-admin-contract-audit (435 capabilities)"], "Live discovery against the enrolled Bridge (S3)");
+  stagingGate(6, "Capability discovery", ["S3"], audit === undefined ? null : (audit.status ?? audit.result) === "PASS", ["ci:product-admin-contract-audit (435 capabilities)"], "Live discovery against the enrolled Bridge (S3)");
   // 7. Database migrations
   const drills = art.restore_drills;
   stagingGate(7, "Database migrations", ["S1"], drills === undefined && dbDisposable === null ? null : dbDisposable !== false && (drills === undefined || drills), ["ci:migrations + restore drills (disposable PostgreSQL)", "rehearsal:backup+migrate-apply"], "Staging backup, preview and approved migration (S1)");
@@ -180,7 +180,10 @@ export function collect({ sha, base, artifactsDir, ciStatusFile, stagingStateFil
     ["central-admin-api", "product-integration-core"].every((m) => !policy.networks["karryam-bridge"].permitted_members.includes(m));
   const ci = ciStatusFile ? readJson(ciStatusFile) || {} : {};
   const staging = stagingStateFile ? readJson(stagingStateFile) : null;
-  const rehearsal = rehearsalStatus ? ["S0", "S1", "S2"].every((s) => rehearsalStatus.stages?.[s]?.status === "PASSED" || rehearsalStatus.stages?.[s]?.status === "ROLLED_BACK") : undefined;
+  // The rehearsal runs in Infrastructure Security CI; without its artifact, that workflow's result for this commit is the evidence.
+  const infra = ci["Product Admin Infrastructure Security CI"];
+  const rehearsal = rehearsalStatus ? ["S0", "S1", "S2"].every((s) => rehearsalStatus.stages?.[s]?.status === "PASSED" || rehearsalStatus.stages?.[s]?.status === "ROLLED_BACK")
+    : infra === "success" ? true : infra === "failure" ? false : undefined;
   return { sha, artifacts, repo, production, naming, boundaryStatic, ci, staging, rehearsal };
 }
 

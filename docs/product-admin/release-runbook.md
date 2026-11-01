@@ -6,8 +6,17 @@ private, non-root, read-only containers that start **disabled**. This runbook
 is for the operator; the coding agent has no VPS access and performs none of
 these steps.
 
-Status on 31 October 2026: release tooling exists; **no staging deployment of
-either service has happened**, and production is untouched.
+Status on 1 November 2026: the staging deployment path exists
+(**Product Admin staging operations** workflow, Sections 12–13) and is
+rehearsed on every CI push, but **no staging deployment of either service has
+happened**: it needs the protected `product-admin-staging` environment and the
+operator prerequisites below. Production is untouched.
+
+**Current procedure:** [infrastructure/product-admin/staging/README.md](../../infrastructure/product-admin/staging/README.md)
+(topology, configuration inventory, secret manifest, S0–S7 operator sequence,
+rotation, revocation, isolation tests). Sections 3–4 below describe the
+earlier image-only release workflow, which still exists for publishing
+images without deploying.
 
 ## 1. What the repository provides
 
@@ -19,6 +28,9 @@ either service has happened**, and production is untouched.
 | Forward-only migrations (checksummed, advisory-locked, runtime grants) | `npm run migrate` in each service |
 | Secret-reference templates (no real values) | `infrastructure/product-admin/*.example.*` |
 | Private layout reference (Unix sockets, no published ports) | `infrastructure/product-admin/docker-compose.product-admin.example.yml` |
+| Staging layout actually deployed (networks, limits, DB-B) | `infrastructure/product-admin/staging/docker-compose.yml` + `network-policy.json` |
+| Staging host operations (prepare-host, preflight, deploy by digest, rollback, disable, backup, migrations) and S0–S7 state | `.github/workflows/product-admin-staging-ops.yml` → `infrastructure/product-admin/release/pa-staging-ops.sh`, `release-state.mjs` |
+| Rehearsal of every host operation on disposable infrastructure | `.github/workflows/product-admin-infrastructure-ci.yml` |
 
 Image tags are immutable: `ghcr.io/cosmicforgehealthnet/{karryam-admin,product-integration-core}:staging-<commit SHA>`. The publish job refuses to overwrite an existing tag.
 

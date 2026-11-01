@@ -16,7 +16,7 @@ function inputs(over = {}) {
     repo: { checked: true, onStaging: true, unrelatedChanges: [], protectedChanges: [] },
     production: { checked: true, mainChanged: false, productionWorkflowChanged: false },
     naming: { violations: [] }, boundaryStatic: true, ci: ciAll, rehearsal: true,
-    artifacts: { contract_audit: { result: "PASS" }, required_suites: [{ status: "PASS" }, { status: "PASS" }], journeys: journeys() },
+    artifacts: { contract_audit: { status: "PASS" }, required_suites: [{ status: "PASS" }, { status: "PASS" }], journeys: journeys() },
     staging: null,
     ...over,
   };
@@ -64,7 +64,7 @@ test("failures propagate: rolled-back stage, failed journeys, failed audit, prot
   const fj = evaluate(inputs({ artifacts: { ...inputs().artifacts, journeys: journeys("FAIL") } }));
   assert.equal(fj.result, "NOT_CERTIFIED");
   assert.equal(byId(fj)[9], "FAIL");
-  assert.equal(byId(evaluate(inputs({ artifacts: { ...inputs().artifacts, contract_audit: { result: "FAIL" } } })))[6], "FAIL");
+  assert.equal(byId(evaluate(inputs({ artifacts: { ...inputs().artifacts, contract_audit: { status: "FAIL" } } })))[6], "FAIL");
   const prot = evaluate(inputs({ repo: { checked: true, onStaging: true, unrelatedChanges: [], protectedChanges: ["services/central-admin-api/src/modules/mail/x.js"] } }));
   assert.equal(byId(prot)[1], "FAIL");
   assert.equal(byId(prot)[13], "FAIL");
