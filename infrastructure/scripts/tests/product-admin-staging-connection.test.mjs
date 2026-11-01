@@ -17,6 +17,8 @@ test("pins the same client and server SSH fingerprints",()=>{
   for(const fp of ["SHA256:LSVBOgX3GxSbGvrqRUwA/BYxw2zVxdvQUQLnV6ALW+4","SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ"]) {assert.ok(p.includes(fp)); assert.ok(original.includes(fp));}
 });
 test("connection-check never attempts root or uploads a bundle",()=>{
+  assert.ok(p.includes("github.event_name == 'push' && github.ref == 'refs/heads/staging'"));
+  assert.ok(p.includes('if [[ "$EVENT" == push ]]; then op=connection-check'));
   assert.ok(p.includes("options: [connection-check,"));
   assert.ok(p.includes("connection-check|preflight|status"));
   assert.ok(p.includes('if [[ "$OP" != connection-check ]]; then'));

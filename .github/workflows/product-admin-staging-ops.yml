@@ -12,7 +12,10 @@ name: Product Admin staging operations
 #   evidence  : complete-stage (S1..S7 from the latest host logs + operator evidence)
 #
 # SSH reuses the existing protected `staging` environment and its
-# STAGING_HOST/STAGING_USER/STAGING_SSH_KEY secrets. Only connection-check
+# STAGING_HOST/STAGING_USER/STAGING_SSH_KEY secrets. Because this workflow
+# exists only on staging (not main, the default branch), GitHub will not show
+# "Run workflow" for it; a push to staging automatically runs a read-only
+# connection-check instead. Only connection-check
 # runs as cf-staging-deploy without root. All privileged operations remain
 # blocked until an operator installs reviewed, narrowly scoped elevation.
 # Never run an uploaded bundle with unrestricted passwordless sudo.
@@ -91,6 +94,7 @@ jobs:
   plan:
     name: Plan (branch gate, operation, confirmation, release commit)
     if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/staging') ||
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_branch == 'staging' && github.event.workflow_run.event == 'push' &&
@@ -111,7 +115,8 @@ jobs:
           RUN_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT" == workflow_run ]]; then op=deploy; sha="$RUN_SHA"; auto=true
+          if [[ "$EVENT" == push ]]; then op=connection-check; sha="$GITHUB_SHA"; auto=false
+          elif [[ "$EVENT" == workflow_run ]]; then op=deploy; sha="$RUN_SHA"; auto=true
           else op="$OP"; sha="${INPUT_SHA:-$GITHUB_SHA}"; auto=false; fi
           [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::release_sha must be a full 40-character commit SHA"; exit 1; }
           case "$op" in

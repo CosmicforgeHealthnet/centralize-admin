@@ -25,8 +25,12 @@ Do **not** create a second SSH key or a `product-admin-staging` environment for
 this initial check. It checks the pinned Contabo host and the established
 `cf-staging-deploy` account against the existing SSH client and server key fingerprints.
 
-From GitHub Actions, run the **Product Admin staging operations** workflow on
-the `staging` branch with `operation=connection-check`, no confirmation.
+The Product Admin workflow currently exists only on `staging`, while `main`
+is the repository's default branch. GitHub may therefore hide its **Run workflow**
+button. **Every push to `staging` that changes this workflow or Product Admin
+infrastructure now automatically executes the read-only `connection-check`**
+using the protected `staging` environment. Inspect the resulting Actions run
+and its `Host connection-check` job; do not attempt a manual dispatch.
 The check only reads the remote account, existing staging directory and Docker
 project metadata. It does not upload a bundle, write files or start services.
 
