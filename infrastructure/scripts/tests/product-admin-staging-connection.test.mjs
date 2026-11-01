@@ -1,0 +1,26 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../../..");
+const p=fs.readFileSync(path.join(root,".github/workflows/product-admin-staging-ops.yml"),"utf8");
+const original=fs.readFileSync(path.join(root,".github/workflows/staging.yml"),"utf8");
+test("reuses the existing staging environment and SSH credentials",()=>{
+  assert.match(p,/environment: staging\b/);
+  for(const n of ["STAGING_HOST","STAGING_USER","STAGING_SSH_KEY"])assert.ok(p.includes("secrets."+n));
+  assert.ok(!p.includes("secrets.PA_STAGING_VPS_"));
+  assert.ok(p.includes("cf-staging-deploy"));
+  assert.ok(original.includes("cf-staging-deploy"));
+});
+test("pins the same client and server SSH fingerprints",()=>{
+  for(const fp of ["SHA256:LSVBOgX3GxSbGvrqRUwA/BYxw2zVxdvQUQLnV6ALW+4","SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ"]) {assert.ok(p.includes(fp)); assert.ok(original.includes(fp));}
+});
+test("connection-check never attempts root or uploads a bundle",()=>{
+  assert.ok(p.includes("options: [connection-check,"));
+  assert.ok(p.includes("connection-check|preflight|status"));
+  assert.ok(p.includes('if [[ "$OP" != connection-check ]]; then'));
+  assert.ok(p.includes("BLOCKED_PRIVILEGED_HOST_OPERATION"));
+  assert.ok(p.includes("needs.plan.outputs.operation != 'connection-check'"));
+  assert.ok(!p.includes("environment: product-admin-staging"));
+});

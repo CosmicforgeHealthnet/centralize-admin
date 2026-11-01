@@ -11,10 +11,11 @@ name: Product Admin staging operations
 #               -> confirm=APPLY_STAGING_PRODUCT_ADMIN_CHANGES
 #   evidence  : complete-stage (S1..S7 from the latest host logs + operator evidence)
 #
-# Host access needs the protected GitHub environment `product-admin-staging`
-# (required reviewers) with secrets PA_STAGING_VPS_HOST, PA_STAGING_VPS_USER
-# (root) and PA_STAGING_VPS_SSH_KEY. Until an operator creates it every host
-# operation stops with BLOCKED and changes nothing.
+# SSH reuses the existing protected `staging` environment and its
+# STAGING_HOST/STAGING_USER/STAGING_SSH_KEY secrets. Only connection-check
+# runs as cf-staging-deploy without root. All privileged operations remain
+# blocked until an operator installs reviewed, narrowly scoped elevation.
+# Never run an uploaded bundle with unrestricted passwordless sudo.
 #
 # Automatic delivery: after "Product Admin Platform CI" succeeds on a staging
 # push, `deploy` runs automatically ONLY when the repository variable
@@ -38,7 +39,7 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [preflight, status, network-probe, db-audit, migrate-preview, public-probe, prepare-host, backup, migrate-apply, deploy, rollback, disable, attach-gateway, complete-stage]
+        options: [connection-check, preflight, status, network-probe, db-audit, migrate-preview, public-probe, prepare-host, backup, migrate-apply, deploy, rollback, disable, attach-gateway, complete-stage]
         default: preflight
       release_sha:
         description: "deploy: full commit SHA to release (default: this run's commit)"
@@ -70,6 +71,7 @@ concurrency:
 
 env:
   STAGING_HOST_KEY_SHA256: "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ"
+  STAGING_CLIENT_KEY_SHA256: "SHA256:LSVBOgX3GxSbGvrqRUwA/BYxw2zVxdvQUQLnV6ALW+4"
   PUBLIC_API_HOST: stagingca.cosmicforge-healthnet.com
 
 jobs:
@@ -113,7 +115,7 @@ jobs:
           else op="$OP"; sha="${INPUT_SHA:-$GITHUB_SHA}"; auto=false; fi
           [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::release_sha must be a full 40-character commit SHA"; exit 1; }
           case "$op" in
-            preflight|status|network-probe|db-audit|migrate-preview|complete-stage) [[ "$auto" == true || -z "$CONFIRM" ]] || { echo "::error::read-only operations take no confirmation"; exit 1; }; host=true ;;
+            connection-check|preflight|status|network-probe|db-audit|migrate-preview|complete-stage) [[ "$auto" == true || -z "$CONFIRM" ]] || { echo "::error::read-only operations take no confirmation"; exit 1; }; host=true ;;
             public-probe) host=false ;;
             prepare-host|backup|migrate-apply|deploy|rollback|disable|attach-gateway)
               [[ "$auto" == true || "$CONFIRM" == APPLY_STAGING_PRODUCT_ADMIN_CHANGES ]] || { echo "::error::$op needs confirm=APPLY_STAGING_PRODUCT_ADMIN_CHANGES. Nothing was started."; exit 1; }; host=true ;;
@@ -253,7 +255,7 @@ jobs:
       (needs.plan.outputs.operation != 'deploy' || (needs.s0.result == 'success' && needs.images.result == 'success'))
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment: product-admin-staging
+    environment: staging
     steps:
       - uses: actions/checkout@v4
         with:
@@ -265,29 +267,33 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: _artifacts
-      - name: Connect (protected environment, pinned host key, root only)
+      - name: Verify existing staging SSH connection (read-only)
         env:
-          VPS_HOST: ${{ secrets.PA_STAGING_VPS_HOST }}
-          VPS_USER: ${{ secrets.PA_STAGING_VPS_USER }}
-          VPS_KEY: ${{ secrets.PA_STAGING_VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.STAGING_HOST }}
+          VPS_USER: ${{ secrets.STAGING_USER }}
+          VPS_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          OP: ${{ needs.plan.outputs.operation }}
         run: |
           set -euo pipefail
           umask 077
-          [[ -n "$VPS_HOST" && -n "$VPS_USER" && -n "$VPS_KEY" ]] || { echo "BLOCKED: the product-admin-staging environment secrets are not configured (PA_STAGING_VPS_HOST/USER/SSH_KEY). Nothing changed."; exit 1; }
-          key="$RUNNER_TEMP/key"; printf '%s\n' "$VPS_KEY" > "$key"; ssh-keygen -y -P '' -f "$key" >/dev/null
+          [[ "$VPS_HOST" == 173.249.30.55 && "$VPS_USER" == cf-staging-deploy && -n "$VPS_KEY" ]] || { echo "::error::BLOCKED: staging environment host, deploy user or key differs from the pinned staging identity."; exit 1; }
+          key="$RUNNER_TEMP/key"; printf '%s\n' "$VPS_KEY" > "$key"; chmod 600 "$key"
+          pub="$RUNNER_TEMP/pub"; ssh-keygen -y -P '' -f "$key" > "$pub" || { echo "::error::Invalid staging SSH private key"; exit 1; }
+          [[ "$(ssh-keygen -l -E sha256 -f "$pub" | awk '{print $2}')" == "$STAGING_CLIENT_KEY_SHA256" ]] || { echo "::error::BLOCKED: the staging SSH key fingerprint differs from the established deployment key."; exit 1; }
           hosts="$RUNNER_TEMP/known_hosts"; ssh-keyscan -T 10 -t ed25519 "$VPS_HOST" 2>/dev/null > "$hosts" || true
-          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk 'NR==1{print $2}')" == "$STAGING_HOST_KEY_SHA256" ]] || { echo "BLOCKED: host key is not the staging VPS. Nothing changed."; exit 1; }
+          [[ -s "$hosts" && "$(ssh-keygen -l -E sha256 -f "$hosts" | awk 'NR==1{print $2}')" == "$STAGING_HOST_KEY_SHA256" ]] || { echo "::error::BLOCKED: staging VPS host fingerprint mismatch."; exit 1; }
           printf '#!/usr/bin/env bash\nexec ssh -T -i %q -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=%q -o ConnectTimeout=15 -o ServerAliveInterval=15 %q "$@"\n' "$key" "$hosts" "$VPS_USER@$VPS_HOST" > "$RUNNER_TEMP/ssh"
           chmod 700 "$RUNNER_TEMP/ssh"
-          [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo "BLOCKED: the VPS account is not root. Nothing changed."; exit 1; }
-          [[ "$("$RUNNER_TEMP/ssh" 'test -d /var/www/admin-server-staging && echo staging')" == staging ]] || { echo "BLOCKED: not the staging host layout. Nothing changed."; exit 1; }
-          tar -czf "$RUNNER_TEMP/bundle.tgz" infrastructure/product-admin infrastructure/scripts/product-admin-infra-check.mjs
-          sha="$(sha256sum "$RUNNER_TEMP/bundle.tgz" | cut -d' ' -f1)"; echo "BUNDLE=$sha" >> "$GITHUB_ENV"
-          d="/root/.cf-product-admin-staging/$sha"
-          "$RUNNER_TEMP/ssh" "umask 077; mkdir -p $d && cat > $d/bundle.tgz && tar -xzf $d/bundle.tgz -C $d && sha256sum $d/bundle.tgz" < "$RUNNER_TEMP/bundle.tgz" | grep -q "^$sha " || { echo "bundle checksum mismatch"; exit 1; }
-          echo "Bundle $sha uploaded and verified."
+          # No sudo, file upload, or filesystem changes: only identity and
+          # existing staging Docker metadata are read.
+          "$RUNNER_TEMP/ssh" 'test "$(id -un)" = cf-staging-deploy && test -d /var/www/admin-server-staging && docker inspect -f "{{index .Config.Labels \"com.docker.compose.project\"}}" admin-server-staging-app-1' | grep -Fx admin-server-staging >/dev/null || { echo "::error::BLOCKED: staging account or Docker project could not be verified."; exit 1; }
+          echo "PASS: existing staging deploy account, pinned SSH keys and Docker project reachable (read-only)."
+          if [[ "$OP" != connection-check ]]; then
+            echo "::error::BLOCKED_PRIVILEGED_HOST_OPERATION: S1/S2 require an operator-reviewed, narrowly scoped elevation path. Do not give cf-staging-deploy unrestricted sudo over a runner-uploaded script. No host files were changed."
+            exit 1
+          fi
       - name: Run ${{ needs.plan.outputs.operation }}
-        if: needs.plan.outputs.operation != 'complete-stage'
+        if: needs.plan.outputs.operation != 'complete-stage' && needs.plan.outputs.operation != 'connection-check'
         env:
           OP: ${{ needs.plan.outputs.operation }}
           SHA: ${{ needs.plan.outputs.sha }}

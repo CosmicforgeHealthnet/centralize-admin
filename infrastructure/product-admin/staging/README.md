@@ -17,6 +17,25 @@ API image, Mail and source-owned Karryam services are never touched.
 | [`../release/`](../release/) | Host operations, S0–S7 state machine, evidence collection, CI rehearsal fixtures |
 | [`../monitoring/`](../monitoring/) | Metrics, alert rules, recovery notes |
 
+## Existing staging SSH identity — read-only connection check
+
+The Product Admin workflow now reuses the protected GitHub `staging` environment and
+the existing `STAGING_HOST`, `STAGING_USER`, and `STAGING_SSH_KEY` secrets.
+Do **not** create a second SSH key or a `product-admin-staging` environment for
+this initial check. It checks the pinned Contabo host and the established
+`cf-staging-deploy` account against the existing SSH client and server key fingerprints.
+
+From GitHub Actions, run the **Product Admin staging operations** workflow on
+the `staging` branch with `operation=connection-check`, no confirmation.
+The check only reads the remote account, existing staging directory and Docker
+project metadata. It does not upload a bundle, write files or start services.
+
+**Privilege boundary:** the Product Admin host script performs root-only S1/S2
+operations. The reused `cf-staging-deploy` account is not root. Other host
+operations fail with `BLOCKED_PRIVILEGED_HOST_OPERATION` until a trusted
+operator independently provisions and audits a narrowly scoped privileged
+entry point. Never grant passwordless sudo for an uploaded, mutable script.
+Application and Bridge keys remain under `/etc/cosmicforge/staging` on the VPS.
 ## 1. Topology
 
 ```
