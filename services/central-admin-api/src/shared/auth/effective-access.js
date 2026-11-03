@@ -18,7 +18,15 @@ const SECTION_MODE_RANK = Object.freeze({ VIEW: 1, EDIT: 2 });
 
 const ROLES = Object.freeze({ STAFF: "STAFF", TEAM_LEAD: "TEAM_LEAD", MANAGER: "MANAGER" });
 const ROLE_RANK = Object.freeze({ STAFF: 1, TEAM_LEAD: 2, MANAGER: 3 });
-const MANAGER_TIERS = new Set(["ADMIN", "EXECUTIVE", "SUPER"]);
+
+// Department Manager is a department role, not an account tier. It is
+// recorded as a role grant "department" / "manage:<DEPARTMENT>" (set only
+// through HR -> Accounts -> Designation / Role) and applies only while the
+// account belongs to that department. The Admin tier is Platform Admin and
+// never implies a department role.
+const ROLE_GRANT_MODULE = "department";
+const managerSection = (department) => `manage:${department}`;
+const isRoleGrant = (grant) => grant?.module === ROLE_GRANT_MODULE && /^manage:/.test(String(grant.section));
 
 const g = (module, section, mode) => Object.freeze({ module, section, mode });
 
@@ -26,7 +34,7 @@ const g = (module, section, mode) => Object.freeze({ module, section, mode });
 const DIRECTORY = Object.freeze({
   STAFF: [g("department", "directory", "VIEW")],
   TEAM_LEAD: [g("department", "directory", "VIEW"), g("department", "roster", "VIEW")],
-  MANAGER: [g("department", "directory", "VIEW"), g("department", "roster", "VIEW")],
+  MANAGER: [g("department", "directory", "VIEW"), g("department", "roster", "VIEW"), g("department", "leaves", "VIEW")],
 });
 
 // Normal workspace per department. Each role inherits the roles below it.
@@ -63,26 +71,33 @@ const DEPARTMENT_POLICY = Object.freeze({
   },
 });
 
-// Role inside the department. Job title (position) is never used.
-// Manager = Admin tier (or higher) with a department; Team Lead = isTeamLead.
-function accountRole(user) {
+function holdsManagerGrant(user, explicit = []) {
+  if (!user?.department) return false;
+  const section = managerSection(user.department);
+  return explicit.some((grant) => grant.module === ROLE_GRANT_MODULE && grant.section === section && grant.mode === "EDIT");
+}
+
+// Role from department membership, Team Lead status and the manager role
+// grant. Tier and job title (position) are never used.
+function accountRole(user, explicit = []) {
   if (!user) return null;
-  if (MANAGER_TIERS.has(user.tier)) return ROLES.MANAGER;
+  if (holdsManagerGrant(user, explicit)) return ROLES.MANAGER;
   if (user.isTeamLead === true) return ROLES.TEAM_LEAD;
   return ROLES.STAFF;
 }
 
-function departmentRole(user) {
-  return user?.department ? accountRole(user) : null;
+function departmentRole(user, explicit = []) {
+  return user?.department ? accountRole(user, explicit) : null;
 }
 
 function rolesUpTo(role) {
   return Object.keys(ROLE_RANK).filter((r) => ROLE_RANK[r] <= ROLE_RANK[role]);
 }
 
-// Department defaults for this account (empty unless ACTIVE with a department).
-function inheritedGrants(user) {
-  const role = departmentRole(user);
+// Department defaults for this account (empty unless ACTIVE with a
+// department). `explicit` = the account's active explicit grants.
+function inheritedGrants(user, explicit = []) {
+  const role = departmentRole(user, explicit);
   if (!role || user.status !== "ACTIVE") return [];
   const policy = DEPARTMENT_POLICY[user.department] || {};
   const byKey = new Map();
@@ -113,14 +128,14 @@ async function explicitGrants(client, user, { module, now = new Date() } = {}) {
     select: { id: true, module: true, section: true, mode: true, expiresAt: true },
     orderBy: { createdAt: "asc" },
   });
-  return rows.map((row) => ({ ...row, source: "MANUAL" }));
+  return rows.map((row) => ({ ...row, source: isRoleGrant(row) ? "ROLE" : "MANUAL" }));
 }
 
 // One resolver for all callers: explicit grants plus department defaults.
 async function effectiveGrants(client, user, { module, now = new Date() } = {}) {
-  const inherited = inheritedGrants(user).filter((grant) => !module || grant.module === module);
-  const explicit = await explicitGrants(client, user, { module, now });
-  return [...inherited, ...explicit];
+  const explicit = await explicitGrants(client, user, { now });
+  const all = [...inheritedGrants(user, explicit), ...explicit];
+  return module ? all.filter((grant) => grant.module === module) : all;
 }
 
 function grantsAllow(grants, module, section, mode = "VIEW") {
@@ -136,15 +151,13 @@ async function hasEffectiveSection(client, user, module, section, mode = "VIEW",
   return grantsAllow(await effectiveGrants(client, user, { ...options, module }), module, section, mode);
 }
 
-function hasInheritedModule(user, module) {
-  return inheritedGrants(user).some((grant) => grant.module === module);
-}
-
 module.exports = {
   ROLES,
   DEPARTMENT_POLICY,
   SECTION_MODE_RANK,
-  MANAGER_TIERS,
+  ROLE_GRANT_MODULE,
+  managerSection,
+  isRoleGrant,
   accountRole,
   departmentRole,
   inheritedGrants,
@@ -152,5 +165,4 @@ module.exports = {
   effectiveGrants,
   grantsAllow,
   hasEffectiveSection,
-  hasInheritedModule,
 };

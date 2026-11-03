@@ -1,5 +1,5 @@
 const { prisma } = require("../../../shared/config/database");
-const { accountRole } = require("../../../shared/auth/effective-access");
+const { ROLE_GRANT_MODULE, accountRole } = require("../../../shared/auth/effective-access");
 const {
   buildMeta,
   formatEnumLabel,
@@ -49,7 +49,7 @@ const DIRECTORY_SELECT = {
   isTeamLead: true,
 };
 
-function mapColleague(user, scope) {
+function mapColleague(user, scope, roleGrants = []) {
   return {
     id: user.id,
     name: user.name,
@@ -58,7 +58,7 @@ function mapColleague(user, scope) {
     jobTitle: user.position,
     designation: user.position,
     avatarUrl: user.avatarUrl,
-    role: accountRole(user),
+    role: accountRole(user, roleGrants),
     ...(scope.roster ? { status: user.status } : {}),
   };
 }
@@ -114,8 +114,16 @@ class DepartmentsService {
       }),
     ]);
 
+    const roleRows = scope && employees.length
+      ? await prisma.adminSectionGrant.findMany({
+        where: { adminUserId: { in: employees.map((user) => user.id) }, module: ROLE_GRANT_MODULE, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
+        select: { adminUserId: true, module: true, section: true, mode: true },
+      })
+      : [];
+    const rolesOf = (id) => roleRows.filter((row) => row.adminUserId === id);
+
     return {
-      data: scope ? employees.map((user) => mapColleague(user, scope)) : employees.map(mapEmployee),
+      data: scope ? employees.map((user) => mapColleague(user, scope, rolesOf(user.id))) : employees.map(mapEmployee),
       meta: buildMeta(total, page, limit),
     };
   }

@@ -204,6 +204,15 @@ export const departmentsService = {
     return data.data;
   },
 
+  // Department Managers: their own department's leave requests (read-only).
+  async getMyDepartmentLeaves(params: { page?: number; limit?: number; status?: string } = {}) {
+    const { data } = await api.get<ApiEnvelope<{ data: LeaveListItem[]; meta: PaginationMeta }>>(
+      `${DEPT_BASE}/mine/leaves`,
+      { params },
+    );
+    return data.data;
+  },
+
   // The signed-in employee's own department (basic work information).
   async getMyColleagues(params: { page?: number; limit?: number } = {}) {
     const { data } = await api.get<ApiEnvelope<{ data: DepartmentColleague[]; meta: PaginationMeta }>>(

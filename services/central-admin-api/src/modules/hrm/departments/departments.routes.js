@@ -4,7 +4,7 @@ const {
   requireSection,
 } = require("../../../shared/middlewares/rbac.middleware");
 const departmentsController = require("./departments.controller");
-const { createDepartmentDirectoryAccess } = require("./departments.access");
+const { createDepartmentDirectoryAccess, createDepartmentLeavesAccess } = require("./departments.access");
 
 const router = express.Router();
 
@@ -14,6 +14,13 @@ router.get(
   requireSection("hrm", "departments", "VIEW"),
   departmentsController.getDepartments,
 );
+// Department Managers: their own department's leave requests (read-only).
+router.get(
+  "/mine/leaves",
+  createDepartmentLeavesAccess(),
+  departmentsController.getMyDepartmentLeaves,
+);
+
 // HR: any department. Employees: their own department ("mine").
 router.get(
   "/:dept/employees",

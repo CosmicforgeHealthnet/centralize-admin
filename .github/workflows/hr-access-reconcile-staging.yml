@@ -1,0 +1,114 @@
+name: HR department access reconciliation (staging, read-only)
+
+# Runs scripts/hr/reconcile-department-access.js in DRY-RUN mode inside the
+# running staging API container. It never writes (--apply is not available
+# here). Only aggregate counts are printed. For accounts matching the
+# `match` input, only access facts are printed (department, role, tier,
+# status, Team Lead, grant keys): no names, emails or job titles. Nothing is
+# uploaded as an artifact.
+
+on:
+  # Dispatch needs this file on the default branch; until then it runs on
+  # staging pushes that change the script or this workflow, once the
+  # staging API is running the pushed commit.
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/hr-access-reconcile-staging.yml
+      - services/central-admin-api/scripts/hr/**
+  workflow_dispatch:
+    inputs:
+      match:
+        description: Name or email fragment to check (e.g. enoch). Letters, digits, space, dot, @, hyphen; max 40.
+        required: false
+        default: enoch
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile-dry-run:
+    name: Reconcile department access (dry run)
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    environment: staging
+    concurrency:
+      group: hr-access-reconcile-staging
+      cancel-in-progress: false
+    steps:
+      - name: Validate input
+        shell: bash
+        env:
+          MATCH: ${{ inputs.match || 'enoch' }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$MATCH" =~ ^[A-Za-z0-9\ .@-]{0,40}$ ]]; then
+            echo "::error::Invalid match input."
+            exit 1
+          fi
+
+      - name: Run dry-run report in the staging API container (aggregates only)
+        shell: bash
+        env:
+          STAGING_HOST: 173.249.30.55
+          STAGING_USER: cf-staging-deploy
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          MATCH: ${{ inputs.match || 'enoch' }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$STAGING_SSH_KEY" ]]; then
+            echo "::error::Set STAGING_SSH_KEY in the staging GitHub environment."
+            exit 1
+          fi
+          umask 077
+          private_key="$(mktemp)"
+          host_keys="$(mktemp)"
+          report="$(mktemp)"
+          trap 'rm -f "$private_key" "$host_keys" "$report"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$private_key"
+          ssh-keygen -y -P '' -f "$private_key" >/dev/null
+          ssh-keyscan -T 10 -t ed25519 "$STAGING_HOST" 2>/dev/null > "$host_keys"
+          test -s "$host_keys"
+          fingerprint="$(ssh-keygen -l -E sha256 -f "$host_keys" | awk '{print $2}')"
+          if [[ "$fingerprint" != "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]; then
+            echo "::error::Staging VPS SSH host identity changed. Refusing to connect."
+            exit 1
+          fi
+          {
+            printf 'MATCH=%q\n' "$MATCH"
+            printf 'EXPECTED_SHA=%q\n' "$EXPECTED_SHA"
+            cat <<'REMOTE'
+          set -eu
+          container="admin-server-staging-app-1"
+          test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$container")" = "admin-server-staging"
+          # Wait (up to 40 min) until the staging API runs this commit's image.
+          i=0
+          until docker inspect -f '{{.Config.Image}}' "$container" | grep -q "staging-$EXPECTED_SHA"; do
+            i=$((i + 1))
+            if [ "$i" -gt 80 ]; then echo "Staging API is not running staging-$EXPECTED_SHA" >&2; exit 1; fi
+            sleep 30
+          done
+          set -- scripts/hr/reconcile-department-access.js --json
+          if [ -n "$MATCH" ]; then set -- "$@" "--match=$MATCH"; fi
+          docker exec "$container" node "$@"
+          REMOTE
+          } | ssh -i "$private_key" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=30 \
+                -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$host_keys" \
+                "$STAGING_USER@$STAGING_HOST" 'sh -s' > "$report"
+          REPORT="$report" node -e '
+            const r = JSON.parse(require("fs").readFileSync(process.env.REPORT, "utf8"));
+            if (r.summary.mode !== "dry-run" || r.summary.revoked !== 0) { console.error("Unexpected non dry-run result"); process.exit(1); }
+            const facts = (r.matched || []).map((m) => ({
+              status: m.status, department: m.department, tier: m.tier, isTeamLead: m.isTeamLead, role: m.role,
+              roleGrants: m.roleGrants, emailMarketingGrants: m.manual.filter((k) => k.startsWith("mail-marketing:")),
+              otherManualGrantCount: m.manual.filter((k) => !k.startsWith("mail-marketing:")).length, flags: m.flags,
+            }));
+            const out = ["## Department access reconciliation (dry run, staging)", "", "```json", JSON.stringify(r.summary, null, 2), "```"];
+            if (r.match !== undefined) out.push("", `### Access facts for accounts matching the input (${facts.length})`, "", "```json", JSON.stringify(facts, null, 2), "```");
+            out.push("", `Redundant manual grants found (not revoked): ${r.redundant.length}`);
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, out.join("\n") + "\n");
+            console.log(out.join("\n"));
+          '

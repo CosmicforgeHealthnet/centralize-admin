@@ -16,7 +16,7 @@
 
 const { mailError } = require("../mail.errors");
 const { reservedSenderSet } = require("../security/reserved-senders");
-const { departmentRole } = require("../../../shared/auth/effective-access");
+const { ROLE_GRANT_MODULE, departmentRole } = require("../../../shared/auth/effective-access");
 
 const ROLE_RANK = { READER: 1, MEMBER: 2, MANAGER: 3, OWNER: 4 };
 const CAPABILITY_MIN_ROLE = {
@@ -244,7 +244,8 @@ async function marketingScopes(client, user, { now = new Date() } = {}) {
   // Brands are always assigned explicitly (brand isolation). Marketing Team
   // Leads and Managers may author for the brands they are assigned to;
   // approval always needs its own explicit approve:<brand> grant.
-  const leadsMarketing = user.department === "MARKETING" && ["TEAM_LEAD", "MANAGER"].includes(departmentRole(user));
+  const roleGrants = user.department === "MARKETING" ? await activeSectionGrants(client, user.id, ROLE_GRANT_MODULE, now) : [];
+  const leadsMarketing = user.department === "MARKETING" && ["TEAM_LEAD", "MANAGER"].includes(departmentRole(user, roleGrants.map((grant) => ({ ...grant, module: ROLE_GRANT_MODULE }))));
   const organizations = await client.mailOrganization.findMany({ where: { status: "ACTIVE" }, orderBy: { name: "asc" } });
   return organizations
     .map((organization) => {

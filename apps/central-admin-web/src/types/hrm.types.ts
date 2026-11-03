@@ -448,14 +448,15 @@ export type AccountDepartment = (typeof ACCOUNT_DEPARTMENTS)[number];
 export const ACCOUNT_TIERS = ["SUPER", "EXECUTIVE", "ADMIN", "EMPLOYEE"] as const;
 export type AccountTier = (typeof ACCOUNT_TIERS)[number];
 
-// Designation / Role (authorization role; Job Title is separate).
-// TEAM_LEAD = isTeamLead; MANAGER = Admin tier (or higher) in the department.
+// Designation / Role (department role; Job Title and Account Tier are separate).
+// TEAM_LEAD = isTeamLead; MANAGER = Department Manager of the account's own
+// department (not the Admin tier, which is Platform Admin).
 export const ACCOUNT_ROLES = ["STAFF", "TEAM_LEAD", "MANAGER"] as const;
 export type AccountRole = (typeof ACCOUNT_ROLES)[number];
 export const ACCOUNT_ROLE_LABELS: Record<AccountRole, string> = {
   STAFF: "Staff",
   TEAM_LEAD: "Team Lead",
-  MANAGER: "Manager",
+  MANAGER: "Department Manager",
 };
 
 export interface EffectiveGrant {

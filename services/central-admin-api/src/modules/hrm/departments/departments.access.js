@@ -34,4 +34,17 @@ function createDepartmentDirectoryAccess({ hasAccess = hasSectionAccess } = {}) 
   });
 }
 
-module.exports = { createDepartmentDirectoryAccess };
+// Department Managers: read-only leave requests of their own department.
+function createDepartmentLeavesAccess({ hasAccess = hasSectionAccess } = {}) {
+  return asyncHandler(async (req, _res, next) => {
+    const user = req.adminUser;
+    if (!user) throw new ApiError(401, "Unauthorized");
+    if (!user.department || !(await hasAccess(user, "department", "leaves", "VIEW"))) {
+      throw new ApiError(403, "Only Department Managers can view their department's leave requests");
+    }
+    req.directoryScope = { department: user.department };
+    return next();
+  });
+}
+
+module.exports = { createDepartmentDirectoryAccess, createDepartmentLeavesAccess };

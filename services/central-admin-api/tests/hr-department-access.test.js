@@ -17,6 +17,9 @@ function matches(row, where = {}) {
   return Object.entries(where).every(([key, cond]) => {
     if (key === "OR") return cond.some((sub) => matches(row, sub));
     const value = row[key];
+    if (key === "adminUser" && cond && typeof cond === "object") {
+      return matches(tables.adminUser.find((user) => user.id === row.adminUserId) || {}, cond);
+    }
     if (cond && typeof cond === "object" && !(cond instanceof Date)) {
       if ("in" in cond) return cond.in.includes(value);
       if ("gt" in cond) return value != null && value > cond.gt;
@@ -39,9 +42,13 @@ function model(name, defaults = () => ({})) {
   return {
     findUnique: async ({ where, select }) => pick(rows().find((row) => matches(row, where)), select) || null,
     findFirst: async ({ where, select } = {}) => pick(rows().find((row) => matches(row, where)), select) || null,
-    findMany: async ({ where, select, skip = 0, take } = {}) => {
+    findMany: async ({ where, select, include, skip = 0, take } = {}) => {
       const found = rows().filter((row) => matches(row, where));
-      return found.slice(skip, take ? skip + take : undefined).map((row) => pick(row, select));
+      return found.slice(skip, take ? skip + take : undefined).map((row) => {
+        const out = pick(row, select);
+        if (include?.adminUser) out.adminUser = pick(tables.adminUser.find((user) => user.id === row.adminUserId), include.adminUser.select);
+        return out;
+      });
     },
     count: async ({ where } = {}) => rows().filter((row) => matches(row, where)).length,
     create: async ({ data, select }) => {
@@ -76,9 +83,10 @@ const prisma = {
   team: model("team"),
   project: model("project"),
   leaveRequest: model("leaveRequest"),
+  leaveBalance: model("leaveBalance"),
   $transaction: async (fn) => fn(prisma),
 };
-for (const name of ["refreshToken", "team", "project", "leaveRequest"]) tables[name] = [];
+for (const name of ["refreshToken", "team", "project", "leaveRequest", "leaveBalance"]) tables[name] = [];
 
 function stub(relative, exports) {
   const resolved = require.resolve(relative);
@@ -197,8 +205,7 @@ test("2. assigning Marketing Team Lead adds departmental management", async () =
   const audit = tables.auditLog.filter((entry) => entry.data?.action === "USER_UPDATED" || entry.action === "USER_UPDATED").pop();
   assert.deepEqual(audit.metadata.inheritedAccess.added.sort(), ["department:roster:VIEW", "marketing:workspace-manage:EDIT"]);
 
-  // Manager requires the Admin tier; job titles never imply leadership.
-  await assert.rejects(accounts.updateAccount({ id: lead.id, data: { role: "MANAGER" }, actor: HR, req: {} }), /requires the Admin account tier/);
+  // Job titles never imply leadership.
   const fromTitle = await createEmployee({ name: "Titled", email: "titled@hq.test", department: "MARKETING", position: "Marketing Manager" });
   assert.equal(access.departmentRole(asUser(fromTitle.id)), "STAFF");
 });
@@ -335,8 +342,8 @@ test("7. deactivating an employee removes department access", async () => {
 
 // ── 8. Existing accounts and other departments unchanged ──────────────────
 test("8. existing Admin/Super access and unrelated departments keep working", async () => {
-  const financeAdmin = await createEmployee({ name: "Finance Admin", email: "finadmin@hq.test", department: "FINANCE", tier: "ADMIN", role: "MANAGER" });
-  assert.equal(access.departmentRole(asUser(financeAdmin.id)), "MANAGER");
+  const financeAdmin = await createEmployee({ name: "Finance Admin", email: "finadmin@hq.test", department: "FINANCE", tier: "ADMIN" });
+  assert.equal(access.departmentRole(asUser(financeAdmin.id)), "STAFF", "the Admin tier is Platform Admin, not a department role");
   assert.equal((await call(sectionApp, "GET", "/support/tickets", financeAdmin.id)).status, 403, "admin tier still needs a support grant");
   assert.equal((await call(sectionApp, "GET", "/support/tickets", SUPER.id)).status, 200);
   assert.equal((await call(marketingApp, "DELETE", "/api/marketing/campaigns/1", financeAdmin.id)).status, 200, "admin tier keeps prior Marketing API access");
@@ -345,8 +352,8 @@ test("8. existing Admin/Super access and unrelated departments keep working", as
   assert.equal((await call(marketingApp, "GET", "/api/marketing/campaigns", finance.id)).status, 403, "no cross-department Marketing access");
 
   await assert.rejects(
-    accounts.createAccount({ data: { name: "Bad Role", email: "badrole@hq.test", department: "FINANCE", tier: "ADMIN", role: "STAFF" }, actor: SUPER, req: {} }),
-    /Admin-tier accounts have the Manager role/,
+    accounts.createAccount({ data: { name: "No Dept Manager", email: "nodept@hq.test", tier: "EMPLOYEE", role: "MANAGER" }, actor: SUPER, req: {} }),
+    /needs a department/,
   );
   const plain = await accounts.createAccount({ data: { name: "No Role", email: "norole@hq.test", department: "HR", tier: "EMPLOYEE" }, actor: SUPER, req: {} });
   assert.equal(plain.role, "STAFF");
@@ -401,4 +408,95 @@ test("reconciliation plan flags review items and only revokes fully redundant gr
   // Idempotent: planning again after revoking g1 finds nothing to revoke.
   const again = planReconciliation({ accounts: accountsList, grants: grants.filter((grant) => grant.id !== "g1"), brands: ["karryam"] });
   assert.deepEqual(again.redundant, []);
+});
+
+// ── 10. Department Manager is a department role, not the Admin tier ───────
+const legacyApp = appWith((app) => {
+  app.get("/legacy-admin-only", rbac.requireTier("ADMIN"), (_req, res) => res.json({ ok: true }));
+});
+
+test("10. Department Managers manage only their own department and get no Admin-tier powers", async () => {
+  const manager = await createEmployee({ name: "Maya Manager", email: "maya@hq.test", department: "MARKETING", role: "MANAGER" });
+  assert.equal(manager.role, "MANAGER");
+  assert.equal(manager.tier, "EMPLOYEE", "Manager does not change the account tier");
+  assert.ok(tables.adminSectionGrant.some((g) => g.adminUserId === manager.id && g.module === "department" && g.section === "manage:MARKETING" && !g.revokedAt));
+
+  const effective = await accounts.getEffectiveAccess(manager.id);
+  assert.equal(effective.role, "MANAGER");
+  assert.deepEqual(keys(effective.inherited), [
+    "department:directory:VIEW", "department:leaves:VIEW", "department:roster:VIEW",
+    "marketing:intelligence:VIEW", "marketing:workspace-manage:EDIT", "marketing:workspace:EDIT",
+  ]);
+  assert.ok(!effective.manual.some((g) => g.module === "department"), "role grant is not a Module Permission");
+  assert.ok(!(await accounts.getUserGrants(manager.id)).some((g) => g.module === "department"));
+
+  // No bypass through legacy Admin-tier routes or other departments.
+  assert.equal((await call(legacyApp, "GET", "/legacy-admin-only", manager.id)).status, 403);
+  assert.equal((await call(sectionApp, "GET", "/support/tickets", manager.id)).status, 403);
+  assert.equal((await call(marketingApp, "GET", "/api/marketing/email-templates/customers/search", manager.id)).status, 403);
+  assert.equal((await call(directoryApp, "GET", "/api/hrm/departments/FINANCE/employees", manager.id)).status, 403);
+  assert.equal((await call(marketingApp, "DELETE", "/api/marketing/campaigns/1", manager.id)).status, 200, "manages own department work");
+
+  // Department leave requests: own department only, managers only.
+  const marketingStaff = tables.adminUser.find((u) => u.email === "mara@hq.test");
+  const financeStaff = tables.adminUser.find((u) => u.email === "fin@hq.test");
+  for (const user of [marketingStaff, financeStaff]) {
+    tables.leaveRequest.push({ id: crypto.randomUUID(), adminUserId: user.id, leaveType: "ANNUAL", startDate: new Date(), resumptionDate: new Date(), status: "PENDING", createdAt: new Date() });
+  }
+  const leaves = await call(directoryApp, "GET", "/api/hrm/departments/mine/leaves", manager.id);
+  assert.equal(leaves.status, 200);
+  assert.deepEqual(leaves.body.data.data.map((l) => l.adminUserId), [marketingStaff.id]);
+  const lead = tables.adminUser.find((u) => u.email === "enoch@hq.test");
+  assert.equal((await call(directoryApp, "GET", "/api/hrm/departments/mine/leaves", lead.id)).status, 403, "Team Leads do not see leave requests");
+  assert.equal((await call(directoryApp, "GET", "/api/hrm/departments/mine/leaves", marketingStaff.id)).status, 403);
+
+  // The role cannot be granted or removed through Module Permissions.
+  await assert.rejects(accounts.addGrant({ userId: marketingStaff.id, data: { module: "department", section: "manage:MARKETING", mode: "EDIT" }, actor: HR, req: {} }), /Designation \/ Role/);
+  await accounts.syncGrants({ userId: manager.id, grants: [], actor: HR, req: {} });
+  assert.equal((await accounts.getEffectiveAccess(manager.id)).role, "MANAGER", "syncing Module Permissions keeps the role");
+  const roleRow = tables.adminSectionGrant.find((g) => g.adminUserId === manager.id && g.module === "department" && !g.revokedAt);
+  await assert.rejects(accounts.removeGrant({ grantId: roleRow.id, actor: HR, req: {} }), /Designation \/ Role/);
+  await assert.rejects(accounts.updateAccount({ id: HR.id, data: { role: "MANAGER" }, actor: HR, req: {} }), /own role/);
+
+  // Email Marketing: assigned brands only; approval stays separate.
+  await accounts.addGrant({ userId: manager.id, data: { module: "mail-marketing", section: "karryam", mode: "VIEW" }, actor: HR, req: {} });
+  const scopes = await policy.marketingScopes(prisma, asUser(manager.id));
+  assert.deepEqual(scopes.map((x) => [x.slug, x.canAuthor, x.canApprove]), [["karryam", true, false]]);
+
+  // Department change revokes the role (it was for Marketing only).
+  await accounts.updateAccount({ id: manager.id, data: { department: "FINANCE" }, actor: HR, req: {} });
+  const moved = await accounts.getEffectiveAccess(manager.id);
+  assert.equal(moved.role, "STAFF");
+  assert.ok(!moved.inherited.some((g) => g.module === "marketing" || g.section === "leaves"));
+  assert.ok(!tables.adminSectionGrant.some((g) => g.adminUserId === manager.id && g.module === "department" && !g.revokedAt), "stale manager role revoked");
+  assert.equal((await policy.marketingScopes(prisma, asUser(manager.id)))[0].canAuthor, false, "no longer authors as a Marketing lead");
+
+  // Role change back to Manager (Finance), then demotion, then deactivation.
+  await accounts.updateAccount({ id: manager.id, data: { role: "MANAGER" }, actor: HR, req: {} });
+  assert.equal((await accounts.getEffectiveAccess(manager.id)).role, "MANAGER");
+  await accounts.updateAccount({ id: manager.id, data: { role: "STAFF" }, actor: HR, req: {} });
+  assert.equal((await accounts.getEffectiveAccess(manager.id)).role, "STAFF");
+  await accounts.updateAccount({ id: manager.id, data: { role: "MANAGER" }, actor: HR, req: {} });
+  await accounts.updateStatus({ id: manager.id, status: "INACTIVE", actor: HR, req: {} });
+  assert.deepEqual((await accounts.getEffectiveAccess(manager.id)).inherited, []);
+  assert.equal((await call(directoryApp, "GET", "/api/hrm/departments/mine/leaves", manager.id)).status, 403);
+});
+
+test("11. Platform Admin and Super keep their privileges; unassigned users get nothing", async () => {
+  const platformAdmin = await createEmployee({ name: "Platform Admin", email: "padmin@hq.test", department: "MARKETING", tier: "ADMIN" });
+  assert.equal((await accounts.getEffectiveAccess(platformAdmin.id)).role, "STAFF");
+  assert.equal((await call(legacyApp, "GET", "/legacy-admin-only", platformAdmin.id)).status, 200);
+  assert.equal((await call(marketingApp, "GET", "/api/marketing/email-templates/customers/search", platformAdmin.id)).status, 200);
+  assert.equal((await call(legacyApp, "GET", "/legacy-admin-only", SUPER.id)).status, 200);
+  assert.equal((await call(sectionApp, "GET", "/finance/payroll", SUPER.id)).status, 200);
+
+  const nobody = await createEmployee({ name: "No Department", email: "nodepartment@hq.test" });
+  assert.deepEqual((await accounts.getEffectiveAccess(nobody.id)).inherited, []);
+  assert.equal((await call(directoryApp, "GET", "/api/hrm/departments/mine/employees", nobody.id)).status, 403);
+  assert.equal((await call(marketingApp, "GET", "/api/marketing/campaigns", nobody.id)).status, 403);
+  assert.equal((await call(sectionApp, "GET", "/support/tickets", nobody.id)).status, 403);
+  assert.equal((await call(legacyApp, "GET", "/legacy-admin-only", nobody.id)).status, 403);
+
+  const plan = planReconciliation({ accounts: [asUser(platformAdmin.id)], grants: [], brands: ["karryam"] });
+  assert.ok(plan.report[0].flags.includes("ADMIN_TIER_IN_DEPARTMENT_REVIEW"), "legacy Admin-tier managers are flagged for HR review");
 });
