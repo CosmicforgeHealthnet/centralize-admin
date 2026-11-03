@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
-const { requireTier, requireSection } = require("../../shared/middlewares/rbac.middleware");
+const { requireTier, requireSection, requireTierOrDepartment } = require("../../shared/middlewares/rbac.middleware");
 const {
   getTransaction,
   listTransactions,
@@ -22,7 +22,9 @@ const limiter = rateLimit({
 router.get("/health", healthCheck);
 
 router.use(authenticate);
-router.use(requireTier("ADMIN"));
+// Admin tier as before, or an employee whose department defaults include
+// this module; each route below still checks its section.
+router.use(requireTierOrDepartment("ADMIN", "finance"));
 router.use(limiter);
 
 router.get("/stats", requireSection("finance", "payments", "VIEW"), getPaymentStats);

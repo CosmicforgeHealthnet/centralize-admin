@@ -19,6 +19,7 @@ import ProjectDetail from "./projects/ProjectDetail";
 import TasksList from "./tasks/TasksList";
 import TaskDetail from "./tasks/TaskDetail";
 import TeamsList from "./teams/TeamsList";
+import DepartmentColleagues from "./teams/DepartmentColleagues";
 import ActivityLogs from "./activity-logs/ActivityLogs";
 import NotificationTab from "./notification/NotificationTab";
 import EmojiPicker from "emoji-picker-react";
@@ -377,6 +378,7 @@ function ProfilePageInner() {
 
           {/* Teams Page */}
           {activeSubNav === "Teams" && <TeamsList />}
+          {activeSubNav === "My Department" && <DepartmentColleagues />}
 
           {/* Activity Logs Page */}
           {activeSubNav === "Activity Logs" && <ActivityLogs />}

@@ -93,6 +93,8 @@ import {
   SyncSectionGrantsPayload,
   Module,
   SectionGrantMode,
+  EffectiveAccess,
+  DepartmentColleague,
 } from "@/types/hrm.types";
 
 const BASE = "/api/hrm/employees";
@@ -197,6 +199,15 @@ export const departmentsService = {
   async getDepartmentEmployees(dept: string, params: ListDepartmentEmployeesParams = {}) {
     const { data } = await api.get<ApiEnvelope<{ data: DepartmentEmployee[]; meta: PaginationMeta }>>(
       `${DEPT_BASE}/${dept}/employees`,
+      { params },
+    );
+    return data.data;
+  },
+
+  // The signed-in employee's own department (basic work information).
+  async getMyColleagues(params: { page?: number; limit?: number } = {}) {
+    const { data } = await api.get<ApiEnvelope<{ data: DepartmentColleague[]; meta: PaginationMeta }>>(
+      `${DEPT_BASE}/mine/employees`,
       { params },
     );
     return data.data;
@@ -676,6 +687,12 @@ export const grantsService = {
       `${ACCOUNTS_BASE}/${userId}/grants/sync`,
       { grants }
     );
+    return data.data;
+  },
+
+  // Department defaults + additional (manual) grants for one account.
+  async getEffectiveAccess(userId: string) {
+    const { data } = await api.get<ApiEnvelope<EffectiveAccess>>(`${ACCOUNTS_BASE}/${userId}/effective-access`);
     return data.data;
   },
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, Plus, Save, AlertCircle, Loader2 } from "lucide-react";
 import { useHrmStore } from "@/stores/hrm.store";
+import { grantsService } from "@/lib/hrm.service";
 import {
   MODULES,
   MODULE_SECTIONS,
@@ -46,6 +47,15 @@ export default function SectionGrantManager({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Sections offered by the API (includes the Email Marketing brands).
+  const [apiSections, setApiSections] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    grantsService
+      .getAvailableModules()
+      .then((result) => setApiSections(result?.modules ?? {}))
+      .catch(() => setApiSections({}));
+  }, []);
+
   useEffect(() => {
     fetchUserGrants(userId);
     return () => clearGrants();
@@ -57,7 +67,11 @@ export default function SectionGrantManager({
     }
   }, [sectionGrants]);
 
-  const availableSections = selectedModule ? MODULE_SECTIONS[selectedModule] || [] : [];
+  const availableSections = selectedModule
+    ? apiSections[selectedModule]?.length
+      ? apiSections[selectedModule]
+      : MODULE_SECTIONS[selectedModule] || []
+    : [];
 
   const isGrantDuplicate = useCallback(
     (module: Module, section: string) => {
@@ -213,7 +227,7 @@ export default function SectionGrantManager({
                   <option value="">Select Module</option>
                   {Object.entries(MODULES).map(([label, value]) => (
                     <option key={value} value={value}>
-                      {label}
+                      {label.replace(/_/g, " ")}
                     </option>
                   ))}
                 </select>

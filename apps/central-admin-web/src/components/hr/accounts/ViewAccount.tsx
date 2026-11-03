@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { CreditCard, Phone, Mail, Calendar, Briefcase, MapPin, Users, RefreshCw, Shield, Plus, ArrowLeft } from "lucide-react";
 import { useHrmStore } from "@/stores/hrm.store";
-import { formatEnumLabel, AccountTier } from "@/types/hrm.types";
+import { formatEnumLabel, AccountTier, ACCOUNT_ROLE_LABELS } from "@/types/hrm.types";
 import SectionGrantManager from "./SectionGrantManager";
 import PermissionChip from "./PermissionChip";
 import MailProvisioningCard from "./MailProvisioningCard";
+import EffectiveAccessPanel from "./EffectiveAccessPanel";
 
 const TIER_PERMISSIONS: Record<AccountTier, { heading: string; items: string[] }[]> = {
   SUPER: [
@@ -125,6 +126,7 @@ export default function ViewAccount({
 
   const [actionLoading, setActionLoading] = useState<"activate" | "deactivate" | "invite" | null>(null);
   const [showGrantManager, setShowGrantManager] = useState(false);
+  const [accessRefresh, setAccessRefresh] = useState(0);
   const [inviteNotice, setInviteNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -142,6 +144,7 @@ export default function ViewAccount({
       await updateAccountStatus(accountId, status);
     } finally {
       setActionLoading(null);
+      setAccessRefresh((n) => n + 1);
     }
   };
 
@@ -336,7 +339,8 @@ export default function ViewAccount({
               rows={[
                 { label: "Job Title", value: acc.jobTitle ?? acc.position ?? "—" },
                 { label: "Department", value: formatEnumLabel(acc.department) },
-                { label: "Designation / Role / Position", value: acc.designation ?? "—" },
+                { label: "Designation / Role", value: acc.role ? ACCOUNT_ROLE_LABELS[acc.role] : "—" },
+                { label: "Team Lead", value: acc.isTeamLead ? "Yes" : "No" },
               ]}
             />
 
@@ -365,7 +369,7 @@ export default function ViewAccount({
                 <div className="flex items-center justify-between">
                   <span className="font-poppins text-[11px] font-semibold text-foreground flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5" />
-                    Module Permissions
+                    Additional Module Permissions
                   </span>
                   <button
                     onClick={() => setShowGrantManager(true)}
@@ -383,7 +387,7 @@ export default function ViewAccount({
                 ) : grantsError ? (
                   <p className="font-poppins text-[11px] text-red-500">{grantsError}</p>
                 ) : !Array.isArray(sectionGrants) || sectionGrants.length === 0 ? (
-                  <p className="font-poppins text-[11px] text-muted-foreground">No module permissions assigned.</p>
+                  <p className="font-poppins text-[11px] text-muted-foreground">No additional permissions. Department access is automatic.</p>
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {sectionGrants.map((grant) => (
@@ -397,6 +401,14 @@ export default function ViewAccount({
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className="flex flex-col gap-2 mt-2 border-t border-border pt-3">
+                <span className="font-poppins text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5" />
+                  Effective Access
+                </span>
+                <EffectiveAccessPanel accountId={accountId} refreshKey={accessRefresh} />
               </div>
 
               {perms.length > 0 && (
@@ -466,6 +478,7 @@ export default function ViewAccount({
           onClose={() => {
             setShowGrantManager(false);
             fetchUserGrants(accountId);
+            setAccessRefresh((n) => n + 1);
           }}
         />
       )}

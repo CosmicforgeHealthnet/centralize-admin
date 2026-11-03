@@ -14,6 +14,12 @@ const DEPARTMENTS = [
   "SOCIAL_MEDIA",
   "EXECUTIVE",
   "MANAGEMENT",
+  // The remaining Department enum values: HR can assign every department.
+  "HR",
+  "VERIFICATION",
+  "RTC",
+  "TELEMEDICINE",
+  "OPERATIONS",
 ];
 
 const TIERS = ["SUPER", "EXECUTIVE", "ADMIN", "EMPLOYEE"];

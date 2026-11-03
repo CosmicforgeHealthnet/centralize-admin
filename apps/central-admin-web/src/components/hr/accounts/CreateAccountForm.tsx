@@ -6,8 +6,11 @@ import { ArrowLeft, Loader2, CheckCircle, AlertCircle, XCircle } from "lucide-re
 import { useHrmStore } from "@/stores/hrm.store";
 import {
   ACCOUNT_DEPARTMENTS,
+  ACCOUNT_ROLES,
+  ACCOUNT_ROLE_LABELS,
   ACCOUNT_TIERS,
   AccountDepartment,
+  AccountRole,
   AccountMailProvisioningOutcome,
   AccountTier,
   formatEnumLabel,
@@ -231,16 +234,9 @@ const JOB_TITLE_OPTIONS = [
   { label: "Other", value: "Other" },
 ];
 
-const DESIGNATION_OPTIONS = [
-  { label: "Individual Contributor", value: "Individual Contributor" },
-  { label: "Team Lead", value: "Team Lead" },
-  { label: "Manager", value: "Manager" },
-  { label: "Senior Manager", value: "Senior Manager" },
-  { label: "Director", value: "Director" },
-  { label: "VP", value: "VP" },
-  { label: "Executive", value: "Executive" },
-  { label: "Other", value: "Other" },
-];
+// Designation / Role is the authorization role (Job Title stays separate).
+// Team Lead is stored as isTeamLead; Manager uses the Admin account tier.
+const ROLE_OPTIONS = ACCOUNT_ROLES.map((r) => ({ label: ACCOUNT_ROLE_LABELS[r], value: r }));
 
 const LOCATION_OPTIONS = [
   { label: "Abuja", value: "Abuja" },
@@ -292,7 +288,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
   const [phone, setPhone] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [department, setDepartment] = useState<string>("");
-  const [designation, setDesignation] = useState("");
+  const [role, setRole] = useState<AccountRole | "">("STAFF");
   const [empType, setEmpType] = useState("");
   const [empCategory, setEmpCategory] = useState("");
   const [location, setLocation] = useState("");
@@ -338,13 +334,28 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
       setPhone(selectedAccount.phone ?? "");
       setJobTitle(selectedAccount.jobTitle ?? selectedAccount.position ?? "");
       setDepartment(selectedAccount.department ?? "");
-      setDesignation(selectedAccount.designation ?? "");
+      setRole(selectedAccount.role ?? (selectedAccount.tier !== "EMPLOYEE" ? "MANAGER" : selectedAccount.isTeamLead ? "TEAM_LEAD" : "STAFF"));
       setEmpType(selectedAccount.employmentType ?? "");
       setEmpCategory(selectedAccount.employmentCategory ?? "");
       setLocation(selectedAccount.location ?? "");
       setTier(selectedAccount.tier);
     }
   }, [isEdit, selectedAccount]);
+
+  // Keep Designation / Role and Account Tier consistent: Manager is the
+  // Admin tier; Staff and Team Lead use the Employee tier.
+  const handleRoleChange = (value: string) => {
+    const next = value as AccountRole;
+    setRole(next);
+    if (next === "MANAGER" && tier === "EMPLOYEE") setTier("ADMIN");
+    if (next !== "MANAGER" && tier === "ADMIN") setTier("EMPLOYEE");
+  };
+
+  const handleTierChange = (value: string) => {
+    setTier(value);
+    if (value !== "EMPLOYEE") setRole("MANAGER");
+    else if (role === "MANAGER") setRole("STAFF");
+  };
 
   const handleSubmit = async () => {
     setFormError(null);
@@ -372,6 +383,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
           position: jobTitle.trim() || undefined,
           department: (department || undefined) as AccountDepartment | undefined,
           tier: tier as AccountTier,
+          role: role || undefined,
           employmentType: empType || undefined,
           employmentCategory: empCategory || undefined,
           location: location.trim() || undefined,
@@ -386,6 +398,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
           position: jobTitle.trim() || undefined,
           department: (department || undefined) as AccountDepartment | undefined,
           tier: tier as AccountTier,
+          role: role || undefined,
           employmentType: empType || undefined,
           employmentCategory: empCategory || undefined,
           location: location.trim() || undefined,
@@ -402,7 +415,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
             setPhone("");
             setJobTitle("");
             setDepartment("");
-            setDesignation("");
+            setRole("STAFF");
             setEmpType("");
             setEmpCategory("");
             setLocation("");
@@ -509,7 +522,10 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
             </div>
             <div>
               <Label>Designation / Role</Label>
-              <SelectField placeholder="Select Designation" value={designation} onChange={setDesignation} options={DESIGNATION_OPTIONS} />
+              <SelectField placeholder="Select Designation / Role" value={role} onChange={handleRoleChange} options={ROLE_OPTIONS} />
+              <p className="font-poppins text-[11px] text-muted-foreground mt-1">
+                Sets department access automatically. Team Leads and Managers can manage departmental work; Manager uses the Admin tier.
+              </p>
             </div>
           </div>
         </SectionCard>
@@ -536,7 +552,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
         <div className="flex flex-col gap-3">
           <div>
             <Label>Account Tier</Label>
-            <SelectField placeholder="Select Tier" value={tier} onChange={setTier} options={TIER_OPTIONS} />
+            <SelectField placeholder="Select Tier" value={tier} onChange={handleTierChange} options={TIER_OPTIONS} />
           </div>
 
           {tier && (

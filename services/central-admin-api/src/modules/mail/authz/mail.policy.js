@@ -16,6 +16,7 @@
 
 const { mailError } = require("../mail.errors");
 const { reservedSenderSet } = require("../security/reserved-senders");
+const { departmentRole } = require("../../../shared/auth/effective-access");
 
 const ROLE_RANK = { READER: 1, MEMBER: 2, MANAGER: 3, OWNER: 4 };
 const CAPABILITY_MIN_ROLE = {
@@ -240,10 +241,14 @@ async function marketingScopes(client, user, { now = new Date() } = {}) {
   if (!user || user.status !== "ACTIVE") return [];
   const grants = await activeSectionGrants(client, user.id, MARKETING_MODULE, now);
   if (!grants.length) return [];
+  // Brands are always assigned explicitly (brand isolation). Marketing Team
+  // Leads and Managers may author for the brands they are assigned to;
+  // approval always needs its own explicit approve:<brand> grant.
+  const leadsMarketing = user.department === "MARKETING" && ["TEAM_LEAD", "MANAGER"].includes(departmentRole(user));
   const organizations = await client.mailOrganization.findMany({ where: { status: "ACTIVE" }, orderBy: { name: "asc" } });
   return organizations
     .map((organization) => {
-      const matches = (section) => grants.filter((grant) => grant.section === section);
+      const matches = (section) => grants.filter((grant) => String(grant.section).trim().toLowerCase() === section.toLowerCase());
       const authoring = [...matches(organization.slug), ...matches("*")];
       const approving = [...matches(`approve:${organization.slug}`), ...matches("approve:*")];
       return {
@@ -251,7 +256,7 @@ async function marketingScopes(client, user, { now = new Date() } = {}) {
         slug: organization.slug,
         name: organization.name,
         canView: authoring.length > 0 || approving.length > 0,
-        canAuthor: authoring.some((grant) => grant.mode === "EDIT"),
+        canAuthor: authoring.some((grant) => grant.mode === "EDIT") || (leadsMarketing && authoring.length > 0),
         canApprove: approving.some((grant) => grant.mode === "EDIT"),
       };
     })

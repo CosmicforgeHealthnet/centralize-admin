@@ -71,6 +71,14 @@ router.get(
   accountsController.getAccountWithGrants,
 );
 
+// Effective permissions: department defaults + additional (manual) grants.
+router.get(
+  "/:id/effective-access",
+  requireTier("ADMIN"),
+  requireSection("hrm", "accounts", "VIEW"),
+  accountsController.getEffectiveAccess,
+);
+
 router.get(
   "/:id/grants",
   requireTier("ADMIN"),
