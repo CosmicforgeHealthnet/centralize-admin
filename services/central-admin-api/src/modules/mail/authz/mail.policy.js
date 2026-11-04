@@ -239,7 +239,11 @@ async function requireSenderIdentity(client, user, access, addressId, options = 
 
 async function marketingScopes(client, user, { now = new Date(), env = process.env } = {}) {
   if (!user || user.status !== "ACTIVE") return [];
-  const grants = await activeSectionGrants(client, user.id, MARKETING_MODULE, now);
+  // Global SUPER has management access across all active marketing brands.
+  // This does NOT grant mailbox content, break-glass, or bypass approval
+  // separation, MFA/step-up, consent or dispatch safety gates.
+  const isSuperAdmin = user.tier === "SUPER";
+  const grants = isSuperAdmin ? [] : await activeSectionGrants(client, user.id, MARKETING_MODULE, now);
   // Brand isolation: a brand is visible only through (a) an explicit brand
   // grant (Module Permissions) or (b) the brand being authorised for the
   // account's own department (MAIL_MARKETING_DEPARTMENT_BRANDS). Department
@@ -252,7 +256,7 @@ async function marketingScopes(client, user, { now = new Date(), env = process.e
     const roleGrants = await activeSectionGrants(client, user.id, ROLE_GRANT_MODULE, now);
     leads = ["TEAM_LEAD", "MANAGER"].includes(departmentRole(user, roleGrants.map((grant) => ({ ...grant, module: ROLE_GRANT_MODULE }))));
   }
-  if (!grants.length && !brands.length) return [];
+  if (!isSuperAdmin && !grants.length && !brands.length) return [];
   const organizations = await client.mailOrganization.findMany({ where: { status: "ACTIVE" }, orderBy: { name: "asc" } });
   return organizations
     .map((organization) => {
@@ -264,10 +268,10 @@ async function marketingScopes(client, user, { now = new Date(), env = process.e
         organizationId: organization.id,
         slug: organization.slug,
         name: organization.name,
-        canView: authoring.length > 0 || approving.length > 0 || viaDepartment,
-        canAuthor: authoring.some((grant) => grant.mode === "EDIT") || (user.department === "MARKETING" && leads && authoring.length > 0) || viaDepartment,
-        canApprove: approving.some((grant) => grant.mode === "EDIT") || (viaDepartment && leads),
-        access: viaDepartment ? "DEPARTMENT" : "EXPLICIT",
+        canView: isSuperAdmin || authoring.length > 0 || approving.length > 0 || viaDepartment,
+        canAuthor: isSuperAdmin || authoring.some((grant) => grant.mode === "EDIT") || (user.department === "MARKETING" && leads && authoring.length > 0) || viaDepartment,
+        canApprove: isSuperAdmin || approving.some((grant) => grant.mode === "EDIT") || (viaDepartment && leads),
+        access: isSuperAdmin ? "SUPER" : viaDepartment ? "DEPARTMENT" : "EXPLICIT",
       };
     })
     .filter((scope) => scope.canView);
