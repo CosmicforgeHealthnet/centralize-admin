@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
-  ArrowLeft,
+  ChevronLeft,
   Forward,
   ImageOff,
   Inbox,
@@ -110,7 +110,7 @@ export default function ThreadDetail({
   }, [compose, canReply, last, backHref]);
 
   const blockedCount = messages.reduce((n, m) => n + (m.remoteImagesBlocked || 0), 0);
-  const actionBtn = "flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-40";
+  const actionBtn = "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-40";
 
   return (
     <PermissionBoundary
@@ -123,7 +123,7 @@ export default function ThreadDetail({
         <div className="flex h-full flex-col">
           <div className="flex flex-wrap items-center gap-1 border-b border-border px-3 py-2" role="toolbar" aria-label="Conversation actions">
             <Link href={backHref} aria-label="Back to list" className={`${actionBtn} lg:hidden`}>
-              <ArrowLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             </Link>
             {thread.folder !== "ARCHIVE" && (
               <button type="button" onClick={() => doMove("ARCHIVE")} aria-label="Archive (e)" title="Archive (e)" className={actionBtn}>

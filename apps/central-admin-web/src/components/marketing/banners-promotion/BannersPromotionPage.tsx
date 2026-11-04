@@ -2,6 +2,8 @@
 "use client";
 import { useDebouncedSearch } from "@/components/marketing/shared/useDebouncedSearch";
 
+import MailState from "@/components/mail/MailState";
+import { Image as BannerEmptyIcon, Tag as PromotionEmptyIcon } from "lucide-react";
 import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
 
 import SearchField from "@/components/marketing/shared/SearchField";
@@ -209,7 +211,7 @@ export default function BannersPromotionPage() {
 
       {showAdBanners ? (
         <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <TableScrollArea className="overflow-x-auto">
+          {banners.length === 0 && !isLoading ? <MailState icon={BannerEmptyIcon} title="No banners found" /> : (<TableScrollArea className="overflow-x-auto">
             <table className="w-full min-w-[900px]">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
@@ -282,11 +284,11 @@ export default function BannersPromotionPage() {
                 )}
               </tbody>
             </table>
-          </TableScrollArea>
+          </TableScrollArea>)}
         </div>
       ) : (
         <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <TableScrollArea className="overflow-x-auto">
+          {filteredPromotions.length === 0 && !isLoading ? <MailState icon={PromotionEmptyIcon} title="No promotions found" /> : (<TableScrollArea className="overflow-x-auto">
             <table className="w-full min-w-[980px]">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
@@ -346,7 +348,7 @@ export default function BannersPromotionPage() {
                 )}
               </tbody>
             </table>
-          </TableScrollArea>
+          </TableScrollArea>)}
 
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-end gap-1 px-4 py-4">

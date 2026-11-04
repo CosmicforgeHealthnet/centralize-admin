@@ -3,6 +3,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useClientReady } from "@/lib/use-client-ready";
+import { LockKeyhole } from "lucide-react";
+import MailState, { stateActionClass } from "@/components/mail/MailState";
 import ComposeEditor from "@/components/mail/ComposeEditor";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { useEntitlements } from "@/components/mail/hooks";
@@ -12,6 +15,7 @@ const MODES: DraftMode[] = ["NEW", "REPLY", "REPLY_ALL", "FORWARD"];
 
 function ComposeInner() {
   const router = useRouter();
+  const clientReady = useClientReady();
   const params = useSearchParams();
   const entitlements = useEntitlements();
   const mailboxes = (entitlements.data?.mailboxes ?? []).filter((m) => m.canSend);
@@ -22,15 +26,12 @@ function ComposeInner() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PermissionBoundary isLoading={entitlements.isLoading} error={entitlements.error} retry={() => entitlements.refetch()}>
+      <PermissionBoundary isLoading={!clientReady || entitlements.isLoading} error={entitlements.error} retry={() => entitlements.refetch()} loadingLabel="Preparing draft">
         {!mailboxId ? (
-          <div role="alert" className="rounded-lg border border-border bg-card p-8 text-center text-xs text-muted-foreground">
-            <p>You do not have a mailbox you can send from. A Mail administrator must grant you an active sender mailbox.</p>
-            {(entitlements.data?.canManageDomains || entitlements.data?.canViewAdministration) && (
-              <Link href="/dashboard/it?section=mail-admin" className="mt-3 inline-block rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">
-                Open Mail administration
-              </Link>
-            )}
+          <div className="rounded-2xl border border-border bg-card">
+            <MailState icon={LockKeyhole} tone="access" role="alert" title="No sending mailbox" description="Ask your Mail administrator for permission to send email." actions={
+              (entitlements.data?.canManageDomains || entitlements.data?.canViewAdministration) ? <Link href="/dashboard/it?section=mail-admin" className={stateActionClass}>Open Mail administration</Link> : undefined
+            } />
           </div>
         ) : (
           <ComposeEditor

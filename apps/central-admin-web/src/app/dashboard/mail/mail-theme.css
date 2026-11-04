@@ -1,0 +1,38 @@
+/* Keep native controls consistent with the selected app theme, including
+   date pickers, select menus, checkboxes and browser autofill. The folder
+   drawer carries this class too because it is portalled outside the layout. */
+.mail-workspace { color-scheme: light; --mail-control-accent: var(--primary); }
+.dark .mail-workspace { color-scheme: dark; --mail-control-accent: #a4a9ff; }
+.mail-workspace :is(input, textarea, select, [contenteditable="true"]) {
+  color: var(--foreground);
+  caret-color: var(--mail-control-accent);
+}
+.mail-workspace :is(input, textarea)::placeholder { color: var(--muted-foreground); opacity: 1; }
+.mail-workspace select option { background: var(--card); color: var(--foreground); }
+.mail-workspace input:is([type="checkbox"], [type="radio"]) {
+  accent-color: var(--mail-control-accent);
+}
+.mail-workspace :is(input:not([type="hidden"]), textarea, select, [contenteditable="true"]):focus-visible {
+  outline: 2px solid var(--mail-control-accent);
+  outline-offset: 2px;
+}
+.mail-workspace :is(input, textarea, select):disabled { opacity: .55; cursor: not-allowed; }
+.mail-workspace input:autofill {
+  -webkit-text-fill-color: var(--foreground);
+  box-shadow: 0 0 0 1000px var(--card) inset;
+  caret-color: var(--mail-control-accent);
+}
+/* Brand-colored text needs a lighter tint on dark surfaces. Filled primary
+   buttons retain their existing white labels and brand background. */
+.dark .mail-workspace .text-primary { color: #a4a9ff; }
+.dark .mail-workspace .text-red-600 { color: #fca5a5; }
+.dark .mail-workspace :is(.text-amber-600, .text-amber-700, .text-amber-800) { color: #fcd34d; }
+.dark .mail-workspace .bg-amber-50 { background-color: #302712; }
+.dark .mail-workspace .border-amber-200 { border-color: #786024; }
+
+.dark .mail-workspace .bg-red-50 { background-color: #351c22; }
+.dark .mail-workspace .text-red-700 { color: #fca5a5; }
+.dark .mail-workspace .border-red-200 { border-color: #87434b; }
+.dark .mail-workspace .bg-emerald-50 { background-color: #122e26; }
+.dark .mail-workspace .text-emerald-700 { color: #6ee7b7; }
+.dark .mail-workspace .border-emerald-200 { border-color: #276852; }

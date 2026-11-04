@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Users, MousePointerClick, TrendingUp, CreditCard } from "lucide-react";
+import { ChevronLeft, Users, MousePointerClick, TrendingUp, CreditCard } from "lucide-react";
 import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CampaignDetail as CampaignDetailType } from "@/types/marketing.types";
@@ -73,9 +73,9 @@ const {
     <div className="flex flex-col gap-4">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors w-fit"
+        className="inline-flex min-h-11 items-center gap-1 rounded-md pr-2 text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary w-fit"
       >
-        <ArrowLeft className="w-3.5 h-3.5" />
+        <ChevronLeft className="h-5 w-5" />
         <span className="font-poppins text-[12px] font-medium">Campaigns</span>
       </button>
 

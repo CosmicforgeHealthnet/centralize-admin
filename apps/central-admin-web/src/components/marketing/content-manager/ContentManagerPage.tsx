@@ -2,6 +2,8 @@
 "use client";
 import { useDebouncedSearch } from "@/components/marketing/shared/useDebouncedSearch";
 
+import MailState from "@/components/mail/MailState";
+import { FileText as EmptyIcon } from "lucide-react";
 import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
 
 import SearchField from "@/components/marketing/shared/SearchField";
@@ -141,7 +143,7 @@ export default function ContentManagerPage() {
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <TableScrollArea className="overflow-x-auto">
+        {filteredItems.length === 0 && !isLoadingContent ? <MailState icon={EmptyIcon} title="No content found" description="Try another search or create new content." /> : (<TableScrollArea className="overflow-x-auto">
           <table className="w-full min-w-[820px]">
             <thead>
               <tr className="border-b border-border bg-muted/40">
@@ -214,7 +216,7 @@ export default function ContentManagerPage() {
               )}
             </tbody>
           </table>
-        </TableScrollArea>
+        </TableScrollArea>)}
       </div>
 
       {showModal && (

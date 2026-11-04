@@ -1,5 +1,7 @@
 "use client";
 
+import MailState from "@/components/mail/MailState";
+import { PanelsTopLeft } from "lucide-react";
 import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
 
 import { useState } from "react";
@@ -43,7 +45,7 @@ export default function TemplateList({ org }: { org: MarketingOrganization }) {
         )}
         <PermissionBoundary isLoading={q.isLoading} error={q.error} retry={() => q.refetch()}>
           {(q.data?.items ?? []).length === 0 ? (
-            <p role="status" className="text-[12px] text-muted-foreground">No templates yet.</p>
+            <MailState icon={PanelsTopLeft} title="No templates yet" description="Save reusable designs for your email campaigns." />
           ) : (
             <TableScrollArea><table className="w-full text-left text-[12px] min-w-[560px]">
               <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Name</th><th scope="col">Latest version</th><th scope="col">Updated</th></tr></thead>
@@ -63,13 +65,13 @@ export default function TemplateList({ org }: { org: MarketingOrganization }) {
           )}
         </PermissionBoundary>
       </EmCard>
-      <EmCard title="Existing notification email templates (read-only)" id="em-legacy">
+      <EmCard title="Notification templates" id="em-legacy">
         <p className="mb-2 text-[12px] text-muted-foreground">
-          These are the existing Marketing &rarr; Email Template records. They remain managed in that section and are unchanged.
+          Manage these templates in Marketing’s Email Template section.
         </p>
         <PermissionBoundary isLoading={legacy.isLoading} error={legacy.error} compact>
           {(legacy.data ?? []).length === 0 ? (
-            <p className="text-[12px] text-muted-foreground">None.</p>
+            <MailState compact icon={PanelsTopLeft} title="No notification templates" />
           ) : (
             <TableScrollArea><table className="w-full text-left text-[12px] min-w-[560px]">
               <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Event</th><th scope="col">Language</th><th scope="col">Valid</th><th scope="col">Status</th></tr></thead>

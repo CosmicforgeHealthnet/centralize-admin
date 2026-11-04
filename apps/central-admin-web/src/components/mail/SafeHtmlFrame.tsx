@@ -1,13 +1,21 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useSyncExternalStore } from "react";
 
-const FRAME_STYLE = `<style>
-  html,body{margin:0;padding:0;font-family:Poppins,Arial,sans-serif;font-size:13px;color:#111827;word-wrap:break-word;overflow-wrap:anywhere}
+function subscribeTheme(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  return () => observer.disconnect();
+}
+const getDarkTheme = () => document.documentElement.classList.contains("dark");
+const getServerTheme = () => false;
+
+const frameStyle = (dark: boolean) => `<style>
+  html,body{color-scheme:${dark ? "dark" : "light"};background:${dark ? "#1b1c1c" : "#fff"};margin:0;padding:0;font-family:Poppins,Arial,sans-serif;font-size:13px;color:${dark ? "#f3f4f6" : "#111827"};word-wrap:break-word;overflow-wrap:anywhere}
   img{max-width:100%;height:auto}
   table{max-width:100%}
-  a{color:#272EA7}
-  blockquote{margin:0 0 0 .8ex;border-left:2px solid #ddd;padding-left:1ex;color:#555}
+  a{color:${dark ? "#a4a9ff" : "#272EA7"}}
+  blockquote{margin:0 0 0 .8ex;border-left:2px solid ${dark ? "#606274" : "#ddd"};padding-left:1ex;color:${dark ? "#c0c2cf" : "#555"}}
   a[data-suspicious]{background:#fef3c7;outline:1px dashed #d97706;color:#92400e}
   a[data-suspicious]::after{content:" \\26A0  check link";font-size:10px;font-weight:600;color:#b45309}
 </style>`;
@@ -32,8 +40,9 @@ export default function SafeHtmlFrame({
   allowRemoteImages?: boolean;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
+  const dark = useSyncExternalStore(subscribeTheme, getDarkTheme, getServerTheme);
   const imgSrc = allowRemoteImages ? "data: https:" : "data:";
-  const doc = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${imgSrc}; style-src 'unsafe-inline'; font-src 'none'; form-action 'none';"><base target="_blank">${FRAME_STYLE}</head><body>${html}</body></html>`;
+  const doc = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${imgSrc}; style-src 'unsafe-inline'; font-src 'none'; form-action 'none';"><base target="_blank">${frameStyle(dark)}</head><body>${html}</body></html>`;
 
   // Sandbox without allow-same-origin blocks reading contentDocument, so size
   // by a content estimate and let the user scroll inside the frame.
@@ -51,7 +60,7 @@ export default function SafeHtmlFrame({
       referrerPolicy="no-referrer"
       srcDoc={doc}
       style={{ height }}
-      className="w-full rounded border border-border bg-white"
+      className="w-full rounded border border-border bg-card"
     />
   );
 }

@@ -25,6 +25,8 @@ export default function MailSearch() {
     enabled: Boolean(mailboxId),
   });
   const inputRef = useRef<HTMLInputElement>(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+  const advancedRef = useRef<HTMLDivElement>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const currentQuery = params.toString();
 
@@ -39,6 +41,20 @@ export default function MailSearch() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  useEffect(() => {
+    if (!showAdvanced) return;
+    advancedRef.current?.querySelector<HTMLInputElement>("input")?.focus();
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowAdvanced(false);
+        filterButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [showAdvanced]);
+
   const submit = (e?: React.FormEvent) => {
     e?.preventDefault();
     const form = e?.currentTarget as HTMLFormElement | undefined;
@@ -52,6 +68,7 @@ export default function MailSearch() {
     }
     const labelId = String(values.get("labelId") ?? "");
     if (labelId) next.set("labelId", labelId);
+    setShowAdvanced(false);
     // Results are always mailbox scoped by the server; leave thread view.
     const listPath = pathname.split("/thread/")[0];
     router.push(next.toString() ? `${listPath}?${next.toString()}` : listPath);
@@ -64,7 +81,7 @@ export default function MailSearch() {
   return (
     <div className="flex flex-col gap-2">
     <form key={currentQuery} role="search" aria-label="Search this mailbox" onSubmit={submit} className="flex flex-col gap-2">
-      <div className="flex min-h-10 items-center gap-2 rounded-lg border border-border bg-background px-3 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+      <div className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-background px-3 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
         <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <label htmlFor="mail-search" className="sr-only">Search mail</label>
         <span id="mail-search-scope" className="sr-only">{SCOPE_HINT}</span>
@@ -79,25 +96,26 @@ export default function MailSearch() {
           className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
         {params.get("q") && (
-          <button type="button" onClick={clear} aria-label="Clear search" className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary">
+          <button type="button" onClick={clear} aria-label="Clear search" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary">
             <X className="h-4 w-4" />
           </button>
         )}
         <button
           type="button"
+          ref={filterButtonRef}
           onClick={() => setShowAdvanced((s) => !s)}
           aria-expanded={showAdvanced}
           aria-controls="mail-search-advanced"
           aria-label="Advanced search"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"
         >
           <SlidersHorizontal className="h-4 w-4" />
         </button>
       </div>
       {showAdvanced && (
-        <div id="mail-search-advanced" className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-card p-3 shadow-sm">
+        <div ref={advancedRef} id="mail-search-advanced" className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3 rounded-lg border border-border bg-card p-3 shadow-sm">
           {ADVANCED.map((k) => (
-            <label key={k} className="flex flex-col gap-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+            <label key={k} className="flex flex-col gap-0.5 text-xs font-medium text-muted-foreground">
               {k}
               <input
                 type={k === "after" || k === "before" ? "date" : "text"}
@@ -108,7 +126,7 @@ export default function MailSearch() {
             </label>
           ))}
           {mailboxId && (
-            <label className="col-span-2 flex flex-col gap-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+            <label className="col-span-full flex flex-col gap-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
               label
               <select
                 name="labelId"
@@ -124,7 +142,7 @@ export default function MailSearch() {
               </select>
             </label>
           )}
-          <button type="submit" className="col-span-2 min-h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+          <button type="submit" className="col-span-full min-h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
             Search
           </button>
         </div>

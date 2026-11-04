@@ -54,12 +54,12 @@ export default function MailSidebar({
   const base = `/dashboard/mail/${mailbox.id}`;
 
   return (
-    <nav aria-label="Mail folders" className="flex flex-col gap-4 p-3">
+    <nav aria-label="Mail folders" className="flex flex-col gap-5 p-4">
       <MailboxSwitcher mailboxes={mailboxes} currentId={mailbox.id} onSwitch={onMailboxChange} />
       {canCompose ? (
         <Link
           href={`/dashboard/mail/compose?mailboxId=${mailbox.id}`}
-          className="flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90"
+          className="flex items-center justify-center gap-2 min-h-12 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           title={sendingEnabled ? "Compose (c)" : "Sending is disabled; drafts can still be saved"}
         >
           <PenSquare className="h-4 w-4" aria-hidden="true" /> Compose
@@ -75,7 +75,7 @@ export default function MailSidebar({
             <Link
               href={`${base}?view=queue`}
               aria-current={queueActive ? "page" : undefined}
-              className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] ${queueActive ? "bg-primary/10 font-semibold text-foreground" : "text-muted-foreground hover:bg-muted"}`}
+              className={`flex items-center min-h-11 gap-3 rounded-full px-4 py-2.5 text-sm ${queueActive ? "bg-secondary font-semibold text-secondary-foreground" : "text-foreground/80 hover:bg-accent"}`}
             >
               <Users className="h-4 w-4" aria-hidden="true" /> Shared queue
             </Link>
@@ -89,7 +89,7 @@ export default function MailSidebar({
               <Link
                 href={`${base}?view=${v.id}`}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] ${active ? "bg-primary/10 font-semibold text-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                className={`flex items-center min-h-11 gap-3 rounded-full px-4 py-2.5 text-sm ${active ? "bg-secondary font-semibold text-secondary-foreground" : "text-foreground/80 hover:bg-accent"}`}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 <span className="flex-1">{v.label}</span>
@@ -116,7 +116,7 @@ export default function MailSidebar({
                 <Link
                   href={`${base}?view=all&labelId=${l.id}`}
                   aria-current={labelId === l.id ? "page" : undefined}
-                  className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[12px] ${labelId === l.id ? "bg-primary/10 font-semibold" : "text-muted-foreground hover:bg-muted"}`}
+                  className={`flex items-center min-h-11 gap-3 rounded-full px-4 py-2.5 text-sm ${labelId === l.id ? "bg-primary/10 font-semibold" : "text-foreground/80 hover:bg-accent"}`}
                 >
                   <Tag className="h-3.5 w-3.5" style={{ color: l.color ?? undefined }} aria-hidden="true" />
                   {l.name}
@@ -128,7 +128,7 @@ export default function MailSidebar({
       </div>
       <Link
         href={`/dashboard/mail/settings?mailboxId=${mailbox.id}`}
-        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-muted-foreground hover:bg-muted"
+        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-foreground/80 hover:bg-accent"
       >
         <Settings className="h-4 w-4" aria-hidden="true" /> Mailbox settings
       </Link>

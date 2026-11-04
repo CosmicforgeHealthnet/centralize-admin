@@ -2,6 +2,8 @@
 "use client";
 import { useDebouncedSearch } from "@/components/marketing/shared/useDebouncedSearch";
 
+import MailState from "@/components/mail/MailState";
+import { PanelsTopLeft as EmptyIcon } from "lucide-react";
 import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
 
 import SearchField from "@/components/marketing/shared/SearchField";
@@ -103,7 +105,7 @@ export default function EmailTemplatePage() {
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <TableScrollArea className="overflow-x-auto">
+        {filtered.length === 0 && !isLoadingEmailTemplates ? <MailState icon={EmptyIcon} title="No templates found" description="Try another search or create a template." /> : (<TableScrollArea className="overflow-x-auto">
           <table className="w-full min-w-[820px]">
             <thead>
               <tr className="border-b border-border bg-muted/40">
@@ -164,7 +166,7 @@ export default function EmailTemplatePage() {
               )}
             </tbody>
           </table>
-        </TableScrollArea>
+        </TableScrollArea>)}
       </div>
 
       {emailTemplatePagination && emailTemplatePagination.totalPages > 1 && (
