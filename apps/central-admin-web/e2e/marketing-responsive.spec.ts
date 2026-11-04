@@ -91,9 +91,9 @@ for (const width of [360,390,768,1024,1440]) for (const theme of ["light","dark"
       await inspect(page,"email-marketing/"+section,width);visited.push("email-marketing/"+section);
       if (section === "" && width === 390 && theme === "light") {
         await expect(page.getByText("Not found", { exact: true })).toHaveCount(0);
-        expect(api.callsTo("GET", mkPath("campaigns")).length).toBeGreaterThan(0);
-        expect(api.callsTo("GET", mkPath("audiences")).length).toBeGreaterThan(0);
-        expect(api.callsTo("GET", mkPath("templates")).length).toBeGreaterThan(0);
+        await expect.poll(() => api.callsTo("GET", mkPath("campaigns")).length).toBeGreaterThan(0);
+        await expect.poll(() => api.callsTo("GET", mkPath("audiences")).length).toBeGreaterThan(0);
+        await expect.poll(() => api.callsTo("GET", mkPath("templates")).length).toBeGreaterThan(0);
       }
     }
     await info.attach("visited-views",{body:JSON.stringify(visited,null,2),contentType:"application/json"});
