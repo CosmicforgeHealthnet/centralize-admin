@@ -4,7 +4,7 @@ import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer,
 } from "recharts";
 import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -58,7 +58,7 @@ export default function AdsPerformanceCharts() {
           Ads Performance By Platform
         </h3>
         {barData.length === 0 ? (
-          <div className="h-[260px] flex items-center justify-center text-muted-foreground text-sm">
+          <div className="h-36 flex items-center justify-center text-muted-foreground text-sm">
             No data available
           </div>
         ) : (
@@ -87,7 +87,7 @@ export default function AdsPerformanceCharts() {
           Monthly Performance Trend
         </h3>
         {lineData.length === 0 ? (
-          <div className="h-[260px] flex items-center justify-center text-muted-foreground text-sm">
+          <div className="h-36 flex items-center justify-center text-muted-foreground text-sm">
             No data available
           </div>
         ) : (

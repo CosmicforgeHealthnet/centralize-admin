@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useSyncExternalStore, Suspense } from "react";
+import { SECTION_LABELS } from "@/components/marketing/marketing-navigation";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Bell, Menu, Search, X, Maximize2, Check, AlertCircle, XCircle, Settings, Bell as BellIcon, Sun, Moon } from "lucide-react";
 import Image from "next/image";
@@ -289,7 +290,10 @@ function NavbarInner({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  const crumb = getCrumb(pathname, search);
+  const section = searchParams.get("section");
+  const crumb = pathname === "/dashboard/marketing" && section && SECTION_LABELS[section]
+    ? { parent: "Marketing", current: SECTION_LABELS[section] }
+    : getCrumb(pathname, search);
   const { user } = useAuthStore();
   const { profile } = useProfileStore();
   const { unreadCount, fetchUnreadCount } = useNotificationStore();

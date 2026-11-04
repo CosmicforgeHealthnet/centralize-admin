@@ -1,7 +1,9 @@
 "use client";
 
+import SearchField from "@/components/marketing/shared/SearchField";
+
 import { useEffect } from "react";
-import { Sparkles, Search, AlertCircle } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
 import { useAIMarketingIntelligenceStore } from "@/stores/ai-marketing-intelligence.store";
 import DataTable, { type DataTableColumn } from "@/components/marketing/shared/DataTable";
 import ProviderBadge, { type BadgeProvider } from "@/components/marketing/shared/ProviderBadge";
@@ -171,16 +173,10 @@ export default function CreativeLibraryPage({ onOpenCreative }: CreativeLibraryP
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={2} />
-          <input
-            value={creativeFilters.search}
+      <div className="marketing-toolbar flex flex-wrap items-center gap-2">
+        <SearchField value={creativeFilters.search}
             onChange={(e) => setCreativeFilters({ search: e.target.value })}
-            placeholder="Search creative name…"
-            className="font-poppins text-[12px] bg-card border border-border rounded-[8px] pl-8 pr-3 py-1.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 w-56"
-          />
-        </div>
+            placeholder="Search creative name…" />
 
         <select
           value={creativeFilters.platform}

@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { fetchAERuns } from "@/lib/advertising-execution.service";
@@ -95,12 +97,12 @@ export default function ExecutionRunsPage({ onOpenRun }: ExecutionRunsPageProps)
         </label>
       </div>
 
-      <div className="rounded-[10px] border border-border overflow-hidden">
-        <table className="w-full">
+      <TableScrollArea className="rounded-[10px] border border-border overflow-hidden">
+        <table className="w-full min-w-[560px]">
           <thead className="bg-muted/40">
             <tr>
               {["Plan", "Provider", "Job Status", "Operations", "Started", "Completed"].map((h) => (
-                <th key={h} className="text-left font-poppins text-[11px] font-medium text-muted-foreground px-3 py-2">
+                <th scope="col" key={h} className="text-left font-poppins text-[11px] font-medium text-muted-foreground px-3 py-2">
                   {h}
                 </th>
               ))}
@@ -157,7 +159,7 @@ export default function ExecutionRunsPage({ onOpenRun }: ExecutionRunsPageProps)
             )}
           </tbody>
         </table>
-      </div>
+      </TableScrollArea>
     </div>
   );
 }

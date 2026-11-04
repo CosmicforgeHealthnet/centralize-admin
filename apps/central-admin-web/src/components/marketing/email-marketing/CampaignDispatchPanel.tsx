@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarClock, PauseCircle, PlayCircle, Send, XCircle } from "lucide-react";
@@ -262,10 +264,10 @@ export default function CampaignDispatchPanel({ org, campaign }: { org: Marketin
                 </label>
               </div>
               <PermissionBoundary isLoading={recipientsQ.isLoading} error={recipientsQ.error} compact>
-                <div className="overflow-x-auto">
+                <TableScrollArea className="overflow-x-auto">
                   <table className="w-full min-w-[420px] text-left">
                     <thead className="text-[11px] text-muted-foreground">
-                      <tr><th className="py-1 font-semibold">Email</th><th className="font-semibold">Status</th><th className="font-semibold">Reason / last event</th></tr>
+                      <tr><th scope="col" className="py-1 font-semibold">Email</th><th scope="col" className="font-semibold">Status</th><th scope="col" className="font-semibold">Reason / last event</th></tr>
                     </thead>
                     <tbody>
                       {(recipientsQ.data?.items ?? []).length === 0 && (
@@ -280,7 +282,7 @@ export default function CampaignDispatchPanel({ org, campaign }: { org: Marketin
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableScrollArea>
               </PermissionBoundary>
             </section>
           )}

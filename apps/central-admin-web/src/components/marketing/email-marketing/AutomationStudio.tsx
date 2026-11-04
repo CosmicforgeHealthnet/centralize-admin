@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
@@ -341,10 +343,10 @@ function AutomationDetail({ org, automationId }: { org: MarketingOrganization; a
 
           <EmCard title="Enrollments" id="au-enrollments">
             <PermissionBoundary isLoading={enrollmentsQ.isLoading} error={enrollmentsQ.error} compact>
-              <div className="overflow-x-auto">
+              <TableScrollArea className="overflow-x-auto">
                 <table className="w-full min-w-[480px] text-left text-[12px]">
                   <thead className="text-[11px] text-muted-foreground">
-                    <tr><th className="py-1 font-semibold">Contact</th><th className="font-semibold">Version</th><th className="font-semibold">Status</th><th className="font-semibold">Step</th><th className="font-semibold">Next run / exit</th></tr>
+                    <tr><th scope="col" className="py-1 font-semibold">Contact</th><th scope="col" className="font-semibold">Version</th><th scope="col" className="font-semibold">Status</th><th scope="col" className="font-semibold">Step</th><th scope="col" className="font-semibold">Next run / exit</th></tr>
                   </thead>
                   <tbody>
                     {(enrollmentsQ.data?.items ?? []).length === 0 && <tr><td colSpan={5} className="py-2 text-muted-foreground">No enrollments yet.</td></tr>}
@@ -359,7 +361,7 @@ function AutomationDetail({ org, automationId }: { org: MarketingOrganization; a
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </TableScrollArea>
             </PermissionBoundary>
           </EmCard>
           <EmMessage message={msg?.text ?? null} tone={msg?.tone} />

@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,8 +45,8 @@ export default function TemplateList({ org }: { org: MarketingOrganization }) {
           {(q.data?.items ?? []).length === 0 ? (
             <p role="status" className="text-[12px] text-muted-foreground">No templates yet.</p>
           ) : (
-            <table className="w-full text-left text-[12px]">
-              <thead className="text-muted-foreground"><tr><th className="py-1">Name</th><th>Latest version</th><th>Updated</th></tr></thead>
+            <TableScrollArea><table className="w-full text-left text-[12px] min-w-[560px]">
+              <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Name</th><th scope="col">Latest version</th><th scope="col">Updated</th></tr></thead>
               <tbody>
                 {(q.data?.items ?? []).map((t) => (
                   <tr key={t.id} className="border-t border-border">
@@ -57,7 +59,7 @@ export default function TemplateList({ org }: { org: MarketingOrganization }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></TableScrollArea>
           )}
         </PermissionBoundary>
       </EmCard>
@@ -69,8 +71,8 @@ export default function TemplateList({ org }: { org: MarketingOrganization }) {
           {(legacy.data ?? []).length === 0 ? (
             <p className="text-[12px] text-muted-foreground">None.</p>
           ) : (
-            <table className="w-full text-left text-[12px]">
-              <thead className="text-muted-foreground"><tr><th className="py-1">Event</th><th>Language</th><th>Valid</th><th>Status</th></tr></thead>
+            <TableScrollArea><table className="w-full text-left text-[12px] min-w-[560px]">
+              <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Event</th><th scope="col">Language</th><th scope="col">Valid</th><th scope="col">Status</th></tr></thead>
               <tbody>
                 {(legacy.data ?? []).map((l) => (
                   <tr key={l.id} className="border-t border-border">
@@ -81,7 +83,7 @@ export default function TemplateList({ org }: { org: MarketingOrganization }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></TableScrollArea>
           )}
         </PermissionBoundary>
       </EmCard>

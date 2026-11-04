@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Users, MousePointerClick, TrendingUp, CreditCard, TrendingDown } from "lucide-react";
+import { ArrowLeft, Users, MousePointerClick, TrendingUp, CreditCard } from "lucide-react";
 import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CampaignDetail as CampaignDetailType } from "@/types/marketing.types";
@@ -142,7 +142,7 @@ const {
               <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Icon className="w-3.5 h-3.5 text-primary" />
               </div>
-              
+
             </div>
             <span className="font-poppins text-[18px] font-bold text-foreground">{value}</span>
             <span className="font-poppins text-[11px] text-muted-foreground">{label}</span>

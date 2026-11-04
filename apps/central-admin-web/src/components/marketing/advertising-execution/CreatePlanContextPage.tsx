@@ -98,7 +98,7 @@ export default function CreatePlanContextPage({ onCreated, onCancel }: CreatePla
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Q3 Search - Cardiology Awareness"
+            placeholder="Q3 - Cardiology Awareness"
             className="rounded-[8px] border border-border px-3 py-2 font-poppins text-[12px] bg-card outline-none"
           />
         </div>

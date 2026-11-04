@@ -158,7 +158,7 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
     fetchSocialPosts();
   };
 
-  const isLoading = isLoadingSocialOverview || isLoadingSocialAccounts || 
+  const isLoading = isLoadingSocialOverview || isLoadingSocialAccounts ||
     isLoadingSocialPosts || isLoadingSocialSchedule || isLoadingSocialInsights;
 
   if (isLoading && !socialOverview) {
@@ -307,7 +307,7 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
             onClick={() => setShowAddPost(true)}
             className="flex items-center gap-3 bg-primary/8 hover:bg-primary/12 rounded-xl px-4 py-4 transition-colors text-left"
           >
-            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center shrink-0 shadow-sm">
               <FileEdit className="w-4.5 h-4.5 text-foreground" />
             </div>
             <div>
@@ -316,7 +316,7 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
             </div>
           </button>
           <button className="flex items-center gap-3 bg-primary/8 hover:bg-primary/12 rounded-xl px-4 py-4 transition-colors text-left">
-            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center shrink-0 shadow-sm">
               <MessageSquare className="w-4.5 h-4.5 text-foreground" />
             </div>
             <div>
@@ -414,7 +414,7 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
         <h3 className="font-poppins text-[14px] font-semibold text-foreground mb-3">Recommended for you</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button className="flex items-center gap-3 bg-primary/8 hover:bg-primary/12 rounded-xl px-4 py-4 transition-colors text-left">
-            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center shrink-0 shadow-sm">
               <Sparkles className="w-4.5 h-4.5 text-primary" />
             </div>
             <div>
@@ -423,7 +423,7 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
             </div>
           </button>
           <button className="flex items-center gap-3 bg-primary/8 hover:bg-primary/12 rounded-xl px-4 py-4 transition-colors text-left">
-            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center shrink-0 shadow-sm">
               <Sparkles className="w-4.5 h-4.5 text-primary" />
             </div>
             <div>

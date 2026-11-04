@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -84,16 +86,16 @@ export default function CampaignList({ org }: { org: MarketingOrganization }) {
         {(q.data?.items ?? []).length === 0 ? (
           <p role="status" className="p-4 text-center text-[12px] text-muted-foreground">No campaigns.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[12px]">
+          <TableScrollArea className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-left text-xs">
               <thead className="text-muted-foreground">
-                <tr><th className="py-1.5">Name</th><th>Status</th><th>Topic</th><th>Revision</th><th>Updated</th></tr>
+                <tr><th scope="col" className="px-3 py-4">Name</th><th scope="col">Status</th><th scope="col">Topic</th><th scope="col">Revision</th><th scope="col">Updated</th></tr>
               </thead>
               <tbody>
                 {(q.data?.items ?? []).map((c) => (
-                  <tr key={c.id} className="border-t border-border">
+                  <tr key={c.id} className="border-t border-border/60 hover:bg-muted/40">
                     <td className="py-1.5">
-                      <Link href={`/dashboard/marketing/email-marketing/campaigns/${c.id}?org=${org.id}`} className="font-semibold text-primary hover:underline">
+                      <Link href={`/dashboard/marketing/email-marketing/campaigns/${c.id}?org=${org.id}`} className="font-semibold text-foreground hover:text-primary hover:underline">
                         {c.name}
                       </Link>
                     </td>
@@ -105,7 +107,7 @@ export default function CampaignList({ org }: { org: MarketingOrganization }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScrollArea>
         )}
       </PermissionBoundary>
     </EmCard>

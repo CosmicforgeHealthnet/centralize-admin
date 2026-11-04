@@ -126,7 +126,7 @@ export default function AutomationTestPanel({ org, automation, versions }: { org
         </div>
         {kind === "real" ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <EmField label="Search contacts">
+            <EmField label="contacts">
               <input value={q} onChange={(e) => setQ(e.target.value)} className={emInput} placeholder="email or name" />
             </EmField>
             <EmField label="Contact">

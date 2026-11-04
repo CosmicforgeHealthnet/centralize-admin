@@ -1,8 +1,13 @@
 // src/components/marketing/email-template/EmailTemplatePage.tsx
 "use client";
+import { useDebouncedSearch } from "@/components/marketing/shared/useDebouncedSearch";
+
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
+import SearchField from "@/components/marketing/shared/SearchField";
 
 import { useState, useEffect } from "react";
-import { Search, Edit, Trash2, PlusCircle } from "lucide-react";
+import { Edit, Trash2, PlusCircle } from "lucide-react";
 import EventView from "./EventView";
 import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,6 +46,7 @@ export default function EmailTemplatePage() {
   const handleSearch = () => {
     setEmailTemplateFilters({ search, page: 1 });
   };
+  useDebouncedSearch(search, handleSearch);
 
   const filtered = emailTemplates.filter((r) =>
     r.event.toLowerCase().includes(search.toLowerCase())
@@ -79,44 +85,30 @@ export default function EmailTemplatePage() {
         </div>
       )}
 
-      <div>
-        <h2 className="font-poppins text-[16px] font-semibold text-foreground">Email Templates</h2>
-        <p className="font-poppins text-[12px] text-muted-foreground mt-0.5">Your broadcast Manager</p>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
-        <div className="flex items-center gap-2 bg-muted border border-border rounded-lg px-3 h-[38px] flex-1 min-w-[180px]">
-          <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Search here..."
-            className="bg-transparent text-[12px] font-poppins text-foreground outline-none w-full placeholder:text-muted-foreground"
-          />
-        </div>
-        <button
-          onClick={handleSearch}
-          className="px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[38px]"
-        >
-          Search
-        </button>
-   <button
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm leading-6 text-muted-foreground">Manage event templates and notification channels.</p><button
   onClick={() => setShowCreateModal(true)}
-  className="px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[38px] sm:ml-auto flex items-center gap-1.5"
+  className="shrink-0 self-start px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[38px]  flex items-center gap-1.5"
 >
   <PlusCircle className="w-3.5 h-3.5" />
   Create Template
-</button>
+</button></div>
+
+      <div className="marketing-toolbar flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
+        <SearchField value={search}
+            onChange={(e) => setSearch(e.target.value)}
+
+            placeholder="Search email templates" />
+
+
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="overflow-x-auto">
+        <TableScrollArea className="overflow-x-auto">
           <table className="w-full min-w-[820px]">
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 {["Event Code", "Event", "Notification", "Valid to date", "Action"].map((h) => (
-                  <th key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
+                  <th scope="col" key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -172,7 +164,7 @@ export default function EmailTemplatePage() {
               )}
             </tbody>
           </table>
-        </div>
+        </TableScrollArea>
       </div>
 
       {emailTemplatePagination && emailTemplatePagination.totalPages > 1 && (

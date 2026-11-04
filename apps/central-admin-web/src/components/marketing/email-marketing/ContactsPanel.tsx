@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
@@ -184,9 +186,9 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
             </p>
           )}
           {report.rows.some((r) => r.status === "REJECTED" || r.status === "SKIPPED") && (
-            <div className="mt-2 max-h-56 overflow-auto">
-              <table className="w-full text-left">
-                <thead className="text-muted-foreground"><tr><th>Row</th><th>Line</th><th>Email</th><th>Result</th><th>Reason</th></tr></thead>
+            <TableScrollArea className="mt-2 max-h-56 overflow-auto">
+              <table className="w-full text-left min-w-[560px]">
+                <thead className="text-muted-foreground"><tr><th scope="col">Row</th><th scope="col">Line</th><th scope="col">Email</th><th scope="col">Result</th><th scope="col">Reason</th></tr></thead>
                 <tbody>
                   {report.rows.filter((r) => r.status === "REJECTED" || r.status === "SKIPPED").map((r) => (
                     <tr key={r.row} className="border-t border-border">
@@ -195,7 +197,7 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableScrollArea>
           )}
         </div>
       )}
@@ -235,8 +237,8 @@ function Suppressions({ org }: { org: MarketingOrganization }) {
       )}
       <EmMessage message={msg} tone="error" />
       <PermissionBoundary isLoading={q.isLoading} error={q.error} compact>
-        <table className="w-full text-left text-[12px]">
-          <thead className="text-muted-foreground"><tr><th className="py-1">Email</th><th>Reason</th><th>Scope</th><th>Since</th><th><span className="sr-only">Actions</span></th></tr></thead>
+        <TableScrollArea><table className="w-full text-left text-[12px] min-w-[560px]">
+          <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Email</th><th scope="col">Reason</th><th scope="col">Scope</th><th scope="col">Since</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
           <tbody>
             {(q.data?.items ?? []).length === 0 && <tr><td colSpan={5} className="py-2 text-muted-foreground">No suppressions.</td></tr>}
             {(q.data?.items ?? []).map((s) => (
@@ -253,7 +255,7 @@ function Suppressions({ org }: { org: MarketingOrganization }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></TableScrollArea>
       </PermissionBoundary>
     </div>
   );
@@ -316,7 +318,7 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
       {tab === "resubscriptions" && <ResubscriptionsPanel org={org} />}
       {tab === "contacts" && (
         <div className="flex flex-col gap-2">
-          <form role="search" className="flex gap-2" onSubmit={(e) => { e.preventDefault(); setQuery(search.trim()); }}>
+          <form role="search" className="flex min-w-0 flex-col gap-2 sm:flex-row" onSubmit={(e) => { e.preventDefault(); setQuery(search.trim()); }}>
             <label htmlFor="contact-search" className="sr-only">Search contacts</label>
             <input id="contact-search" value={search} onChange={(e) => setSearch(e.target.value)} className={emInput} placeholder="Search by email or name" />
             <button type="submit" className={emBtnOutline}>Search</button>
@@ -326,9 +328,9 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
             {(q.data?.items ?? []).length === 0 ? (
               <p role="status" className="p-4 text-center text-[12px] text-muted-foreground">No contacts.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-[12px]">
-                  <thead className="text-muted-foreground"><tr><th className="py-1">Email</th><th>Name</th><th>Status</th>{showProviderState && <th>Provider</th>}<th>Consents</th></tr></thead>
+              <TableScrollArea className="overflow-x-auto">
+                <table className="w-full text-left text-[12px] min-w-[560px]">
+                  <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Email</th><th scope="col">Name</th><th scope="col">Status</th>{showProviderState && <th scope="col">Provider</th>}<th scope="col">Consents</th></tr></thead>
                   <tbody>
                     {(q.data?.items ?? []).map((c) => (
                       <tr key={c.id} className="border-t border-border align-top">
@@ -365,7 +367,7 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </TableScrollArea>
             )}
           </PermissionBoundary>
         </div>

@@ -63,7 +63,7 @@ export default function ConversionFunnel() {
                   className="h-full rounded-md flex items-center justify-center transition-all"
                   style={{ width: `${step.percent}%`, backgroundColor: step.color }}
                 >
-                  <span className="font-poppins text-[10px] font-semibold text-white">{step.percent}%</span>
+                  {step.percent > 0 && <span className="font-poppins text-[10px] font-semibold text-white">{step.percent}%</span>}
                 </div>
               </div>
             </div>

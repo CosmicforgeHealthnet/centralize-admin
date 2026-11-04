@@ -1,9 +1,11 @@
 // src/components/marketing/social-media/PostDetail.tsx
 "use client";
 
+import SearchField from "@/components/marketing/shared/SearchField";
+
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowLeft, PlusCircle, Search, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, PlusCircle, SlidersHorizontal } from "lucide-react";
 import AddSocialAccountModal from "./AddSocialAccountModal";
 import { useMarketingStore } from "@/stores/marketing.store";
 import type { SocialPostListPlatform } from "@/types/marketing.types";
@@ -200,22 +202,16 @@ export default function PostDetail({ platform, onBack }: Props) {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-4 flex flex-col gap-3">
+        <div className="marketing-toolbar bg-card rounded-xl border border-border p-4 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h3 className="font-poppins text-[13px] font-semibold text-foreground">Posts</h3>
           </div>
-          <div className="flex items-center gap-2 bg-muted border border-border rounded-lg px-3 h-[36px]">
-            <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search"
-              className="bg-transparent text-[12px] font-poppins text-foreground outline-none w-full placeholder:text-muted-foreground"
-            />
-          </div>
+          <SearchField value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search" />
 
           <div className="bg-primary/8 rounded-lg p-3 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-card flex items-center justify-center shrink-0">
               <SlidersHorizontal className="w-4 h-4 text-primary" />
             </div>
             <div>
