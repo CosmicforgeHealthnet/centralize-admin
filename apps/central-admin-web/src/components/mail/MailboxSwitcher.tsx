@@ -19,7 +19,7 @@ export default function MailboxSwitcher({ mailboxes, currentId, onSwitch }: {
       <div className="pointer-events-none flex min-w-0 items-center gap-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold leading-5 text-foreground" title={current.name}>{current.name}</p>
-          <p className="mt-0.5 truncate text-xs leading-4 text-muted-foreground" title={current.primaryAddress}>{current.primaryAddress}</p>
+          <p className="mt-0.5 truncate text-xs leading-4 text-muted-foreground" title={current.primaryAddress ?? undefined}>{current.primaryAddress}</p>
         </div>
         {canSwitch && <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.7} aria-hidden="true" />}
       </div>
