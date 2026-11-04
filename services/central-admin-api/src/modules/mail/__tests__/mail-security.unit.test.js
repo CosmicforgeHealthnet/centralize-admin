@@ -415,3 +415,29 @@ test("c1: attachment downloads stream with a hard cap and refuse redirects", asy
   const fakeRedirected = resend({ config, fetchImpl: async (url) => (url.startsWith("https://api.resend.test/") ? listing("https://files.resend.test/a1") : { ok: true, status: 200, redirected: true, headers: new Headers(), body: null, arrayBuffer: async () => new ArrayBuffer(1) }) });
   await assert.rejects((await fakeRedirected.fetchInboundAttachments("em_4"))[0].download(), (error) => error.code === "ATTACHMENT_REDIRECT_REFUSED");
 });
+
+test("SUPER can administer every active marketing brand without individual grants, while staff remain scoped", async () => {
+  const policy = require("../authz/mail.policy");
+  const karryam = crypto.randomUUID();
+  const other = crypto.randomUUID();
+  const db = {
+    adminSectionGrant: { findMany: async () => [] },
+    mailOrganization: {
+      findMany: async () => [
+        { id: karryam, slug: "karryam", name: "Karryam" },
+        { id: other, slug: "another-brand", name: "Another brand" },
+      ],
+    },
+  };
+  const superUser = { id: crypto.randomUUID(), tier: "SUPER", department: null, status: "ACTIVE" };
+  const scopes = await policy.marketingScopes(db, superUser, { env: { MAIL_MARKETING_DEPARTMENT_BRANDS: "" } });
+  assert.deepEqual(scopes.map((scope) => scope.organizationId), [karryam, other]);
+  assert.ok(scopes.every((scope) => scope.canView && scope.canAuthor && scope.canApprove && scope.access === "SUPER"));
+  assert.equal((await policy.requireMarketingScope(db, superUser, other, "EDIT")).organizationId, other);
+  assert.equal((await policy.requireMarketingScope(db, superUser, other, "APPROVE")).organizationId, other);
+
+  const ungrantedStaff = { id: crypto.randomUUID(), tier: "EMPLOYEE", department: "HR", status: "ACTIVE" };
+  assert.deepEqual(await policy.marketingScopes(db, ungrantedStaff, { env: { MAIL_MARKETING_DEPARTMENT_BRANDS: "" } }), []);
+  await assert.rejects(policy.requireMarketingScope(db, ungrantedStaff, other), (error) => error.code === "MAIL_NOT_FOUND");
+  assert.deepEqual(await policy.marketingScopes(db, { ...superUser, status: "INACTIVE" }), []);
+});
