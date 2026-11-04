@@ -1,4 +1,5 @@
 "use client";
+import SectionNavigation from "../SectionNavigation";
 
 const SECTIONS = [
   { key: "overview",              label: "Overview" },
@@ -23,21 +24,5 @@ export default function AdvertisingExecutionSubNav({
   activeSection,
   onSectionChange,
 }: AdvertisingExecutionSubNavProps) {
-  return (
-    <div className="flex items-center gap-1 border-b border-border overflow-x-auto">
-      {SECTIONS.map((s) => (
-        <button
-          key={s.key}
-          onClick={() => onSectionChange(s.key)}
-          className={`font-poppins text-[12px] font-medium px-3 py-2 border-b-2 whitespace-nowrap transition-colors ${
-            activeSection === s.key
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {s.label}
-        </button>
-      ))}
-    </div>
-  );
+  return <SectionNavigation label="Advertising Execution views" value={activeSection} groups={[{label: "Views", items: SECTIONS.map(item => ({value: item.key, label: item.label}))}]} onChange={value => onSectionChange(value as AESection)} />;
 }

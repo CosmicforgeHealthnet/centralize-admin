@@ -1,0 +1,47 @@
+.marketing-workspace { color-scheme: light; }
+.dark .marketing-workspace { color-scheme: dark; }
+.marketing-workspace select option, .marketing-workspace select optgroup { background: var(--card); color: var(--foreground); }
+.marketing-workspace :is(input, textarea, select) { color: var(--foreground); }
+.marketing-workspace :is(input, textarea)::placeholder { color: var(--muted-foreground); }
+.marketing-workspace :is(input, textarea, select):focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.dark .marketing-workspace .text-primary { color: #a4a9ff; }
+.marketing-workspace input[type="checkbox"] { accent-color: var(--primary); }
+.dark .marketing-workspace input[type="checkbox"] { accent-color: #a4a9ff; }
+
+.dark .marketing-workspace :is(a, button, input, select, textarea):focus-visible { outline: 2px solid #a4a9ff; outline-offset: 2px; }
+
+/* Controls wrap within the content column; mobile search always owns a row. */
+.marketing-workspace { min-width: 0; max-width: 100%; }
+.marketing-workspace .marketing-toolbar { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: .75rem; min-width: 0; }
+.marketing-workspace .marketing-toolbar > .marketing-search { order: -1; flex: 1 0 100%; width: 100%; max-width: 100%; }
+.marketing-workspace .marketing-toolbar > :is(select, button) { min-height: 2.75rem; max-width: 100%; }
+.marketing-workspace .marketing-toolbar > select { flex: 1 1 8rem; min-width: 0; }
+.marketing-workspace :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select) { min-width: 0; max-width: 100%; min-height: 2.75rem; }
+.marketing-workspace .marketing-table-scroll table { border-collapse: collapse; }
+.marketing-workspace .marketing-table-scroll :is(th, td) { padding: .875rem 1rem; }
+.marketing-workspace .marketing-table-scroll th { white-space: nowrap; text-align: left; }
+.marketing-workspace .marketing-table-scroll td { overflow-wrap: anywhere; }
+.marketing-workspace .marketing-table-scroll tbody tr { border-bottom: 1px solid var(--border); }
+.marketing-workspace .marketing-table-scroll tbody tr:last-child { border-bottom: 0; }
+.marketing-workspace .marketing-table-scroll :is(button, a) { min-height: 2.5rem; }
+@media (min-width: 640px) {
+  .marketing-workspace .marketing-toolbar > .marketing-search { order: 0; flex: 1 1 16rem; max-width: 32rem; }
+  .marketing-workspace .marketing-toolbar > select { flex: 0 1 auto; }
+}
+
+@media (max-width: 639px) {
+  .marketing-workspace button { min-height: 2.75rem; }
+}
+.dark .marketing-workspace .bg-red-50 { background: #451a1a; }
+.dark .marketing-workspace :is(.text-red-600, .text-red-700) { color: #fca5a5; }
+.dark .marketing-workspace .border-red-200 { border-color: #7f1d1d; }
+.dark .marketing-workspace .bg-green-50 { background: #052e20; }
+.dark .marketing-workspace :is(.text-green-600, .text-green-700) { color: #86efac; }
+
+/* Keep operational columns readable instead of splitting words into slivers. */
+.marketing-workspace .marketing-table-scroll :is(th, td) { min-width: 8.5rem; }
+.marketing-workspace .marketing-table-scroll :is(th.w-10, td:has(> input[type="checkbox"])) { min-width: 3rem; width: 3rem; }
+.marketing-workspace .marketing-table-scroll td { overflow-wrap: break-word; }
+@media (max-width: 639px) {
+  .marketing-workspace :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), textarea, select) { font-size: 1rem; }
+}

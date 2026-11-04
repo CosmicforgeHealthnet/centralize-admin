@@ -37,7 +37,7 @@ export default function SocialOperationsSettingsPage() {
           <p className="font-poppins text-[10px] text-muted-foreground">Lets a submitter approve their own post</p>
         </div>
         <PermissionGate hasPermission={permissions.social_settings === "EDIT"}>
-          <input
+          <input aria-label="Select row"
             type="checkbox"
             checked={draft.approvalSelfReviewAllowed}
             onChange={(e) => setDraft({ ...draft, approvalSelfReviewAllowed: e.target.checked })}

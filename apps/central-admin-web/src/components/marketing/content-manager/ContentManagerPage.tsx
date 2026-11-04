@@ -1,8 +1,13 @@
 // src/components/marketing/content-manager/ContentManagerPage.tsx
 "use client";
+import { useDebouncedSearch } from "@/components/marketing/shared/useDebouncedSearch";
+
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
+import SearchField from "@/components/marketing/shared/SearchField";
 
 import { useState, useEffect } from "react";
-import { Search, Edit, Trash2, PlusCircle } from "lucide-react";
+import { Edit, Trash2, PlusCircle } from "lucide-react";
 import CreateContentModal from "./CreateContentModal";
 import ContentDetail from "./ContentDetail";
 import { useMarketingStore } from "@/stores/marketing.store";
@@ -43,6 +48,7 @@ export default function ContentManagerPage() {
   const handleSearch = () => {
     setContentFilters({ search, page: 1 });
   };
+  useDebouncedSearch(search, handleSearch);
 
   const handleTabChange = (newTab: "Sent" | "Draft") => {
     setTab(newTab);
@@ -96,14 +102,15 @@ export default function ContentManagerPage() {
         </div>
       )}
 
-      <div>
-        <h2 className="font-poppins text-[16px] font-semibold text-foreground">Grow your business further</h2>
-        <p className="font-poppins text-[12px] text-muted-foreground mt-0.5">
-          Powerful content for engagement, business growth and lasting success
-        </p>
-      </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm leading-6 text-muted-foreground">Manage published content and drafts.</p><button
+          onClick={() => setShowModal(true)}
+          className="shrink-0 self-start px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[38px]  flex items-center gap-1.5"
+        >
+          <PlusCircle className="w-3.5 h-3.5" />
+          Create Content
+        </button></div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
+      <div className="marketing-toolbar flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
         <div className="flex items-center gap-1 bg-muted rounded-lg p-1 w-fit">
           <button
             onClick={() => handleTabChange("Sent")}
@@ -123,41 +130,24 @@ export default function ContentManagerPage() {
           </button>
         </div>
 
-        <div className="flex items-center gap-2 bg-muted border border-border rounded-lg px-3 h-[38px] flex-1 min-w-[180px]">
-          <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          <input
-            value={search}
+        <SearchField value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Search here..."
-            className="bg-transparent text-[12px] font-poppins text-foreground outline-none w-full placeholder:text-muted-foreground"
-          />
-        </div>
 
-        <button
-          onClick={handleSearch}
-          className="px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[38px]"
-        >
-          Search
-        </button>
+            placeholder="Search content" />
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[38px] ml-auto flex items-center gap-1.5"
-        >
-          <PlusCircle className="w-3.5 h-3.5" />
-          Create Content
-        </button>
+
+
+
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="overflow-x-auto">
+        <TableScrollArea className="overflow-x-auto">
           <table className="w-full min-w-[820px]">
             <thead>
               <tr className="border-b border-border bg-muted/40">
-                <th className="w-10 py-2.5 px-4" />
+                <th scope="col" className="w-10 py-2.5 px-4" />
                 {["Title", "Content Type", "Author", "Status", "Updated", "Performance", "Action"].map((h) => (
-                  <th key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
+                  <th scope="col" key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -178,7 +168,7 @@ export default function ContentManagerPage() {
                     onClick={() => setSelectedId(item.id)}
                   >
                     <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                      <input
+                      <input aria-label="Select row"
                         type="checkbox"
                         checked={selectedRows.includes(item.id)}
                         onChange={() => toggleRow(item.id)}
@@ -224,7 +214,7 @@ export default function ContentManagerPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </TableScrollArea>
       </div>
 
       {showModal && (

@@ -123,7 +123,7 @@ export default function PerformanceDashboardPage({ onNavigateToConnections }: Pe
           },
         ]}
         search={{
-          value: dashboardFilters.search, placeholder: "Search campaign",
+          value: dashboardFilters.search, placeholder: "campaign",
           onChange: (v) => setDashboardFilters({ search: v }),
         }}
         activeFilterCount={activeFilterCount}

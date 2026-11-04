@@ -1,9 +1,14 @@
 // src/components/marketing/banners-promotion/BannersPromotionPage.tsx
 "use client";
+import { useDebouncedSearch } from "@/components/marketing/shared/useDebouncedSearch";
+
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
+import SearchField from "@/components/marketing/shared/SearchField";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Search, Edit, Trash2, ChevronLeft, ChevronRight, SlidersHorizontal, PlusCircle } from "lucide-react";
+import { Edit, Trash2, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 import CreatePromotionModal from "./CreatePromotionModal";
 import EditPromotionModal from "./EditPromotionModal";
 import NewBannerPage from "./NewBannerPage";
@@ -79,6 +84,7 @@ export default function BannersPromotionPage() {
       setPromotionFilters({ search, page: 1 });
     }
   };
+  useDebouncedSearch(search, handleSearch);
 
   const handleTabChange = (newTab: TabKey) => {
     setTab(newTab);
@@ -153,10 +159,13 @@ export default function BannersPromotionPage() {
         </div>
       )}
 
-      <div>
-        <h2 className="font-poppins text-[16px] font-semibold text-foreground">Banners & Promotion</h2>
-        <p className="font-poppins text-[12px] text-muted-foreground mt-0.5">Auto-Updates in 2 minutes</p>
-      </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm leading-6 text-muted-foreground">Manage banners and promotional offers.</p><button
+          onClick={() => (showAdBanners ? setView("new-banner") : setShowCreateModal(true))}
+          className="shrink-0 self-start px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[36px]  whitespace-nowrap flex items-center gap-1.5"
+        >
+          <PlusCircle className="w-3.5 h-3.5" />
+          Add New
+        </button></div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
@@ -171,7 +180,7 @@ export default function BannersPromotionPage() {
         ))}
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
+      <div className="marketing-toolbar flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
         <h3 className="font-poppins text-[14px] font-semibold text-foreground mr-2">
           {showAdBanners ? "Ad Banner" : "Promotions List"}
         </h3>
@@ -190,35 +199,22 @@ export default function BannersPromotionPage() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 bg-muted border border-border rounded-lg px-3 h-[36px] min-w-[160px]">
-          <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          <input
-            value={search}
+        <SearchField value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Search"
-            className="bg-transparent text-[12px] font-poppins text-foreground outline-none w-full placeholder:text-muted-foreground"
-          />
-          <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-        </div>
 
-        <button
-          onClick={() => (showAdBanners ? setView("new-banner") : setShowCreateModal(true))}
-          className="px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[36px] sm:ml-auto whitespace-nowrap flex items-center gap-1.5"
-        >
-          <PlusCircle className="w-3.5 h-3.5" />
-          Add New
-        </button>
+            placeholder="Search banners and promotions" />
+
+
       </div>
 
       {showAdBanners ? (
         <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="overflow-x-auto">
+          <TableScrollArea className="overflow-x-auto">
             <table className="w-full min-w-[900px]">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
                   {["Media", "Title", "Description", "Display", "External Link", "Status", "Action"].map((h) => (
-                    <th key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
+                    <th scope="col" key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -258,7 +254,7 @@ export default function BannersPromotionPage() {
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-poppins font-semibold ${
-                          b.status === "Active" ? "bg-green-500/10 text-green-500" : 
+                          b.status === "Active" ? "bg-green-500/10 text-green-500" :
                           b.status === "Expired" ? "bg-red-500/10 text-red-500" :
                           "bg-muted text-muted-foreground"
                         }`}>
@@ -286,16 +282,16 @@ export default function BannersPromotionPage() {
                 )}
               </tbody>
             </table>
-          </div>
+          </TableScrollArea>
         </div>
       ) : (
         <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="overflow-x-auto">
+          <TableScrollArea className="overflow-x-auto">
             <table className="w-full min-w-[980px]">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
                   {["Promotion Title", "Discount Type", "Start Date", "End Date", "Gross Sales", "Average Rate", "Gross Revenue", "Status", "Action"].map((h) => (
-                    <th key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
+                    <th scope="col" key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -350,7 +346,7 @@ export default function BannersPromotionPage() {
                 )}
               </tbody>
             </table>
-          </div>
+          </TableScrollArea>
 
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-end gap-1 px-4 py-4">

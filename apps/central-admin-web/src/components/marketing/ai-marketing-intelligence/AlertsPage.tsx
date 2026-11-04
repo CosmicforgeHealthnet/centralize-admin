@@ -1,7 +1,9 @@
 "use client";
 
+import SearchField from "@/components/marketing/shared/SearchField";
+
 import { useEffect } from "react";
-import { Bell, Search, AlertCircle } from "lucide-react";
+import { Bell, AlertCircle } from "lucide-react";
 import { useAIMarketingIntelligenceStore } from "@/stores/ai-marketing-intelligence.store";
 import DataTable, { type DataTableColumn } from "@/components/marketing/shared/DataTable";
 import ProviderBadge, { type BadgeProvider } from "@/components/marketing/shared/ProviderBadge";
@@ -157,16 +159,10 @@ export default function AlertsPage({ onOpenAlert }: AlertsPageProps) {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
-        <div className="relative w-full sm:w-56">
-          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={2} />
-          <input
-            value={alertFilters.campaignExternalId}
+      <div className="marketing-toolbar flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+        <SearchField value={alertFilters.campaignExternalId}
             onChange={(e) => setAlertFilters({ campaignExternalId: e.target.value })}
-            placeholder="Search campaign…"
-            className="font-poppins text-[12px] bg-card border border-border rounded-[8px] pl-8 pr-3 py-1.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 w-full"
-          />
-        </div>
+            placeholder="Search campaign…" />
         <select value={alertFilters.severity} onChange={(e) => setAlertFilters({ severity: e.target.value as AMIAlertSeverity | "all" })} className={selectClass()}>
           {SEVERITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>

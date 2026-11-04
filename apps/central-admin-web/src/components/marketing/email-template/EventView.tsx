@@ -1,11 +1,12 @@
 // src/components/marketing/email-template/EventView.tsx
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
+import SearchField from "@/components/marketing/shared/SearchField";
+
 import { useState, useEffect } from "react";
-import {
-  ArrowLeft, Search, Edit2, Trash2, X, AlignLeft, AlignCenter, AlignRight,
-  AlignJustify, Bold, Italic, Underline, List, Paperclip, Link2, Save, PlusCircle,
-} from "lucide-react";
+import { ArrowLeft, Edit2, Trash2, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Underline, List, Paperclip, Link2, Save, PlusCircle } from "lucide-react";
 import { useMarketingStore } from "@/stores/marketing.store";
 import type { EmailRecipient } from "@/types/marketing.types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,7 +17,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       onClick={() => onChange(!checked)}
       className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${checked ? "bg-primary justify-end" : "bg-muted-foreground/30 justify-start"}`}
     >
-      <span className="w-4 h-4 rounded-full bg-white shadow" />
+      <span className="w-4 h-4 rounded-full bg-card shadow" />
     </button>
   );
 }
@@ -182,14 +183,8 @@ export default function EventView({ templateId, onBack }: Props) {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
           <h3 className="font-poppins text-[14px] font-semibold text-foreground">Templates</h3>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-2 bg-muted border border-border rounded-lg px-3 h-[36px] min-w-[160px]">
-              <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <input
-                placeholder="Search here..."
-                className="bg-transparent text-[12px] font-poppins text-foreground outline-none w-full placeholder:text-muted-foreground"
-              />
-            </div>
+          <div className="marketing-toolbar flex items-center gap-2 flex-wrap">
+            <SearchField placeholder="Search here..." />
             <button className="px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors h-[36px]">
               Search
             </button>
@@ -201,13 +196,13 @@ export default function EventView({ templateId, onBack }: Props) {
         </div>
 
         <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="overflow-x-auto">
+          <TableScrollArea className="overflow-x-auto">
             <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
-                  <th className="w-10 py-2.5 px-4" />
+                  <th scope="col" className="w-10 py-2.5 px-4" />
                   {["Valid from date", "Valid to date", "Language", "Status", "Action"].map((h) => (
-                    <th key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
+                    <th scope="col" key={h} className="text-left py-2.5 px-4 text-[12px] font-poppins font-semibold text-muted-foreground whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -218,7 +213,7 @@ export default function EventView({ templateId, onBack }: Props) {
                   template.templates.map((t) => (
                     <tr key={t.id} className="border-b border-border/50">
                       <td className="py-3 px-4">
-                        <input type="checkbox" className="w-4 h-4 rounded border-border accent-primary" />
+                        <input aria-label="Select row" type="checkbox" className="w-4 h-4 rounded border-border accent-primary" />
                       </td>
                       <td className="py-3 px-4 font-poppins text-[12px] text-foreground whitespace-nowrap">
                         {t.validFrom || "—"}
@@ -253,7 +248,7 @@ export default function EventView({ templateId, onBack }: Props) {
                 )}
               </tbody>
             </table>
-          </div>
+          </TableScrollArea>
         </div>
 
         <div className="bg-card rounded-xl border border-border p-4">

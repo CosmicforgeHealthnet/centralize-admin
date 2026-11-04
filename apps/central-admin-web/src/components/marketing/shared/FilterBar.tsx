@@ -1,6 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
+import SearchField from "@/components/marketing/shared/SearchField";
+
+
 
 interface SelectFilter {
   key: string;
@@ -23,7 +25,7 @@ const controlClass =
 
 export default function FilterBar({ dateRange, selects, search, onReset, activeFilterCount }: FilterBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2.5">
+    <div className="marketing-toolbar flex flex-wrap items-center gap-3">
       {dateRange && (
         <div
           className={`flex items-center gap-1 w-full sm:w-auto bg-card border border-border rounded-lg p-1 transition-colors hover:border-muted-foreground/40 focus-within:ring-2 focus-within:ring-primary/40`}
@@ -63,16 +65,9 @@ export default function FilterBar({ dateRange, selects, search, onReset, activeF
       ))}
 
       {search && (
-        <div className="relative flex-1 min-w-[160px] sm:min-w-[200px] w-full sm:w-auto">
-          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={search.value}
+        <SearchField value={search.value}
             placeholder={search.placeholder ?? "Search"}
-            onChange={(e) => search.onChange(e.target.value)}
-            className={`${controlClass} w-full pl-8 pr-3 py-1.5`}
-          />
-        </div>
+            onChange={(e) => search.onChange(e.target.value)} />
       )}
 
       {!!activeFilterCount && onReset && (

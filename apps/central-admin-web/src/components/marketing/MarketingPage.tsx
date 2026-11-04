@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
+import { SECTION_LABELS } from "./marketing-navigation";
 import MarketingSubNav from "./MarketingSubNav";
 import MarketingOverviewPage from "./overview/MarketingOverviewPage";
 import CampaignsPage from "./campaigns/CampaignsPage";
@@ -14,26 +15,30 @@ import AIMarketingIntelligencePage from "./ai-marketing-intelligence/AIMarketing
 import MarketingIntelligencePage from "./marketing-intelligence/MarketingIntelligencePage";
 import AdvertisingExecutionPage from "./advertising-execution/AdvertisingExecutionPage";
 
-const SECTION_LABELS: Record<string, string> = {
-  overview:                    "Overview",
-  campaigns:                   "Campaigns",
-  "content-manager":           "Content Manager",
-  "email-template":            "Email Template",
-  "social-media":              "Social Media",
-  "social-operations":         "Social Operations",
-  "banners-promotion":         "Banners & Promotion",
-  "performance-dashboard":     "Performance Dashboard",
-  "ai-marketing-intelligence": "AI Marketing Intelligence",
-  "marketing-intelligence": "Marketing Intelligence",
-  "advertising-execution": "Advertising Execution",
-};
+
+
+function subscribeSection(callback: () => void) {
+  window.addEventListener("popstate", callback);
+  return () => window.removeEventListener("popstate", callback);
+}
+function readSection() {
+  const section = new URLSearchParams(window.location.search).get("section");
+  return section && SECTION_LABELS[section] ? section : "overview";
+}
+const serverSection = () => "overview";
 
 export default function MarketingPage() {
-  const [activeSection, setActiveSection] = useState("overview");
+  const activeSection = useSyncExternalStore(subscribeSection, readSection, serverSection);
+  const navigate = (section: string) => {
+    const url = new URL(window.location.href);
+    if (section === "overview") url.searchParams.delete("section"); else url.searchParams.set("section", section);
+    window.history.pushState(null, "", url);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
 
   const renderSection = () => {
     switch (activeSection) {
-      case "overview":                  return <MarketingOverviewPage />;
+      case "overview":                  return <MarketingOverviewPage onNavigate={navigate} />;
       case "campaigns":                 return <CampaignsPage />;
       case "content-manager":           return <ContentManagerPage />;
       case "email-template":            return <EmailTemplatePage />;
@@ -54,25 +59,11 @@ export default function MarketingPage() {
   };
 
   return (
-    <div className="flex flex-col gap-4 min-[1014px]:flex-row min-[1014px]:items-start">
-      <MarketingSubNav activeSection={activeSection} onSectionChange={setActiveSection} />
-
-      <div className="flex-1 min-w-0 bg-card border border-border rounded-[12px] overflow-hidden">
-        <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-1">
-          <div className="flex items-center justify-between mb-1">
-            <div>
-              <h1 className="text-[15px] font-poppins font-semibold text-foreground">
-                Marketing
-              </h1>
-              <p className="text-[12px] font-poppins text-muted-foreground mt-0.5">
-                Marketing / {SECTION_LABELS[activeSection] ?? activeSection}
-              </p>
-            </div>
-          </div>
-          <div className="border-b border-border mt-3" />
-        </div>
-
-        <div className="p-4 sm:p-5">{renderSection()}</div>
+    <div className="min-w-0 space-y-5">
+      <header><p className="mb-1 text-xs font-medium text-muted-foreground">Marketing</p><h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{SECTION_LABELS[activeSection]}</h1></header>
+      <div className="flex min-w-0 flex-col gap-5 min-[1200px]:flex-row min-[1200px]:items-start">
+        <MarketingSubNav activeSection={activeSection} onSectionChange={navigate} />
+        <div className="min-w-0 flex-1">{renderSection()}</div>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload } from "lucide-react";
 import { useMarketingStore } from "@/stores/marketing.store";
 
 const DISPLAY_OPTIONS = ["WEB", "APP", "Both"];

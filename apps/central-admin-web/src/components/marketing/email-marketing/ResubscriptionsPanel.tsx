@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 // Final gap 2: provider re-subscription queue. A request is opened only when
 // a contact who unsubscribed through the provider completes a verified double
 // opt-in. Brand approvers approve (MFA step-up) or refuse; when automatic
@@ -91,10 +93,10 @@ export default function ResubscriptionsPanel({ org }: { org: MarketingOrganizati
         {(q.data?.items ?? []).length === 0 ? (
           <p role="status" className="p-3 text-center text-[12px] text-muted-foreground">No re-subscription requests.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[12px]">
+          <TableScrollArea className="overflow-x-auto">
+            <table className="w-full text-left text-[12px] min-w-[560px]">
               <caption className="sr-only">Provider re-subscription requests</caption>
-              <thead className="text-muted-foreground"><tr><th className="py-1">Contact</th><th>Status</th><th>Provider state</th><th>Evidence</th><th><span className="sr-only">Actions</span></th></tr></thead>
+              <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Contact</th><th scope="col">Status</th><th scope="col">Provider state</th><th scope="col">Evidence</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {(q.data?.items ?? []).map((item) => (
                   <tr key={item.id} className="border-t border-border align-top">
@@ -123,7 +125,7 @@ export default function ResubscriptionsPanel({ org }: { org: MarketingOrganizati
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScrollArea>
         )}
       </PermissionBoundary>
       {refusing && (

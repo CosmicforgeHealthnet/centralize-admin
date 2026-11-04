@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import EmptyState from "./EmptyState";
 
@@ -41,13 +43,13 @@ export default function DataTable<T>({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full border-collapse">
+    <div className="flex min-w-0 max-w-full flex-col gap-3">
+      <TableScrollArea className="overflow-x-auto rounded-xl border border-border">
+        <table className="w-full border-collapse" style={{ minWidth: Math.max(480, columns.length * 136) }}>
           <thead>
             <tr className="bg-muted/40 border-b border-border">
               {columns.map((col) => (
-                <th
+                <th scope="col"
                   key={col.key}
                   style={{ width: col.width }}
                   className="text-left font-poppins text-[11px] font-semibold text-muted-foreground uppercase tracking-wide py-2.5 px-3 whitespace-nowrap"
@@ -61,7 +63,7 @@ export default function DataTable<T>({
             {rows.map((row) => (
               <tr key={rowKey(row)} className="border-b border-border/60 last:border-b-0 hover:bg-muted/40 transition-colors">
                 {columns.map((col) => (
-                  <td key={col.key} className="py-2.5 px-3 font-poppins text-[12px] text-foreground align-middle">
+                  <td key={col.key} className="max-w-xs py-2.5 px-3 font-poppins text-sm text-foreground align-middle">
                     {col.render(row)}
                   </td>
                 ))}
@@ -69,7 +71,7 @@ export default function DataTable<T>({
             ))}
           </tbody>
         </table>
-      </div>
+      </TableScrollArea>
 
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -80,7 +82,7 @@ export default function DataTable<T>({
             <button
               disabled={pagination.currentPage <= 1}
               onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
-              className="font-poppins text-[11px] px-2.5 py-1 rounded-lg border border-border disabled:opacity-40 disabled:cursor-not-allowed text-foreground hover:border-muted-foreground/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="min-h-11 font-poppins text-xs px-3 py-2 rounded-lg border border-border disabled:opacity-40 disabled:cursor-not-allowed text-foreground hover:border-muted-foreground/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               Previous
             </button>

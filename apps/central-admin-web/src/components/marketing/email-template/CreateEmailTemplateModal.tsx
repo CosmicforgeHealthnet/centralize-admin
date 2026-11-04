@@ -39,7 +39,7 @@ export default function CreateEmailTemplateModal({ onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-xl w-full max-w-[480px] p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-xl w-full max-w-[480px] p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="font-poppins text-[15px] font-semibold text-foreground">Create Email Template</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">

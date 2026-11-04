@@ -1,7 +1,9 @@
 "use client";
 
+import SearchField from "@/components/marketing/shared/SearchField";
+
 import { useEffect } from "react";
-import { Lightbulb, Search, AlertCircle } from "lucide-react";
+import { Lightbulb, AlertCircle } from "lucide-react";
 import { useAIMarketingIntelligenceStore } from "@/stores/ai-marketing-intelligence.store";
 import DataTable, { type DataTableColumn } from "@/components/marketing/shared/DataTable";
 import ProviderBadge, { type BadgeProvider } from "@/components/marketing/shared/ProviderBadge";
@@ -155,16 +157,10 @@ export default function RecommendationsPage({ onOpenRecommendation }: Recommenda
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
-        <div className="relative w-full sm:w-56">
-          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={2} />
-          <input
-            value={recommendationFilters.campaignExternalId}
+      <div className="marketing-toolbar flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+        <SearchField value={recommendationFilters.campaignExternalId}
             onChange={(e) => setRecommendationFilters({ campaignExternalId: e.target.value })}
-            placeholder="Search campaign…"
-            className="font-poppins text-[12px] bg-card border border-border rounded-[8px] pl-8 pr-3 py-1.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 w-full"
-          />
-        </div>
+            placeholder="Search campaign…" />
 
         <select value={recommendationFilters.type} onChange={(e) => setRecommendationFilters({ type: e.target.value as AMIRecommendationType | "all" })} className={selectClass()}>
           {TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}

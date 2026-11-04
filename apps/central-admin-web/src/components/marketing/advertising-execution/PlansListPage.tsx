@@ -1,7 +1,11 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
+import SearchField from "@/components/marketing/shared/SearchField";
+
 import { useEffect, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { fetchAEPlans } from "@/lib/advertising-execution.service";
 import type { AEPlanFilters, AEPlanListItem, AEPlanStatus, AEProvider, AESource } from "@/types/advertising-execution.types";
 
@@ -85,16 +89,10 @@ export default function PlansListPage({ onOpenPlan, onCreatePlan }: PlansListPag
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1.5 rounded-[8px] border border-border px-2.5 py-1.5">
-          <Search className="w-3.5 h-3.5 text-muted-foreground" />
-          <input
-            value={filters.search ?? ""}
+      <div className="marketing-toolbar flex flex-wrap items-center gap-2">
+        <SearchField value={filters.search ?? ""}
             onChange={(e) => updateFilters((f) => ({ ...f, search: e.target.value }))}
-            placeholder="Search plans..."
-            className="font-poppins text-[12px] bg-transparent outline-none w-40"
-          />
-        </div>
+            placeholder="Search plans..." />
         <select
           value={filters.provider}
           onChange={(e) => updateFilters((f) => ({ ...f, provider: e.target.value as AEProvider | "all" }))}
@@ -125,12 +123,12 @@ export default function PlansListPage({ onOpenPlan, onCreatePlan }: PlansListPag
       </div>
 
       {/* Table */}
-      <div className="rounded-[10px] border border-border overflow-hidden">
-        <table className="w-full">
+      <TableScrollArea className="rounded-[10px] border border-border overflow-hidden">
+        <table className="w-full min-w-[560px]">
           <thead className="bg-muted/40">
             <tr>
               {["Plan", "Provider", "Account", "Status", "Approval", "Items", "Updated"].map((h) => (
-                <th key={h} className="text-left font-poppins text-[11px] font-medium text-muted-foreground px-3 py-2">
+                <th scope="col" key={h} className="text-left font-poppins text-[11px] font-medium text-muted-foreground px-3 py-2">
                   {h}
                 </th>
               ))}
@@ -177,7 +175,7 @@ export default function PlansListPage({ onOpenPlan, onCreatePlan }: PlansListPag
             )}
           </tbody>
         </table>
-      </div>
+      </TableScrollArea>
     </div>
   );
 }

@@ -29,7 +29,7 @@ export default function MarketingStatCards() {
 
   if (isLoadingAnalytics && !analyticsOverviewStats) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-[100px] rounded-xl" />
         ))}
@@ -49,7 +49,7 @@ export default function MarketingStatCards() {
     : [];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-3">
       {statEntries.map(({ key, label, value, change, trendUp }) => {
         const Icon = STAT_ICONS[key as keyof typeof STAT_ICONS];
         return (
@@ -61,7 +61,7 @@ export default function MarketingStatCards() {
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <Icon className="w-4 h-4 text-primary" />
               </div>
-              <div className={`flex items-center gap-1 ${trendUp ? "text-green-500" : "text-red-500"}`}>
+              <div className={`flex items-center gap-1 ${trendUp ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}`}>
                 {trendUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 <span className="font-poppins text-[10px] font-semibold">{change}</span>
               </div>

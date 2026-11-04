@@ -1,5 +1,7 @@
 "use client";
 
+import TableScrollArea from "@/components/marketing/shared/TableScrollArea";
+
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
@@ -80,9 +82,9 @@ export default function AutomationReplayPanel({ org, automation }: { org: Market
             A replay never re-sends an email the provider accepted, never creates a new enrollment and runs the version the enrollment is on. Unknown outcomes reuse the same idempotency key (provider de-duplication lasts {r?.idempotencyWindowHours ?? 23} h).
           </p>
           {candidates.length === 0 ? <p className="text-muted-foreground">Nothing to recover.</p> : (
-            <div className="overflow-x-auto">
+            <TableScrollArea className="overflow-x-auto">
               <table className="w-full min-w-[520px] text-left">
-                <thead className="text-[11px] text-muted-foreground"><tr><th className="py-1 font-semibold">Item</th><th className="font-semibold">Status</th><th className="font-semibold">Detail</th><th /></tr></thead>
+                <thead className="text-[11px] text-muted-foreground"><tr><th scope="col" className="py-1 font-semibold">Item</th><th scope="col" className="font-semibold">Status</th><th scope="col" className="font-semibold">Detail</th><th scope="col" /></tr></thead>
                 <tbody>
                   {candidates.map((c) => (
                     <tr key={`${c.scope}-${c.targetId}`} className={`border-t border-border ${selected?.targetId === c.targetId ? "bg-muted" : ""}`}>
@@ -94,7 +96,7 @@ export default function AutomationReplayPanel({ org, automation }: { org: Market
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableScrollArea>
           )}
           {truncated && <p role="status" className="text-amber-700">More items exist than are shown; resolve these first and reload.</p>}
 

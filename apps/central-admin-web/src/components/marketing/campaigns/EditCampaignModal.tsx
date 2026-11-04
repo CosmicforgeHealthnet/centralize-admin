@@ -50,7 +50,7 @@ const [type, setType] = useState<string>(campaign.type || "");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-xl w-full max-w-[520px] p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-xl w-full max-w-[520px] p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="font-poppins text-[15px] font-semibold text-foreground">Edit Campaign</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">

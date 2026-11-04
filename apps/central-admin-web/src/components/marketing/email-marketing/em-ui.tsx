@@ -3,23 +3,23 @@
 import type { ReactNode } from "react";
 
 export const emInput =
-  "w-full rounded-md border border-border bg-card px-3 py-2 text-[12px] text-foreground outline-none focus:border-primary disabled:bg-muted disabled:text-muted-foreground";
+  "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:bg-muted disabled:text-muted-foreground";
 export const emBtn =
-  "inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50";
 export const emBtnOutline =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12px] font-semibold text-foreground hover:bg-muted disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50";
 
 export function EmCard({ title, actions, children, id }: { title?: string; actions?: ReactNode; children: ReactNode; id?: string }) {
   return (
-    <section className="rounded-[12px] border border-border bg-card p-4" aria-labelledby={title && id ? id : undefined}>
+    <section className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-[0_2px_12px_0_#0f172a04]" aria-labelledby={title && id ? id : undefined}>
       {(title || actions) && (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="mb-5 flex flex-wrap items-center gap-3">
           {title && (
-            <h2 id={id} className="text-[13px] font-semibold text-foreground">
+            <h2 id={id} className="text-sm font-semibold tracking-tight text-foreground">
               {title}
             </h2>
           )}
-          <div className="ml-auto flex gap-2">{actions}</div>
+          <div className="ml-auto flex flex-wrap gap-2">{actions}</div>
         </div>
       )}
       {children}
@@ -29,7 +29,7 @@ export function EmCard({ title, actions, children, id }: { title?: string; actio
 
 export function EmField({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
-    <label className="flex flex-col gap-1 text-[11px] font-semibold text-muted-foreground">
+    <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-muted-foreground">
       {label}
       {children}
       {hint && <span className="font-normal">{hint}</span>}
@@ -94,7 +94,7 @@ export const BROADCAST_STATUS_HELP: Record<string, string> = {
 };
 
 export function EmBadge({ value }: { value: string }) {
-  return <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${TONES[value] ?? "bg-muted text-muted-foreground"}`}>{value.replace(/_/g, " ")}</span>;
+  return <span className={`inline-flex rounded-md px-2 py-1 text-[10px] font-semibold ${TONES[value] ?? "bg-muted text-muted-foreground"}`}>{value.replace(/_/g, " ")}</span>;
 }
 
 export function EmMessage({ message, tone = "info" }: { message: string | null; tone?: "info" | "error" }) {

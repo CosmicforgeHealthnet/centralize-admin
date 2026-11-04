@@ -1,4 +1,5 @@
 "use client";
+import SectionNavigation from "../SectionNavigation";
 
 import { Gauge, Link2, RefreshCw, type LucideIcon } from "lucide-react";
 
@@ -19,25 +20,5 @@ export default function MarketingIntelligenceSubNav({
   activeSection,
   onSectionChange,
 }: MarketingIntelligenceSubNavProps) {
-  return (
-    <div className="flex items-center gap-1 flex-wrap border-b border-border pb-3">
-      {MI_TABS.map((tab) => {
-        const active = activeSection === tab.key;
-        return (
-          <button
-            key={tab.key}
-            onClick={() => onSectionChange(tab.key)}
-            className={`flex items-center gap-1.5 font-poppins text-[12px] font-medium px-3 py-1.5 rounded-full transition-colors duration-150 ${
-              active
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/70"
-            }`}
-          >
-            <tab.icon className="w-3.5 h-3.5" strokeWidth={2} />
-            {tab.label}
-          </button>
-        );
-      })}
-    </div>
-  );
+  return <SectionNavigation label="Marketing Intelligence views" value={activeSection} groups={[{label: "Views", items: MI_TABS.map(item => ({value: item.key, label: item.label}))}]} onChange={value => onSectionChange(value as MISection)} />;
 }
