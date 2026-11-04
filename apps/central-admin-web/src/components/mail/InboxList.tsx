@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, FileText, Inbox, Loader2, MailOpen, Paperclip, SearchX, Star, Trash2, Mail } from "lucide-react";
+import { Archive, FileText, Inbox, Loader2, MailOpen, Paperclip, SearchX, Star, Trash2, Mail, RefreshCw } from "lucide-react";
 import PermissionBoundary from "./PermissionBoundary";
 import MailState from "./MailState";
 import { useDrafts, useSearch, useThreadActions, useThreads } from "./hooks";
@@ -18,6 +18,8 @@ function ThreadRow({
   checked,
   onCheck,
   showStatus,
+  onStar,
+  starPending,
 }: {
   thread: ThreadSummary;
   href: string;
@@ -25,51 +27,30 @@ function ThreadRow({
   checked: boolean;
   onCheck: (v: boolean) => void;
   showStatus: boolean;
+  onStar: () => void;
+  starPending: boolean;
 }) {
   const names = thread.participants.slice(0, 3).map(shortParty).join(", ") || "(no participants)";
   return (
-    <li
-      className={`group flex items-start gap-3 border-b border-border/60 px-4 py-4 transition-colors ${selected ? "bg-primary/10" : thread.isRead ? "bg-card" : "bg-primary/[0.03]"} hover:bg-muted/60`}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onCheck(e.target.checked)}
-        aria-label={`Select conversation ${thread.subject || "(no subject)"}`}
-        className="mt-1 h-4 w-4 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-      />
-      <Link href={href} aria-current={selected ? "true" : undefined} className="flex min-w-0 flex-1 gap-3 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-thread-link={thread.id}>
-        <span aria-hidden="true" className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/5 text-[10px] font-semibold text-primary">{(thread.participants[0]?.name || thread.participants[0]?.address || "?").split(/\s+/).map(n => n[0]).slice(0, 2).join("").toUpperCase()}</span>
-        <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className={`truncate text-xs ${thread.isRead ? "text-foreground" : "font-semibold text-foreground"}`}>{names}</span>
-          {thread.messageCount > 1 && <span className="text-xs text-muted-foreground">{thread.messageCount}</span>}
-          <span className="ml-auto shrink-0 text-xs text-muted-foreground">{formatMailDate(thread.lastMessageAt)}</span>
+    <li className={`group flex items-center gap-3 border-b border-border/50 px-4 py-2.5 transition-colors ${selected || checked ? "mail-row-selected" : thread.isRead ? "bg-muted/25" : "bg-card"} hover:bg-muted/60`}>
+      <input type="checkbox" checked={checked} onChange={event => onCheck(event.target.checked)} aria-label={`Select conversation ${thread.subject || "(no subject)"}`} className="h-4 w-4 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" />
+      <button type="button" onClick={onStar} disabled={starPending} aria-label={thread.isStarred ? "Unstar conversation" : "Star conversation"} aria-pressed={thread.isStarred} title={thread.isStarred ? "Remove star" : "Add star"} className="mail-star-button flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"><Star className={thread.isStarred ? "h-[18px] w-[18px] fill-amber-400 text-amber-500" : "h-[18px] w-[18px]"} strokeWidth={1.6} aria-hidden="true" /></button>
+      <Link href={href} aria-current={selected ? "true" : undefined} className="mail-thread-content min-w-0 flex-1 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-thread-link={thread.id}>
+        <span className={`mail-thread-sender truncate text-sm ${thread.isRead ? "text-foreground" : "font-semibold text-foreground"}`}>{names}{thread.messageCount > 1 && <span className="ml-1.5 text-xs font-normal text-muted-foreground">{thread.messageCount}</span>}</span>
+        <time className="mail-thread-date shrink-0 text-xs text-muted-foreground" dateTime={thread.lastMessageAt}>{formatMailDate(thread.lastMessageAt)}</time>
+        <div className="mail-thread-copy min-w-0">
+          <div className="flex min-w-0 items-center gap-1.5">
+            {thread.hasAttachments && <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-label="Has attachments" />}
+            <span className={`truncate text-sm ${thread.isRead ? "text-foreground" : "font-semibold text-foreground"}`}>{thread.subject || "(no subject)"}</span>
+            {thread.snippet && <span className="mail-thread-inline-snippet min-w-0 truncate text-sm text-muted-foreground"><span aria-hidden="true">— </span>{thread.snippet}</span>}
+          </div>
+          <p className="mail-thread-mobile-snippet mt-0.5 truncate text-xs text-muted-foreground">{thread.snippet}</p>
         </div>
-        <div className="flex items-center gap-1.5">
-          {thread.isStarred && <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-label="Starred" />}
-          {thread.hasAttachments && <Paperclip className="h-3 w-3 text-muted-foreground" aria-label="Has attachments" />}
-          <span className={`truncate text-[13px] ${thread.isRead ? "text-foreground" : "font-semibold text-foreground"}`}>
-            {thread.subject || "(no subject)"}
-          </span>
-        </div>
-        <p className="mt-1.5 truncate text-[11px] leading-5 text-muted-foreground">{thread.snippet}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {thread.labels.map((l) => (
-            <span key={l.id} className="rounded border border-border px-1 text-[10px] text-muted-foreground" style={{ borderColor: l.color ?? undefined }}>
-              {l.name}
-            </span>
-          ))}
-          {thread.conversationStatus && (
-            <span className="rounded bg-muted px-1 text-[10px] text-muted-foreground">{thread.conversationStatus}</span>
-          )}
-          {showStatus && thread.lastDeliveryStatus && thread.lastDeliveryStatus !== "RECEIVED" && (
-            <span className={`rounded border px-1 text-[10px] ${statusTone(thread.lastDeliveryStatus)}`}>
-              {STATUS_LABELS[thread.lastDeliveryStatus]}
-            </span>
-          )}
-        </div>
-        </div>
+        {(thread.labels.length > 0 || thread.conversationStatus || (showStatus && thread.lastDeliveryStatus && thread.lastDeliveryStatus !== "RECEIVED")) && <div className="mail-thread-labels flex min-w-0 flex-wrap items-center gap-1.5">
+          {thread.labels.map(label => <span key={label.id} className="mail-label-chip inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-foreground" style={{ backgroundColor: label.color && /^#[0-9a-f]{6}$/i.test(label.color) ? `${label.color}24` : undefined }}>{label.name}</span>)}
+          {thread.conversationStatus && <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{thread.conversationStatus}</span>}
+          {showStatus && thread.lastDeliveryStatus && thread.lastDeliveryStatus !== "RECEIVED" && <span className={`rounded px-1.5 py-0.5 text-[10px] ${statusTone(thread.lastDeliveryStatus)}`}>{STATUS_LABELS[thread.lastDeliveryStatus]}</span>}
+        </div>}
       </Link>
     </li>
   );
@@ -96,7 +77,7 @@ export default function InboxList({
   const threadsQ = useThreads(mailbox.id, threadView, labelId, !isDrafts && !search);
   const searchQ = useSearch(mailbox.id, search ?? {}, !!search);
   const draftsQ = useDrafts(mailbox.id, isDrafts);
-  const { bulk } = useThreadActions(mailbox.id);
+  const { bulk, state } = useThreadActions(mailbox.id);
 
   const active = search ? searchQ : threadsQ;
   const threads = useMemo(() => (active.data?.pages ?? []).flatMap((p) => p.items), [active.data]);
@@ -175,15 +156,18 @@ export default function InboxList({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-1 border-b border-border px-3 py-2">
+      <div className="flex min-h-14 items-center gap-1 px-4 py-1.5">
           <input
           type="checkbox"
           aria-label="Select all conversations"
           checked={allChecked}
+          aria-checked={checked.size > 0 && !allChecked ? "mixed" : allChecked}
+          ref={node => { if (node) node.indeterminate = checked.size > 0 && !allChecked; }}
           onChange={(e) => setChecked(e.target.checked ? new Set(threads.map((t) => t.id)) : new Set())}
             className="h-4 w-4 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         />
-        <div className="ml-2 flex items-center gap-1" role="toolbar" aria-label="Bulk actions">
+        <button type="button" onClick={() => active.refetch()} disabled={active.isFetching} title="Refresh" aria-label="Refresh conversations" className="ml-2 flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"><RefreshCw className={`h-[18px] w-[18px] ${active.isFetching ? "animate-spin" : ""}`} strokeWidth={1.7} aria-hidden="true" /></button>
+        {checked.size > 0 && <div className="ml-1 flex items-center gap-1" role="toolbar" aria-label="Bulk actions">
           {[
             { a: "archive" as const, icon: Archive, label: "Archive selected" },
             { a: "trash" as const, icon: Trash2, label: "Move selected to trash" },
@@ -197,17 +181,21 @@ export default function InboxList({
               onClick={() => runBulk(a)}
               title={label}
               aria-label={label}
-              className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} aria-hidden="true" />
             </button>
           ))}
-        </div>
+        </div>}
         {bulk.isPending && <Loader2 className="ml-1 h-4 w-4 animate-spin text-muted-foreground" aria-label="Updating" />}
         <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">
           {search ? "Search results" : checked.size ? `${checked.size} selected` : ""}
         </span>
       </div>
+      {!search && !labelId && (view === "inbox" || view === "unread") && <nav aria-label="Message filter" className="flex gap-3 border-b border-border/70 px-4">
+        <Link href={`${base}?view=inbox`} aria-current={view === "inbox" ? "page" : undefined} className={`mail-filter-tab inline-flex min-h-12 items-center gap-2 border-b-[3px] px-4 text-sm ${view === "inbox" ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted/40"}`}><Inbox className="h-[18px] w-[18px]" aria-hidden="true" />All</Link>
+        <Link href={`${base}?view=unread`} aria-current={view === "unread" ? "page" : undefined} className={`mail-filter-tab inline-flex min-h-12 items-center gap-2 border-b-[3px] px-4 text-sm ${view === "unread" ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted/40"}`}><Mail className="h-[18px] w-[18px]" aria-hidden="true" />Unread</Link>
+      </nav>}
       {notice && (
         <p role="status" className="border-b border-border bg-muted/50 px-3 py-1.5 text-[11px] text-muted-foreground">
           {notice}
@@ -227,6 +215,8 @@ export default function InboxList({
                   selected={t.id === selectedThreadId}
                   checked={checked.has(t.id)}
                   showStatus={view === "sent"}
+                  starPending={state.isPending}
+                  onStar={() => { setNotice(null); state.mutate({ threadId: t.id, isStarred: !t.isStarred }, { onError: error => setNotice(classifyMailError(error).message) }); }}
                   onCheck={(v) =>
                     setChecked((prev) => {
                       const next = new Set(prev);

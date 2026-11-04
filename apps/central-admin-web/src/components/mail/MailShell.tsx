@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, MailOpen, Menu, PenSquare, SearchX, X } from "lucide-react";
+import { ChevronLeft, Menu, PenSquare, SearchX, X } from "lucide-react";
 import MailState, { stateSecondaryActionClass } from "./MailState";
 import MailSidebar from "./MailSidebar";
 import { useClientReady } from "@/lib/use-client-ready";
@@ -129,7 +129,7 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
         aria-modal={navOpen ? true : undefined}
         aria-label={navOpen ? "Mail folders" : undefined}
         tabIndex={navOpen ? -1 : undefined}
-        className={`mail-workspace ${navOpen ? "fixed inset-y-0 left-0 z-[101] w-[min(20rem,calc(100vw-2rem))] shadow-xl" : "hidden"} overflow-y-auto border-r border-border bg-card text-foreground md:bg-muted md:static md:block md:w-[224px] md:shrink-0 md:shadow-none`}
+        className={`mail-workspace ${navOpen ? "fixed inset-y-0 left-0 z-[101] w-[min(20rem,calc(100vw-2rem))] shadow-xl" : "hidden"} overflow-y-auto bg-card text-foreground md:bg-transparent md:static md:block md:w-[184px] md:shrink-0 md:shadow-none`}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
           <h2 className="text-base font-semibold">Mail folders</h2>
@@ -157,14 +157,14 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
       <header className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Mail</h1>
-            <p className="truncate text-sm text-muted-foreground">{mailbox.primaryAddress}</p>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Mail</h1>
+            
           </div>
         </div>
         {mailbox.canSend && mailbox.status === "ACTIVE" && (
           <Link
             href={`/dashboard/mail/compose?mailboxId=${mailbox.id}`}
-            className="inline-flex min-h-11 shrink-0 md:hidden items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex min-h-11 shrink-0 md:hidden items-center gap-2 mail-compose-button rounded-xl px-4 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <PenSquare className="h-4 w-4" aria-hidden="true" />
             <span>Compose</span>
@@ -172,14 +172,14 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
         )}
       </header>
 
-      <div className="flex h-[calc(100dvh-205px)] min-h-[420px] min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="flex h-[calc(100dvh-170px)] min-h-[420px] min-w-0 gap-3 overflow-hidden">
       {/* Folder navigation: drawer on mobile, column on desktop */}
       {navOpen ? createPortal(folderNavigation, document.body) : folderNavigation}
 
       {/* List pane: hidden on small screens while a thread is open */}
       <section
         aria-label="Conversation list"
-        className={`${threadId ? "hidden lg:flex" : "flex"} min-w-0 flex-1 flex-col border-r border-border lg:max-w-[370px]`}
+        className={`${threadId ? "hidden" : "flex"} mail-inbox-pane min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-card`}
       >
           <div className="flex items-start gap-2 border-b border-border p-3">
           <button ref={foldersButtonRef} type="button" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary md:hidden" onClick={() => setNavOpen(true)} aria-label="Open folders" aria-haspopup="dialog" aria-expanded={navOpen}>
@@ -189,12 +189,6 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
             <MailSearch />
           </div>
         </div>
-        {!queueActive && !search && !labelId && (view === "inbox" || view === "unread") && (
-          <nav aria-label="Message filter" className="flex gap-1 border-b border-border/60 px-4 py-2">
-            <Link href={`/dashboard/mail/${mailboxId}?view=inbox`} aria-current={view === "inbox" ? "page" : undefined} className={`rounded-md px-3 py-1.5 text-xs ${view === "inbox" ? "bg-muted font-semibold text-foreground" : "text-muted-foreground hover:bg-muted/50"}`}>All</Link>
-            <Link href={`/dashboard/mail/${mailboxId}?view=unread`} aria-current={view === "unread" ? "page" : undefined} className={`rounded-md px-3 py-1.5 text-xs ${view === "unread" ? "bg-muted font-semibold text-foreground" : "text-muted-foreground hover:bg-muted/50"}`}>Unread</Link>
-          </nav>
-        )}
         {!entitlements.data?.sendingEnabled && (
           <p className="border-b border-border bg-amber-50 px-3 py-1.5 text-[11px] text-amber-800">
             Outbound sending is disabled in this environment. Drafts are saved but cannot be sent.
@@ -210,14 +204,8 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
       </section>
 
       {/* Reading pane */}
-      <section aria-label="Conversation" className={`${threadId ? "flex" : "hidden lg:flex"} min-w-0 flex-[1.4] flex-col`}>
-        {threadId ? (
-          <ThreadDetail mailbox={mailbox} threadId={threadId} backHref={listHref} />
-        ) : (
-          <div className="flex min-h-0 flex-1 items-center justify-center">
-            <MailState icon={MailOpen} title="Select a conversation" description="Choose an email to read it here." />
-          </div>
-        )}
+      <section aria-label="Conversation" className={`${threadId ? "flex" : "hidden"} min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-card`}>
+        {threadId && <ThreadDetail mailbox={mailbox} threadId={threadId} backHref={listHref} />}
       </section>
       </div>
     </div>

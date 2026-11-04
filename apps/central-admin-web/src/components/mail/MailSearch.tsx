@@ -81,8 +81,8 @@ export default function MailSearch() {
   return (
     <div className="flex flex-col gap-2">
     <form key={currentQuery} role="search" aria-label="Search this mailbox" onSubmit={submit} className="flex flex-col gap-2">
-      <div className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-background px-3 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
-        <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <div className="flex min-h-12 items-center gap-3 rounded-2xl bg-muted/70 px-4 transition-colors focus-within:bg-card focus-within:shadow-sm focus-within:ring-2 focus-within:ring-primary/15">
+        <Search className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
         <label htmlFor="mail-search" className="sr-only">Search mail</label>
         <span id="mail-search-scope" className="sr-only">{SCOPE_HINT}</span>
         <input
@@ -90,13 +90,13 @@ export default function MailSearch() {
           ref={inputRef}
           name="q"
           defaultValue={params.get("q") ?? ""}
-          placeholder="Search this mailbox…"
+          placeholder="Search mail"
           title={SCOPE_HINT}
           aria-describedby="mail-search-scope"
           className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
         {params.get("q") && (
-          <button type="button" onClick={clear} aria-label="Clear search" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary">
+          <button type="button" onClick={clear} aria-label="Clear search" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary">
             <X className="h-4 w-4" />
           </button>
         )}
@@ -107,9 +107,9 @@ export default function MailSearch() {
           aria-expanded={showAdvanced}
           aria-controls="mail-search-advanced"
           aria-label="Advanced search"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"
         >
-          <SlidersHorizontal className="h-4 w-4" />
+          <SlidersHorizontal className="h-5 w-5" strokeWidth={1.7} aria-hidden="true" />
         </button>
       </div>
       {showAdvanced && (

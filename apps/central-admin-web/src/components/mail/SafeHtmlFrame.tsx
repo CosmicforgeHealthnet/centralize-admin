@@ -12,6 +12,8 @@ const getServerTheme = () => false;
 
 const frameStyle = (dark: boolean) => `<style>
   html,body{color-scheme:${dark ? "dark" : "light"};background:${dark ? "#1b1c1c" : "#fff"};margin:0;padding:0;font-family:Poppins,Arial,sans-serif;font-size:13px;color:${dark ? "#f3f4f6" : "#111827"};word-wrap:break-word;overflow-wrap:anywhere}
+  html,body{scrollbar-width:none}
+  ::-webkit-scrollbar{width:0}
   img{max-width:100%;height:auto}
   table{max-width:100%}
   a{color:${dark ? "#a4a9ff" : "#272EA7"}}
