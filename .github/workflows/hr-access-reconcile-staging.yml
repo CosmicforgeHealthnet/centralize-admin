@@ -84,22 +84,29 @@ jobs:
           set -eu
           container="admin-server-staging-app-1"
           test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$container")" = "admin-server-staging"
-          # Wait (up to 40 min) until the staging API runs this commit's image.
+          # Wait (up to 40 min) until the staging API runs this commit's image,
+          # or (workflow-only pushes, no API release) already runs a script
+          # version that supports the redacted --match report.
           i=0
-          until docker inspect -f '{{.Config.Image}}' "$container" | grep -q "staging-$EXPECTED_SHA"; do
+          until docker inspect -f '{{.Config.Image}}' "$container" | grep -q "staging-$EXPECTED_SHA" \
+            || docker exec "$container" grep -q ADMIN_TIER_IN_DEPARTMENT_REVIEW scripts/hr/reconcile-department-access.js; do
             i=$((i + 1))
-            if [ "$i" -gt 80 ]; then echo "Staging API is not running staging-$EXPECTED_SHA" >&2; exit 1; fi
+            if [ "$i" -gt 80 ]; then echo "Staging API does not run the reconcile script release yet" >&2; exit 1; fi
             sleep 30
           done
           set -- scripts/hr/reconcile-department-access.js --json
           if [ -n "$MATCH" ]; then set -- "$@" "--match=$MATCH"; fi
-          docker exec "$container" node "$@"
+          docker exec -e DOTENV_CONFIG_QUIET=true "$container" node "$@"
           REMOTE
           } | ssh -i "$private_key" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=30 \
                 -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$host_keys" \
                 "$STAGING_USER@$STAGING_HOST" 'sh -s' > "$report"
           REPORT="$report" node -e '
-            const r = JSON.parse(require("fs").readFileSync(process.env.REPORT, "utf8"));
+            // Library banners may precede the JSON document: parse from its first line.
+            const text = require("fs").readFileSync(process.env.REPORT, "utf8");
+            const start = text.search(/^\{$/m);
+            if (start < 0) { console.error("No JSON report in the output"); process.exit(1); }
+            const r = JSON.parse(text.slice(start));
             if (r.summary.mode !== "dry-run" || r.summary.revoked !== 0) { console.error("Unexpected non dry-run result"); process.exit(1); }
             const facts = (r.matched || []).map((m) => ({
               status: m.status, department: m.department, tier: m.tier, isTeamLead: m.isTeamLead, role: m.role,
