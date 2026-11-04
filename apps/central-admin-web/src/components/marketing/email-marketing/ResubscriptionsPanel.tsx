@@ -96,7 +96,7 @@ export default function ResubscriptionsPanel({ org }: { org: MarketingOrganizati
           <TableScrollArea className="overflow-x-auto">
             <table className="w-full text-left text-[12px] min-w-[560px]">
               <caption className="sr-only">Provider re-subscription requests</caption>
-              <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Contact</th><th scope="col">Status</th><th scope="col">Provider state</th><th scope="col">Evidence</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead className="text-muted-foreground"><tr><th scope="col" className="py-1">Contact</th><th scope="col">Status</th><th scope="col">Provider state</th><th scope="col">Evidence</th><th scope="col" className="sticky right-0 bg-card"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {(q.data?.items ?? []).map((item) => (
                   <tr key={item.id} className="border-t border-border align-top">
@@ -112,7 +112,7 @@ export default function ResubscriptionsPanel({ org }: { org: MarketingOrganizati
                       Double opt-in confirmed {formatFullDate(item.evidence.confirmedAt)}
                       <div>{item.evidence.source} · policy {item.evidence.policyVersion}</div>
                     </td>
-                    <td className="text-right">
+                    <td className="sticky right-0 bg-card text-right">
                       {org.canApprove && (
                         <div className="flex flex-col items-end gap-1">
                           {item.status === "PENDING_APPROVAL" && <button type="button" className={emBtn} onClick={() => setPending({ kind: "approve", item })}>Approve</button>}

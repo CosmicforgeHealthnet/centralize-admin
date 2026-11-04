@@ -186,9 +186,18 @@ test.describe("Section 16 visual acceptance — deterministic inbox fixtures", (
     await gotoWithEntitlements(page, "/dashboard/marketing/email-marketing");
     await expect(page.getByRole("heading", { name: "Email Marketing" })).toBeVisible();
     const sectionTabs = page.getByRole("navigation", { name: "Email marketing sections" });
-    await expect(sectionTabs.getByRole("link", { name: "Settings" })).toBeVisible();
+    const sectionPicker = sectionTabs.getByRole("combobox");
+    if (await sectionPicker.isVisible()) {
+      await expect(sectionPicker).toHaveValue("");
+      await expect(sectionPicker.locator('option[value="/settings"]')).toHaveText("Settings");
+    } else {
+      await expect(sectionTabs.getByRole("link", { name: "Settings" })).toBeVisible();
+    }
     expect(await sectionTabs.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
     await expect(page.getByText("Broadcast dispatch is not enabled in this environment")).toBeVisible();
     await attachScreenshot(page, testInfo, "marketing-overview");
+    if (await sectionPicker.isVisible()) await sectionPicker.selectOption("/settings");
+    else await sectionTabs.getByRole("link", { name: "Settings" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/marketing\/email-marketing\/settings/);
   });
 });

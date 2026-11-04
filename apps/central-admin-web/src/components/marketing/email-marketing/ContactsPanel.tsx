@@ -298,7 +298,7 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
 
   return (
     <EmCard title="Contacts & consent" id="em-contacts">
-      <div role="tablist" aria-label="Contacts sections" className="mb-3 flex gap-1 border-b border-border">
+      <div role="tablist" aria-label="Contacts sections" className="mb-3 flex min-w-0 flex-wrap gap-1 border-b border-border">
         {tabs.map((t) => (
           <button
             key={t.id}
