@@ -91,6 +91,29 @@ const requireTierOrDepartment = (minimumTier, module) => {
 };
 
 
+// Tier minimum as before, or the exact section through effective access
+// (department ownership or an explicit Module Permission) for callers below
+// that tier. Never lets a department leader act as Platform Admin elsewhere.
+const requireTierOrSection = (minimumTier, module, section, mode = "VIEW") => {
+  return asyncHandler(async (req, res, next) => {
+    const user = req.adminUser;
+    if (!user?.tier) throw new ApiError(401, "Unauthorized");
+    if (TIER_HIERARCHY.indexOf(user.tier) >= TIER_HIERARCHY.indexOf(minimumTier)) return next();
+    if (await hasSectionAccess(user, module, section, mode)) return next();
+    throw new ApiError(403, "You do not have permission to perform this action");
+  });
+};
+
+// Step-up for sensitive transactions performed through department
+// leadership: callers at or above the tier keep today's behaviour.
+const requireRecentMfaBelowTier = (minimumTier, maxAgeMs = 5 * 60 * 1000) => {
+  return (req, res, next) => {
+    const user = req.adminUser;
+    if (user?.tier && TIER_HIERARCHY.indexOf(user.tier) >= TIER_HIERARCHY.indexOf(minimumTier)) return next();
+    return require("./auth.middleware").requireRecentMfa(maxAgeMs)(req, res, next);
+  };
+};
+
 const requireDifferentReviewer = (getPriorReviewerId) => {
   return asyncHandler(async (req, res, next) => {
     const priorReviewerId = await getPriorReviewerId(req);
@@ -124,6 +147,8 @@ module.exports = {
   readOnly,
   requireSection,
   requireTierOrDepartment,
+  requireTierOrSection,
+  requireRecentMfaBelowTier,
   hasSectionAccess,
   requireDifferentReviewer,
   require2FA,

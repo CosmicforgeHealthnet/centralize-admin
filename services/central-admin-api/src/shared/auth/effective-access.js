@@ -9,10 +9,11 @@
 // Permissions, table admin_section_grants) stay the only way to give
 // additional, cross-department or sensitive access.
 //
-// Department defaults deliberately never include sensitive sections
-// (payroll, account permissions, security/admin settings, payment status
-// changes, Email Marketing brands or approvals, bulk sending). Those still
-// require an explicit grant.
+// Team Leads and Department Managers inherit full operational access to what
+// their department owns (see DEPARTMENT_OWNERSHIP). Sensitive areas that no
+// department owns (payroll, account permissions, security/admin settings)
+// still require an explicit grant, and MFA, consent, segregation-of-duties
+// and independent-approval checks are enforced where the action happens.
 
 const SECTION_MODE_RANK = Object.freeze({ VIEW: 1, EDIT: 2 });
 
@@ -37,39 +38,102 @@ const DIRECTORY = Object.freeze({
   MANAGER: [g("department", "directory", "VIEW"), g("department", "roster", "VIEW"), g("department", "leaves", "VIEW")],
 });
 
-// Normal workspace per department. Each role inherits the roles below it.
-const DEPARTMENT_POLICY = Object.freeze({
-  MARKETING: {
-    STAFF: [g("marketing", "workspace", "EDIT")],
-    TEAM_LEAD: [g("marketing", "workspace-manage", "EDIT")],
-    MANAGER: [g("marketing", "intelligence", "VIEW")],
-  },
-  CUSTOMER_CARE: {
-    STAFF: [g("support", "tickets", "VIEW"), g("support", "chats", "VIEW")],
-    TEAM_LEAD: [g("support", "chats", "EDIT")],
-    MANAGER: [],
-  },
-  FINANCE: {
-    STAFF: [g("finance", "payments", "VIEW")],
-    TEAM_LEAD: [],
-    MANAGER: [],
-  },
-  OPERATIONS: {
-    STAFF: [g("operations", "logistics", "VIEW")],
-    TEAM_LEAD: [],
-    MANAGER: [],
-  },
-  RTC: {
-    STAFF: [g("rtc", "sessions", "VIEW")],
-    TEAM_LEAD: [],
-    MANAGER: [],
-  },
-  TELEMEDICINE: {
-    STAFF: [g("telemedicine", "consultations", "VIEW")],
-    TEAM_LEAD: [],
-    MANAGER: [],
-  },
-});
+// ── Department ownership (single registry) ───────────────────────────────
+// Every department-owned section is registered here once: [module, section,
+// staffMode]. staffMode is what ordinary Staff receive (null = leaders only).
+// Team Leads and Department Managers automatically receive full operational
+// access (EDIT = view, create, edit, delete, manage) to EVERY section their
+// department owns, with no Module Permission grant. Backend guards and the
+// frontend both read this registry (via effective grants), so they cannot
+// disagree. New departmental functionality inherits leadership access by
+// registering its sections with registerDepartmentOwnership().
+//
+// Deliberately not owned by any department (explicit grant only): payroll and
+// HR account/permission management, security and admin settings (Mail admin,
+// admin-ops), emergency/restricted social moderation, advertising execution
+// roles, and Platform Admin / Super functions.
+const own = (module, section, staffMode = null) => Object.freeze([module, section, staffMode]);
+
+const SOCIAL_SECTIONS = Object.freeze([
+  own("marketing", "social_content", "EDIT"),
+  own("marketing", "social_content_submit", "EDIT"),
+  own("marketing", "social_analytics", "VIEW"),
+  own("marketing", "social_inbox", "VIEW"),
+  own("marketing", "social_approvals"),
+  own("marketing", "social_publish"),
+  own("marketing", "social_schedule"),
+  own("marketing", "social_publish_retry"),
+  own("marketing", "social_publish_cancel"),
+  own("marketing", "social_publish_delete"),
+  own("marketing", "social_inbox_reply"),
+  own("marketing", "social_inbox_assign"),
+  own("marketing", "social_inbox_resolve"),
+  own("marketing", "social_inbox_note"),
+  own("marketing", "social_inbox_tag"),
+  own("marketing", "social_moderation_hide"),
+  own("marketing", "social_moderation_delete"),
+  own("marketing", "social_moderation_escalate"),
+  own("marketing", "social_moderation_safety"),
+  own("marketing", "social_connections"),
+  own("marketing", "social_settings"),
+  own("marketing", "social_operations"),
+]);
+
+const DEPARTMENT_OWNERSHIP = {
+  MARKETING: [
+    own("marketing", "workspace", "EDIT"),
+    own("marketing", "workspace-manage"),
+    own("marketing", "intelligence"),
+    own("marketing", "advertising-execution"),
+    ...SOCIAL_SECTIONS,
+  ],
+  SOCIAL_MEDIA: [own("marketing", "workspace", "VIEW"), ...SOCIAL_SECTIONS],
+  CUSTOMER_CARE: [own("support", "tickets", "VIEW"), own("support", "chats", "VIEW")],
+  FINANCE: [own("finance", "payments", "VIEW"), own("finance", "payment-status")],
+  OPERATIONS: [own("operations", "logistics", "VIEW")],
+  RTC: [own("rtc", "sessions", "VIEW")],
+  TELEMEDICINE: [own("telemedicine", "consultations", "VIEW")],
+  VERIFICATION: [own("verification", "providers", "VIEW")],
+  HR: [
+    own("hrm", "attendance", "VIEW"),
+    own("hrm", "hiring", "VIEW"),
+    own("hrm", "leaves", "VIEW"),
+    own("hrm", "performance"),
+  ],
+  // No department-owned modules implemented yet; register them here when added.
+  DEVELOPMENT: [],
+  EXECUTIVE: [],
+  MANAGEMENT: [],
+};
+
+function registerDepartmentOwnership(department, sections) {
+  DEPARTMENT_OWNERSHIP[department] = [...(DEPARTMENT_OWNERSHIP[department] || []), ...sections.map(([m, s, mode]) => own(m, s, mode || null))];
+}
+
+// Departments whose leaders manage Email Marketing brands authorised for them
+// (brand isolation: only these brand slugs). Override with
+// MAIL_MARKETING_DEPARTMENT_BRANDS="MARKETING:karryam,other;SOCIAL_MEDIA:karryam"
+// (empty value disables). No migration: this is configuration, not data.
+const DEFAULT_DEPARTMENT_BRANDS = "MARKETING:karryam";
+function departmentBrands(env = process.env) {
+  const raw = env.MAIL_MARKETING_DEPARTMENT_BRANDS === undefined ? DEFAULT_DEPARTMENT_BRANDS : String(env.MAIL_MARKETING_DEPARTMENT_BRANDS);
+  const map = {};
+  for (const part of raw.split(";")) {
+    const [dept, list] = part.split(":");
+    if (!dept || !list) continue;
+    map[dept.trim().toUpperCase()] = list.split(",").map((b) => b.trim().toLowerCase()).filter(Boolean);
+  }
+  return map;
+}
+
+// Derived per-role view of the registry (kept for callers and tests).
+function policyFor(department) {
+  const entries = DEPARTMENT_OWNERSHIP[department] || [];
+  const staff = entries.filter(([, , mode]) => mode).map(([m, s, mode]) => g(m, s, mode));
+  const lead = entries.map(([m, s]) => g(m, s, "EDIT"));
+  return { STAFF: staff, TEAM_LEAD: lead, MANAGER: lead };
+}
+const DEPARTMENT_POLICY = new Proxy({}, { get: (_t, department) => policyFor(department), has: (_t, department) => department in DEPARTMENT_OWNERSHIP, ownKeys: () => Object.keys(DEPARTMENT_OWNERSHIP), getOwnPropertyDescriptor: (_t, department) => (department in DEPARTMENT_OWNERSHIP ? { enumerable: true, configurable: true, value: policyFor(department) } : undefined) });
 
 function holdsManagerGrant(user, explicit = []) {
   if (!user?.department) return false;
@@ -99,7 +163,7 @@ function rolesUpTo(role) {
 function inheritedGrants(user, explicit = []) {
   const role = departmentRole(user, explicit);
   if (!role || user.status !== "ACTIVE") return [];
-  const policy = DEPARTMENT_POLICY[user.department] || {};
+  const policy = policyFor(user.department);
   const byKey = new Map();
   for (const entry of [...DIRECTORY[role], ...rolesUpTo(role).flatMap((r) => policy[r] || [])]) {
     const key = `${entry.module}:${entry.section}`;
@@ -154,6 +218,9 @@ async function hasEffectiveSection(client, user, module, section, mode = "VIEW",
 module.exports = {
   ROLES,
   DEPARTMENT_POLICY,
+  DEPARTMENT_OWNERSHIP,
+  registerDepartmentOwnership,
+  departmentBrands,
   SECTION_MODE_RANK,
   ROLE_GRANT_MODULE,
   managerSection,

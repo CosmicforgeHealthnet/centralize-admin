@@ -27,6 +27,7 @@ const {
   accountRole,
   inheritedGrants,
   isRoleGrant,
+  departmentBrands,
 } = require("../../src/shared/auth/effective-access");
 
 const LEADERSHIP_TITLE = /\b(lead|manager|head|director|supervisor|vp|chief)\b/i;
@@ -82,7 +83,8 @@ function planReconciliation({ accounts, grants, brands }) {
     if (account.tier === "ADMIN" && account.department && !NON_OPERATIONAL.has(account.department) && account.status === "ACTIVE") {
       flags.push("ADMIN_TIER_IN_DEPARTMENT_REVIEW");
     }
-    if (account.department === "MARKETING" && account.status === "ACTIVE" && !manual.some((grant) => grant.module === "mail-marketing")) {
+    const departmentHasBrands = (departmentBrands()[account.department] || []).length > 0;
+    if (account.department === "MARKETING" && account.status === "ACTIVE" && !departmentHasBrands && !manual.some((grant) => grant.module === "mail-marketing")) {
       flags.push(role === "STAFF" ? "MARKETING_NO_EMAIL_BRAND" : "MARKETING_LEAD_NO_EMAIL_BRAND");
     }
     if (account.status !== "ACTIVE" && manual.length) flags.push("INACTIVE_WITH_MANUAL_GRANTS");

@@ -175,7 +175,8 @@ test("1. a new Marketing employee receives Marketing access once active", async 
 
   await accounts.updateStatus({ id: created.id, status: "ACTIVE", actor: SUPER, req: {} });
   const effective = await accounts.getEffectiveAccess(created.id);
-  assert.deepEqual(keys(effective.inherited), ["department:directory:VIEW", "marketing:workspace:EDIT"]);
+  assert.ok(keys(effective.inherited).includes("marketing:workspace:EDIT") && keys(effective.inherited).includes("department:directory:VIEW"));
+  assert.ok(!keys(effective.inherited).includes("marketing:workspace-manage:EDIT"), "staff do not inherit leadership");
   assert.deepEqual(effective.manual, []);
 
   assert.equal((await call(marketingApp, "GET", "/api/marketing/campaigns", created.id)).status, 200);
@@ -198,12 +199,13 @@ test("2. assigning Marketing Team Lead adds departmental management", async () =
   assert.equal(updated.jobTitle, "Marketing Officer", "job title is unchanged by the role");
 
   const effective = await accounts.getEffectiveAccess(lead.id);
-  assert.deepEqual(keys(effective.inherited), ["department:directory:VIEW", "department:roster:VIEW", "marketing:workspace-manage:EDIT", "marketing:workspace:EDIT"]);
+  for (const key of ["department:roster:VIEW", "marketing:workspace-manage:EDIT", "marketing:workspace:EDIT", "marketing:intelligence:EDIT", "marketing:advertising-execution:EDIT", "marketing:social_publish:EDIT", "marketing:social_approvals:EDIT"]) assert.ok(keys(effective.inherited).includes(key), key);
+  assert.ok(!keys(effective.inherited).includes("department:leaves:VIEW"), "leave requests are Manager-only");
   assert.equal((await call(marketingApp, "DELETE", "/api/marketing/campaigns/1", lead.id)).status, 200);
   assert.equal((await call(marketingApp, "PATCH", "/api/marketing/campaigns/1/status", lead.id)).status, 200);
 
   const audit = tables.auditLog.filter((entry) => entry.data?.action === "USER_UPDATED" || entry.action === "USER_UPDATED").pop();
-  assert.deepEqual(audit.metadata.inheritedAccess.added.sort(), ["department:roster:VIEW", "marketing:workspace-manage:EDIT"]);
+  assert.ok(audit.metadata.inheritedAccess.added.includes("marketing:workspace-manage:EDIT") && audit.metadata.inheritedAccess.added.includes("department:roster:VIEW"));
 
   // Job titles never imply leadership.
   const fromTitle = await createEmployee({ name: "Titled", email: "titled@hq.test", department: "MARKETING", position: "Marketing Manager" });
@@ -243,33 +245,43 @@ test("3. employees see only colleagues in their own department", async () => {
 });
 
 // ── 4. Email Marketing brands ─────────────────────────────────────────────
-test("4. a Marketing Team Lead sees and authors only assigned brands", async () => {
+test("4. Email Marketing brands follow the department; other brands stay isolated", async () => {
   const lead = tables.adminUser.find((user) => user.email === "enoch@hq.test");
   const staff = tables.adminUser.find((user) => user.email === "mara@hq.test");
-
-  assert.deepEqual(await policy.marketingScopes(prisma, asUser(lead.id)), [], "no brand assignment -> no brands");
-
-  await accounts.addGrant({ userId: lead.id, data: { module: "mail-marketing", section: "Karryam", mode: "VIEW" }, actor: HR, req: {} });
-  await accounts.addGrant({ userId: staff.id, data: { module: "mail-marketing", section: "karryam", mode: "VIEW" }, actor: HR, req: {} });
-  assert.ok(tables.adminSectionGrant.some((grant) => grant.adminUserId === lead.id && grant.section === "karryam"), "brand section stored lowercase");
-
-  const leadScopes = await policy.marketingScopes(prisma, asUser(lead.id));
-  assert.deepEqual(leadScopes.map((scope) => [scope.slug, scope.canAuthor, scope.canApprove]), [["karryam", true, false]]);
-  const staffScopes = await policy.marketingScopes(prisma, asUser(staff.id));
-  assert.deepEqual(staffScopes.map((scope) => [scope.slug, scope.canAuthor, scope.canApprove]), [["karryam", false, false]]);
-
+  const finance = tables.adminUser.find((user) => user.email === "fin@hq.test");
   const karryam = tables.mailOrganization.find((org) => org.slug === "karryam");
   const cosmic = tables.mailOrganization.find((org) => org.slug === "cosmicforge");
-  await policy.requireMarketingScope(prisma, asUser(lead.id), karryam.id, "EDIT");
-  await assert.rejects(policy.requireMarketingScope(prisma, asUser(lead.id), cosmic.id, "VIEW"), (error) => error.code === "MAIL_NOT_FOUND");
-  await assert.rejects(policy.requireMarketingScope(prisma, asUser(lead.id), karryam.id, "APPROVE"), (error) => error.code === "MAIL_FORBIDDEN");
 
-  // Existing grants saved with different casing are matched too.
-  tables.adminSectionGrant.push({ id: crypto.randomUUID(), adminUserId: staff.id, module: "mail-marketing", section: "CosmicForge", mode: "VIEW", grantedBy: SUPER.id, revokedAt: null, expiresAt: null });
-  assert.deepEqual((await policy.marketingScopes(prisma, asUser(staff.id))).map((scope) => scope.slug).sort(), ["cosmicforge", "karryam"]);
+  // No manual mail-marketing:karryam grant is needed for the Marketing department.
+  assert.ok(!tables.adminSectionGrant.some((grant) => grant.adminUserId === lead.id && grant.module === "mail-marketing"));
+  const leadScopes = await policy.marketingScopes(prisma, asUser(lead.id));
+  assert.deepEqual(leadScopes.map((scope) => [scope.slug, scope.canView, scope.canAuthor, scope.canApprove, scope.access]), [["karryam", true, true, true, "DEPARTMENT"]]);
+  const staffScopes = await policy.marketingScopes(prisma, asUser(staff.id));
+  assert.deepEqual(staffScopes.map((scope) => [scope.slug, scope.canAuthor, scope.canApprove]), [["karryam", true, false]], "staff: normal capabilities, no approval");
+  assert.deepEqual(await policy.marketingScopes(prisma, asUser(finance.id)), [], "other departments get no Marketing brand");
+
+  await policy.requireMarketingScope(prisma, asUser(lead.id), karryam.id, "EDIT");
+  await policy.requireMarketingScope(prisma, asUser(lead.id), karryam.id, "APPROVE");
+  await assert.rejects(policy.requireMarketingScope(prisma, asUser(staff.id), karryam.id, "APPROVE"), (error) => error.code === "MAIL_FORBIDDEN");
+  await assert.rejects(policy.requireMarketingScope(prisma, asUser(lead.id), cosmic.id, "VIEW"), (error) => error.code === "MAIL_NOT_FOUND", "brand isolation");
+
+  // Authorising is configuration: the mapping can be changed or disabled.
+  assert.deepEqual(await policy.marketingScopes(prisma, asUser(lead.id), { env: { MAIL_MARKETING_DEPARTMENT_BRANDS: "" } }), []);
+  assert.deepEqual((await policy.marketingScopes(prisma, asUser(lead.id), { env: { MAIL_MARKETING_DEPARTMENT_BRANDS: "MARKETING:cosmicforge" } })).map((s) => s.slug), ["cosmicforge"]);
+
+  // Explicit Module Permissions remain for additional brands (case-insensitive).
+  await accounts.addGrant({ userId: staff.id, data: { module: "mail-marketing", section: "CosmicForge", mode: "VIEW" }, actor: HR, req: {} });
+  assert.ok(tables.adminSectionGrant.some((grant) => grant.adminUserId === staff.id && grant.section === "cosmicforge"), "brand section stored lowercase");
+  const extra = await policy.marketingScopes(prisma, asUser(staff.id));
+  assert.deepEqual(extra.map((scope) => [scope.slug, scope.access, scope.canAuthor]).sort(), [["cosmicforge", "EXPLICIT", false], ["karryam", "DEPARTMENT", true]]);
+
+  // Deactivation and transfer remove the brand immediately.
+  const transferred = { ...asUser(lead.id), department: "FINANCE" };
+  assert.deepEqual(await policy.marketingScopes(prisma, transferred), []);
+  assert.deepEqual(await policy.marketingScopes(prisma, { ...asUser(lead.id), status: "INACTIVE" }), []);
 
   const effective = await accounts.getEffectiveAccess(lead.id);
-  assert.deepEqual(effective.emailMarketing, [{ slug: "karryam", name: "Karryam", canView: true, canAuthor: true, canApprove: false }]);
+  assert.deepEqual(effective.emailMarketing, [{ slug: "karryam", name: "Karryam", canView: true, canAuthor: true, canApprove: true, access: "DEPARTMENT" }]);
 });
 
 // ── 5. Manual Module Permission -> only that access ───────────────────────
@@ -367,9 +379,12 @@ test("9. sensitive functions and brand boundaries stay protected", async () => {
     for (const [tier, isTeamLead] of [["EMPLOYEE", false], ["EMPLOYEE", true], ["ADMIN", false]]) {
       const grants = access.inheritedGrants({ id: "x", status: "ACTIVE", department, tier, isTeamLead });
       for (const grant of grants) {
-        assert.ok(!["payroll", "accounts", "admin", "*"].includes(grant.section), `${department} must not inherit ${grant.module}:${grant.section}`);
-        assert.ok(!["mail", "mail-marketing", "development"].includes(grant.module), `${department} must not inherit ${grant.module}`);
-        assert.ok(!(grant.module === "finance" && grant.mode === "EDIT"));
+        assert.ok(!["payroll", "accounts", "admin", "*", "social_publish_emergency_override", "social_moderation_restricted", "documents", "departments"].includes(grant.section), `${department} must not inherit ${grant.module}:${grant.section}`);
+        assert.ok(!["mail", "mail-marketing", "development", "admin-settings", "admin-ops"].includes(grant.module), `${department} must not inherit ${grant.module}`);
+        assert.ok(!(grant.module === "hrm" && ["accounts", "payroll"].includes(grant.section)));
+        // Leadership is confined to the department's own modules.
+        const owned = new Set([...access.DEPARTMENT_OWNERSHIP[department].map(([m, s]) => `${m}:${s}`), "department:directory", "department:roster", "department:leaves"]);
+        assert.ok(owned.has(`${grant.module}:${grant.section}`), `${department} inherits only what it owns: ${grant.module}:${grant.section}`);
       }
     }
   }
@@ -378,7 +393,7 @@ test("9. sensitive functions and brand boundaries stay protected", async () => {
   assert.equal((await call(marketingApp, "PATCH", "/api/marketing/email-templates/1/notification", lead.id)).status, 403, "sending settings stay Admin-only");
   assert.equal((await call(marketingApp, "PATCH", "/api/marketing/email-templates/1/recipients", lead.id)).status, 403);
   const scopes = await policy.marketingScopes(prisma, asUser(lead.id));
-  assert.ok(scopes.every((scope) => scope.canApprove === false), "Team Lead never inherits campaign approval");
+  assert.ok(scopes.every((scope) => scope.access === "DEPARTMENT" || scope.canApprove === false));
   assert.ok(!scopes.some((scope) => scope.slug === "cosmicforge"), "no inherited access to unassigned brands");
 });
 
@@ -396,7 +411,7 @@ test("reconciliation plan flags review items and only revokes fully redundant gr
     { id: "g5", adminUserId: "c", module: "finance", section: "payments", mode: "VIEW", expiresAt: null },
   ];
   const plan = planReconciliation({ accounts: accountsList, grants, brands: ["karryam"] });
-  assert.deepEqual(plan.redundant.map((entry) => entry.id), ["g1"], "inactive and non-covered grants are preserved");
+  assert.deepEqual(plan.redundant.map((entry) => entry.id), ["g1", "g2"], "inactive and non-covered grants are preserved");
   const byId = Object.fromEntries(plan.report.map((entry) => [entry.id, entry]));
   assert.equal(byId.a.role, "TEAM_LEAD");
   assert.deepEqual(byId.a.flags, []);
@@ -407,7 +422,7 @@ test("reconciliation plan flags review items and only revokes fully redundant gr
   assert.deepEqual(byId.c.inherited, []);
   // Idempotent: planning again after revoking g1 finds nothing to revoke.
   const again = planReconciliation({ accounts: accountsList, grants: grants.filter((grant) => grant.id !== "g1"), brands: ["karryam"] });
-  assert.deepEqual(again.redundant, []);
+  assert.deepEqual(again.redundant.map((entry) => entry.id), ["g2"]);
 });
 
 // ── 10. Department Manager is a department role, not the Admin tier ───────
@@ -423,10 +438,7 @@ test("10. Department Managers manage only their own department and get no Admin-
 
   const effective = await accounts.getEffectiveAccess(manager.id);
   assert.equal(effective.role, "MANAGER");
-  assert.deepEqual(keys(effective.inherited), [
-    "department:directory:VIEW", "department:leaves:VIEW", "department:roster:VIEW",
-    "marketing:intelligence:VIEW", "marketing:workspace-manage:EDIT", "marketing:workspace:EDIT",
-  ]);
+  for (const key of ["department:directory:VIEW", "department:leaves:VIEW", "department:roster:VIEW", "marketing:intelligence:EDIT", "marketing:workspace-manage:EDIT", "marketing:workspace:EDIT"]) assert.ok(keys(effective.inherited).includes(key), key);
   assert.ok(!effective.manual.some((g) => g.module === "department"), "role grant is not a Module Permission");
   assert.ok(!(await accounts.getUserGrants(manager.id)).some((g) => g.module === "department"));
 
@@ -461,7 +473,7 @@ test("10. Department Managers manage only their own department and get no Admin-
   // Email Marketing: assigned brands only; approval stays separate.
   await accounts.addGrant({ userId: manager.id, data: { module: "mail-marketing", section: "karryam", mode: "VIEW" }, actor: HR, req: {} });
   const scopes = await policy.marketingScopes(prisma, asUser(manager.id));
-  assert.deepEqual(scopes.map((x) => [x.slug, x.canAuthor, x.canApprove]), [["karryam", true, false]]);
+  assert.deepEqual(scopes.map((x) => [x.slug, x.canAuthor, x.canApprove]), [["karryam", true, true]], "Manager manages the department brand (approval keeps SoD + step-up)");
 
   // Department change revokes the role (it was for Marketing only).
   await accounts.updateAccount({ id: manager.id, data: { department: "FINANCE" }, actor: HR, req: {} });

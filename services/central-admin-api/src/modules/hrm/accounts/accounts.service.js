@@ -353,7 +353,7 @@ class AccountsService {
     let emailMarketing = null;
     try {
       const policy = require("../../mail/authz/mail.policy");
-      emailMarketing = (await policy.marketingScopes(prisma, user, { now })).map(({ slug, name, canView, canAuthor, canApprove }) => ({ slug, name, canView, canAuthor, canApprove }));
+      emailMarketing = (await policy.marketingScopes(prisma, user, { now })).map(({ slug, name, canView, canAuthor, canApprove, access }) => ({ slug, name, canView, canAuthor, canApprove, access }));
     } catch (error) {
       logger.warn(`Email Marketing scopes unavailable for ${accountId}: ${error.message}`);
     }

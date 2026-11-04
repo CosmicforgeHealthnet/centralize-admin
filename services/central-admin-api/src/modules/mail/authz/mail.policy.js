@@ -16,7 +16,7 @@
 
 const { mailError } = require("../mail.errors");
 const { reservedSenderSet } = require("../security/reserved-senders");
-const { ROLE_GRANT_MODULE, departmentRole } = require("../../../shared/auth/effective-access");
+const { ROLE_GRANT_MODULE, departmentRole, departmentBrands } = require("../../../shared/auth/effective-access");
 
 const ROLE_RANK = { READER: 1, MEMBER: 2, MANAGER: 3, OWNER: 4 };
 const CAPABILITY_MIN_ROLE = {
@@ -237,28 +237,37 @@ async function requireSenderIdentity(client, user, access, addressId, options = 
   return identity;
 }
 
-async function marketingScopes(client, user, { now = new Date() } = {}) {
+async function marketingScopes(client, user, { now = new Date(), env = process.env } = {}) {
   if (!user || user.status !== "ACTIVE") return [];
   const grants = await activeSectionGrants(client, user.id, MARKETING_MODULE, now);
-  if (!grants.length) return [];
-  // Brands are always assigned explicitly (brand isolation). Marketing Team
-  // Leads and Managers may author for the brands they are assigned to;
-  // approval always needs its own explicit approve:<brand> grant.
-  const roleGrants = user.department === "MARKETING" ? await activeSectionGrants(client, user.id, ROLE_GRANT_MODULE, now) : [];
-  const leadsMarketing = user.department === "MARKETING" && ["TEAM_LEAD", "MANAGER"].includes(departmentRole(user, roleGrants.map((grant) => ({ ...grant, module: ROLE_GRANT_MODULE }))));
+  // Brand isolation: a brand is visible only through (a) an explicit brand
+  // grant (Module Permissions) or (b) the brand being authorised for the
+  // account's own department (MAIL_MARKETING_DEPARTMENT_BRANDS). Department
+  // members author for those brands; Team Leads and Department Managers also
+  // manage and approve them. Approval still needs a reviewer other than the
+  // author, step-up, and the broadcast dispatch gates (unchanged).
+  const brands = user.department ? departmentBrands(env)[user.department] || [] : [];
+  let leads = false;
+  if (brands.length) {
+    const roleGrants = await activeSectionGrants(client, user.id, ROLE_GRANT_MODULE, now);
+    leads = ["TEAM_LEAD", "MANAGER"].includes(departmentRole(user, roleGrants.map((grant) => ({ ...grant, module: ROLE_GRANT_MODULE }))));
+  }
+  if (!grants.length && !brands.length) return [];
   const organizations = await client.mailOrganization.findMany({ where: { status: "ACTIVE" }, orderBy: { name: "asc" } });
   return organizations
     .map((organization) => {
       const matches = (section) => grants.filter((grant) => String(grant.section).trim().toLowerCase() === section.toLowerCase());
       const authoring = [...matches(organization.slug), ...matches("*")];
       const approving = [...matches(`approve:${organization.slug}`), ...matches("approve:*")];
+      const viaDepartment = brands.includes(String(organization.slug).toLowerCase());
       return {
         organizationId: organization.id,
         slug: organization.slug,
         name: organization.name,
-        canView: authoring.length > 0 || approving.length > 0,
-        canAuthor: authoring.some((grant) => grant.mode === "EDIT") || (leadsMarketing && authoring.length > 0),
-        canApprove: approving.some((grant) => grant.mode === "EDIT"),
+        canView: authoring.length > 0 || approving.length > 0 || viaDepartment,
+        canAuthor: authoring.some((grant) => grant.mode === "EDIT") || (user.department === "MARKETING" && leads && authoring.length > 0) || viaDepartment,
+        canApprove: approving.some((grant) => grant.mode === "EDIT") || (viaDepartment && leads),
+        access: viaDepartment ? "DEPARTMENT" : "EXPLICIT",
       };
     })
     .filter((scope) => scope.canView);

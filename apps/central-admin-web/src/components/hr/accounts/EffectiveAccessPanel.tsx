@@ -38,7 +38,7 @@ export default function EffectiveAccessPanel({ accountId, refreshKey = 0 }: { ac
         {!data.active && ` · ${formatEnumLabel(data.status)}: no access until the account is active`}
       </p>
 
-      <span className="font-poppins text-[11px] font-semibold text-foreground">Inherited from department</span>
+      <span className="font-poppins text-[11px] font-semibold text-foreground">Inherited from department (automatic)</span>
       {data.inherited.length === 0 ? (
         <p className="font-poppins text-[11px] text-muted-foreground">None.</p>
       ) : (
@@ -52,16 +52,27 @@ export default function EffectiveAccessPanel({ accountId, refreshKey = 0 }: { ac
       <span className="font-poppins text-[11px] font-semibold text-foreground mt-1">Email Marketing brands</span>
       {brands.length === 0 ? (
         <p className="font-poppins text-[11px] text-muted-foreground">
-          No brand assigned. Add an Email Marketing brand under Module Permissions.
+          No brand available. Brands come from the department&apos;s authorised brands, or add one under Module Permissions.
         </p>
       ) : (
         <ul className="flex flex-col gap-0.5">
           {brands.map((brand) => (
             <li key={brand.slug} className="font-poppins text-[11px] text-muted-foreground">
-              {brand.name}: {[brand.canView && "view", brand.canAuthor && "author", brand.canApprove && "approve"].filter(Boolean).join(", ")}
+              {brand.name} ({brand.access === "DEPARTMENT" ? "inherited from department" : "additional permission"}): {[brand.canView && "view", brand.canAuthor && "author", brand.canApprove && "approve"].filter(Boolean).join(", ")}
             </li>
           ))}
         </ul>
+      )}
+
+      <span className="font-poppins text-[11px] font-semibold text-foreground mt-1">Additional permissions (Module Permissions)</span>
+      {data.manual.length === 0 ? (
+        <p className="font-poppins text-[11px] text-muted-foreground">None. Use Module Permissions only for access beyond the department.</p>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {data.manual.map((grant) => (
+            <PermissionChip key={`${grant.module}:${grant.section}`} module={grant.module as Module} section={grant.section} mode={grant.mode} size="sm" />
+          ))}
+        </div>
       )}
     </div>
   );

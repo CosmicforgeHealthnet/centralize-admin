@@ -474,6 +474,7 @@ export interface EmailMarketingBrandAccess {
   canView: boolean;
   canAuthor: boolean;
   canApprove: boolean;
+  access?: "DEPARTMENT" | "EXPLICIT";
 }
 
 export interface EffectiveAccess {
