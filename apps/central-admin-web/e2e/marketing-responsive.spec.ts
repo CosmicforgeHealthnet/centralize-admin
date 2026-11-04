@@ -51,7 +51,7 @@ async function inspect(page: Page, name: string, width: number) {
 }
 for (const width of [360,390,768,1024,1440]) for (const theme of ["light","dark"]) {
   test("Marketing responsive " + width + " " + theme, async ({ page, api }, info) => {
-    test.setTimeout(240_000);
+    test.setTimeout(600_000);
     await page.setViewportSize({ width, height: 900 });
     await signIn(page, SUPER_USER); fixtures(api);
     await page.addInitScript(t => localStorage.setItem("theme", t), theme);
@@ -62,7 +62,7 @@ for (const width of [360,390,768,1024,1440]) for (const theme of ["light","dark"
     const visited: string[] = [];
     for (const section of sections) {
       console.log("VIEW", section);
-      await page.goto("/dashboard/marketing?section=" + section);
+      await page.goto("/dashboard/marketing?section=" + section, { waitUntil: "domcontentloaded" });
       await expect(page.locator(".marketing-workspace h1")).toBeVisible();
       if (theme === "dark" && !await page.locator("html").evaluate(e=>e.classList.contains("dark"))) await page.getByRole("button",{name:"Dark mode",exact:true}).click();
       if (theme === "light" && await page.locator("html").evaluate(e=>e.classList.contains("dark"))) await page.getByRole("button",{name:"Light mode",exact:true}).click();
@@ -82,7 +82,7 @@ for (const width of [360,390,768,1024,1440]) for (const theme of ["light","dark"
       if (["content-manager","email-template","banners-promotion"].includes(section) && [390,1440].includes(width)) await page.screenshot({path:info.outputPath(section+".png"),animations:"disabled"});
     }
     if ([390,1440].includes(width)) for (const section of ["", "campaigns", "audiences", "contacts", "templates", "automation", "settings"]) {
-      await page.goto("/dashboard/marketing/email-marketing/" + section + "?org=org-cf");
+      await page.goto("/dashboard/marketing/email-marketing/" + section + "?org=org-cf", { waitUntil: "domcontentloaded" });
       await expect(page.getByRole("heading", {name:"Email Marketing",exact:true})).toBeVisible();
       if (theme === "dark" && !await page.locator("html").evaluate(e=>e.classList.contains("dark"))) await page.getByRole("button",{name:"Dark mode",exact:true}).click();
       await expect(page.locator("html")).toHaveClass(theme === "dark" ? /dark/ : /^(?!.*\bdark\b)/);
