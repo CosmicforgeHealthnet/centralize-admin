@@ -122,7 +122,7 @@ export default function ThreadDetail({
       {thread && (
         <div className="flex h-full flex-col">
           <div className="flex flex-wrap items-center gap-1 border-b border-border px-3 py-2" role="toolbar" aria-label="Conversation actions">
-            <Link href={backHref} aria-label="Back to list" className={`${actionBtn} lg:hidden`}>
+            <Link href={backHref} aria-label="Back to list" className={actionBtn}>
               <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             </Link>
             {thread.folder !== "ARCHIVE" && (
@@ -201,11 +201,11 @@ export default function ThreadDetail({
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8 sm:py-6">
             <h1 className="mb-2 break-words text-xl font-semibold tracking-tight text-foreground">{thread.subject || "(no subject)"}</h1>
             <div className="mb-4 flex flex-wrap gap-1.5">
               {thread.labels.map((l) => (
-                <span key={l.id} className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground">{l.name}</span>
+                <span key={l.id} className="mail-label-chip rounded px-2 py-0.5 text-xs text-foreground" style={{ backgroundColor: l.color && /^#[0-9a-f]{6}$/i.test(l.color) ? `${l.color}24` : undefined }}>{l.name}</span>
               ))}
             </div>
             {notice && <p role="alert" className="mb-2 text-[12px] text-red-600">{notice}</p>}
@@ -223,7 +223,7 @@ export default function ThreadDetail({
             )}
 
             <PermissionBoundary isLoading={messagesQ.isLoading} error={messagesQ.error} retry={() => messagesQ.refetch()} loadingLabel="Loading messages" compact>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col">
                 {messages.map((m, i) => (
                   <MessageCard key={m.id} message={m} allowRemoteImages={remoteImages === "allow"} defaultExpanded={i === messages.length - 1 || !thread.isRead} />
                 ))}

@@ -36,3 +36,36 @@
 .dark .mail-workspace .bg-emerald-50 { background-color: #122e26; }
 .dark .mail-workspace .text-emerald-700 { color: #6ee7b7; }
 .dark .mail-workspace .border-emerald-200 { border-color: #276852; }
+
+/* Inbox rows adapt to their available pane width, including the admin sidebar. */
+.mail-inbox-pane { container-type: inline-size; }
+.mail-thread-content { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: .75rem; row-gap: .25rem; align-items: center; }
+.mail-thread-sender { grid-column: 1; grid-row: 1; }
+.mail-thread-date { grid-column: 2; grid-row: 1; }
+.mail-thread-copy { grid-column: 1 / -1; grid-row: 2; }
+.mail-thread-labels { grid-column: 1 / -1; }
+.mail-thread-inline-snippet { display: none; }
+@container (min-width: 640px) {
+  .mail-thread-content { grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr) auto; column-gap: 1.25rem; }
+  .mail-thread-copy { grid-column: 2; grid-row: 1; }
+  .mail-thread-date { grid-column: 3; }
+  .mail-thread-labels { grid-column: 2; }
+  .mail-thread-inline-snippet { display: inline; }
+  .mail-thread-mobile-snippet { display: none; }
+}
+
+/* Mail-specific surface colours; the surrounding admin theme is unchanged. */
+.mail-workspace { --mail-selected: color-mix(in srgb, var(--primary) 12%, transparent); --mail-compose: var(--primary); --mail-compose-hover: color-mix(in srgb, var(--primary) 90%, transparent); --mail-compose-text: var(--primary-foreground); }
+.dark .mail-workspace { --mail-selected: color-mix(in srgb, var(--primary) 22%, transparent); }
+.mail-row-selected, .mail-folder-active { background: var(--mail-selected); color: var(--foreground); }
+.mail-compose-button { background: var(--mail-compose); color: var(--mail-compose-text); }
+.mail-compose-button:hover { background: var(--mail-compose-hover); box-shadow: 0 1px 3px #00000015; }
+.mail-label-chip { background: var(--muted); line-height: 1.25; }
+.mail-filter-tab { transition: background-color .15s; }
+.mail-star-button { margin-left: -.5rem; margin-right: -.25rem; }
+
+.mail-row-selected:hover { background: var(--mail-selected); }
+
+/* Hide vertical tracks without changing how the Mail panes scroll. */
+.mail-workspace, .mail-workspace * { scrollbar-width: none; }
+.mail-workspace::-webkit-scrollbar, .mail-workspace *::-webkit-scrollbar { width: 0; }

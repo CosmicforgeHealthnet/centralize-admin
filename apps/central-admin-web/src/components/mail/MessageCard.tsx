@@ -109,7 +109,7 @@ export default function MessageCard({
   }, [expanded, queued, message.id]);
 
   return (
-    <article className="rounded-xl border border-border bg-card shadow-sm" aria-label={`Message from ${partyLabel(message.from)}`}>
+    <article className="border-b border-border/70 bg-card last:border-b-0" aria-label={`Message from ${partyLabel(message.from)}`}>
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
