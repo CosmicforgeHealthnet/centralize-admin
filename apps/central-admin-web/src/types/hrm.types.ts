@@ -437,11 +437,71 @@ export const ACCOUNT_DEPARTMENTS = [
   "SOCIAL_MEDIA",
   "EXECUTIVE",
   "MANAGEMENT",
+  "HR",
+  "VERIFICATION",
+  "RTC",
+  "TELEMEDICINE",
+  "OPERATIONS",
 ] as const;
 export type AccountDepartment = (typeof ACCOUNT_DEPARTMENTS)[number];
 
 export const ACCOUNT_TIERS = ["SUPER", "EXECUTIVE", "ADMIN", "EMPLOYEE"] as const;
 export type AccountTier = (typeof ACCOUNT_TIERS)[number];
+
+// Designation / Role (department role; Job Title and Account Tier are separate).
+// TEAM_LEAD = isTeamLead; MANAGER = Department Manager of the account's own
+// department (not the Admin tier, which is Platform Admin).
+export const ACCOUNT_ROLES = ["STAFF", "TEAM_LEAD", "MANAGER"] as const;
+export type AccountRole = (typeof ACCOUNT_ROLES)[number];
+export const ACCOUNT_ROLE_LABELS: Record<AccountRole, string> = {
+  STAFF: "Staff",
+  TEAM_LEAD: "Team Lead",
+  MANAGER: "Department Manager",
+};
+
+export interface EffectiveGrant {
+  id?: string;
+  module: string;
+  section: string;
+  mode: SectionGrantMode;
+  expiresAt?: string | null;
+  source: "DEPARTMENT" | "MANUAL";
+}
+
+export interface EmailMarketingBrandAccess {
+  slug: string;
+  name: string;
+  canView: boolean;
+  canAuthor: boolean;
+  canApprove: boolean;
+  access?: "DEPARTMENT" | "EXPLICIT";
+}
+
+export interface EffectiveAccess {
+  accountId: string;
+  status: AccountStatus;
+  active: boolean;
+  department: AccountDepartment | null;
+  tier: AccountTier;
+  isTeamLead: boolean;
+  role: AccountRole;
+  departmentRole: AccountRole | null;
+  inherited: EffectiveGrant[];
+  manual: EffectiveGrant[];
+  emailMarketing: EmailMarketingBrandAccess[] | null;
+}
+
+export interface DepartmentColleague {
+  id: string;
+  name: string;
+  email: string;
+  department: AccountDepartment | null;
+  jobTitle: string | null;
+  designation: string | null;
+  avatarUrl: string | null;
+  role: AccountRole;
+  status?: AccountStatus;
+}
 
 export const ACCOUNT_STATUSES = ["ACTIVE", "INACTIVE", "LOCKED", "PENDING"] as const;
 export type AccountStatus = (typeof ACCOUNT_STATUSES)[number];
@@ -466,6 +526,8 @@ export interface AccountListItem {
   designation: string | null;
   tier: AccountTier;
   status: AccountStatus;
+  isTeamLead?: boolean;
+  role?: AccountRole;
   avatarUrl: string | null;
 }
 
@@ -487,6 +549,9 @@ export interface AccountDetail {
   employmentCategory: string | null;
   tier: AccountTier;
   status: AccountStatus;
+  isTeamLead?: boolean;
+  role?: AccountRole;
+  departmentRole?: AccountRole | null;
   sectionGrants?: SectionGrant[];
   mailProvisioning?: AccountMailProvisioningOutcome;
 }
@@ -508,6 +573,7 @@ export interface CreateAccountPayload {
   department?: AccountDepartment;
   tier?: AccountTier;
   isTeamLead?: boolean;
+  role?: AccountRole;
   employmentType?: string;
   employmentCategory?: string;
   location?: string;
@@ -540,6 +606,7 @@ export interface UpdateAccountPayload {
   tier?: AccountTier;
   status?: AccountStatus;
   isTeamLead?: boolean;
+  role?: AccountRole;
   employmentType?: string;
   employmentCategory?: string;
   location?: string;
@@ -1091,18 +1158,23 @@ export const MODULES = {
   OPERATIONS: "operations",
   RTC: "rtc",
   TELEMEDICINE: "telemedicine",
+  SUPPORT: "support",
+  MAIL_MARKETING: "mail-marketing",
 } as const;
 
 export type Module = (typeof MODULES)[keyof typeof MODULES];
 
 export const MODULE_SECTIONS: Record<Module, string[]> = {
-  hrm: ["accounts", "payroll", "employees", "attendance", "leaves", "departments", "hiring"],
-  marketing: ["campaigns", "analytics", "social", "content", "banners", "promotions", "intelligence", "advertising"],
+  hrm: ["accounts", "payroll", "employees", "attendance", "leaves", "departments", "hiring", "documents", "performance"],
+  marketing: ["workspace", "workspace-manage", "campaigns", "analytics", "social", "content", "banners", "promotions", "intelligence", "advertising"],
   finance: ["payments", "invoices", "reports", "transactions"],
   verification: ["doctors", "patients", "pharmacy", "labs", "vendors"],
   operations: ["dispatch", "logistics", "delivery"],
   rtc: ["sessions", "calls", "recordings"],
   telemedicine: ["consultations", "prescriptions", "records"],
+  support: ["tickets", "chats"],
+  // Brand sections ("<brand>", "approve:<brand>") come from the API.
+  "mail-marketing": [],
 };
 
 export type SectionGrantMode = "VIEW" | "EDIT";

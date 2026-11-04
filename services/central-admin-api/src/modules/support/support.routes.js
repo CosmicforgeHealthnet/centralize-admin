@@ -4,6 +4,7 @@ const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const {
   requireTier,
   requireSection,
+  requireTierOrDepartment,
 } = require("../../shared/middlewares/rbac.middleware");
 const {
   getStats,
@@ -25,7 +26,9 @@ const supportLimiter = rateLimit({
 });
 
 router.use(authenticate);
-router.use(requireTier("ADMIN"));
+// Admin tier as before, or an employee whose department defaults include
+// this module; each route below still checks its section.
+router.use(requireTierOrDepartment("ADMIN", "support"));
 router.use(supportLimiter);
 
 router.get("/stats", requireSection("support", "tickets", "VIEW"), getStats);

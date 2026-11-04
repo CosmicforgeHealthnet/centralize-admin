@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../../../shared/middlewares/auth.middleware");
-const { requireTier } = require("../../../../shared/middlewares/rbac.middleware");
+const { requireTierOrDepartment } = require("../../../../shared/middlewares/rbac.middleware");
 const ApiError = require("../../../../shared/utils/ApiError");
 const socialController = require("../controllers/social.controller");
 const {
@@ -496,7 +496,9 @@ const limiter = rateLimit({
 });
 
 router.use(authenticate);
-router.use(requireTier("ADMIN"));
+// Admin tier as before, or Marketing / Social Media department access;
+// every route below still checks its own social section.
+router.use(requireTierOrDepartment("ADMIN", "marketing"));
 router.use(limiter);
 
 router.get(

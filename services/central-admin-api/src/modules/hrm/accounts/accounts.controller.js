@@ -24,6 +24,11 @@ const getAccountWithGrants = asyncHandler(async (req, res) => {
   );
 });
 
+const getEffectiveAccess = asyncHandler(async (req, res) => {
+  const access = await accountsService.getEffectiveAccess(req.params.id);
+  return ApiResponse.success(res, 200, "Effective access retrieved", access);
+});
+
 const createAccount = asyncHandler(async (req, res) => {
   const account = await accountsService.createAccount({
     data: req.body,
@@ -136,6 +141,7 @@ module.exports = {
   deleteAccount,
   getAccount,
   getAccountWithGrants,
+  getEffectiveAccess,
   listAccounts,
   resendInvite,
   updateAccount,

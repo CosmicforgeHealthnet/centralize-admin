@@ -6,8 +6,11 @@ import { ArrowLeft, Loader2, CheckCircle, AlertCircle, XCircle } from "lucide-re
 import { useHrmStore } from "@/stores/hrm.store";
 import {
   ACCOUNT_DEPARTMENTS,
+  ACCOUNT_ROLES,
+  ACCOUNT_ROLE_LABELS,
   ACCOUNT_TIERS,
   AccountDepartment,
+  AccountRole,
   AccountMailProvisioningOutcome,
   AccountTier,
   formatEnumLabel,
@@ -231,16 +234,10 @@ const JOB_TITLE_OPTIONS = [
   { label: "Other", value: "Other" },
 ];
 
-const DESIGNATION_OPTIONS = [
-  { label: "Individual Contributor", value: "Individual Contributor" },
-  { label: "Team Lead", value: "Team Lead" },
-  { label: "Manager", value: "Manager" },
-  { label: "Senior Manager", value: "Senior Manager" },
-  { label: "Director", value: "Director" },
-  { label: "VP", value: "VP" },
-  { label: "Executive", value: "Executive" },
-  { label: "Other", value: "Other" },
-];
+// Designation / Role is the department role (Job Title and Account Tier
+// stay separate). Team Lead is stored as isTeamLead; Department Manager is a
+// role for the account's own department only.
+const ROLE_OPTIONS = ACCOUNT_ROLES.map((r) => ({ label: ACCOUNT_ROLE_LABELS[r], value: r }));
 
 const LOCATION_OPTIONS = [
   { label: "Abuja", value: "Abuja" },
@@ -292,7 +289,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
   const [phone, setPhone] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [department, setDepartment] = useState<string>("");
-  const [designation, setDesignation] = useState("");
+  const [role, setRole] = useState<AccountRole | "">("STAFF");
   const [empType, setEmpType] = useState("");
   const [empCategory, setEmpCategory] = useState("");
   const [location, setLocation] = useState("");
@@ -338,7 +335,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
       setPhone(selectedAccount.phone ?? "");
       setJobTitle(selectedAccount.jobTitle ?? selectedAccount.position ?? "");
       setDepartment(selectedAccount.department ?? "");
-      setDesignation(selectedAccount.designation ?? "");
+      setRole(selectedAccount.role ?? (selectedAccount.isTeamLead ? "TEAM_LEAD" : "STAFF"));
       setEmpType(selectedAccount.employmentType ?? "");
       setEmpCategory(selectedAccount.employmentCategory ?? "");
       setLocation(selectedAccount.location ?? "");
@@ -372,6 +369,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
           position: jobTitle.trim() || undefined,
           department: (department || undefined) as AccountDepartment | undefined,
           tier: tier as AccountTier,
+          role: role || undefined,
           employmentType: empType || undefined,
           employmentCategory: empCategory || undefined,
           location: location.trim() || undefined,
@@ -386,6 +384,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
           position: jobTitle.trim() || undefined,
           department: (department || undefined) as AccountDepartment | undefined,
           tier: tier as AccountTier,
+          role: role || undefined,
           employmentType: empType || undefined,
           employmentCategory: empCategory || undefined,
           location: location.trim() || undefined,
@@ -402,7 +401,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
             setPhone("");
             setJobTitle("");
             setDepartment("");
-            setDesignation("");
+            setRole("STAFF");
             setEmpType("");
             setEmpCategory("");
             setLocation("");
@@ -509,7 +508,11 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
             </div>
             <div>
               <Label>Designation / Role</Label>
-              <SelectField placeholder="Select Designation" value={designation} onChange={setDesignation} options={DESIGNATION_OPTIONS} />
+              <SelectField placeholder="Select Designation / Role" value={role} onChange={(v) => setRole(v as AccountRole)} options={ROLE_OPTIONS} />
+              <p className="font-poppins text-[11px] text-muted-foreground mt-1">
+                Sets department access automatically. Team Leads and Department Managers manage work in their own department only.
+                Account Tier is separate: Admin is a platform-wide role.
+              </p>
             </div>
           </div>
         </SectionCard>

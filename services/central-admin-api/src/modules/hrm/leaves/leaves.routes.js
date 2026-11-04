@@ -2,6 +2,7 @@ const express = require("express");
 const {
   requireTier,
   requireSection,
+  requireTierOrDepartment,
 } = require("../../../shared/middlewares/rbac.middleware");
 const leavesController = require("./leaves.controller");
 const {
@@ -14,13 +15,13 @@ const router = express.Router();
 
 router.get(
   "/stats",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "leaves", "VIEW"),
   leavesController.getStats,
 );
 router.get(
   "/chart",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "leaves", "VIEW"),
   leavesController.getChart,
 );
@@ -32,26 +33,26 @@ router.patch(
 );
 router.get(
   "/report/download",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "leaves", "VIEW"),
   validateQuery(leavesDownloadQuerySchema),
   leavesController.downloadReport,
 );
 router.get(
   "/employee/:employeeId/balance",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "leaves", "VIEW"),
   leavesController.getEmployeeBalance,
 );
 router.get(
   "/employee/:employeeId",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "leaves", "VIEW"),
   leavesController.getEmployeeLeaves,
 );
 router.get(
   "/",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "leaves", "VIEW"),
   validateQuery(leavesListQuerySchema),
   leavesController.listLeaves,
@@ -70,7 +71,7 @@ router.patch(
 );
 router.get(
   "/:id",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "leaves", "VIEW"),
   leavesController.getLeave,
 );

@@ -7,6 +7,7 @@ const subNavItems = [
   "Projects",
   "Tasks",
   "Teams",
+  "My Department",
   "Activity Logs",
   "Notification",
 ] as const;

@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const {
   requireTier,
+  requireTierOrSection,
   requireDifferentReviewer,
 } = require("../../shared/middlewares/rbac.middleware");
 const controller = require("./verification.controller");
@@ -33,15 +34,15 @@ router.use(authenticate);
 router.get("/all", controller.getAllCombined);
 
 // ── Stuck Doctors ─────────────────────────────────────────────────────────────
-router.get("/stuck-doctors", requireTier("ADMIN"), controller.getStuckDoctors);
+router.get("/stuck-doctors", requireTierOrSection("ADMIN", "verification", "providers", "EDIT"), controller.getStuckDoctors);
 router.get(
   "/stuck-doctors/:id",
-  requireTier("ADMIN"),
+  requireTierOrSection("ADMIN", "verification", "providers", "EDIT"),
   controller.getStuckDoctorById,
 );
 router.post(
   "/stuck-doctors/:id/fix",
-  requireTier("ADMIN"),
+  requireTierOrSection("ADMIN", "verification", "providers", "EDIT"),
   controller.fixStuckDoctor,
 );
 
@@ -49,19 +50,19 @@ router.get("/doctors", controller.getAll);
 router.get("/doctors/:id", controller.getById);
 router.patch(
   "/doctors/:id/approve",
-  requireTier("ADMIN"),
+  requireTierOrSection("ADMIN", "verification", "providers", "EDIT"),
   requireDifferentReviewer(getDoctorPriorReviewer),
   controller.approve,
 );
 router.patch(
   "/doctors/:id/reject",
-  requireTier("ADMIN"),
+  requireTierOrSection("ADMIN", "verification", "providers", "EDIT"),
   requireDifferentReviewer(getDoctorPriorReviewer),
   controller.reject,
 );
 router.patch(
   "/doctors/:id/assign",
-  requireTier("ADMIN"),
+  requireTierOrSection("ADMIN", "verification", "providers", "EDIT"),
   controller.assignReviewer,
 );
 
@@ -69,19 +70,19 @@ router.get("/pharmacies", controller.getPharmacyVerifications);
 router.get("/pharmacies/:id", controller.getPharmacyVerificationById);
 router.patch(
   "/pharmacies/:id/approve",
-  requireTier("ADMIN"),
+  requireTierOrSection("ADMIN", "verification", "providers", "EDIT"),
   controller.approvePharmacy,
 );
 router.patch(
   "/pharmacies/:id/reject",
-  requireTier("ADMIN"),
+  requireTierOrSection("ADMIN", "verification", "providers", "EDIT"),
   controller.rejectPharmacy,
 );
 
 router.get("/labs", controller.getLabVerifications);
 router.get("/labs/:id", controller.getLabVerificationById);
-router.patch("/labs/:id/approve", requireTier("ADMIN"), controller.approveLab);
-router.post("/labs/:id/resend-setup-link", requireTier("ADMIN"), controller.resendLabSetupLink);
-router.patch("/labs/:id/reject", requireTier("ADMIN"), controller.rejectLab);
+router.patch("/labs/:id/approve", requireTierOrSection("ADMIN", "verification", "providers", "EDIT"), controller.approveLab);
+router.post("/labs/:id/resend-setup-link", requireTierOrSection("ADMIN", "verification", "providers", "EDIT"), controller.resendLabSetupLink);
+router.patch("/labs/:id/reject", requireTierOrSection("ADMIN", "verification", "providers", "EDIT"), controller.rejectLab);
 
 module.exports = router;

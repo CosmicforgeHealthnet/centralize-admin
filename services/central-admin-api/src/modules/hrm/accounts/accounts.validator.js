@@ -3,6 +3,10 @@ const { DEPARTMENTS, TIERS, validateBody } = require("../hrm.utils");
 
 const optionalString = z.string().trim().min(1).optional().nullable();
 
+// Designation / Role (authorization role, separate from Job Title).
+// STAFF and TEAM_LEAD set isTeamLead; MANAGER requires the Admin tier.
+const ROLE_VALUES = ["STAFF", "TEAM_LEAD", "MANAGER"];
+
 // ─── Grant Schemas ──────────────────────────────────────────────────────────
 
 const grantSchema = z.object({
@@ -35,6 +39,7 @@ const accountCreateSchema = z
     department: z.enum(DEPARTMENTS).optional().nullable(),
     tier: z.enum(TIERS).default("EMPLOYEE"),
     isTeamLead: z.boolean().optional(),
+    role: z.enum(ROLE_VALUES).optional(),
     employmentType: optionalString,
     employmentCategory: optionalString,
     location: optionalString,
@@ -62,6 +67,7 @@ const accountUpdateSchema = z
     tier: z.enum(TIERS).optional(),
     status: z.enum(["ACTIVE", "INACTIVE", "LOCKED", "PENDING"]).optional(),
     isTeamLead: z.boolean().optional(),
+    role: z.enum(ROLE_VALUES).optional(),
     employmentType: optionalString,
     employmentCategory: optionalString,
     location: optionalString,
@@ -89,6 +95,7 @@ const updateGrantSchema = z
   .strict();
 
 module.exports = {
+  ROLE_VALUES,
   accountCreateSchema,
   accountStatusSchema,
   accountUpdateSchema,

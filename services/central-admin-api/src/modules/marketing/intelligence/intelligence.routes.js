@@ -60,7 +60,6 @@ router.get(
 router.patch(
   "/settings",
   requireSection("marketing", "intelligence", "EDIT"),
-  requireTier("ADMIN"),
   intelligenceController.updateSettings,
 );
 
