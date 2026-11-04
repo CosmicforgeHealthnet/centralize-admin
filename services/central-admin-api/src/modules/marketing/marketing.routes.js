@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
-const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const { createMarketingWorkspaceGuard } = require("./marketing-workspace.guard");
 const ApiError = require("../../shared/utils/ApiError");
 const marketingController = require("./marketing.controller");
 
@@ -86,7 +86,8 @@ function multerSingle(upload, fieldName) {
 }
 
 router.use(authenticate);
-router.use(requireTier("ADMIN"));
+// Admin tier as before; Marketing staff through their department defaults.
+router.use(createMarketingWorkspaceGuard());
 router.use(limiter);
 
 // Campaigns

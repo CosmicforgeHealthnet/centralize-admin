@@ -224,11 +224,14 @@ class LeavesService {
     };
   }
 
-  async listLeaves(query = {}) {
+  // `department` limits the list to one department's employees (Department
+  // Manager view); HR callers pass nothing and see every request.
+  async listLeaves(query = {}, { department } = {}) {
     assertLeavesSchemaSupported();
 
     const { page, limit, skip } = paginate(query, 10, 100);
     const where = leaveRequestWhere(query);
+    if (department) where.adminUser = { department };
 
     const [total, records] = await Promise.all([
       prisma.leaveRequest.count({ where }),

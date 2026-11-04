@@ -4,6 +4,7 @@ const controller = require("./appointments.controller");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const {
   requireTier,
+  requireTierOrSection,
   readOnly,
 } = require("../../shared/middlewares/rbac.middleware");
 
@@ -25,6 +26,6 @@ router.get(
 router.get("/:id", requireTier("EMPLOYEE"), controller.getAppointmentById);
 
 // Cancel — ADMIN and above only
-router.patch("/:id/cancel", requireTier("ADMIN"), controller.cancelAppointment);
+router.patch("/:id/cancel", requireTierOrSection("ADMIN", "telemedicine", "consultations", "EDIT"), controller.cancelAppointment);
 
 module.exports = router;

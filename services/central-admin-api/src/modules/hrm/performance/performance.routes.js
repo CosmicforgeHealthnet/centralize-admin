@@ -2,6 +2,7 @@ const express = require("express");
 const {
   requireTier,
   requireSection,
+  requireTierOrDepartment,
 } = require("../../../shared/middlewares/rbac.middleware");
 const performanceController = require("./performance.controller");
 const { eventCreateSchema, validateBody } = require("./performance.validator");
@@ -10,49 +11,49 @@ const router = express.Router();
 
 router.get(
   "/stats",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getStats,
 );
 router.get(
   "/score",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getScore,
 );
 router.get(
   "/chart",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getChart,
 );
 router.get(
   "/tasks",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getTasks,
 );
 router.get(
   "/teams",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getTeams,
 );
 router.get(
   "/projects",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getProjects,
 );
 router.get(
   "/employees",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getEmployees,
 );
 router.get(
   "/events",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getEvents,
 );
@@ -65,7 +66,7 @@ router.post(
 );
 router.get(
   "/events/:id",
-  requireTier("ADMIN"),
+  requireTierOrDepartment("ADMIN", "hrm"),
   requireSection("hrm", "performance", "VIEW"),
   performanceController.getEvent,
 );

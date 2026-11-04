@@ -16,6 +16,15 @@ const {
   paginate,
   pickDefined,
 } = require("../hrm.utils");
+const {
+  ROLE_GRANT_MODULE,
+  accountRole,
+  departmentRole,
+  explicitGrants,
+  inheritedGrants,
+  isRoleGrant,
+  managerSection,
+} = require("../../../shared/auth/effective-access");
 
 const ACCOUNT_SELECT = {
   id: true,
@@ -64,7 +73,7 @@ const GRANT_SELECT = {
   revokedAt: true,
 };
 
-function mapAccountListItem(user) {
+function mapAccountListItem(user, roleGrants = []) {
   return {
     id: user.id,
     employeeCode: null,
@@ -76,11 +85,103 @@ function mapAccountListItem(user) {
     designation: user.position,
     tier: user.tier,
     status: user.status,
+    isTeamLead: user.isTeamLead,
+    role: accountRole(user, roleGrants),
     avatarUrl: user.avatarUrl,
   };
 }
 
-function mapAccountDetail(user) {
+const accessKey = (grant) => `${grant.module}:${grant.section}:${grant.mode}`;
+
+// Designation / Role -> stored data. Team Lead status is isTeamLead. The
+// Department Manager role is a role grant "department" / "manage:<DEPT>",
+// independent of the account tier (Admin tier = Platform Admin).
+function applyRole(update, role, department) {
+  if (!role || role === "MANAGER") {
+    if (role === "MANAGER" && !department) {
+      throw new ApiError(400, "A Department Manager needs a department", [{ field: "role", reason: "MANAGER_REQUIRES_DEPARTMENT" }]);
+    }
+    return update;
+  }
+  return { ...update, isTeamLead: role === "TEAM_LEAD" };
+}
+
+const activeWindow = (now = new Date()) => ({ revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] });
+
+// Active role grants for a set of accounts.
+async function roleGrantsByUser(ids, client = prisma) {
+  const map = new Map();
+  if (!ids.length) return map;
+  const rows = await client.adminSectionGrant.findMany({
+    where: { adminUserId: { in: ids }, module: ROLE_GRANT_MODULE, ...activeWindow() },
+    select: { adminUserId: true, module: true, section: true, mode: true },
+  });
+  for (const row of rows) {
+    if (!map.has(row.adminUserId)) map.set(row.adminUserId, []);
+    map.get(row.adminUserId).push(row);
+  }
+  return map;
+}
+
+// Keep the manager role grant in line with the role and the department:
+// one manage:<department> grant for a Department Manager, none otherwise.
+// A grant for any other department (e.g. after a department change) is
+// always revoked. role === undefined keeps the current role.
+async function syncManagerRole({ client = prisma, accountId, role, department, actor }) {
+  const now = new Date();
+  const current = (await client.adminSectionGrant.findMany({ where: { adminUserId: accountId, module: ROLE_GRANT_MODULE, ...activeWindow(now) } })).filter(isRoleGrant);
+  const own = department ? managerSection(department) : null;
+  const keep = role === "MANAGER" || (!role && current.some((grant) => grant.section === own)) ? own : null;
+  const revoke = current.filter((grant) => grant.section !== keep);
+  if (revoke.length) {
+    await client.adminSectionGrant.updateMany({ where: { id: { in: revoke.map((grant) => grant.id) }, revokedAt: null }, data: { revokedAt: now } });
+  }
+  const created = keep && !current.some((grant) => grant.section === keep) ? keep : null;
+  if (created) {
+    await client.adminSectionGrant.create({
+      data: { adminUserId: accountId, module: ROLE_GRANT_MODULE, section: created, mode: "EDIT", grantedBy: actor.id, reason: "HR role: Department Manager" },
+    });
+  }
+  return { revoked: revoke.map((grant) => grant.section), created };
+}
+
+// ─── Module Permissions safety ────────────────────────────────────────────
+const MAIL_MARKETING_MODULE = "mail-marketing";
+const BRAND_SECTION = /^(approve:)?([a-z0-9][a-z0-9-]{0,62}|\*)$/;
+
+async function activeBrandSlugs() {
+  try {
+    const rows = await prisma.mailOrganization.findMany({ where: { status: "ACTIVE" }, select: { slug: true }, orderBy: { slug: "asc" } });
+    return rows.map((row) => row.slug);
+  } catch {
+    return null; // Mail tables not present yet.
+  }
+}
+
+// Explicit grants are additional access only. They may not be self-issued,
+// and Email Marketing grants must name a real brand (or a wildcard, which
+// only a Super account may issue). Approval itself stays protected by the
+// campaign workflow (reviewer must differ from the author, step-up).
+async function normalizeGrant({ actor, accountId, grant, brands }) {
+  if (accountId === actor.id && actor.tier !== "SUPER") {
+    throw new ApiError(403, "You cannot change your own permissions");
+  }
+  if (grant.module === ROLE_GRANT_MODULE) {
+    throw new ApiError(400, "Department roles are set with Designation / Role, not Module Permissions", [{ field: "module" }]);
+  }
+  if (grant.module !== MAIL_MARKETING_MODULE) return grant;
+  const section = String(grant.section).trim().toLowerCase();
+  const match = BRAND_SECTION.exec(section);
+  if (!match) throw new ApiError(400, "Invalid Email Marketing brand section", [{ field: "section" }]);
+  if (match[2] === "*") {
+    if (actor.tier !== "SUPER") throw new ApiError(403, "Only Super accounts can grant access to every brand");
+  } else if (brands && !brands.includes(match[2])) {
+    throw new ApiError(400, `Unknown Email Marketing brand: ${match[2]}`, [{ field: "section" }]);
+  }
+  return { ...grant, section };
+}
+
+function mapAccountDetail(user, roleGrants = []) {
   return {
     id: user.id,
     employeeCode: null,
@@ -101,6 +202,9 @@ function mapAccountDetail(user) {
     employmentCategory: user.employmentCategory,
     tier: user.tier,
     status: user.status,
+    isTeamLead: user.isTeamLead,
+    role: accountRole(user, roleGrants),
+    departmentRole: departmentRole(user, roleGrants),
   };
 }
 
@@ -196,8 +300,9 @@ class AccountsService {
       }),
     ]);
 
+    const roles = await roleGrantsByUser(users.map((user) => user.id));
     return {
-      accounts: users.map(mapAccountListItem),
+      accounts: users.map((user) => mapAccountListItem(user, roles.get(user.id))),
       meta: buildMeta(total, page, limit),
     };
   }
@@ -210,7 +315,7 @@ class AccountsService {
     });
 
     if (!user) throw new ApiError(404, "Account not found");
-    return mapAccountDetail(user);
+    return mapAccountDetail(user, (await roleGrantsByUser([user.id])).get(user.id));
   }
 
   async getAccountWithGrants(id) {
@@ -228,9 +333,43 @@ class AccountsService {
     });
 
     if (!user) throw new ApiError(404, "Account not found");
-    const account = mapAccountDetail(user);
-    account.sectionGrants = user.sectionGrants;
+    const roleGrants = user.sectionGrants.filter(isRoleGrant);
+    const account = mapAccountDetail(user, roleGrants);
+    // sectionGrants = Module Permissions (manual grants) only, as before.
+    account.sectionGrants = user.sectionGrants.filter((grant) => !isRoleGrant(grant));
+    account.inheritedGrants = inheritedGrants(user, roleGrants);
     return account;
+  }
+
+  // Effective permissions shown on the employee account page: department
+  // defaults and additional (manual) grants, plus Email Marketing brands.
+  async getEffectiveAccess(id) {
+    const accountId = assertUuid(id, "account id");
+    const user = await prisma.adminUser.findUnique({ where: { id: accountId }, select: ACCOUNT_SELECT });
+    if (!user) throw new ApiError(404, "Account not found");
+    const now = new Date();
+    const explicit = await explicitGrants(prisma, user, { now });
+    const manual = user.status === "ACTIVE" ? explicit.filter((grant) => grant.source === "MANUAL") : [];
+    let emailMarketing = null;
+    try {
+      const policy = require("../../mail/authz/mail.policy");
+      emailMarketing = (await policy.marketingScopes(prisma, user, { now })).map(({ slug, name, canView, canAuthor, canApprove, access }) => ({ slug, name, canView, canAuthor, canApprove, access }));
+    } catch (error) {
+      logger.warn(`Email Marketing scopes unavailable for ${accountId}: ${error.message}`);
+    }
+    return {
+      accountId,
+      status: user.status,
+      active: user.status === "ACTIVE",
+      department: user.department,
+      tier: user.tier,
+      isTeamLead: user.isTeamLead,
+      role: accountRole(user, explicit),
+      departmentRole: departmentRole(user, explicit),
+      inherited: inheritedGrants(user, explicit),
+      manual,
+      emailMarketing,
+    };
   }
 
   async createAccount({ data, actor, req }) {
@@ -265,7 +404,8 @@ class AccountsService {
 
     // Optional HR onboarding request for a work email (spec section 15).
     // Not an AdminUser column: stripped before the account is created.
-    const { mailProvisioning: mailProvisioningInput, ...accountData } = data;
+    const { mailProvisioning: mailProvisioningInput, role, ...fields } = data;
+    const accountData = applyRole(fields, role, fields.department);
 
     // Unusable random password: the invitee chooses one through the link.
     const password = await hashPassword(unusablePassword());
@@ -280,6 +420,13 @@ class AccountsService {
       },
       select: ACCOUNT_SELECT,
     });
+
+    // Department Manager role (a role grant; never the account tier).
+    let managerGrants = [];
+    if (role === "MANAGER") {
+      await syncManagerRole({ accountId: created.id, role, department: created.department, actor });
+      managerGrants = [{ module: ROLE_GRANT_MODULE, section: managerSection(created.department), mode: "EDIT" }];
+    }
 
     const inviteDelivery = await sendInviteLink({ user: created, actor });
 
@@ -304,6 +451,8 @@ class AccountsService {
         email: created.email,
         tier: created.tier,
         department: created.department,
+        isTeamLead: created.isTeamLead,
+        role: accountRole(created, managerGrants),
         inviteDelivery,
         mailProvisioning: mailProvisioning
           ? { status: mailProvisioning.status, reason: mailProvisioning.reason, requestId: mailProvisioning.requestId }
@@ -312,7 +461,7 @@ class AccountsService {
       req,
     });
 
-    return { ...mapAccountDetail(created), inviteDelivery, ...(mailProvisioning ? { mailProvisioning } : {}) };
+    return { ...mapAccountDetail(created, managerGrants), inviteDelivery, ...(mailProvisioning ? { mailProvisioning } : {}) };
   }
 
   async updateAccount({ id, data, actor, req }) {
@@ -337,17 +486,35 @@ class AccountsService {
       );
     }
 
-    const update = pickDefined(data, ACCOUNT_UPDATE_FIELDS);
+    let update = pickDefined(data, ACCOUNT_UPDATE_FIELDS);
     if (!isSensitiveTier(actor)) {
       delete update.tier;
       delete update.status;
     }
+    const nextDepartment = update.department !== undefined ? update.department : existing.department;
+    if (data.role && accountId === actor.id && actor.tier !== "SUPER") {
+      throw new ApiError(403, "You cannot change your own role");
+    }
+    update = applyRole(update, data.role, nextDepartment);
+    const rolesBefore = (await roleGrantsByUser([accountId])).get(accountId) || [];
 
     const updated = await prisma.adminUser.update({
       where: { id: accountId },
       data: update,
       select: ACCOUNT_SELECT,
     });
+
+    // Department defaults follow the new department/role/status at once
+    // (they are computed, never stored); record what changed.
+    // The manager role grant follows the role and the (new) department.
+    const roleGrant = await syncManagerRole({ accountId, role: data.role, department: updated.department, actor });
+    const rolesAfter = (await roleGrantsByUser([accountId])).get(accountId) || [];
+    const before = new Set(inheritedGrants(existing, rolesBefore).map(accessKey));
+    const after = new Set(inheritedGrants(updated, rolesAfter).map(accessKey));
+    const inheritedAccess = {
+      added: [...after].filter((key) => !before.has(key)),
+      removed: [...before].filter((key) => !after.has(key)),
+    };
 
     const mailOffboarding = update.status && mailLifecycle.isMailRevokingStatus(update.status)
       ? await offboardMail({ accountId, actor, trigger: `HR_ACCOUNT_${update.status}`, req })
@@ -358,11 +525,11 @@ class AccountsService {
       action: "USER_UPDATED",
       targetId: accountId,
       targetType: "admin_user",
-      metadata: { changes: update, mailOffboarding: mailOffboarding?.status },
+      metadata: { changes: update, role: accountRole(updated, rolesAfter), roleGrant, inheritedAccess, mailOffboarding: mailOffboarding?.status },
       req,
     });
 
-    return mapAccountDetail(updated);
+    return mapAccountDetail(updated, rolesAfter);
   }
 
   async deleteAccount({ id, actor, req }) {
@@ -482,7 +649,7 @@ class AccountsService {
       req,
     });
 
-    return mapAccountDetail(updated);
+    return mapAccountDetail(updated, (await roleGrantsByUser([accountId])).get(accountId));
   }
 
   async resendInvite({ id, actor, req }) {
@@ -512,14 +679,12 @@ class AccountsService {
   // ─── Grant Methods ──────────────────────────────────────────────────────
 
   // The signed-in user's own active grants (drives navigation visibility).
+  // Effective grants: department defaults (source DEPARTMENT) followed by
+  // explicit grants (source MANUAL).
   async getMyGrants(actor) {
-    const now = new Date();
-    const grants = await prisma.adminSectionGrant.findMany({
-      where: { adminUserId: actor.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
-      select: { module: true, section: true, mode: true, expiresAt: true },
-      orderBy: { createdAt: "asc" },
-    });
-    return { tier: actor.tier, grants };
+    const manual = await explicitGrants(prisma, actor);
+    const grants = [...inheritedGrants(actor, manual), ...manual].map(({ module, section, mode, expiresAt, source }) => ({ module, section, mode, expiresAt, source }));
+    return { tier: actor.tier, department: actor.department || null, role: accountRole(actor, manual), isTeamLead: Boolean(actor.isTeamLead), grants };
   }
 
   async getUserGrants(userId) {
@@ -540,7 +705,8 @@ class AccountsService {
       orderBy: { createdAt: "asc" },
     });
 
-    return grants;
+    // Module Permissions only; department role grants are managed by role.
+    return grants.filter((grant) => !isRoleGrant(grant));
   }
 
   async addGrant({ userId, data, actor, req }) {
@@ -552,6 +718,13 @@ class AccountsService {
       select: { id: true },
     });
     if (!user) throw new ApiError(404, "User not found");
+
+    data = await normalizeGrant({
+      actor,
+      accountId,
+      grant: data,
+      brands: data.module === MAIL_MARKETING_MODULE ? await activeBrandSlugs() : null,
+    });
 
     // Check if grant already exists (not revoked)
     const existing = await prisma.adminSectionGrant.findFirst({
@@ -610,21 +783,48 @@ class AccountsService {
     });
     if (!user) throw new ApiError(404, "User not found");
 
-    // Use transaction to atomically replace all grants
-    const result = await prisma.$transaction(async (tx) => {
-      // Soft delete all existing grants (revoke them)
-      await tx.adminSectionGrant.updateMany({
-        where: {
-          adminUserId: accountId,
-          revokedAt: null,
-        },
-        data: { revokedAt: new Date() },
-      });
+    // Explicit grants only (department defaults are never stored). Unchanged
+    // grants are kept as they are (grantor, reason, expiry); only removed
+    // ones are revoked and only new or changed ones are created.
+    // Department role grants are never touched by Module Permissions.
+    const current = (await prisma.adminSectionGrant.findMany({
+      where: { adminUserId: accountId, revokedAt: null },
+    })).filter((g) => !isRoleGrant(g));
+    const keyOf = (g) => `${g.module}:${String(g.section).trim().toLowerCase()}`;
+    const currentByKey = new Map(current.map((g) => [keyOf(g), g]));
+    const wanted = new Map();
+    for (const g of grants) wanted.set(keyOf(g), g);
 
-      // Create new grants if any
-      if (grants.length > 0) {
+    const sameExpiry = (a, b) => (a ? new Date(a).getTime() : null) === (b ? new Date(b).getTime() : null);
+    const toRevoke = current.filter((g) => {
+      const next = wanted.get(keyOf(g));
+      return !next || next.mode !== g.mode || !sameExpiry(next.expiresAt, g.expiresAt);
+    });
+    const revokedKeys = new Set(toRevoke.map(keyOf));
+    const toCreate = [...wanted.entries()]
+      .filter(([key]) => !currentByKey.has(key) || revokedKeys.has(key))
+      .map(([, g]) => g);
+
+    if (toRevoke.length || toCreate.length) {
+      if (accountId === actor.id && actor.tier !== "SUPER") {
+        throw new ApiError(403, "You cannot change your own permissions");
+      }
+    }
+    const brands = toCreate.some((g) => g.module === MAIL_MARKETING_MODULE) ? await activeBrandSlugs() : null;
+    const normalized = [];
+    for (const g of toCreate) normalized.push(await normalizeGrant({ actor, accountId, grant: g, brands }));
+
+    const result = await prisma.$transaction(async (tx) => {
+      if (toRevoke.length) {
+        await tx.adminSectionGrant.updateMany({
+          where: { id: { in: toRevoke.map((g) => g.id) }, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+      }
+
+      if (normalized.length > 0) {
         await tx.adminSectionGrant.createMany({
-          data: grants.map((g) => ({
+          data: normalized.map((g) => ({
             adminUserId: accountId,
             module: g.module,
             section: g.section,
@@ -636,7 +836,7 @@ class AccountsService {
         });
       }
 
-      // Return the new grants
+      // Return the active grants
       return tx.adminSectionGrant.findMany({
         where: {
           adminUserId: accountId,
@@ -655,6 +855,8 @@ class AccountsService {
       metadata: {
         synced: true,
         grantCount: grants.length,
+        revoked: toRevoke.map((g) => `${g.module}:${g.section}:${g.mode}`),
+        created: normalized.map((g) => `${g.module}:${g.section}:${g.mode}`),
       },
       req,
     });
@@ -672,6 +874,12 @@ class AccountsService {
 
     if (grant.revokedAt) {
       throw new ApiError(400, "Cannot update a revoked grant");
+    }
+    if (isRoleGrant(grant)) {
+      throw new ApiError(400, "Department roles are set with Designation / Role, not Module Permissions");
+    }
+    if (grant.adminUserId === actor.id && actor.tier !== "SUPER") {
+      throw new ApiError(403, "You cannot change your own permissions");
     }
 
     const update = pickDefined(data, ["mode", "reason", "expiresAt"]);
@@ -712,6 +920,9 @@ class AccountsService {
     if (grant.revokedAt) {
       throw new ApiError(400, "Grant already revoked");
     }
+    if (isRoleGrant(grant)) {
+      throw new ApiError(400, "Department roles are set with Designation / Role, not Module Permissions");
+    }
 
     await prisma.adminSectionGrant.update({
       where: { id },
@@ -734,6 +945,7 @@ class AccountsService {
 
   async getAvailableModules() {
     // Return available modules and their sections
+    const brands = (await activeBrandSlugs()) || [];
     const modules = {
       hrm: [
         "accounts",
@@ -743,8 +955,12 @@ class AccountsService {
         "leaves",
         "departments",
         "hiring",
+        "documents",
+        "performance",
       ],
       marketing: [
+        "workspace",
+        "workspace-manage",
         "campaigns",
         "analytics",
         "social",
@@ -759,6 +975,11 @@ class AccountsService {
       operations: ["dispatch", "logistics", "delivery"],
       rtc: ["sessions", "calls", "recordings"],
       telemedicine: ["consultations", "prescriptions", "records"],
+      support: ["tickets", "chats"],
+      // Email Marketing: one section per brand (author access) and
+      // approve:<brand> (campaign approval). Wildcards are Super-only and
+      // not offered here.
+      [MAIL_MARKETING_MODULE]: [...brands, ...brands.map((slug) => `approve:${slug}`)],
     };
     return modules;
   }

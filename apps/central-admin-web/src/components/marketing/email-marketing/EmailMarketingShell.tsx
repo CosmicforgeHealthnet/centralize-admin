@@ -114,8 +114,19 @@ export default function EmailMarketingShell({
           <div role="status" className="rounded-[12px] border border-border bg-card p-8 text-center">
             <h2 className="text-sm font-semibold">No brand access</h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              You have not been granted Email Marketing access for any brand. Ask an administrator for a brand-scoped grant.
+              You have no Email Marketing brand assigned. Marketing workspace access comes with your department; each brand is assigned
+              separately by HR (Accounts → Module Permissions → Mail Marketing → brand).
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                ent.refetch();
+                orgsQ.refetch();
+              }}
+              className="mt-3 rounded-md border border-border px-3 py-1 text-[12px] text-foreground hover:bg-muted"
+            >
+              Check again
+            </button>
           </div>
         ) : (
           children(org, orgs)

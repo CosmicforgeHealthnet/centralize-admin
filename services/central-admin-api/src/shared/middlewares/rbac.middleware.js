@@ -1,6 +1,7 @@
 const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
 const { prisma } = require("../config/database");
+const { effectiveGrants, hasEffectiveSection } = require("../auth/effective-access");
 
 
 const TIER_HIERARCHY = ["EMPLOYEE", "ADMIN", "EXECUTIVE", "SUPER"];
@@ -54,25 +55,10 @@ const readOnly = (req, res, next) => {
 };
 
 
-const SECTION_MODE_RANK = { VIEW: 1, EDIT: 2 };
-
-const hasSectionAccess = async (adminUserId, module, section, requiredMode) => {
-  const now = new Date();
-
-  const grants = await prisma.adminSectionGrant.findMany({
-    where: {
-      adminUserId,
-      module,
-      section: { in: [section, "*"] },
-      revokedAt: null,
-      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-    },
-  });
-
-  return grants.some(
-    (grant) => SECTION_MODE_RANK[grant.mode] >= SECTION_MODE_RANK[requiredMode],
-  );
-};
+// Effective access = department defaults + explicit grants (one resolver,
+// src/shared/auth/effective-access.js).
+const hasSectionAccess = (user, module, section, requiredMode) =>
+  hasEffectiveSection(prisma, user, module, section, requiredMode);
 
 
 const requireSection = (module, section, mode = "VIEW") => {
@@ -82,7 +68,7 @@ const requireSection = (module, section, mode = "VIEW") => {
 
     if (user.tier === "SUPER") return next();
 
-    const allowed = await hasSectionAccess(user.id, module, section, mode);
+    const allowed = await hasSectionAccess(user, module, section, mode);
     if (!allowed) {
       throw new ApiError(403, "You do not have access to this section");
     }
@@ -91,6 +77,42 @@ const requireSection = (module, section, mode = "VIEW") => {
   });
 };
 
+// Router gate for department workspaces: the existing tier minimum, or any
+// effective access to this module (department defaults or an explicit
+// Module Permission). Route-level requireSection checks decide each action.
+const requireTierOrDepartment = (minimumTier, module) => {
+  return asyncHandler(async (req, res, next) => {
+    const user = req.adminUser;
+    if (!user?.tier) throw new ApiError(401, "Unauthorized");
+    if (TIER_HIERARCHY.indexOf(user.tier) >= TIER_HIERARCHY.indexOf(minimumTier)) return next();
+    if ((await effectiveGrants(prisma, user, { module })).length) return next();
+    throw new ApiError(403, "You do not have permission to perform this action");
+  });
+};
+
+
+// Tier minimum as before, or the exact section through effective access
+// (department ownership or an explicit Module Permission) for callers below
+// that tier. Never lets a department leader act as Platform Admin elsewhere.
+const requireTierOrSection = (minimumTier, module, section, mode = "VIEW") => {
+  return asyncHandler(async (req, res, next) => {
+    const user = req.adminUser;
+    if (!user?.tier) throw new ApiError(401, "Unauthorized");
+    if (TIER_HIERARCHY.indexOf(user.tier) >= TIER_HIERARCHY.indexOf(minimumTier)) return next();
+    if (await hasSectionAccess(user, module, section, mode)) return next();
+    throw new ApiError(403, "You do not have permission to perform this action");
+  });
+};
+
+// Step-up for sensitive transactions performed through department
+// leadership: callers at or above the tier keep today's behaviour.
+const requireRecentMfaBelowTier = (minimumTier, maxAgeMs = 5 * 60 * 1000) => {
+  return (req, res, next) => {
+    const user = req.adminUser;
+    if (user?.tier && TIER_HIERARCHY.indexOf(user.tier) >= TIER_HIERARCHY.indexOf(minimumTier)) return next();
+    return require("./auth.middleware").requireRecentMfa(maxAgeMs)(req, res, next);
+  };
+};
 
 const requireDifferentReviewer = (getPriorReviewerId) => {
   return asyncHandler(async (req, res, next) => {
@@ -124,6 +146,10 @@ module.exports = {
   requireExactTier,
   readOnly,
   requireSection,
+  requireTierOrDepartment,
+  requireTierOrSection,
+  requireRecentMfaBelowTier,
+  hasSectionAccess,
   requireDifferentReviewer,
   require2FA,
 };
