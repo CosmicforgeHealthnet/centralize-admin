@@ -10,8 +10,9 @@
 // - Mail administration (domains/addresses/provisioning) uses AdminSectionGrant
 //   module "mail" section "admin"; SUPER keeps its existing implicit admin
 //   capability here because it never exposes mail content.
-// - Break-glass request/approve, export and marketing scopes require explicit
-//   grants (no tier bypass).
+// - Break-glass request/approve and export require explicit grants; SUPER
+//   may administer active Marketing brands without per-brand grants. This does
+//   not grant private mailbox content or bypass independent approvals/MFA.
 // - Resources the caller cannot see are reported as 404 to avoid enumeration.
 
 const { mailError } = require("../mail.errors");
@@ -244,9 +245,9 @@ async function marketingScopes(client, user, { now = new Date(), env = process.e
   // separation, MFA/step-up, consent or dispatch safety gates.
   const isSuperAdmin = user.tier === "SUPER";
   const grants = isSuperAdmin ? [] : await activeSectionGrants(client, user.id, MARKETING_MODULE, now);
-  // Brand isolation: a brand is visible only through (a) an explicit brand
-  // grant (Module Permissions) or (b) the brand being authorised for the
-  // account's own department (MAIL_MARKETING_DEPARTMENT_BRANDS). Department
+  // Brand isolation for non-SUPER staff: (a) explicit brand grants or (b)
+  // the account's department mapping (MAIL_MARKETING_DEPARTMENT_BRANDS).
+  // Department
   // members author for those brands; Team Leads and Department Managers also
   // manage and approve them. Approval still needs a reviewer other than the
   // author, step-up, and the broadcast dispatch gates (unchanged).
