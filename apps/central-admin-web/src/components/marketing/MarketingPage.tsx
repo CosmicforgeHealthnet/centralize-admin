@@ -60,7 +60,7 @@ export default function MarketingPage() {
 
   return (
     <div className="min-w-0 space-y-5">
-      <header><p className="mb-1 text-xs font-medium text-muted-foreground">Marketing</p><h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{SECTION_LABELS[activeSection]}</h1></header>
+      <header><h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{SECTION_LABELS[activeSection]}</h1></header>
       <div className="flex min-w-0 flex-col gap-5 min-[1200px]:flex-row min-[1200px]:items-start">
         <MarketingSubNav activeSection={activeSection} onSectionChange={navigate} />
         <div className="min-w-0 flex-1">{renderSection()}</div>

@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, Menu, PenSquare, X } from "lucide-react";
+import { ChevronLeft, MailOpen, Menu, PenSquare, SearchX, X } from "lucide-react";
+import MailState, { stateSecondaryActionClass } from "./MailState";
 import MailSidebar from "./MailSidebar";
+import { useClientReady } from "@/lib/use-client-ready";
 import InboxList from "./InboxList";
 import ThreadDetail from "./ThreadDetail";
 import MailSearch from "./MailSearch";
@@ -16,6 +19,7 @@ import type { MailView, SearchParams } from "@/types/mail.types";
 
 export default function MailShell({ mailboxId, threadId }: { mailboxId: string; threadId?: string }) {
   const router = useRouter();
+  const clientReady = useClientReady();
   const params = useSearchParams();
   const entitlements = useEntitlements();
   const [navOpen, setNavOpen] = useState(false);
@@ -51,6 +55,11 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
     const getFocusable = () => Array.from(drawer.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
     ));
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const media = window.matchMedia("(min-width: 768px)");
+    const onResize = () => { if (media.matches) setNavOpen(false); };
+    media.addEventListener("change", onResize);
     getFocusable()[0]?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -77,6 +86,8 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      document.body.style.overflow = previousOverflow;
+      media.removeEventListener("change", onResize);
       window.removeEventListener("keydown", onKeyDown);
       window.requestAnimationFrame(() => focusReturnTarget?.focus());
     };
@@ -94,10 +105,10 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
     return () => window.removeEventListener("keydown", onKey);
   }, [mailbox, mailboxId, router]);
 
-  if (entitlements.isLoading || entitlements.error) {
+  if (!clientReady || entitlements.isLoading || entitlements.error) {
     return (
       <div className="rounded-lg border border-border bg-card">
-        <PermissionBoundary isLoading={entitlements.isLoading} error={entitlements.error} retry={() => entitlements.refetch()} loadingLabel="Loading mail">
+        <PermissionBoundary isLoading={!clientReady || entitlements.isLoading} error={entitlements.error} retry={() => entitlements.refetch()} loadingLabel="Loading mail">
           {null}
         </PermissionBoundary>
       </div>
@@ -107,49 +118,22 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
   if (!mailbox) {
     // Not in the caller's entitlement list: treat exactly like forbidden.
     return (
-      <div className="rounded-lg border border-border bg-card p-8 text-center" role="alert">
-        <h2 className="text-sm font-semibold">Mailbox not available</h2>
-        <p className="mt-1 text-xs text-muted-foreground">This mailbox does not exist or you no longer have access to it.</p>
-      </div>
+      <div className="rounded-xl border border-border bg-card"><MailState icon={SearchX} role="alert" title="Mailbox not available" description="This mailbox is unavailable, or you no longer have access to it. Return to Mail to see your assigned mailboxes." actions={<Link href="/dashboard/mail" className={stateSecondaryActionClass}><ChevronLeft size={18} aria-hidden="true" />Back to Mail</Link>} />      </div>
     );
   }
 
-  return (
-    <div className="flex min-h-[calc(100dvh-150px)] flex-col gap-3">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
-            <Mail className="h-5 w-5" />
-          </span>
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">Mail</h1>
-            <p className="truncate text-sm text-muted-foreground">{mailbox.name} · {mailbox.primaryAddress}</p>
-          </div>
-        </div>
-        {mailbox.canSend && mailbox.status === "ACTIVE" && (
-          <Link
-            href={`/dashboard/mail/compose?mailboxId=${mailbox.id}`}
-            className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            <PenSquare className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Compose</span>
-            <span className="sm:hidden">New</span>
-          </Link>
-        )}
-      </header>
-
-      <div className="flex h-[calc(100dvh-190px)] min-h-[430px] min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      {/* Folder navigation: drawer on mobile, column on desktop */}
+  const folderNavigation = (<>
       <aside
         ref={navRef}
         role={navOpen ? "dialog" : undefined}
         aria-modal={navOpen ? true : undefined}
         aria-label={navOpen ? "Mail folders" : undefined}
         tabIndex={navOpen ? -1 : undefined}
-        className={`${navOpen ? "fixed inset-y-0 left-0 z-40 w-[min(20rem,calc(100vw-2rem))] shadow-xl" : "hidden"} overflow-y-auto border-r border-border bg-card md:static md:block md:w-[210px] md:shrink-0 md:shadow-none`}
+        className={`mail-workspace ${navOpen ? "fixed inset-y-0 left-0 z-[101] w-[min(20rem,calc(100vw-2rem))] shadow-xl" : "hidden"} overflow-y-auto border-r border-border bg-card text-foreground md:bg-muted md:static md:block md:w-[224px] md:shrink-0 md:shadow-none`}
       >
-        <div className="flex justify-end p-2 md:hidden">
-          <button type="button" onClick={() => setNavOpen(false)} aria-label="Close folders">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
+          <h2 className="text-base font-semibold">Mail folders</h2>
+          <button type="button" onClick={() => setNavOpen(false)} aria-label="Close folders" className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -165,21 +149,52 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
         />
         </div>
       </aside>
-      {navOpen && <div aria-hidden="true" className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setNavOpen(false)} />}
+      {navOpen && <div aria-hidden="true" className="fixed inset-0 z-[100] bg-black/45 md:hidden" onClick={() => setNavOpen(false)} />}
+  </>);
+
+  return (
+    <div className="flex min-h-[calc(100dvh-160px)] flex-col gap-3">
+      <header className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Mail</h1>
+            <p className="truncate text-sm text-muted-foreground">{mailbox.primaryAddress}</p>
+          </div>
+        </div>
+        {mailbox.canSend && mailbox.status === "ACTIVE" && (
+          <Link
+            href={`/dashboard/mail/compose?mailboxId=${mailbox.id}`}
+            className="inline-flex min-h-11 shrink-0 md:hidden items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <PenSquare className="h-4 w-4" aria-hidden="true" />
+            <span>Compose</span>
+          </Link>
+        )}
+      </header>
+
+      <div className="flex h-[calc(100dvh-205px)] min-h-[420px] min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      {/* Folder navigation: drawer on mobile, column on desktop */}
+      {navOpen ? createPortal(folderNavigation, document.body) : folderNavigation}
 
       {/* List pane: hidden on small screens while a thread is open */}
       <section
         aria-label="Conversation list"
-        className={`${threadId ? "hidden lg:flex" : "flex"} min-w-0 flex-1 flex-col border-r border-border lg:max-w-[380px]`}
+        className={`${threadId ? "hidden lg:flex" : "flex"} min-w-0 flex-1 flex-col border-r border-border lg:max-w-[370px]`}
       >
-          <div className="flex items-center gap-2 border-b border-border p-2.5">
-          <button ref={foldersButtonRef} type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary md:hidden" onClick={() => setNavOpen(true)} aria-label="Open folders" aria-haspopup="dialog" aria-expanded={navOpen}>
+          <div className="flex items-start gap-2 border-b border-border p-3">
+          <button ref={foldersButtonRef} type="button" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary md:hidden" onClick={() => setNavOpen(true)} aria-label="Open folders" aria-haspopup="dialog" aria-expanded={navOpen}>
             <Menu className="h-4 w-4" />
           </button>
           <div className="min-w-0 flex-1">
             <MailSearch />
           </div>
         </div>
+        {!queueActive && !search && !labelId && (view === "inbox" || view === "unread") && (
+          <nav aria-label="Message filter" className="flex gap-1 border-b border-border/60 px-4 py-2">
+            <Link href={`/dashboard/mail/${mailboxId}?view=inbox`} aria-current={view === "inbox" ? "page" : undefined} className={`rounded-md px-3 py-1.5 text-xs ${view === "inbox" ? "bg-muted font-semibold text-foreground" : "text-muted-foreground hover:bg-muted/50"}`}>All</Link>
+            <Link href={`/dashboard/mail/${mailboxId}?view=unread`} aria-current={view === "unread" ? "page" : undefined} className={`rounded-md px-3 py-1.5 text-xs ${view === "unread" ? "bg-muted font-semibold text-foreground" : "text-muted-foreground hover:bg-muted/50"}`}>Unread</Link>
+          </nav>
+        )}
         {!entitlements.data?.sendingEnabled && (
           <p className="border-b border-border bg-amber-50 px-3 py-1.5 text-[11px] text-amber-800">
             Outbound sending is disabled in this environment. Drafts are saved but cannot be sent.
@@ -199,15 +214,8 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
         {threadId ? (
           <ThreadDetail mailbox={mailbox} threadId={threadId} backHref={listHref} />
         ) : (
-          <div className="flex flex-1 items-center justify-center p-8 text-center text-[12px] text-muted-foreground">
-            <div>
-              <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground" aria-hidden="true">
-                <Mail className="h-7 w-7" />
-              </span>
-              <h2 className="text-base font-semibold text-foreground">Your reading space</h2>
-              <p className="mt-1 max-w-xs text-sm leading-6">Choose a conversation from the list to read and reply. Your mailbox stays private to your account.</p>
-              <p className="mt-4 text-xs text-muted-foreground">Shortcuts: <kbd>c</kbd> compose · <kbd>j</kbd>/<kbd>k</kbd> navigate · <kbd>e</kbd> archive · <kbd>r</kbd> reply · <kbd>/</kbd> search</p>
-            </div>
+          <div className="flex min-h-0 flex-1 items-center justify-center">
+            <MailState icon={MailOpen} title="Select a conversation" description="Choose an email to read it here." />
           </div>
         )}
       </section>

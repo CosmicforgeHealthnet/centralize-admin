@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PlusCircle } from "lucide-react";
+import MailState from "@/components/mail/MailState";
+import { Megaphone, Plus } from "lucide-react";
 import CampaignCard from "./CampaignCard";
 import CreateCampaignModal from "./CreateCampaignModal";
 import CampaignDetail from "./CampaignDetail";
@@ -53,7 +54,7 @@ export default function CampaignsPage() {
   if (isLoadingCampaigns && campaigns.length === 0) {
     return (
       <div className="flex flex-col gap-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-10 w-36 rounded-lg" />
         </div>
@@ -79,14 +80,12 @@ export default function CampaignsPage() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 className="font-poppins text-[14px] font-semibold text-foreground">Marketing — Campaigns</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-[12px] font-poppins font-semibold rounded-lg hover:bg-primary/90 transition-colors w-fit"
+          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
-          New Campaign
-          <PlusCircle className="w-3.5 h-3.5" />
+          <Plus className="h-4 w-4" aria-hidden="true" />New campaign
         </button>
       </div>
 
@@ -99,7 +98,7 @@ export default function CampaignsPage() {
         ].map(({ label, value }) => (
           <div key={label} className="bg-card rounded-xl border border-border p-5 flex flex-col items-center justify-center gap-1">
             <span className="font-poppins text-[26px] font-bold text-foreground">
-              {String(value).padStart(2, "0")}
+              {value}
             </span>
             <span className="font-poppins text-[11px] text-muted-foreground text-center">{label}</span>
           </div>
@@ -107,15 +106,7 @@ export default function CampaignsPage() {
       </div>
 
       {campaigns.length === 0 ? (
-        <div className="bg-card rounded-xl border border-border p-12 flex flex-col items-center justify-center">
-          <p className="font-poppins text-[14px] text-muted-foreground">No campaigns found</p>
-          <button
-            onClick={() => setShowModal(true)}
-            className="mt-4 text-primary hover:underline text-sm"
-          >
-            Create your first campaign
-          </button>
-        </div>
+        <div className="rounded-xl border border-border bg-card"><MailState icon={Megaphone} title="No campaigns found" description="Create a campaign to get started." /></div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {campaigns.map((c) => (

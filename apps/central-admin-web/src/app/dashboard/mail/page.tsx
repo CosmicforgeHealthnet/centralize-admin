@@ -2,8 +2,10 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useClientReady } from "@/lib/use-client-ready";
 import { useRouter } from "next/navigation";
-import { Mail } from "lucide-react";
+import { ArrowRight, MailPlus, Settings, ShieldAlert } from "lucide-react";
+import MailState, { stateActionClass, stateSecondaryActionClass } from "@/components/mail/MailState";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import MailAwaitingActivation from "@/components/mail/MailAwaitingActivation";
 import { classifyMailError } from "@/lib/mail.service";
@@ -12,6 +14,7 @@ import { useEntitlements } from "@/components/mail/hooks";
 
 export default function MailHomePage() {
   const router = useRouter();
+  const clientReady = useClientReady();
   const q = useEntitlements();
   const userTier = useAuthStore((state) => state.user?.tier);
   // Staging-only frontend-first shell: Mail APIs remain fail-closed until
@@ -31,31 +34,17 @@ export default function MailHomePage() {
   if (showStagingWorkspace) return <MailAwaitingActivation />;
 
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <PermissionBoundary isLoading={q.isLoading} error={q.error} retry={() => q.refetch()} loadingLabel="Loading mail">
+    <div className="rounded-xl border border-border bg-card shadow-[0_2px_12px_0_#0f172a04]">
+      <PermissionBoundary isLoading={!clientReady || q.isLoading} error={q.error} retry={() => q.refetch()} loadingLabel="Loading mail">
         {q.data && !q.data.identityActive ? (
-          <div role="alert" className="p-8 text-center">
-            <h1 className="text-sm font-semibold">Mail access unavailable</h1>
-            <p className="mt-1 text-xs text-muted-foreground">Your account is not active, so mail access is suspended.</p>
-          </div>
+          <MailState icon={ShieldAlert} headingLevel={1} tone="access" role="alert" title="Mail access unavailable" description="Mail access is suspended because your account is not active. Contact your administrator for help." />
         ) : mailboxes.length === 0 ? (
-          <div role="status" className="flex flex-col items-center gap-2 p-8 text-center">
-            <Mail className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
-            <h1 className="text-sm font-semibold">No mailbox assigned</h1>
-            <p className="max-w-md text-xs text-muted-foreground">
-              You do not have a CosmicForge mailbox yet. An authorized Mail administrator must register and verify the sending domain, create the mailbox and grant you access before you can send.
-            </p>
-            <div className="mt-2 flex gap-2">
-              <Link href="/dashboard/mail/settings" className="rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground">
-                Mail settings &amp; requests
-              </Link>
-              {(q.data?.canManageDomains || q.data?.canViewAdministration) && (
-                <Link href="/dashboard/it?section=mail-admin" className="rounded-md border border-border px-3 py-1.5 text-[12px] font-semibold">
-                  Open Mail administration
-                </Link>
-              )}
-            </div>
-          </div>
+          <MailState icon={MailPlus} headingLevel={1} tone="info" title="No mailbox assigned" description="Your account is not connected to a mailbox yet. Open Mail settings to request one, or contact your Mail administrator." actions={
+            <>
+              <Link href="/dashboard/mail/settings" className={stateActionClass}><Settings size={14} aria-hidden="true" />Mail settings &amp; requests</Link>
+              {(q.data?.canManageDomains || q.data?.canViewAdministration) && <Link href="/dashboard/it?section=mail-admin" className={stateSecondaryActionClass}>Open Mail administration<ArrowRight size={14} aria-hidden="true" /></Link>}
+            </>
+          } />
         ) : (
           <p role="status" className="p-8 text-center text-xs text-muted-foreground">Opening {preferred?.name}…</p>
         )}

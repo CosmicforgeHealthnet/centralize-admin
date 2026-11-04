@@ -6,7 +6,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import MailState from "@/components/mail/MailState";
+import { Megaphone, Plus } from "lucide-react";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { formatFullDate } from "@/components/mail/mail-utils";
 import { classifyMailError } from "@/lib/mail.service";
@@ -84,7 +85,7 @@ export default function CampaignList({ org }: { org: MarketingOrganization }) {
       )}
       <PermissionBoundary isLoading={q.isLoading} error={q.error} retry={() => q.refetch()}>
         {(q.data?.items ?? []).length === 0 ? (
-          <p role="status" className="p-4 text-center text-[12px] text-muted-foreground">No campaigns.</p>
+          <MailState icon={Megaphone} title={status ? "No matching campaigns" : "No campaigns yet"} description={status ? "Try a different status filter." : org.canAuthor ? "Create a campaign to get started." : "Campaigns for this brand will appear here."} />
         ) : (
           <TableScrollArea className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-xs">

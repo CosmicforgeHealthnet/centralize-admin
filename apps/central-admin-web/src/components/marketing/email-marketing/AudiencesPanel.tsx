@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
+import MailState from "@/components/mail/MailState";
+import { Plus, Trash2, Users } from "lucide-react";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { classifyMailError } from "@/lib/mail.service";
 import {
@@ -214,7 +215,7 @@ export default function AudiencesPanel({ org }: { org: MarketingOrganization }) 
       <EmCard title="Audiences" id="em-audiences">
         <PermissionBoundary isLoading={q.isLoading} error={q.error} retry={() => q.refetch()} compact>
           <ul className="flex flex-col gap-1" role="listbox" aria-label="Audiences">
-            {audiences.length === 0 && <li className="text-[12px] text-muted-foreground">No audiences.</li>}
+            {audiences.length === 0 && <li><MailState compact icon={Users} title="No audiences yet" description="Group contacts for targeted campaigns." /></li>}
             {audiences.map((a) => (
               <li key={a.id} role="option" aria-selected={selected?.id === a.id}>
                 <button

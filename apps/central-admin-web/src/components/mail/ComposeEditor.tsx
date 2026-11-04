@@ -347,7 +347,7 @@ export default function ComposeEditor({
     const sentStatus: string = sent.status;
     const deliveredInternally = sentStatus === "DELIVERED";
     return (
-      <div role="status" className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4 text-[12px]">
+      <div role="status" className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 text-[12px]">
         <p className="font-semibold text-foreground">{deliveredInternally ? "Message delivered internally." : "Message queued for sending."}</p>
         <p className="text-muted-foreground">
           {deliveredInternally
@@ -397,8 +397,8 @@ export default function ComposeEditor({
         </div>
       )}
 
-      <div className="flex flex-col px-3">
-        <div className="flex min-w-0 items-center gap-2 border-b border-border py-1.5">
+      <div className="flex flex-col px-5">
+        <div className="flex min-w-0 items-center gap-2 border-b border-border/60 py-3">
           <label htmlFor="compose-from" className="w-10 shrink-0 text-[12px] text-muted-foreground">From</label>
           {identities.length === 0 ? (
             <span className="text-[12px] text-red-600">No approved sender identity for this mailbox.</span>
@@ -427,7 +427,7 @@ export default function ComposeEditor({
           )}
         </div>
         {identities.length > 1 && (
-          <div className="flex min-w-0 items-center gap-2 border-b border-border py-1.5">
+          <div className="flex min-w-0 items-center gap-2 border-b border-border/60 py-3">
             <label htmlFor="compose-reply-to" className="w-14 shrink-0 text-[12px] text-muted-foreground">Reply-To</label>
             <select
               id="compose-reply-to"
@@ -453,7 +453,7 @@ export default function ComposeEditor({
             <ContactPicker label="Bcc" value={bcc} onChange={(v) => { setBcc(v); markDirty(); }} />
           </>
         )}
-        <div className="flex min-w-0 items-center gap-2 border-b border-border py-1.5">
+        <div className="flex min-w-0 items-center gap-2 border-b border-border/60 py-3">
           <label htmlFor="compose-subject" className="w-10 shrink-0 text-[12px] text-muted-foreground">Subject</label>
           <input
             id="compose-subject"
@@ -518,7 +518,7 @@ export default function ComposeEditor({
           disabled={sending || !canSend || !!conflict}
           aria-busy={sending}
           title={canSend ? "Send (Ctrl+Enter)" : "You cannot send from this mailbox"}
-          className="flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
           {sending ? "Queueing…" : "Send"}

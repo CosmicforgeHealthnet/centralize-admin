@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, Loader2, MailOpen, Paperclip, Star, Trash2, Mail } from "lucide-react";
+import { Archive, FileText, Inbox, Loader2, MailOpen, Paperclip, SearchX, Star, Trash2, Mail } from "lucide-react";
 import PermissionBoundary from "./PermissionBoundary";
+import MailState from "./MailState";
 import { useDrafts, useSearch, useThreadActions, useThreads } from "./hooks";
 import { STATUS_LABELS, formatMailDate, isTypingTarget, shortParty, statusTone } from "./mail-utils";
 import { classifyMailError } from "@/lib/mail.service";
@@ -28,7 +29,7 @@ function ThreadRow({
   const names = thread.participants.slice(0, 3).map(shortParty).join(", ") || "(no participants)";
   return (
     <li
-      className={`group flex items-start gap-3 border-b border-border px-3 py-3 transition-colors ${selected ? "bg-primary/10" : thread.isRead ? "bg-card" : "bg-primary/[0.03]"} hover:bg-muted/60`}
+      className={`group flex items-start gap-3 border-b border-border/60 px-4 py-4 transition-colors ${selected ? "bg-primary/10" : thread.isRead ? "bg-card" : "bg-primary/[0.03]"} hover:bg-muted/60`}
     >
       <input
         type="checkbox"
@@ -37,9 +38,11 @@ function ThreadRow({
         aria-label={`Select conversation ${thread.subject || "(no subject)"}`}
         className="mt-1 h-4 w-4 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       />
-      <Link href={href} aria-current={selected ? "true" : undefined} className="min-w-0 flex-1 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-thread-link={thread.id}>
+      <Link href={href} aria-current={selected ? "true" : undefined} className="flex min-w-0 flex-1 gap-3 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-thread-link={thread.id}>
+        <span aria-hidden="true" className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/5 text-[10px] font-semibold text-primary">{(thread.participants[0]?.name || thread.participants[0]?.address || "?").split(/\s+/).map(n => n[0]).slice(0, 2).join("").toUpperCase()}</span>
+        <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className={`truncate text-sm ${thread.isRead ? "text-foreground" : "font-semibold text-foreground"}`}>{names}</span>
+          <span className={`truncate text-xs ${thread.isRead ? "text-foreground" : "font-semibold text-foreground"}`}>{names}</span>
           {thread.messageCount > 1 && <span className="text-xs text-muted-foreground">{thread.messageCount}</span>}
           <span className="ml-auto shrink-0 text-xs text-muted-foreground">{formatMailDate(thread.lastMessageAt)}</span>
         </div>
@@ -50,8 +53,8 @@ function ThreadRow({
             {thread.subject || "(no subject)"}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-xs leading-5 text-muted-foreground">{thread.snippet}</p>
-        <div className="mt-1 flex flex-wrap items-center gap-1">
+        <p className="mt-1.5 truncate text-[11px] leading-5 text-muted-foreground">{thread.snippet}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {thread.labels.map((l) => (
             <span key={l.id} className="rounded border border-border px-1 text-[10px] text-muted-foreground" style={{ borderColor: l.color ?? undefined }}>
               {l.name}
@@ -65,6 +68,7 @@ function ThreadRow({
               {STATUS_LABELS[thread.lastDeliveryStatus]}
             </span>
           )}
+        </div>
         </div>
       </Link>
     </li>
@@ -143,7 +147,7 @@ export default function InboxList({
     return (
       <PermissionBoundary isLoading={draftsQ.isLoading} error={draftsQ.error} retry={() => draftsQ.refetch()} loadingLabel="Loading drafts">
         {(draftsQ.data?.items ?? []).length === 0 ? (
-          <p role="status" className="p-6 text-center text-[12px] text-muted-foreground">No drafts.</p>
+          <MailState compact icon={FileText} title="No drafts" description="Messages you save as drafts will appear here." />
         ) : (
           <ul aria-label="Drafts">
             {(draftsQ.data?.items ?? []).map((d) => (
@@ -153,7 +157,7 @@ export default function InboxList({
                   className="block px-3 py-2.5 hover:bg-muted/60"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="truncate text-[12px] font-semibold text-red-600">Draft</span>
+                    <span className="truncate text-[12px] font-semibold text-primary">Draft</span>
                     <span className="truncate text-[12px]">{d.to.map(shortParty).join(", ") || "(no recipients)"}</span>
                     <span className="ml-auto text-[10px] text-muted-foreground">{formatMailDate(d.updatedAt)}</span>
                   </div>
@@ -212,9 +216,7 @@ export default function InboxList({
       <div className="min-h-0 flex-1 overflow-y-auto">
         <PermissionBoundary isLoading={active.isLoading} error={active.error} retry={() => active.refetch()} loadingLabel="Loading conversations">
           {threads.length === 0 ? (
-            <p role="status" className="p-6 text-center text-[12px] text-muted-foreground">
-              {search ? "No conversations match your search." : "No conversations here."}
-            </p>
+            <MailState compact icon={search ? SearchX : Inbox} title={search ? "No matching conversations" : view === "unread" ? "No unread conversations" : "No conversations"} description={search ? "Try a different name, subject, or date range." : view === "unread" ? "You are all caught up in this mailbox." : "Conversations in this folder will appear here."} />
           ) : (
             <ul aria-label="Conversations">
               {threads.map((t) => (

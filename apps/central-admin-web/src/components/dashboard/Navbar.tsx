@@ -55,7 +55,7 @@ const getCrumb = (pathname: string, search: string) => {
   if (pathname.startsWith("/dashboard/mail/"))
     return { parent: "Mail", current: "Mailbox" };
   if (pathname.startsWith("/dashboard/marketing/email-marketing/"))
-    return { parent: "Marketing / Email Marketing", current: pathname.split("/").at(-1)?.replaceAll("-", " ") ?? "Overview" };
+    return { parent: "Marketing / Email Marketing", current: pathname.split("/").at(-1)?.replaceAll("-", " ").replace(/\b\w/g, letter => letter.toUpperCase()) ?? "Overview" };
   return { parent: "", current: "Dashboard" };
 };
 

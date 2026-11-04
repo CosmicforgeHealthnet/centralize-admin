@@ -15,7 +15,7 @@ export default function MailboxSwitcher({
   const router = useRouter();
   if (mailboxes.length === 0) return null;
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-2">
       <label htmlFor="mailbox-switcher" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
         Mailbox
       </label>
@@ -23,7 +23,7 @@ export default function MailboxSwitcher({
         id="mailbox-switcher"
         value={currentId}
         onChange={(e) => { router.push(`/dashboard/mail/${e.target.value}`); onSwitch?.(); }}
-        className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-[12px] text-foreground focus:border-primary outline-none"
+        className="w-full min-w-0 rounded-lg border border-border bg-card px-2.5 py-3 text-xs font-medium text-foreground focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
       >
         {mailboxes.map((mb) => (
           <option key={mb.id} value={mb.id}>
@@ -33,6 +33,7 @@ export default function MailboxSwitcher({
           </option>
         ))}
       </select>
+      <p className="truncate text-[10px] text-muted-foreground" title={mailboxes.find(m => m.id === currentId)?.primaryAddress ?? undefined}>{mailboxes.find(m => m.id === currentId)?.primaryAddress}</p>
     </div>
   );
 }
