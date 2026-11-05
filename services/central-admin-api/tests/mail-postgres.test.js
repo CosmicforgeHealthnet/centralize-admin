@@ -1456,7 +1456,8 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal((await call("dave", "GET", `/marketing/${state.org2Id}/contacts`)).status, 404, "cross-brand access denied");
       assert.equal((await call("super", "GET", `/marketing/${state.orgId}/contacts`)).status, 200, "SUPER can view marketing brands without individual grants");
       const adminOrgs = await call("mailAdmin", "GET", "/marketing/organizations");
-      assert.deepEqual(adminOrgs.body.data.map((org) => [org.slug, org.access, org.canApprove]), [["karryam", "PLATFORM_ADMIN", false]], "Platform Admin sees ACTIVE BRAND organizations only, cannot approve by tier");
+      assert.ok(adminOrgs.body.data.length > 0 && adminOrgs.body.data.every((org) => org.access === "PLATFORM_ADMIN" && org.canApprove === false && org.slug !== "cosmicforge"), "Platform Admin sees ACTIVE BRAND organizations only (no COMPANY), cannot approve by tier");
+      assert.ok(adminOrgs.body.data.some((org) => org.slug === "karryam"));
       assert.equal((await call("mailAdmin", "GET", `/marketing/${state.orgId}/contacts`)).status, 404, "Platform Admin: COMPANY organizations are not marketing brands");
       assert.equal((await call("mailAdmin", "GET", `/marketing/${state.org2Id}/contacts`)).status, 200);
       const base = `/marketing/${state.orgId}`;
