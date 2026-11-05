@@ -244,6 +244,11 @@ async function marketingScopes(client, user, { now = new Date(), env = process.e
   // This does NOT grant mailbox content, break-glass, or bypass approval
   // separation, MFA/step-up, consent or dispatch safety gates.
   const isSuperAdmin = user.tier === "SUPER";
+  // Platform Admin (ADMIN tier; Department Manager is a role, not a tier) sees
+  // every ACTIVE BRAND organization and may author/administer, resolved by the
+  // backend from the live account row. Unlike SUPER it cannot approve without
+  // department leadership or an explicit approve:<brand> grant.
+  const isPlatformAdmin = user.tier === "ADMIN";
   const grants = isSuperAdmin ? [] : await activeSectionGrants(client, user.id, MARKETING_MODULE, now);
   // Brand isolation for non-SUPER staff: (a) explicit brand grants or (b)
   // the account's department mapping (MAIL_MARKETING_DEPARTMENT_BRANDS).
@@ -257,7 +262,7 @@ async function marketingScopes(client, user, { now = new Date(), env = process.e
     const roleGrants = await activeSectionGrants(client, user.id, ROLE_GRANT_MODULE, now);
     leads = ["TEAM_LEAD", "MANAGER"].includes(departmentRole(user, roleGrants.map((grant) => ({ ...grant, module: ROLE_GRANT_MODULE }))));
   }
-  if (!isSuperAdmin && !grants.length && !brands.length) return [];
+  if (!isSuperAdmin && !isPlatformAdmin && !grants.length && !brands.length) return [];
   const organizations = await client.mailOrganization.findMany({ where: { status: "ACTIVE" }, orderBy: { name: "asc" } });
   return organizations
     .map((organization) => {
@@ -265,14 +270,15 @@ async function marketingScopes(client, user, { now = new Date(), env = process.e
       const authoring = [...matches(organization.slug), ...matches("*")];
       const approving = [...matches(`approve:${organization.slug}`), ...matches("approve:*")];
       const viaDepartment = brands.includes(String(organization.slug).toLowerCase());
+      const viaPlatform = isPlatformAdmin && organization.kind === "BRAND";
       return {
         organizationId: organization.id,
         slug: organization.slug,
         name: organization.name,
-        canView: isSuperAdmin || authoring.length > 0 || approving.length > 0 || viaDepartment,
-        canAuthor: isSuperAdmin || authoring.some((grant) => grant.mode === "EDIT") || (user.department === "MARKETING" && leads && authoring.length > 0) || viaDepartment,
+        canView: isSuperAdmin || viaPlatform || authoring.length > 0 || approving.length > 0 || viaDepartment,
+        canAuthor: isSuperAdmin || viaPlatform || authoring.some((grant) => grant.mode === "EDIT") || (user.department === "MARKETING" && leads && authoring.length > 0) || viaDepartment,
         canApprove: isSuperAdmin || approving.some((grant) => grant.mode === "EDIT") || (viaDepartment && leads),
-        access: isSuperAdmin ? "SUPER" : viaDepartment ? "DEPARTMENT" : "EXPLICIT",
+        access: isSuperAdmin ? "SUPER" : viaDepartment ? "DEPARTMENT" : authoring.length || approving.length ? "EXPLICIT" : "PLATFORM_ADMIN",
       };
     })
     .filter((scope) => scope.canView);

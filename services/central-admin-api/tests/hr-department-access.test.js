@@ -114,8 +114,8 @@ const SUPER = { id: crypto.randomUUID(), email: "super@hq.test", name: "Super", 
 const HR = { id: crypto.randomUUID(), email: "hr@hq.test", name: "HR Admin", tier: "ADMIN", status: "ACTIVE", department: "MANAGEMENT", isTeamLead: true };
 tables.adminUser.push({ ...SUPER }, { ...HR });
 tables.mailOrganization.push(
-  { id: crypto.randomUUID(), slug: "karryam", name: "Karryam", status: "ACTIVE" },
-  { id: crypto.randomUUID(), slug: "cosmicforge", name: "CosmicForge", status: "ACTIVE" },
+  { id: crypto.randomUUID(), slug: "karryam", name: "Karryam", kind: "BRAND", status: "ACTIVE" },
+  { id: crypto.randomUUID(), slug: "cosmicforge", name: "CosmicForge", kind: "BRAND", status: "ACTIVE" },
 );
 tables.adminSectionGrant.push({ id: crypto.randomUUID(), adminUserId: HR.id, module: "hrm", section: "accounts", mode: "EDIT", grantedBy: SUPER.id, revokedAt: null, expiresAt: null, createdAt: new Date() });
 
@@ -266,8 +266,12 @@ test("4. Email Marketing brands follow the department; other brands stay isolate
   await assert.rejects(policy.requireMarketingScope(prisma, asUser(lead.id), cosmic.id, "VIEW"), (error) => error.code === "MAIL_NOT_FOUND", "brand isolation");
 
   // Authorising is configuration: the mapping can be changed or disabled.
-  assert.deepEqual(await policy.marketingScopes(prisma, asUser(lead.id), { env: { MAIL_MARKETING_DEPARTMENT_BRANDS: "" } }), []);
-  assert.deepEqual((await policy.marketingScopes(prisma, asUser(lead.id), { env: { MAIL_MARKETING_DEPARTMENT_BRANDS: "MARKETING:cosmicforge" } })).map((s) => s.slug), ["cosmicforge"]);
+  // An empty/invalid override can never remove the built-in MARKETING:karryam default.
+  for (const bad of ["", "   ", "garbage", ":::", "MARKETING:", "MARKETING:!!"]) {
+    assert.deepEqual((await policy.marketingScopes(prisma, asUser(lead.id), { env: { MAIL_MARKETING_DEPARTMENT_BRANDS: bad } })).map((s) => s.slug), ["karryam"], `override ${JSON.stringify(bad)} keeps karryam`);
+  }
+  // Overrides add brands on top of the default.
+  assert.deepEqual((await policy.marketingScopes(prisma, asUser(lead.id), { env: { MAIL_MARKETING_DEPARTMENT_BRANDS: "MARKETING:cosmicforge" } })).map((s) => s.slug).sort(), ["cosmicforge", "karryam"]);
 
   // Explicit Module Permissions remain for additional brands (case-insensitive).
   await accounts.addGrant({ userId: staff.id, data: { module: "mail-marketing", section: "CosmicForge", mode: "VIEW" }, actor: HR, req: {} });
@@ -279,6 +283,16 @@ test("4. Email Marketing brands follow the department; other brands stay isolate
   const transferred = { ...asUser(lead.id), department: "FINANCE" };
   assert.deepEqual(await policy.marketingScopes(prisma, transferred), []);
   assert.deepEqual(await policy.marketingScopes(prisma, { ...asUser(lead.id), status: "INACTIVE" }), []);
+
+  // Platform Admin (ADMIN) and Super Admin see every ACTIVE brand through the
+  // backend policy, can author but cannot approve without leadership/explicit grant.
+  const adminScopes = await policy.marketingScopes(prisma, asUser(HR.id));
+  assert.deepEqual(adminScopes.map((s) => [s.slug, s.canView, s.canAuthor, s.canApprove, s.access]).sort(), [["cosmicforge", true, true, false, "PLATFORM_ADMIN"], ["karryam", true, true, false, "PLATFORM_ADMIN"]]);
+  assert.equal((await policy.marketingScopes(prisma, asUser(SUPER.id))).length, 2);
+  await policy.requireMarketingScope(prisma, asUser(HR.id), karryam.id, "EDIT");
+  await assert.rejects(policy.requireMarketingScope(prisma, asUser(HR.id), karryam.id, "APPROVE"), (error) => error.code === "MAIL_FORBIDDEN");
+  assert.deepEqual(await policy.marketingScopes(prisma, { ...asUser(HR.id), status: "INACTIVE" }), [], "inactive admins have no access");
+  assert.deepEqual(await policy.marketingScopes(prisma, { ...asUser(HR.id), tier: "EMPLOYEE", department: "FINANCE" }), [], "tier-based access ends with the tier");
 
   const effective = await accounts.getEffectiveAccess(lead.id);
   assert.deepEqual(effective.emailMarketing, [{ slug: "karryam", name: "Karryam", canView: true, canAuthor: true, canApprove: true, access: "DEPARTMENT" }]);
