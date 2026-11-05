@@ -52,10 +52,18 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
     limits: { ...formLimits, fields: 10, parts: 11, fileSize: 2 * 1024 * 1024 },
     fileFilter: (req, file, cb) => cb(null, /\.csv$/i.test(file.originalname || "") && /^(text\/csv|application\/vnd\.ms-excel|text\/plain|application\/octet-stream)$/i.test(file.mimetype || "")),
   });
+  const uploadFailureReason = (error) => {
+    if (error?.code && /^LIMIT_/.test(error.code)) return error.code;
+    if (/boundary|multipart|unexpected end of form|malformed/i.test(String(error?.message || ""))) return "MALFORMED_MULTIPART";
+    return error?.code || "UPLOAD_FAILED";
+  };
   const uploadErrors = (handler) => (req, res, next) =>
     handler(req, res, (error) => {
       if (error?.code === "LIMIT_FILE_SIZE") return next(mailError("MAIL_ATTACHMENT_TOO_LARGE", { maxBytes: limits.attachmentMaxBytes }));
-      if (error) return next(mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: error.code || "UPLOAD_FAILED" }));
+      // Distinguish a malformed multipart body (missing/invalid boundary, truncated
+      // stream) and a wrong form shape from other upload problems; none of them
+      // reveal parser internals to the client.
+      if (error) return next(mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: uploadFailureReason(error) }));
       return next();
     });
 
@@ -183,6 +191,8 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
       config.marketingEnabled ? policy.marketingScopes(client, user(req)) : [],
     ]);
     ok(res, {
+      // Backend-driven limits: the web app enforces exactly what this API enforces.
+      limits: { attachmentMaxBytes: limits.attachmentMaxBytes, messageMaxBytes: limits.messageMaxBytes, maxAttachmentsPerMessage: limits.maxAttachmentsPerMessage },
       mailEnabled: config.enabled,
       sendingEnabled: config.sendingEnabled,
       receivingEnabled: config.receivingEnabled,

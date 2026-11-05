@@ -33,7 +33,7 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [mail-diagnose, marketing-access-diagnose, migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, storage-setup, storage-check, production-schema-names, containers, staging-checks, host-audit, secure-production-env, staging-env-access, pilot-storage-setup]
+        options: [mail-diagnose, marketing-access-diagnose, migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, storage-setup, storage-check, production-schema-names, containers, staging-checks, host-audit, secure-production-env, staging-env-access, pilot-storage-setup, nginx-upload-diagnose, nginx-upload-apply, nginx-upload-rollback]
         default: migrate-preflight
       target:
         description: "staging or production (migration, services, storage and check operations)"
@@ -95,7 +95,7 @@ jobs:
             exit 0
           fi
           case "$OP" in
-            migrate-preflight|services-preflight|production-schema-names|containers|staging-checks|storage-check|host-audit|mail-diagnose|marketing-access-diagnose) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
+            migrate-preflight|services-preflight|production-schema-names|containers|staging-checks|storage-check|host-audit|mail-diagnose|marketing-access-diagnose|nginx-upload-diagnose) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
             *) [[ "$CONFIRM" == APPLY_STAGING_MAIL_CHANGES ]] || { echo "$OP needs confirm=APPLY_STAGING_MAIL_CHANGES. Nothing was started."; exit 1; } ;;
           esac
 
@@ -135,7 +135,7 @@ jobs:
             f="infrastructure/mail/recovery/$t.pub"
             if [[ -f "$f" ]]; then cp "$f" "$staged/recovery-$t.pub"; fi
           done
-          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh ca-host-ops.sh ca-mail-env-install.sh ca-mail-diagnose.js ca-marketing-access-diagnose.js -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf -C "$staged" .
+          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh ca-host-ops.sh ca-mail-env-install.sh ca-mail-diagnose.js ca-marketing-access-diagnose.js -C "$GITHUB_WORKSPACE/infrastructure/mail/nginx" ca-mail-upload-limits.conf.tpl -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf -C "$staged" .
           sha="$(sha256sum "$bundle" | cut -d' ' -f1)"
           echo "BUNDLE_SHA256=$sha" >> "$GITHUB_ENV"
           d="\$HOME/.ca-mail-staging/$sha"
@@ -155,7 +155,7 @@ jobs:
           d="\$HOME/.ca-mail-staging/$BUNDLE_SHA256"
           run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           case "$OP" in
-            host-audit|secure-production-env|staging-env-access) cmd="bash $d/ca-host-ops.sh --$OP" ;;
+            host-audit|secure-production-env|staging-env-access|nginx-upload-diagnose|nginx-upload-apply|nginx-upload-rollback) cmd="bash $d/ca-host-ops.sh --$OP" ;;
             *) cmd="bash $d/ca-mail-staging-ops.sh --$OP"
                if [[ "$TARGET" == production ]]; then cmd="$cmd --target=production"; fi ;;
           esac

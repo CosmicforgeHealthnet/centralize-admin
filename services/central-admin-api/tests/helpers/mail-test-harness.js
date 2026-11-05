@@ -119,7 +119,7 @@ function createHarness(client, { env = {}, clockStart = Date.now() } = {}) {
     marketingAdapter: extra.marketingAdapter || marketingAdapter,
     storageBackend: backend,
     encryption: extra.encryption,
-    scanner: signatureScanner(),
+    scanner: extra.scanner || signatureScanner(),
     logger: { info() {}, warn() {}, error() {} },
     clock,
   });

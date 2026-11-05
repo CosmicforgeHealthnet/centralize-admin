@@ -34,7 +34,7 @@ const PATHS = [
   ["get", "/drafts/{draftId}", "Get draft", one("Draft")],
   ["patch", "/drafts/{draftId}", "Update draft (requires revision; 409 on conflict)", one("Draft")],
   ["delete", "/drafts/{draftId}", "Discard draft", any],
-  ["post", "/drafts/{draftId}/attachments", "Upload attachment (multipart file)", one("Attachment")],
+  ["post", "/drafts/{draftId}/attachments", "Upload attachment (multipart file; Content-Type multipart/form-data with a client-generated boundary; per-file limit limits.attachmentMaxBytes and message limit limits.messageMaxBytes from GET /me/entitlements; 413 MAIL_ATTACHMENT_TOO_LARGE or MAIL_VALIDATION_FAILED reason MESSAGE_TOO_LARGE; 400 reason MALFORMED_MULTIPART)", one("Attachment")],
   ["delete", "/drafts/{draftId}/attachments/{attachmentId}", "Remove attachment", any],
   ["post", "/drafts/{draftId}/send", "Queue send; returns 202 with durable job id", envelope(ref("SendAccepted"))],
   ["get", "/messages/{messageId}/status", "Delivery status", any],

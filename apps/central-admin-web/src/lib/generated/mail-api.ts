@@ -991,7 +991,7 @@ export interface MailResponses {
   postBreakGlassRequestsReject: Record<string, unknown>;
   /** Revoke break-glass */
   postBreakGlassRequestsRevoke: Record<string, unknown>;
-  /** Upload attachment (multipart file) */
+  /** Upload attachment (multipart file; Content-Type multipart/form-data with a client-generated boundary; per-file limit limits.attachmentMaxBytes and message limit limits.messageMaxBytes from GET /me/entitlements; 413 MAIL_ATTACHMENT_TOO_LARGE or MAIL_VALIDATION_FAILED reason MESSAGE_TOO_LARGE; 400 reason MALFORMED_MULTIPART) */
   postDraftsAttachments: Attachment;
   /** Queue send; returns 202 with durable job id */
   postDraftsSend: SendAccepted;
