@@ -38,6 +38,10 @@ Support subject previews are bounded and credential-redacted free text; this is 
 
 Sanitized evidence: `evidence/karryam-readonly-connection-2026-11-05.json`. Its `current_state` is authoritative; historical step summaries retain their earlier flags. Detailed backups, signatures, contexts and rollback artifacts remain only under `/etc/cosmicforge/staging/karryam-source-access/20261105T112448Z-3169bf92` on the VPS.
 
+## HQ setup progress at 18:42 UTC
+
+Three explicitly approved, 72-hour platform setup grants are installed and have matching operator audit records. These are onboarding permissions, not product data grants or staff approvals. The signed live manifest passed pinned identity/signature verification; all reporting datasets remain NOT_CERTIFIED. Both Support cases have incomplete event scope, so the source feed and synchronization remain disabled. See `karryam-hq-onboarding-status-2026-11-05.md` and its sanitized evidence for the exact permissions, expiry and remaining gates. A proposed signed operator setup exception is not deployed or activated.
+
 ## Remaining integration work
 
 The signed policy, record allocations, certificate enrollment and read-only transport setup above are complete. Real staff capability discovery and authorized source reads have not yet passed. Existing audited HQ onboarding, staff grants and dataset certification remain required; do not fabricate MFA, actor identities or lifecycle approvals.
