@@ -56,12 +56,60 @@ export interface Contact {
   updatedAt?: string;
 }
 
+/**
+ * How staff ask for marketing permission. The server always records the
+ * source as MANUAL for staff actions; the browser never chooses a channel.
+ * - REQUEST_CONFIRMATION: the contact receives a confirmation email (double opt-in).
+ * - DOCUMENTED: previously documented consent; a different brand approver must
+ *   verify the evidence before it counts.
+ */
+export type AdminConsentMode = "REQUEST_CONFIRMATION" | "DOCUMENTED";
+
 export interface ConsentInput {
+  mode: AdminConsentMode;
   topic: string;
-  source: ConsentSource;
-  evidence: Record<string, unknown>;
   policyVersion: string;
-  doubleOptIn?: boolean;
+  evidence?: { reference?: string; note?: string; country?: string };
+  consentedAt?: string;
+}
+
+/** Where people in an imported file originally opted in (stored as IMPORT). */
+export type ImportOriginalChannel = "WEB_FORM" | "EVENT" | "OTHER";
+
+export interface ConsentOptions {
+  topics: string[];
+  policyVersions: string[];
+  currentPolicyVersion: string | null;
+  policyVersionsConfigured: boolean;
+  importOriginalChannels: ImportOriginalChannel[];
+  adminModes: AdminConsentMode[];
+  approvalTtlHours: number;
+}
+
+export type MarketingPermission = "NOT_REQUESTED" | "PENDING_CONFIRMATION" | "PENDING_APPROVAL" | "GRANTED";
+
+export interface ConsentApprovalRequest {
+  requestId: string;
+  contactId: string;
+  email: string | null;
+  topic: string;
+  policyVersion: string;
+  evidenceReference: string;
+  evidenceNote: string | null;
+  country: string | null;
+  consentedAt: string | null;
+  requestedAt: string;
+  expiresAt: string;
+  requestedByMe: boolean;
+}
+
+export interface ConsentRequestResult {
+  topic: string;
+  status: MarketingPermission;
+  consentApproval: { requestId: string; status: "PENDING_APPROVAL"; topic: string; expiresAt: string } | null;
+  confirmationToken?: string | null;
+  /** Whether a confirmation email job was queued (false when emails are disabled). */
+  confirmationEmail?: { queued: boolean; reason?: string } | null;
 }
 
 export interface ContactInput {
@@ -71,6 +119,13 @@ export interface ContactInput {
   attributes?: Record<string, unknown>;
   consent?: ConsentInput;
 }
+
+export type ContactCreateResult = Contact & {
+  marketingPermission: MarketingPermission;
+  consentApproval: ConsentRequestResult["consentApproval"];
+  confirmationToken?: string | null;
+  confirmationEmail?: ConsentRequestResult["confirmationEmail"];
+};
 
 export interface MarketingSenderIdentity {
   addressId: string;

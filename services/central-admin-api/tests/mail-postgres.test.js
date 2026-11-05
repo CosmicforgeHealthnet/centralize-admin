@@ -16,6 +16,7 @@ const { replayVerify, dropDatabase } = require("../scripts/social-operations/db-
 const { createMailApplication } = require("../src/modules/mail/application");
 const { createMailRouter } = require("../src/modules/mail/http/mail.routes");
 const { loadMailConfig } = require("../src/modules/mail/mail.config");
+const { requestConfirmation, confirmContact } = require("./helpers/marketing-consent");
 const { createFakeAdapter } = require("../src/modules/mail/adapters/fake.adapter");
 const { memoryBackend, filesystemBackend } = require("../src/modules/mail/storage/mail-storage");
 const nodeFs = require("node:fs");
@@ -117,6 +118,7 @@ function createHarness(client, { storageBackend } = {}) {
   // instead of environment keys; same key, so key-dependent checks still apply.
   const keyEnv = process.env.MAIL_TEST_KEYRING === "file" ? fileKeyringEnv(rawKey) : { MAIL_ENCRYPTION_KEYS: `v1:${rawKey}` };
   const baseEnv = {
+    ...require("./helpers/marketing-consent").CONSENT_ENV,
     MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true", MAIL_MARKETING_ENABLED: "true", MAIL_WORKER_ENABLED: "true",
     MAIL_PROVIDER: "fake", RESEND_WEBHOOK_SECRET: WEBHOOK_SECRET, ...keyEnv,
     MAIL_WORKER_MAX_ATTEMPTS: "4", MAIL_UNKNOWN_RECIPIENT_POLICY: "reject",
@@ -1461,24 +1463,30 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal((await call("mailAdmin", "GET", `/marketing/${state.orgId}/contacts`)).status, 404, "Platform Admin: COMPANY organizations are not marketing brands");
       assert.equal((await call("mailAdmin", "GET", `/marketing/${state.org2Id}/contacts`)).status, 200);
       const base = `/marketing/${state.orgId}`;
-      const consent = (topic = "newsletter", extra = {}) => ({ topic, source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: "form-submission-881", formUrl: "https://cosmicforge.example/subscribe" }, ...extra });
+      const consent = (topic = "newsletter", extra = {}) => requestConfirmation(topic, extra);
       const granted = await call("dave", "POST", `${base}/contacts`, { email: "Fan@Reader.example", firstName: "Fan", consent: consent() });
       assert.equal(granted.status, 201, granted.text);
+      await confirmContact(call, granted);
       assert.equal(granted.body.data.email, "fan@reader.example");
       const duplicate = await call("dave", "POST", `${base}/contacts`, { email: "fan@reader.example" });
       assert.equal(duplicate.status, 400);
       const noConsent = await call("dave", "POST", `${base}/contacts`, { email: "noconsent@reader.example" });
-      const missingEvidence = await call("dave", "POST", `${base}/contacts`, { email: "x@reader.example", consent: { topic: "newsletter", source: "WEB_FORM", policyVersion: "1" } });
+      const missingEvidence = await call("dave", "POST", `${base}/contacts`, { email: "x@reader.example", consent: { mode: "DOCUMENTED", topic: "newsletter", policyVersion: "1" } });
       assert.equal(missingEvidence.body.code, "MAIL_CONSENT_REQUIRED");
+      const impersonated = await call("dave", "POST", `${base}/contacts`, { email: "x@reader.example", consent: { topic: "newsletter", source: "WEB_FORM", policyVersion: "1", evidence: { reference: "form-1" } } });
+      assert.equal(impersonated.status, 422, "staff cannot claim web-form provenance");
       const formula = await call("dave", "POST", `${base}/contacts`, { email: "f@reader.example", firstName: "=HYPERLINK(1)" });
       assert.equal(formula.status, 400);
       const doubleOpt = await call("dave", "POST", `${base}/contacts`, { email: "pending@reader.example", consent: consent("newsletter", { doubleOptIn: true }) });
       assert.ok(doubleOpt.body.data.confirmationToken);
       const withdrawn = await call("dave", "POST", `${base}/contacts`, { email: "gone@reader.example", consent: consent() });
+      await confirmContact(call, withdrawn);
       await call("dave", "POST", `${base}/contacts/${withdrawn.body.data.id}/consents/newsletter/withdraw`, { source: "unsubscribe-link" });
       const suppressed = await call("dave", "POST", `${base}/contacts`, { email: "hidden@partner.example", consent: consent() });
+      await confirmContact(call, suppressed);
       const other = await call("erin", "POST", `/marketing/${state.org2Id}/contacts`, { email: "karry@reader.example", consent: consent() });
       assert.equal(other.status, 201);
+      await confirmContact(call, other);
 
       const audience = await call("dave", "POST", `${base}/audiences`, { name: "Newsletter", topic: "newsletter" });
       const members = await call("dave", "POST", `${base}/audiences/${audience.body.data.id}/contacts`, { contactIds: [granted.body.data.id, noConsent.body.data.id, doubleOpt.body.data.id, withdrawn.body.data.id, suppressed.body.data.id, other.body.data.id] });

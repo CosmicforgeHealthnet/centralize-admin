@@ -11,6 +11,7 @@
 // provider resource cleanup, provider `sent` evidence, and the audience
 // sync rules (consent re-check, provider unsubscribes, suppression, brands).
 
+const { requestConfirmation, documented, confirmContact } = require("./helpers/marketing-consent");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
@@ -46,11 +47,11 @@ test("CosmicForge Mail broadcast cancellation semantics on real PostgreSQL", { t
     assert.equal(response.status, 201, response.text);
     return response.body.data.stepUpId;
   };
-  const consent = (topic = "newsletter") => ({ topic, source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: `form-${crypto.randomUUID().slice(0, 8)}` } });
+  const consent = (topic = "newsletter") => requestConfirmation(topic);
   const newContact = async (email, organizationBase = mbase, user = "dave") => {
     const response = await call(user, "POST", `${organizationBase}/contacts`, { email, firstName: email.split("@")[0], consent: consent() });
     assert.equal(response.status, 201, response.text);
-    return response.body.data;
+    return confirmContact(call, response);
   };
   let templateVersionId;
   const approvedCampaign = async (name, emails) => {

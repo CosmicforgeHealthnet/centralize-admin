@@ -6,6 +6,7 @@
 // limits, the staff-mail emergency stop, alert evaluation and the
 // token-protected metrics endpoint.
 
+const { requestConfirmation, documented, confirmContact } = require("./helpers/marketing-consent");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
@@ -337,9 +338,9 @@ test("CosmicForge Mail M9 operations on real PostgreSQL", { timeout: 300000 }, a
 
       // Spec §13.2 step 4: preflight includes the brand's sending quota.
       const mbase = `/marketing/${cf.organization.id}`;
-      const consent = () => ({ topic: "newsletter", source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: `form-${crypto.randomUUID().slice(0, 8)}` } });
+      const consent = () => requestConfirmation();
       const contacts = [];
-      for (const email of ["q1@reader.example", "q2@reader.example"]) contacts.push((await call("dave", "POST", `${mbase}/contacts`, { email, consent: consent() })).body.data.id);
+      for (const email of ["q1@reader.example", "q2@reader.example"]) contacts.push((await confirmContact(call, await call("dave", "POST", `${mbase}/contacts`, { email, consent: consent() }))).id);
       const audience = await call("dave", "POST", `${mbase}/audiences`, { name: "Quota audience", topic: "newsletter" });
       await call("dave", "POST", `${mbase}/audiences/${audience.body.data.id}/contacts`, { contactIds: contacts });
       const template = await call("dave", "POST", `${mbase}/templates`, { name: "Quota template" });

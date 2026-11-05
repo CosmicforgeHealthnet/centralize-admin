@@ -6,7 +6,7 @@ import { Bold, Italic, Link2, List, ListOrdered, Loader2, Paperclip, Send, Trash
 import ContactPicker from "./ContactPicker";
 import AttachmentViewer from "./AttachmentViewer";
 import PermissionBoundary from "./PermissionBoundary";
-import { useMailbox, usePreferences } from "./hooks";
+import { useEntitlements, useMailbox, usePreferences } from "./hooks";
 import { newIdempotencyKey } from "./mail-utils";
 import { sanitizeForEditor } from "./editor-sanitize";
 import {
@@ -19,10 +19,10 @@ import {
   updateDraft,
   uploadDraftAttachment,
 } from "@/lib/mail.service";
+import * as mail from "@/lib/mail.service";
 import type { Attachment, Draft, DraftMode, Party, SendResult } from "@/types/mail.types";
 
 const AUTOSAVE_MS = 1500;
-const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -52,6 +52,7 @@ export default function ComposeEditor({
   // Preferred sender (spec 15). The server already pre-selects it on new
   // drafts; this covers drafts that were saved without a sender.
   const prefsQ = usePreferences();
+  const entitlements = useEntitlements().data;
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loadError, setLoadError] = useState<unknown>(null);
   const [senderAddressId, setSenderAddressId] = useState<string>("");
@@ -253,18 +254,45 @@ export default function ComposeEditor({
     if (!files || !draft) return;
     setError(null);
     setUploading(true);
+    const problems: string[] = [];
+    // Limits come from the API (GET /me/entitlements); when unavailable the
+    // server remains the authority and answers with a precise error.
+    const limits = entitlements?.limits;
+    let count = attachments.length;
+    let totalBytes = attachments.reduce((sum, a) => sum + a.sizeBytes, 0);
     try {
       for (const file of Array.from(files)) {
-        if (file.size > MAX_ATTACHMENT_BYTES) {
-          setError(`${file.name} is larger than 25 MB.`);
+        if (limits && file.size > limits.attachmentMaxBytes) {
+          problems.push(`${file.name} is larger than the ${mail.formatBytes(limits.attachmentMaxBytes)} per-file limit.`);
           continue;
         }
-        const att = await uploadDraftAttachment(draft.id, file);
-        setAttachments((a) => [...a, att]);
+        if (limits && count >= limits.maxAttachmentsPerMessage) {
+          problems.push(`${file.name} was not attached: a message can have at most ${limits.maxAttachmentsPerMessage} attachments.`);
+          continue;
+        }
+        if (limits && totalBytes + file.size > limits.messageMaxBytes) {
+          problems.push(`${file.name} was not attached: the message would exceed ${mail.formatBytes(limits.messageMaxBytes)}.`);
+          continue;
+        }
+        try {
+          const att = await uploadDraftAttachment(draft.id, file);
+          setAttachments((a) => [...a, att]);
+          count += 1;
+          totalBytes += att.sizeBytes;
+          if (att.scanStatus !== "CLEAN") {
+            problems.push(
+              att.scanStatus === "INFECTED"
+                ? `${file.name} was blocked by malware scanning and cannot be sent. Remove it.`
+                : `${file.name} could not be cleared by malware scanning (${att.scanStatus.toLowerCase().replace(/_/g, " ")}). It cannot be sent until it passes; remove it and try again later.`,
+            );
+          }
+        } catch (err) {
+          const info = classifyMailError(err);
+          problems.push(`${file.name}: ${mail.withReference(info.message, info)}`);
+        }
       }
-    } catch (err) {
-      setError(classifyMailError(err).message);
     } finally {
+      if (problems.length) setError(problems.join(" "));
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }

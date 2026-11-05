@@ -6,6 +6,7 @@
 // restart / ambiguous provider outcomes, plus approval integrity, brand
 // isolation, cancellation, pause, caps and automation versioning.
 
+const { requestConfirmation, documented, confirmContact } = require("./helpers/marketing-consent");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
@@ -41,11 +42,11 @@ test("CosmicForge Mail M7 broadcasts and automation on real PostgreSQL", { timeo
     assert.equal(response.status, 201, response.text);
     return response.body.data.stepUpId;
   };
-  const consent = (topic = "newsletter", extra = {}) => ({ topic, source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: `form-${crypto.randomUUID().slice(0, 8)}` }, ...extra });
+  const consent = (topic = "newsletter", extra = {}) => requestConfirmation(topic, extra);
   const newContact = async (email, extra = {}) => {
     const response = await call("dave", "POST", `${mbase}/contacts`, { email, firstName: email.split("@")[0], consent: consent(), ...extra });
     assert.equal(response.status, 201, response.text);
-    return response.body.data;
+    return confirmContact(call, response);
   };
 
   let templateVersionId;
@@ -749,11 +750,11 @@ test("CosmicForge Mail marketing audit fixes on real PostgreSQL", { timeout: 600
   await addUser("gil", ["cosmicforge", "approve:cosmicforge"]);
   await addUser("hal", ["cosmicforge"]);
 
-  const consent = (topic = "newsletter", extra = {}) => ({ topic, source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: `form-${crypto.randomUUID().slice(0, 8)}` }, ...extra });
+  const consent = (topic = "newsletter", extra = {}) => requestConfirmation(topic, extra);
   const newContact = async (email, topic = "newsletter", extra = {}) => {
     const response = await call("dave", "POST", `${mbase}/contacts`, { email, firstName: email.split("@")[0], consent: consent(topic, extra) });
     assert.equal(response.status, 201, response.text);
-    return response.body.data;
+    return extra.doubleOptIn ? response.body.data : confirmContact(call, response);
   };
   const newVersion = async (key, name, blocks = [{ type: "heading", text: "Hello {{first_name}}" }, { type: "text", text: "News." }]) => {
     const template = await call(key, "POST", `${mbase}/templates`, { name });
@@ -922,7 +923,7 @@ test("CosmicForge Mail marketing audit fixes on real PostgreSQL", { timeout: 600
     await t.test("D20/D3/D4: withdrawn consent needs double opt-in; CSV import is previewed, approved by a second person, never upgrades consent and never triggers welcomes", async () => {
       const withdrawn = await newContact("w20@reader.example");
       await call("dave", "POST", `${mbase}/contacts/${withdrawn.id}/consents/newsletter/withdraw`, { source: "admin" });
-      const regrant = await call("dave", "POST", `${mbase}/contacts/${withdrawn.id}/consents`, consent());
+      const regrant = await call("dave", "POST", `${mbase}/contacts/${withdrawn.id}/consents`, documented());
       assert.equal(regrant.status, 400, regrant.text);
       assert.equal(regrant.body.errors[0].reason, "WITHDRAWN_CONSENT_REQUIRES_DOUBLE_OPT_IN");
       const doi = await call("dave", "POST", `${mbase}/contacts/${withdrawn.id}/consents`, consent("newsletter", { doubleOptIn: true }));
