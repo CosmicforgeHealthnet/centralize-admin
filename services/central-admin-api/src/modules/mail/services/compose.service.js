@@ -295,8 +295,13 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     const { draft } = await loadOwnDraft(user, draftId, "SEND");
     if (!file?.buffer) throw mailError("MAIL_VALIDATION_FAILED", { field: "file" });
     if (file.buffer.length > config.limits.attachmentMaxBytes) throw mailError("MAIL_ATTACHMENT_TOO_LARGE", { maxBytes: config.limits.attachmentMaxBytes });
-    const tooMany = () => mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "TOO_MANY_ATTACHMENTS" });
+    const tooMany = () => mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "TOO_MANY_ATTACHMENTS", maxAttachments: config.limits.maxAttachmentsPerMessage });
     if ((await client.mailAttachment.count({ where: { draftId } })) >= config.limits.maxAttachmentsPerMessage) throw tooMany();
+    // Aggregate message limit is checked here too (before scanning or storing) so
+    // the user learns immediately instead of at send time. Send re-checks it.
+    const existing = await client.mailAttachment.aggregate({ where: { draftId }, _sum: { sizeBytes: true } });
+    const attachedBytes = Number(existing?._sum?.sizeBytes || 0);
+    if (attachedBytes + file.buffer.length > config.limits.messageMaxBytes) throw mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "MESSAGE_TOO_LARGE", maxBytes: config.limits.messageMaxBytes, sizeBytes: attachedBytes + file.buffer.length, status: 413 }, "Adding this file would make the message too large to send.");
     const filename = String(file.originalname || "attachment").replace(/[\r\n\u0000"\\/]/g, "_").slice(0, 255);
     const contentType = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(String(file.mimetype || "")) ? file.mimetype.toLowerCase() : "application/octet-stream";
     const verdict = await evaluateAttachment(scanner, { filename, contentType, buffer: file.buffer, maxBytes: config.limits.attachmentMaxBytes });
