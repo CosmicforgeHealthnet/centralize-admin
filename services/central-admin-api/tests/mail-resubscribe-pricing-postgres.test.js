@@ -7,6 +7,7 @@
 // provider quota observations / defer, brand isolation and the behaviour of
 // the same code on a database without migration 37.
 
+const { requestConfirmation, documented, confirmContact } = require("./helpers/marketing-consent");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -69,11 +70,11 @@ test("final gaps 2+3: re-subscription, provider state, pricing, cost estimates a
     assert.equal(response.status, 201, response.text);
     return response.body.data.stepUpId;
   };
-  const consent = (extra = {}) => ({ topic: "newsletter", source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: `form-${crypto.randomUUID().slice(0, 8)}` }, ...extra });
+  const consent = (extra = {}) => requestConfirmation("newsletter", extra);
   const newContact = async (email) => {
     const response = await call("dave", "POST", `${mbase}/contacts`, { email, firstName: email.split("@")[0], consent: consent() });
     assert.equal(response.status, 201, response.text);
-    return response.body.data;
+    return confirmContact(call, response);
   };
   // The contact unsubscribes through the provider's link (brand webhook).
   const providerUnsubscribe = async (email) => {
@@ -361,7 +362,9 @@ test("final gaps 2+3: re-subscription, provider state, pricing, cost estimates a
       assert.equal(fake.state.contacts.get(email).unsubscribed, true, "nothing was sent to the provider");
     }
     // A contact the provider never unsubscribed needs no request at all.
-    const plain = await newContact("hana@reader.example");
+    // (saved without permission, then confirmed by the contact; staff cannot
+    // re-request confirmation of an already granted consent)
+    const plain = (await call("dave", "POST", `${mbase}/contacts`, { email: "hana@reader.example" })).body.data;
     const none = await doubleOptIn(plain.id);
     assert.equal(none, null);
     // A request blocked after it was opened is refused at approval time.
@@ -595,19 +598,19 @@ test("final gaps 2+3 on a database without migration 37: endpoints answer 503, c
   await harness.mail.services.providerQuota.flush();
 
   // Consent: provider unsubscribe withdraws, a double opt-in confirms, no request table needed.
-  const contact = (await call("dave", "POST", `${mbase}/contacts`, { email: "pre@reader.example", consent: { topic: "newsletter", source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: "form-pre" } } })).body.data;
+  const contact = await confirmContact(call, await call("dave", "POST", `${mbase}/contacts`, { email: "pre@reader.example", consent: requestConfirmation() }));
   const remote = { id: "fake_contact_pre", email: "pre@reader.example", unsubscribed: true, segments: new Set() };
   fake.state.contacts.set("pre@reader.example", remote);
   const at = harness.clock().toISOString();
   await postWebhook(main.base, harness.clock, "contact.updated", { id: remote.id, email: "pre@reader.example", unsubscribed: true, created_at: at, updated_at: at }, { path: "/webhooks/resend/brand/cosmicforge", secret: BRAND_WEBHOOK_SECRETS.cosmicforge });
   await work(1);
   assert.equal((await client.marketingConsent.findFirst({ where: { contactId: contact.id } })).status, "WITHDRAWN", "provider unsubscribe still withdraws consent");
-  const recorded = await call("dave", "POST", `${mbase}/contacts/${contact.id}/consents`, { topic: "newsletter", source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: "form-pre-2" }, doubleOptIn: true });
+  const recorded = await call("dave", "POST", `${mbase}/contacts/${contact.id}/consents`, requestConfirmation());
   const confirmed = await call(null, "POST", "/public/consent/confirm", { token: recorded.body.data.confirmationToken });
   assert.equal(confirmed.status, 200, confirmed.text);
 
   // A broadcast still dispatches and finalizes; the report says spend UNAVAILABLE.
-  const sendTo = (await call("dave", "POST", `${mbase}/contacts`, { email: "send@reader.example", consent: { topic: "newsletter", source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: "form-send" } } })).body.data;
+  const sendTo = await confirmContact(call, await call("dave", "POST", `${mbase}/contacts`, { email: "send@reader.example", consent: requestConfirmation() }));
   const template = await call("dave", "POST", `${mbase}/templates`, { name: "Pre-37" });
   const version = await call("dave", "POST", `${mbase}/templates/${template.body.data.id}/versions`, { subject: "Hi {{first_name}}", blocks: [{ type: "text", text: "Hello from {{brand_name}}." }] });
   assert.equal(version.status, 201, version.text);

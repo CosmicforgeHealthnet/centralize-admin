@@ -22,7 +22,18 @@ const { iso, decodeCursor, encodeCursor, pageLimit } = require("../services/seri
 const { isBrandSender, replyToProblem, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 const { isReservedSender } = require("../security/reserved-senders");
 
-const CONSENT_SOURCES = new Set(["WEB_FORM", "IMPORT", "MANUAL", "API", "EVENT"]);
+// Consent sources describe the channel through which Mail itself received the
+// permission. They are always set by the server for the channel that handled
+// the request; a browser can never claim WEB_FORM, API or EVENT provenance.
+// Admin-recorded permission is MANUAL; CSV imports are IMPORT (the original
+// collection channel the approver attests to is kept in the evidence).
+const ADMIN_CONSENT_SOURCE = "MANUAL";
+const ADMIN_CONSENT_MODES = new Set(["REQUEST_CONFIRMATION", "DOCUMENTED"]);
+const IMPORT_ORIGINAL_CHANNELS = new Set(["WEB_FORM", "EVENT", "OTHER"]);
+// Previously documented consent is granted only after a second brand approver
+// verifies the evidence (same four-eyes rule as CSV imports).
+const CONSENT_APPROVAL_TTL_MS = 7 * 24 * 3600000;
+const CONSENT_REQUEST_TARGET = "marketing_consent_request";
 const TOPIC = /^[a-z0-9][a-z0-9_-]{1,63}$/;
 const POLICY_VERSION = /^[A-Za-z0-9._-]{1,32}$/;
 const MATERIAL_FIELDS = ["name", "topic", "senderAddressId", "replyTo", "subjectOverride", "templateVersionId", "audienceId", "segmentId", "frequencyCapHours"];
@@ -57,15 +68,17 @@ function cleanAttributes(attributes) {
   return output;
 }
 
-function validateConsentInput(consent) {
+// Validates the permission fields shared by every channel. `source` is
+// decided by the caller from the channel, never taken from the request.
+function validateConsentInput(consent, { source, evidenceRequired = true } = {}) {
   if (!consent || typeof consent !== "object") throw mailError("MAIL_CONSENT_REQUIRED", { field: "consent" });
   const topic = String(consent.topic || "").trim().toLowerCase();
   if (!TOPIC.test(topic)) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.topic" });
-  if (!CONSENT_SOURCES.has(consent.source)) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.source" });
   if (!POLICY_VERSION.test(String(consent.policyVersion || ""))) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.policyVersion" });
   const evidence = consent.evidence;
   const reference = typeof evidence === "string" ? evidence : evidence?.reference;
-  if (!reference || String(reference).trim().length < 3) throw mailError("MAIL_CONSENT_REQUIRED", { field: "consent.evidence" });
+  const hasReference = reference != null && String(reference).trim().length >= 3;
+  if (evidenceRequired && !hasReference) throw mailError("MAIL_CONSENT_REQUIRED", { field: "consent.evidence" });
   // Spec §13.4: record the jurisdiction the consent was captured in when known.
   const country = consent.country ?? evidence?.country ?? null;
   if (country != null && country !== "" && !/^[A-Z]{2}$/.test(String(country).toUpperCase())) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.country" });
@@ -73,14 +86,14 @@ function validateConsentInput(consent) {
   if (consentedAt && (Number.isNaN(consentedAt.getTime()) || consentedAt > new Date())) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.consentedAt" });
   return {
     topic,
-    source: consent.source,
+    source,
     policyVersion: String(consent.policyVersion),
     doubleOptIn: Boolean(consent.doubleOptIn),
     evidence: {
-      reference: String(reference).slice(0, 500),
+      reference: hasReference ? String(reference).trim().slice(0, 500) : null,
       ipAddress: evidence?.ipAddress ? String(evidence.ipAddress).slice(0, 64) : null,
       formUrl: evidence?.formUrl ? String(evidence.formUrl).slice(0, 500) : null,
-      capturedText: evidence?.capturedText ? String(evidence.capturedText).slice(0, 1000) : null,
+      capturedText: (evidence?.capturedText || evidence?.note) ? String(evidence.capturedText || evidence.note).slice(0, 1000) : null,
       country: country ? String(country).toUpperCase() : null,
     },
     consentedAt,
@@ -91,15 +104,36 @@ function hashToken(token) {
   return crypto.createHash("sha256").update(String(token)).digest("hex");
 }
 
+// Admin-recorded permission: the browser may not choose the source. An
+// explicit MANUAL (or nothing) is accepted for compatibility; anything else is
+// an attempt to claim another channel's provenance and is refused.
+function adminConsentMode(consent) {
+  if (!consent || typeof consent !== "object") throw mailError("MAIL_CONSENT_REQUIRED", { field: "consent" });
+  if (consent.source != null && consent.source !== "" && consent.source !== ADMIN_CONSENT_SOURCE) {
+    throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.source", reason: "CONSENT_SOURCE_SET_BY_SERVER", status: 422 });
+  }
+  if (consent.mode != null && !ADMIN_CONSENT_MODES.has(consent.mode)) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.mode" });
+  // Legacy clients: doubleOptIn true = ask the contact to confirm; false used to
+  // grant immediately and now becomes a documented-consent approval request.
+  const mode = consent.mode || (consent.doubleOptIn === false ? "DOCUMENTED" : "REQUEST_CONFIRMATION");
+  if (consent.mode && consent.doubleOptIn != null && Boolean(consent.doubleOptIn) !== (mode === "REQUEST_CONFIRMATION")) {
+    throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.doubleOptIn", reason: "CONFLICTS_WITH_MODE" });
+  }
+  const validated = validateConsentInput(consent, { source: ADMIN_CONSENT_SOURCE, evidenceRequired: mode === "DOCUMENTED" });
+  return { mode, consent: { ...validated, doubleOptIn: mode === "REQUEST_CONFIRMATION" } };
+}
+
 // Durable trigger for consent-backed welcome automations (M7). Idempotent per
 // consent grant; the automation engine re-checks consent before every send.
 // Imported consents are recorded for the audit trail but never trigger:
 // a list upload is not a fresh sign-up, so it must not enroll welcome flows.
+// Previously documented consent (approved by a second person) is likewise not
+// a fresh sign-up and never triggers.
 async function recordConsentGranted(tx, { organizationId, contactId, consent, at, origin = null }) {
   const occurredAt = at || consent.confirmedAt || consent.consentedAt || new Date();
-  const imported = origin === "IMPORT";
+  const historical = origin === "IMPORT" || origin === "DOCUMENTED";
   await tx.marketingTriggerEvent.createMany({
-    data: [{ organizationId, source: "CONSENT", eventType: "consent.granted", eventId: `${consent.id}:${occurredAt.getTime()}`, contactId, payload: { topic: consent.topic, policyVersion: consent.policyVersion, ...(imported ? { origin: "IMPORT" } : {}) }, occurredAt, ...(imported ? { status: "IGNORED", error: "IMPORTED_CONSENT_NOT_A_TRIGGER", processedAt: occurredAt } : {}) }],
+    data: [{ organizationId, source: "CONSENT", eventType: "consent.granted", eventId: `${consent.id}:${occurredAt.getTime()}`, contactId, payload: { topic: consent.topic, policyVersion: consent.policyVersion, ...(historical ? { origin } : {}) }, occurredAt, ...(historical ? { status: "IGNORED", error: `${origin === "IMPORT" ? "IMPORTED" : "DOCUMENTED"}_CONSENT_NOT_A_TRIGGER`, processedAt: occurredAt } : {}) }],
     skipDuplicates: true,
   });
 }
@@ -173,21 +207,139 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     return { consent: row, confirmationToken: exposeToken ? token : null, confirmationEmail };
   }
 
+  // ------------------------------------------------------------- consent choices
+  // Topics and policy versions are chosen from configured values plus the
+  // values this brand already uses (campaign topics, existing consents), so
+  // historical records stay valid and new ones cannot invent free text.
+  async function consentChoices(organizationId) {
+    const configured = config.marketingConsent || {};
+    const [campaignTopics, consentRows] = await Promise.all([
+      client.marketingEmailCampaign.findMany({ where: { organizationId }, select: { topic: true }, distinct: ["topic"], take: 200 }),
+      client.marketingConsent.findMany({ where: { organizationId }, select: { topic: true, policyVersion: true }, distinct: ["topic", "policyVersion"], take: 500 }),
+    ]);
+    const unique = (values) => [...new Set(values.filter(Boolean))];
+    const configuredTopics = (configured.topics || []).filter((t) => TOPIC.test(t));
+    const configuredVersions = (configured.policyVersions || []).filter((v) => POLICY_VERSION.test(v));
+    const topics = unique([...(configuredTopics.length ? configuredTopics : ["newsletter"]), ...campaignTopics.map((r) => r.topic), ...consentRows.map((r) => r.topic)]).filter((t) => TOPIC.test(t));
+    const policyVersions = unique([...configuredVersions, ...consentRows.map((r) => r.policyVersion)]).filter((v) => POLICY_VERSION.test(v));
+    return { topics, policyVersions, currentPolicyVersion: configuredVersions[0] || null, policyVersionsConfigured: configuredVersions.length > 0 };
+  }
+
+  async function consentOptions(user, organizationId) {
+    await scope(user, organizationId, "VIEW");
+    const choices = await consentChoices(organizationId);
+    return { ...choices, importOriginalChannels: [...IMPORT_ORIGINAL_CHANNELS], adminModes: [...ADMIN_CONSENT_MODES], approvalTtlHours: CONSENT_APPROVAL_TTL_MS / 3600000 };
+  }
+
+  async function assertConsentChoice(organizationId, consent) {
+    const choices = await consentChoices(organizationId);
+    if (!choices.topics.includes(consent.topic)) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.topic", reason: "TOPIC_NOT_CONFIGURED", status: 422 });
+    if (!choices.policyVersions.length) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.policyVersion", reason: "CONSENT_POLICY_VERSION_NOT_CONFIGURED", status: 422 });
+    if (!choices.policyVersions.includes(consent.policyVersion)) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.policyVersion", reason: "POLICY_VERSION_NOT_CONFIGURED", status: 422 });
+  }
+
+  // ------------------------------------------------------------- documented consent approval
+  // A request is an append-only audit record; nothing reaches the consent
+  // table (and so nothing becomes eligible) until a different brand approver
+  // accepts it. Decisions are append-only too and single use.
+  async function requestDocumentedConsentTx(tx, user, organizationId, contact, consent, context) {
+    const requestId = crypto.randomUUID();
+    const requestedAt = clock();
+    const expiresAt = new Date(requestedAt.getTime() + CONSENT_APPROVAL_TTL_MS);
+    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONSENT_APPROVAL_REQUESTED", targetType: CONSENT_REQUEST_TARGET, targetId: requestId, organizationId, metadata: {
+      contactId: contact.id, topic: consent.topic, policyVersion: consent.policyVersion, evidenceReference: consent.evidence.reference,
+      evidenceNote: consent.evidence.capturedText, country: consent.evidence.country, consentedAt: iso(consent.consentedAt), requestedAt: iso(requestedAt), expiresAt: iso(expiresAt),
+    } }, context, tx);
+    return { requestId, status: "PENDING_APPROVAL", topic: consent.topic, expiresAt: iso(expiresAt) };
+  }
+
+  async function consentRequests(organizationId, where = {}) {
+    const since = new Date(clock().getTime() - CONSENT_APPROVAL_TTL_MS);
+    const [requests, decisions] = await Promise.all([
+      client.mailAuditEvent.findMany({ where: { organizationId, action: "MARKETING_CONSENT_APPROVAL_REQUESTED", targetType: CONSENT_REQUEST_TARGET, createdAt: { gte: since }, ...where }, orderBy: { createdAt: "desc" }, take: 200 }),
+      client.mailAuditEvent.findMany({ where: { organizationId, action: "MARKETING_CONSENT_APPROVAL_DECIDED", targetType: CONSENT_REQUEST_TARGET, createdAt: { gte: since } }, select: { targetId: true }, take: 1000 }),
+    ]);
+    const decided = new Set(decisions.map((d) => d.targetId));
+    return requests.filter((r) => !decided.has(r.targetId) && new Date(r.metadata?.expiresAt || 0) > clock());
+  }
+
+  async function listConsentApprovals(user, organizationId) {
+    await scope(user, organizationId, "VIEW");
+    const pending = await consentRequests(organizationId);
+    const contacts = pending.length ? await client.marketingContact.findMany({ where: { organizationId, id: { in: pending.map((r) => r.metadata.contactId) } }, select: { id: true, email: true } }) : [];
+    const emails = new Map(contacts.map((c) => [c.id, c.email]));
+    return pending.map((r) => ({ requestId: r.targetId, contactId: r.metadata.contactId, email: emails.get(r.metadata.contactId) || null, topic: r.metadata.topic, policyVersion: r.metadata.policyVersion,
+      evidenceReference: r.metadata.evidenceReference, evidenceNote: r.metadata.evidenceNote || null, country: r.metadata.country || null, consentedAt: r.metadata.consentedAt || null,
+      requestedAt: r.metadata.requestedAt, expiresAt: r.metadata.expiresAt, requestedByMe: r.actorAdminUserId === user.id }));
+  }
+
+  async function decideConsentApproval(user, organizationId, requestId, { decision, note } = {}, context) {
+    await scope(user, organizationId, "APPROVE");
+    if (!policy.isUuid(requestId)) throw mailError("MAIL_NOT_FOUND", { resource: "consent_request" });
+    if (!["APPROVE", "REJECT"].includes(decision)) throw mailError("MAIL_VALIDATION_FAILED", { field: "decision" });
+    return client.$transaction(async (tx) => {
+      // One decision per request even under concurrent approvers.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`consent-request:${requestId}`}))`;
+      const request = await tx.mailAuditEvent.findFirst({ where: { organizationId, action: "MARKETING_CONSENT_APPROVAL_REQUESTED", targetType: CONSENT_REQUEST_TARGET, targetId: requestId } });
+      if (!request) throw mailError("MAIL_NOT_FOUND", { resource: "consent_request" });
+      const decided = await tx.mailAuditEvent.findFirst({ where: { organizationId, action: "MARKETING_CONSENT_APPROVAL_DECIDED", targetType: CONSENT_REQUEST_TARGET, targetId: requestId } });
+      if (decided) throw mailError("MAIL_INVALID_TRANSITION", { reason: "CONSENT_REQUEST_ALREADY_DECIDED" });
+      if (!(new Date(request.metadata?.expiresAt || 0) > clock())) throw mailError("MAIL_INVALID_TRANSITION", { reason: "CONSENT_REQUEST_EXPIRED" });
+      if (request.actorAdminUserId === user.id) throw mailError("MAIL_FORBIDDEN", { reason: "CONSENT_APPROVER_MUST_DIFFER_FROM_REQUESTER" });
+      const meta = request.metadata;
+      const contact = await tx.marketingContact.findUnique({ where: { id: meta.contactId } });
+      if (!contact || contact.organizationId !== organizationId) throw mailError("MAIL_NOT_FOUND", { resource: "contact" });
+      const prior = await tx.marketingConsent.findUnique({ where: { contactId_topic: { contactId: contact.id, topic: meta.topic } } });
+      let status = "REJECTED";
+      if (decision === "APPROVE") {
+        // State may have changed since the request: never re-grant a withdrawal
+        // (the contact must confirm again) and never touch an existing grant.
+        if (prior?.status === "WITHDRAWN") throw mailError("MAIL_INVALID_TRANSITION", { reason: "CONSENT_WITHDRAWN_SINCE_REQUEST" });
+        if (prior?.status === "GRANTED") throw mailError("MAIL_INVALID_TRANSITION", { reason: "CONSENT_ALREADY_GRANTED" });
+        const approvedAt = clock();
+        await upsertConsentTx(tx, user, organizationId, contact, {
+          topic: meta.topic, source: ADMIN_CONSENT_SOURCE, policyVersion: meta.policyVersion, doubleOptIn: false,
+          consentedAt: meta.consentedAt ? new Date(meta.consentedAt) : null,
+          evidence: { reference: meta.evidenceReference, ipAddress: null, formUrl: null, capturedText: meta.evidenceNote || null, country: meta.country || null,
+            verification: { method: "INDEPENDENT_APPROVAL", requestId, requestedBy: request.actorAdminUserId, requestedAt: meta.requestedAt, approvedBy: user.id, approvedAt: iso(approvedAt) } },
+        }, { origin: "DOCUMENTED" });
+        status = "GRANTED";
+      }
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONSENT_APPROVAL_DECIDED", targetType: CONSENT_REQUEST_TARGET, targetId: requestId, organizationId,
+        metadata: { decision, contactId: meta.contactId, topic: meta.topic, requestedBy: request.actorAdminUserId, note: note ? String(note).slice(0, 300) : null } }, context, tx);
+      return { requestId, decision, topic: meta.topic, consentStatus: status === "GRANTED" ? "GRANTED" : prior?.status || "NONE" };
+    });
+  }
+
+  // Admin permission for an existing (or just created) contact. Returns the
+  // resulting marketing-permission state; never grants on staff assertion alone.
+  async function applyAdminPermissionTx(tx, user, organizationId, contact, mode, consent, prior, context) {
+    if (prior?.status === "GRANTED") throw mailError("MAIL_INVALID_TRANSITION", { reason: "CONSENT_ALREADY_GRANTED" });
+    if (mode === "DOCUMENTED") {
+      // A withdrawn consent comes back only through the contact's own confirmation.
+      if (prior?.status === "WITHDRAWN") throw mailError("MAIL_CONSENT_REQUIRED", { field: "consent.doubleOptIn", reason: "WITHDRAWN_CONSENT_REQUIRES_DOUBLE_OPT_IN" });
+      return { permission: "PENDING_APPROVAL", consentApproval: await requestDocumentedConsentTx(tx, user, organizationId, contact, consent, context), confirmationToken: null, confirmationEmail: null };
+    }
+    const evidence = { ...consent.evidence, reference: consent.evidence.reference || "admin-requested-confirmation", requestedBy: user.id };
+    const result = await upsertConsentTx(tx, user, organizationId, contact, { ...consent, evidence });
+    return { permission: result.consent.status, consentApproval: null, confirmationToken: result.confirmationToken, confirmationEmail: result.confirmationEmail };
+  }
+
   async function createContact(user, organizationId, input, context) {
     await scope(user, organizationId, "EDIT");
     const email = normalizeAddress(input.email);
     if (!email) throw mailError("MAIL_VALIDATION_FAILED", { field: "email" });
-    const consent = input.consent ? validateConsentInput(input.consent) : null;
+    const parsed = input.consent ? adminConsentMode(input.consent) : null;
+    if (parsed) await assertConsentChoice(organizationId, parsed.consent);
     return client.$transaction(async (tx) => {
       const existing = await tx.marketingContact.findUnique({ where: { organizationId_email: { organizationId, email } } });
       if (existing) throw mailError("MAIL_VALIDATION_FAILED", { field: "email", reason: "DUPLICATE_CONTACT", contactId: existing.id });
-      const contact = await tx.marketingContact.create({ data: { organizationId, email, firstName: cleanName(input.firstName), lastName: cleanName(input.lastName), attributes: cleanAttributes(input.attributes) || undefined, source: consent ? consent.source.toLowerCase() : "manual", createdBy: user.id } });
-      let confirmationToken = null;
-      let confirmationEmail = null;
-      if (consent) ({ confirmationToken, confirmationEmail } = await upsertConsentTx(tx, user, organizationId, contact, consent));
+      // Origin is established by the server: staff created this contact here.
+      const contact = await tx.marketingContact.create({ data: { organizationId, email, firstName: cleanName(input.firstName), lastName: cleanName(input.lastName), attributes: cleanAttributes(input.attributes) || undefined, source: "manual", createdBy: user.id } });
       await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONTACT_CREATED", targetType: "marketing_contact", targetId: contact.id, organizationId }, context, tx);
+      const outcome = parsed ? await applyAdminPermissionTx(tx, user, organizationId, contact, parsed.mode, parsed.consent, null, context) : { permission: "NOT_REQUESTED", consentApproval: null, confirmationToken: null, confirmationEmail: null };
       const full = await tx.marketingContact.findUnique({ where: { id: contact.id }, include: { consents: true } });
-      return { ...serializeContact(full), confirmationToken, confirmationEmail };
+      return { ...serializeContact(full), marketingPermission: outcome.permission, consentApproval: outcome.consentApproval, confirmationToken: outcome.confirmationToken, confirmationEmail: outcome.confirmationEmail };
     });
   }
 
@@ -234,14 +386,14 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
   async function recordConsent(user, organizationId, contactId, input, context) {
     await scope(user, organizationId, "EDIT");
     const contact = await loadContact(organizationId, contactId);
-    const consent = validateConsentInput(input);
+    const { mode, consent } = adminConsentMode(input);
+    await assertConsentChoice(organizationId, consent);
     // A withdrawn consent is re-granted only through double opt-in: the
     // contact must confirm again, an admin cannot re-subscribe them.
     const prior = (contact.consents || []).find((entry) => entry.topic === consent.topic);
-    if (prior?.status === "WITHDRAWN" && !consent.doubleOptIn) throw mailError("MAIL_CONSENT_REQUIRED", { field: "consent.doubleOptIn", reason: "WITHDRAWN_CONSENT_REQUIRES_DOUBLE_OPT_IN" });
-    const result = await client.$transaction((tx) => upsertConsentTx(tx, user, organizationId, contact, consent));
-    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONSENT_UPDATED", targetType: "marketing_contact", targetId: contactId, organizationId }, context);
-    return { topic: result.consent.topic, status: result.consent.status, confirmationToken: result.confirmationToken, confirmationEmail: result.confirmationEmail };
+    const outcome = await client.$transaction((tx) => applyAdminPermissionTx(tx, user, organizationId, contact, mode, consent, prior, context));
+    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONSENT_UPDATED", targetType: "marketing_contact", targetId: contactId, organizationId, metadata: { mode } }, context);
+    return { topic: consent.topic, status: outcome.permission, consentApproval: outcome.consentApproval, confirmationToken: outcome.confirmationToken, confirmationEmail: outcome.confirmationEmail };
   }
 
   async function withdrawConsent(user, organizationId, contactId, topic, { source } = {}, context) {
@@ -277,7 +429,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
   // Imports never upgrade PENDING_CONFIRMATION or WITHDRAWN consent, store
   // consentedAt only when the file states it, and never trigger welcome
   // automations. File name and sha256 are kept in each consent's evidence.
-  async function importCsv(user, organizationId, { buffer, topic, source, policyVersion, evidenceReference, audienceId, attestOptIn, country, fileName, mode, fileSha256 }, context) {
+  async function importCsv(user, organizationId, { buffer, topic, source, originalChannel, policyVersion, evidenceReference, audienceId, attestOptIn, country, fileName, mode, fileSha256 }, context) {
     if (mode != null && mode !== "" && !["preview", "commit"].includes(mode)) throw mailError("MAIL_VALIDATION_FAILED", { field: "mode" });
     const commit = mode === "commit";
     await scope(user, organizationId, commit ? "APPROVE" : "EDIT");
@@ -285,8 +437,13 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     // Purchased, scraped or unverifiable lists are not eligible: every import
     // must carry an evidence reference and an explicit opt-in attestation.
     if (String(attestOptIn) !== "true") throw mailError("MAIL_CONSENT_REQUIRED", { field: "attestOptIn" });
-    if (!["WEB_FORM", "EVENT", "IMPORT"].includes(source)) throw mailError("MAIL_VALIDATION_FAILED", { field: "source" });
-    const baseConsent = validateConsentInput({ topic, source, policyVersion, evidence: evidenceReference, country });
+    // The consent arrives through the IMPORT channel. The approver attests where
+    // people originally opted in; legacy `source` values map onto that.
+    const channel = originalChannel || ({ WEB_FORM: "WEB_FORM", EVENT: "EVENT", IMPORT: "OTHER" })[source];
+    if (!IMPORT_ORIGINAL_CHANNELS.has(channel) || (originalChannel && source && source !== "IMPORT" && source !== originalChannel)) throw mailError("MAIL_VALIDATION_FAILED", { field: "originalChannel" });
+    const validated = validateConsentInput({ topic, policyVersion, evidence: evidenceReference, country }, { source: "IMPORT" });
+    await assertConsentChoice(organizationId, validated);
+    const baseConsent = { ...validated, evidence: { ...validated.evidence, originalChannel: channel } };
     let audience = null;
     if (audienceId) {
       audience = policy.isUuid(audienceId) ? await client.marketingAudience.findUnique({ where: { id: audienceId } }) : null;
@@ -294,7 +451,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     }
     const sha = crypto.createHash("sha256").update(buffer).digest("hex");
     const name = fileName ? String(fileName).replace(/[\u0000-\u001f\u007f<>"'`=+@]/g, "").trim().slice(0, 200) || null : null;
-    const paramsSha256 = crypto.createHash("sha256").update(JSON.stringify({ topic: baseConsent.topic, source, policyVersion: baseConsent.policyVersion, evidence: baseConsent.evidence.reference, country: baseConsent.evidence.country, audienceId: audience?.id || null })).digest("hex");
+    const paramsSha256 = crypto.createHash("sha256").update(JSON.stringify({ topic: baseConsent.topic, source: channel, policyVersion: baseConsent.policyVersion, evidence: baseConsent.evidence.reference, country: baseConsent.evidence.country, audienceId: audience?.id || null })).digest("hex");
     let preview = null;
     if (commit) {
       if (String(fileSha256 || "").toLowerCase() !== sha) throw mailError("MAIL_VALIDATION_FAILED", { field: "fileSha256", reason: "FILE_DIFFERS_FROM_PREVIEW" });
@@ -1189,7 +1346,10 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
   }
 
   return {
-    organizations, senderIdentities, createContact, listContacts, getContact, updateContact, recordConsent, withdrawConsent, confirmConsent, importCsv,
+    organizations,
+    consentOptions,
+    listConsentApprovals,
+    decideConsentApproval, senderIdentities, createContact, listContacts, getContact, updateContact, recordConsent, withdrawConsent, confirmConsent, importCsv,
     listSuppressions, createSuppression, liftSuppression, listAudiences, createAudience, getAudience, updateAudience, changeAudienceMembers,
     createSegment, listSegments, previewSegment, renderPreview, listTemplates, createTemplate, getTemplate, createTemplateVersion, legacyTemplates,
     getClassification, setClassification, approveTemplateVersion, templateQa, templatePolicy: templates,

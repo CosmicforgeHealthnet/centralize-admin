@@ -289,6 +289,13 @@ function loadMailConfig(env = process.env) {
     broadcastDispatchEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_BROADCAST_DISPATCH_ENABLED),
     automationEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_AUTOMATION_ENABLED),
     confirmationEmailsEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_MARKETING_CONFIRMATION_EMAILS_ENABLED),
+    // Contacts & Consent choices: allowed consent topics and privacy-policy
+    // versions (comma separated; the first policy version is the current one).
+    // Values already used by a brand stay valid so history is never broken.
+    marketingConsent: {
+      topics: list(env.MAIL_MARKETING_CONSENT_TOPICS),
+      policyVersions: String(env.MAIL_MARKETING_CONSENT_POLICY_VERSIONS ?? "").split(",").map((entry) => entry.trim()).filter(Boolean),
+    },
     // Campaign test sends (spec §5.5, §13.2 step 3): to active staff only.
     testSendsEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_MARKETING_TEST_SENDS_ENABLED),
     testSend: {

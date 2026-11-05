@@ -32,6 +32,7 @@ function baseEnv(overrides = {}) {
   return {
     NODE_ENV: "test",
     AUTH_MFA_ENCRYPTION_KEYS: process.env.AUTH_MFA_ENCRYPTION_KEYS,
+    ...require("./marketing-consent").CONSENT_ENV,
     MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true", MAIL_MARKETING_ENABLED: "true", MAIL_WORKER_ENABLED: "true",
     MAIL_BROADCAST_DISPATCH_ENABLED: "true", MAIL_AUTOMATION_ENABLED: "true",
     MAIL_PROVIDER: "fake", RESEND_WEBHOOK_SECRET: WEBHOOK_SECRET,
@@ -118,7 +119,7 @@ function createHarness(client, { env = {}, clockStart = Date.now() } = {}) {
     marketingAdapter: extra.marketingAdapter || marketingAdapter,
     storageBackend: backend,
     encryption: extra.encryption,
-    scanner: signatureScanner(),
+    scanner: extra.scanner || signatureScanner(),
     logger: { info() {}, warn() {}, error() {} },
     clock,
   });

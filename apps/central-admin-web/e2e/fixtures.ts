@@ -6,6 +6,8 @@ type Json = Record<string, unknown> | unknown[] | string | number | boolean | nu
 export interface MockReply {
   status?: number;
   body: Json;
+  /** Non-JSON replies (e.g. a reverse proxy's HTML error page). */
+  contentType?: string;
 }
 export type MockHandler = (req: Request, url: URL, match: RegExpMatchArray) => MockReply | Promise<MockReply>;
 
@@ -79,7 +81,7 @@ export class MockApi {
       const match = url.pathname.match(h.pattern);
       if (!match) continue;
       const reply = await h.handler(req, url, match);
-      return route.fulfill({ status: reply.status ?? 200, headers, contentType: "application/json", body: JSON.stringify(reply.body) });
+      return route.fulfill({ status: reply.status ?? 200, headers, contentType: reply.contentType ?? "application/json", body: typeof reply.body === "string" ? reply.body : JSON.stringify(reply.body) });
     }
     this.unmatched.push(`${method} ${url.pathname}`);
     return route.fulfill({ status: 404, headers, contentType: "application/json", body: JSON.stringify({ success: false, code: "E2E_UNMOCKED", message: `Unmocked ${method} ${url.pathname}` }) });
