@@ -477,6 +477,8 @@ export const MAIL_OPERATIONS = {
   getMarketingCampaignsRecipients: { method: "GET", path: "/marketing/{orgId}/campaigns/{campaignId}/recipients", status: 200 },
   getMarketingCampaignsReport: { method: "GET", path: "/marketing/{orgId}/campaigns/{campaignId}/report", status: 200 },
   getMarketingCampaignsSnapshotsBySnapshotId: { method: "GET", path: "/marketing/{orgId}/campaigns/{campaignId}/snapshots/{snapshotId}", status: 200 },
+  getMarketingConsentApprovals: { method: "GET", path: "/marketing/{orgId}/consent-approvals", status: 200 },
+  getMarketingConsentOptions: { method: "GET", path: "/marketing/{orgId}/consent-options", status: 200 },
   getMarketingContacts: { method: "GET", path: "/marketing/{orgId}/contacts", status: 200 },
   getMarketingContactsByContactId: { method: "GET", path: "/marketing/{orgId}/contacts/{contactId}", status: 200 },
   getMarketingContactsProviderState: { method: "GET", path: "/marketing/{orgId}/contacts/{contactId}/provider-state", status: 200 },
@@ -602,6 +604,7 @@ export const MAIL_OPERATIONS = {
   postMarketingCampaignsSchedule: { method: "POST", path: "/marketing/{orgId}/campaigns/{campaignId}/schedule", status: 201 },
   postMarketingCampaignsSubmit: { method: "POST", path: "/marketing/{orgId}/campaigns/{campaignId}/submit", status: 200 },
   postMarketingCampaignsTestSend: { method: "POST", path: "/marketing/{orgId}/campaigns/{campaignId}/test-send", status: 202 },
+  postMarketingConsentApprovalsDecision: { method: "POST", path: "/marketing/{orgId}/consent-approvals/{requestId}/decision", status: 200 },
   postMarketingContacts: { method: "POST", path: "/marketing/{orgId}/contacts", status: 201 },
   postMarketingContactsConsents: { method: "POST", path: "/marketing/{orgId}/contacts/{contactId}/consents", status: 201 },
   postMarketingContactsConsentsWithdraw: { method: "POST", path: "/marketing/{orgId}/contacts/{contactId}/consents/{topic}/withdraw", status: 200 },
@@ -800,6 +803,10 @@ export interface MailResponses {
   getMarketingCampaignsReport: Record<string, unknown>;
   /** Immutable snapshot */
   getMarketingCampaignsSnapshotsBySnapshotId: Record<string, unknown>;
+  /** Pending documented-consent approval requests */
+  getMarketingConsentApprovals: Record<string, unknown>;
+  /** Configured consent topics, privacy-policy versions and import channels for the brand */
+  getMarketingConsentOptions: Record<string, unknown>;
   /** Contacts */
   getMarketingContacts: Record<string, unknown>;
   /** Contact */
@@ -1050,13 +1057,15 @@ export interface MailResponses {
   postMarketingCampaignsSubmit: Record<string, unknown>;
   /** Send the rendered campaign to up to 5 active staff addresses (flag-gated) */
   postMarketingCampaignsTestSend: Record<string, unknown>;
-  /** Create contact (+consent evidence) */
+  /** Approve or reject a documented-consent request (brand approver other than the requester) */
+  postMarketingConsentApprovalsDecision: Record<string, unknown>;
+  /** Create contact. Origin is always MANUAL (server-set). Optional consent.mode: REQUEST_CONFIRMATION (double opt-in email) or DOCUMENTED (previously documented consent: creates an approval request; never granted until a different brand approver accepts it). consent.source other than MANUAL is refused */
   postMarketingContacts: Record<string, unknown>;
-  /** Record consent */
+  /** Request marketing permission for a contact: mode REQUEST_CONFIRMATION (double opt-in) or DOCUMENTED (approval request). Never grants on staff assertion alone */
   postMarketingContactsConsents: Record<string, unknown>;
   /** Withdraw consent */
   postMarketingContactsConsentsWithdraw: Record<string, unknown>;
-  /** CSV import with consent evidence: mode=preview (default, dry run returning counts and fileSha256) or mode=commit by a different brand approver with the same fileSha256 */
+  /** CSV import with consent evidence: originalChannel WEB_FORM, EVENT or OTHER (where people opted in; stored with consent source IMPORT), topic and policyVersion from consent-options; mode=preview (default, dry run returning counts and fileSha256) or mode=commit by a different brand approver with the same fileSha256 */
   postMarketingContactsImport: Record<string, unknown>;
   /** Pause all brand dispatch (authors or approvers) */
   postMarketingDispatchPause: Record<string, unknown>;
@@ -1237,6 +1246,42 @@ export interface MailRequestBodies {
     };
     now?: string;
     engagement?: Record<string, unknown>;
+  };
+  postMarketingConsentApprovalsDecision: {
+    decision: "APPROVE" | "REJECT";
+    note?: string;
+  };
+  postMarketingContacts: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    attributes?: Record<string, unknown>;
+    consent?: {
+      mode?: "REQUEST_CONFIRMATION" | "DOCUMENTED";
+      topic: string;
+      policyVersion: string;
+      source?: "MANUAL";
+      doubleOptIn?: boolean;
+      evidence?: {
+        reference?: string;
+        note?: string;
+        country?: string;
+      };
+      consentedAt?: string;
+    };
+  };
+  postMarketingContactsConsents: {
+    mode?: "REQUEST_CONFIRMATION" | "DOCUMENTED";
+    topic: string;
+    policyVersion: string;
+    source?: "MANUAL";
+    doubleOptIn?: boolean;
+    evidence?: {
+      reference?: string;
+      note?: string;
+      country?: string;
+    };
+    consentedAt?: string;
   };
   postProvisioningRequests: {
     organizationId?: string;

@@ -116,11 +116,14 @@ const PATHS = [
   ["get", "/marketing/organizations", "Brands accessible for marketing", any],
   ["get", "/marketing/{orgId}/sender-identities", "Approved brand sender identities", any],
   ["get", "/marketing/{orgId}/contacts", "Contacts", any],
-  ["post", "/marketing/{orgId}/contacts", "Create contact (+consent evidence)", any],
-  ["post", "/marketing/{orgId}/contacts/import", "CSV import with consent evidence: mode=preview (default, dry run returning counts and fileSha256) or mode=commit by a different brand approver with the same fileSha256", any],
+  ["post", "/marketing/{orgId}/contacts", "Create contact. Origin is always MANUAL (server-set). Optional consent.mode: REQUEST_CONFIRMATION (double opt-in email) or DOCUMENTED (previously documented consent: creates an approval request; never granted until a different brand approver accepts it). consent.source other than MANUAL is refused", any],
+  ["post", "/marketing/{orgId}/contacts/import", "CSV import with consent evidence: originalChannel WEB_FORM, EVENT or OTHER (where people opted in; stored with consent source IMPORT), topic and policyVersion from consent-options; mode=preview (default, dry run returning counts and fileSha256) or mode=commit by a different brand approver with the same fileSha256", any],
   ["get", "/marketing/{orgId}/contacts/{contactId}", "Contact", any],
   ["patch", "/marketing/{orgId}/contacts/{contactId}", "Update contact", any],
-  ["post", "/marketing/{orgId}/contacts/{contactId}/consents", "Record consent", any],
+  ["post", "/marketing/{orgId}/contacts/{contactId}/consents", "Request marketing permission for a contact: mode REQUEST_CONFIRMATION (double opt-in) or DOCUMENTED (approval request). Never grants on staff assertion alone", any],
+  ["get", "/marketing/{orgId}/consent-options", "Configured consent topics, privacy-policy versions and import channels for the brand", any],
+  ["get", "/marketing/{orgId}/consent-approvals", "Pending documented-consent approval requests", any],
+  ["post", "/marketing/{orgId}/consent-approvals/{requestId}/decision", "Approve or reject a documented-consent request (brand approver other than the requester)", any],
   ["post", "/marketing/{orgId}/contacts/{contactId}/consents/{topic}/withdraw", "Withdraw consent", any],
   ["get", "/marketing/{orgId}/suppressions", "Suppressions", any],
   ["post", "/marketing/{orgId}/suppressions", "Suppress address", any],
@@ -319,7 +322,21 @@ const SUCCESS_STATUS = Object.fromEntries([...CREATED.map((key) => [key, "201"])
 // real router and checks the runtime validation agrees.
 const str = (maxLength) => ({ type: "string", ...(maxLength ? { maxLength } : {}) });
 const uuid = { type: "string", format: "uuid" };
+const consentRequestBody = {
+  type: "object", required: ["topic", "policyVersion"],
+  properties: {
+    mode: { enum: ["REQUEST_CONFIRMATION", "DOCUMENTED"] },
+    topic: str(64), policyVersion: str(32),
+    source: { enum: ["MANUAL"], description: "Set by the server; any other value is refused" },
+    doubleOptIn: { type: "boolean", description: "Legacy alias: true = REQUEST_CONFIRMATION, false = DOCUMENTED" },
+    evidence: { type: "object", properties: { reference: str(500), note: str(1000), country: str(2) }, description: "Required for DOCUMENTED" },
+    consentedAt: { type: "string", format: "date-time" },
+  },
+};
 const REQUEST_BODIES = {
+  "post /marketing/{orgId}/contacts": { type: "object", required: ["email"], properties: { email: { type: "string", format: "email" }, firstName: str(120), lastName: str(120), attributes: { type: "object" }, consent: consentRequestBody } },
+  "post /marketing/{orgId}/contacts/{contactId}/consents": consentRequestBody,
+  "post /marketing/{orgId}/consent-approvals/{requestId}/decision": { type: "object", required: ["decision"], properties: { decision: { enum: ["APPROVE", "REJECT"] }, note: str(300) } },
   "post /mailboxes/{mailboxId}/labels": { type: "object", required: ["name"], properties: { name: str(80), color: str(9) } },
   "post /mailboxes/{mailboxId}/threads/bulk": { type: "object", required: ["threadIds", "action"], properties: { threadIds: { type: "array", items: uuid, maxItems: 100 }, action: { enum: ["archive", "trash", "spam", "inbox", "read", "unread", "star", "unstar"] } } },
   "patch /threads/{threadId}/state": { type: "object", properties: { isRead: { type: "boolean" }, isStarred: { type: "boolean" } } },

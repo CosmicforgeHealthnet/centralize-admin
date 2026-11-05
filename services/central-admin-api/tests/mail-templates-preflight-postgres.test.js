@@ -15,6 +15,7 @@
 // - pre-migration-37 behaviour (classification endpoints 503, everything
 //   MARKETING, core flows unchanged).
 
+const { requestConfirmation, documented, confirmContact } = require("./helpers/marketing-consent");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -34,13 +35,13 @@ function helpers(harness, call, mbase) {
     assert.equal(response.status, 201, response.text);
     return response.body.data.stepUpId;
   };
-  const consent = () => ({ topic: "newsletter", source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: `form-${crypto.randomUUID().slice(0, 8)}` } });
+  const consent = () => requestConfirmation();
   const audienceWith = async (emails) => {
     const contacts = [];
     for (const email of emails) {
       const response = await call("dave", "POST", `${mbase}/contacts`, { email, firstName: email.split("@")[0], consent: consent() });
       assert.equal(response.status, 201, response.text);
-      contacts.push(response.body.data);
+      contacts.push(await confirmContact(call, response));
     }
     const audience = await call("dave", "POST", `${mbase}/audiences`, { name: `aud-${crypto.randomUUID().slice(0, 6)}`, topic: "newsletter" });
     await call("dave", "POST", `${mbase}/audiences/${audience.body.data.id}/contacts`, { contactIds: contacts.map((contact) => contact.id) });
