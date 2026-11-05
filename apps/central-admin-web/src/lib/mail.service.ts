@@ -87,7 +87,19 @@ function op<O extends MailOperationId>(operation: O, params: MailPathParams<O>) 
 }
 
 // ── Error classification ──────────────────────────────────────────────────
-export type MailErrorKind = "disabled" | "forbidden" | "notFound" | "conflict" | "network" | "other";
+export type MailErrorKind =
+  | "disabled"
+  | "forbidden"
+  | "notFound"
+  | "conflict"
+  | "network"
+  | "tooLarge"
+  | "proxyRejected"
+  | "invalidFile"
+  | "scanFailed"
+  | "unavailable"
+  | "session"
+  | "other";
 
 export interface MailErrorInfo {
   kind: MailErrorKind;
@@ -95,6 +107,19 @@ export interface MailErrorInfo {
   code?: string;
   message: string;
   detail?: Record<string, unknown>;
+  /** Support reference from the API (X-Request / correlation id); safe to show. */
+  correlationId?: string;
+  retryable?: boolean;
+}
+
+export function formatBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${Math.round((bytes / (1024 * 1024)) * 10) / 10} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+/** Append the support reference to a message so it can be quoted to support. */
+export function withReference(message: string, info: Pick<MailErrorInfo, "correlationId">): string {
+  return info.correlationId ? `${message} (Reference: ${info.correlationId})` : message;
 }
 
 export function classifyMailError(error: unknown): MailErrorInfo {
@@ -104,11 +129,63 @@ export function classifyMailError(error: unknown): MailErrorInfo {
     ? (info.responseData?.errors[0] as Record<string, unknown> | undefined)
     : undefined;
   const message = info.message || info.originalMessage || "Something went wrong.";
+  const rawCorrelation = info.responseData?.correlationId;
+  const correlationId = typeof rawCorrelation === "string" ? rawCorrelation.slice(0, 80) : undefined;
+  const reason = typeof firstError?.reason === "string" ? firstError.reason : undefined;
+  const maxBytes = typeof firstError?.maxBytes === "number" ? firstError.maxBytes : undefined;
   if (!info.hasResponse) {
-    return { kind: "network", message: "Unable to reach the Mail service. Check your connection and retry." };
+    const timedOut = info.transportCode === "ECONNABORTED" || info.transportCode === "ETIMEDOUT";
+    return {
+      kind: "network",
+      correlationId,
+      retryable: true,
+      message: timedOut
+        ? "The upload timed out before it finished. Check your connection and try again."
+        : "The connection was interrupted or the Mail service could not be reached. Check your connection and try again; nothing was attached.",
+    };
+  }
+  // Rejected by the gateway/reverse proxy before the API saw the request: the
+  // body is not the API's JSON envelope (no code), e.g. a bare Nginx 413 page.
+  if (info.status === 413 && !code) {
+    return {
+      kind: "proxyRejected",
+      status: 413,
+      correlationId,
+      message: "The server's upload gateway rejected this file as too large before Mail received it. Try a smaller file, or contact support with the file size and this time.",
+    };
+  }
+  if (code === "MAIL_ATTACHMENT_TOO_LARGE" || (info.status === 413 && reason === "MESSAGE_TOO_LARGE")) {
+    return {
+      kind: "tooLarge",
+      status: 413,
+      code,
+      correlationId,
+      detail: firstError,
+      message:
+        reason === "MESSAGE_TOO_LARGE"
+          ? "Adding this file would make the message too large to send. Remove other attachments or choose a smaller file."
+          : `This file is larger than the ${maxBytes ? formatBytes(maxBytes) : "allowed"} per-file limit. Choose a smaller file or share it by link.`,
+    };
+  }
+  if (info.status === 401) {
+    return { kind: "session", status: 401, code, correlationId, message: "Your session has expired. Sign in again, then retry; your draft is saved." };
+  }
+  if (code === "MAIL_STORAGE_UNAVAILABLE" || info.status === 502 || info.status === 503 || info.status === 504) {
+    if (info.status === 503 && code === "MAIL_DISABLED") return { kind: "disabled", status: 503, code, message, detail: firstError, correlationId };
+    if (!(info.status === 503 && code?.startsWith("MAIL_") && code !== "MAIL_STORAGE_UNAVAILABLE")) {
+      return { kind: "unavailable", status: info.status, code, correlationId, retryable: true, message: "Mail attachment storage or the service is temporarily unavailable. Wait a moment and try again; nothing was attached." };
+    }
+  }
+  if (info.status === 400 && code === "MAIL_VALIDATION_FAILED" && firstError?.field === "file") {
+    const friendly: Record<string, string> = {
+      TOO_MANY_ATTACHMENTS: "This message already has the maximum number of attachments. Remove one first.",
+      MALFORMED_MULTIPART: "The upload was malformed (often an interrupted upload). Try attaching the file again.",
+      LIMIT_UNEXPECTED_FILE: "The upload was not in the expected format. Try attaching the file again.",
+    };
+    return { kind: "invalidFile", status: 400, code, correlationId, detail: firstError, message: friendly[reason ?? ""] ?? "This file could not be attached. Check the file and try again." };
   }
   if (info.status === 503 && (code === "MAIL_DISABLED" || code?.startsWith("MAIL_"))) {
-    return { kind: "disabled", status: 503, code, message, detail: firstError };
+    return { kind: "disabled", status: 503, code, message, detail: firstError, correlationId };
   }
   if (info.status === 403 && code) {
     const friendly: Record<string, string> = {
@@ -117,12 +194,12 @@ export function classifyMailError(error: unknown): MailErrorInfo {
       MAIL_SENDER_NOT_AUTHORIZED: "You can't send from this address. Select an approved sender identity or contact your Mail administrator.",
       MAIL_EMERGENCY_STOP: "Email sending is temporarily paused by an administrator. Your message was not sent.",
     };
-    if (friendly[code]) return { kind: "forbidden", status: 403, code, message: friendly[code], detail: firstError };
+    if (friendly[code]) return { kind: "forbidden", status: 403, code, message: friendly[code], detail: firstError, correlationId };
   }
-  if (info.status === 403) return { kind: "forbidden", status: 403, code, message, detail: firstError };
-  if (info.status === 404) return { kind: "notFound", status: 404, code, message, detail: firstError };
-  if (info.status === 409) return { kind: "conflict", status: 409, code, message, detail: firstError };
-  return { kind: "other", status: info.status, code, message, detail: firstError };
+  if (info.status === 403) return { kind: "forbidden", status: 403, code, message, detail: firstError, correlationId };
+  if (info.status === 404) return { kind: "notFound", status: 404, code, message, detail: firstError, correlationId };
+  if (info.status === 409) return { kind: "conflict", status: 409, code, message, detail: firstError, correlationId };
+  return { kind: "other", status: info.status, code, message, detail: firstError, correlationId };
 }
 
 // ── Entitlements & mailboxes ──────────────────────────────────────────────
@@ -167,8 +244,12 @@ export const discardDraft = (draftId: string) => op("deleteDraftsByDraftId", { d
 export async function uploadDraftAttachment(draftId: string, file: File): Promise<Attachment> {
   const form = new FormData();
   form.append("file", file);
+  // Do NOT set Content-Type here: the instance default is application/json and a
+  // hand-written "multipart/form-data" lacks the boundary. `false` removes the
+  // header so the browser generates "multipart/form-data; boundary=…" itself.
   const { data } = await api.post<Envelope<Attachment>>(`${BASE}${mailPath("postDraftsAttachments", { draftId })}`, form, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": false },
+    timeout: 120_000,
   });
   return data.data;
 }

@@ -14,6 +14,15 @@
 #                            /var/www/admin-server-staging/.env becomes
 #                            root:cf-staging-deploy 0640 (no ACL). Nothing else.
 #
+#   --nginx-upload-diagnose  READ-ONLY: sanitized effective Nginx upload limits
+#                            (client_max_body_size, server_name, upstream, our
+#                            include) for the CA staging API vhost, and recent
+#                            Nginx 413 counts for the Mail upload path.
+#   --nginx-upload-apply     Staging CA API vhost only: back up its file, add the
+#                            managed upload-limit snippet include, nginx -t,
+#                            reload; any failure restores the backup.
+#   --nginx-upload-rollback  Restore the newest backup taken by apply.
+#
 # Never prints a value from an env file. Touches only /var/www/admin-server/.env*
 # (secure-production-env) or /var/www/admin-server-staging/.env (staging-env-access).
 set -Eeuo pipefail
@@ -25,7 +34,7 @@ readonly STAGING_DIR=/var/www/admin-server-staging
 readonly DEPLOY_USER=cf-staging-deploy
 
 mode="${1:-}"
-case "$mode" in --host-audit|--secure-production-env|--staging-env-access) ;; *) echo 'Usage: ca-host-ops.sh --host-audit|--secure-production-env|--staging-env-access' >&2; exit 2 ;; esac
+case "$mode" in --host-audit|--secure-production-env|--staging-env-access|--nginx-upload-diagnose|--nginx-upload-apply|--nginx-upload-rollback) ;; *) echo 'Usage: ca-host-ops.sh --host-audit|--secure-production-env|--staging-env-access|--nginx-upload-diagnose|--nginx-upload-apply|--nginx-upload-rollback' >&2; exit 2 ;; esac
 [[ "$(id -u)" -eq 0 ]] || { echo 'Run as root.' >&2; exit 2; }
 
 declare -a SUMMARY=()
@@ -151,8 +160,104 @@ staging_env_access() {
   pass 'production env files still unreadable by the staging deploy account'
 }
 
+# ---------------------------------------------------------------- Nginx uploads
+readonly CA_STAGING_VHOST=stagingca.cosmicforge-healthnet.com
+readonly SNIPPET=/etc/nginx/snippets/ca-mail-upload-limits.conf
+readonly INCLUDE_LINE="include $SNIPPET;"
+readonly NGINX_BACKUPS=/var/backups/centralize-admin/nginx
+readonly TPL="${CA_MAIL_BUNDLE_DIR:-$(dirname "$0")}/ca-mail-upload-limits.conf.tpl"
+
+# Prints only directive lines relevant to uploads; never certificates, keys or tokens.
+nginx_effective() { nginx -T 2>/dev/null; }
+vhost_file() { # -> the single file whose server block names the CA staging host
+  local f; local -a hits=()
+  while IFS= read -r f; do hits+=("$f"); done < <(nginx_effective | awk -v host="$CA_STAGING_VHOST" '/^# configuration file /{file=$4; sub(":$","",file)} $1=="server_name" && index($0,host){print file}' | sort -u)
+  (( ${#hits[@]} == 1 )) || { echo "ambiguous-or-missing (${#hits[@]} files)"; return 1; }
+  echo "${hits[0]}"
+}
+nginx_upload_diagnose() {
+  info "nginx version: $(nginx -v 2>&1)"
+  local f; f="$(vhost_file)" || { fail "CA staging vhost file: $f"; return 1; }
+  pass "CA staging vhost file: $f"
+  info "client_max_body_size directives (file: line): $(nginx_effective | awk '/^# configuration file /{file=$4; sub(":$","",file)} $1=="client_max_body_size"{print file": "$0}' | tr '\n' ';')"
+  info "global/http default applies when none is set: 1m (Nginx built-in)"
+  info "vhost proxy_pass lines: $(grep -E '^\s*(location|proxy_pass|include|client_max_body_size|server_name)\b' "$f" | grep -v -E 'ssl_|key|cert' | sed 's/^\s*//' | tr '\n' ';')"
+  [[ -f "$SNIPPET" ]] && info "managed snippet present: $(grep -c location "$SNIPPET") locations" || info 'managed snippet not installed'
+  grep -qF "$INCLUDE_LINE" "$f" && info 'vhost includes the managed snippet' || info 'vhost does NOT include the managed snippet'
+  local log; for log in /var/log/nginx/access.log /var/log/nginx/error.log; do
+    [[ -r "$log" ]] || continue
+    info "$(basename "$log"): last-24h-ish tail counts => 413 on attachments: $(tail -n 20000 "$log" | grep -E 'drafts/[^ ]+/attachments' | grep -cE '" 413 |client intended to send too large body' || true)"
+  done
+  info 'sampled log lines were counted only; no addresses, tokens or bodies were printed'
+}
+nginx_upload_apply() {
+  [[ -f "$TPL" ]] || { fail "snippet template missing from bundle ($TPL)"; return 1; }
+  local f; f="$(vhost_file)" || { fail "CA staging vhost file: $f"; return 1; }
+  [[ "$f" == /etc/nginx/* ]] || { fail "unexpected vhost path $f"; return 1; }
+  local real="$f"; [[ -L "$f" ]] && real="$(readlink -f "$f")"
+  # The one proxied "location / {" block (the vhost also has a Certbot HTTP
+  # redirect block whose "location /" has no proxy_pass).
+  local span lstart lend
+  span="$(awk '
+    function count(str, ch,   parts) { return split(str, parts, ch) - 1 }
+    /^[ \t]*location[ \t]+\/[ \t]*\{/ && !inloc { inloc = 1; start = NR; depth = 0; proxied = 0 }
+    inloc { depth += count($0, "{") - count($0, "}"); if ($1 == "proxy_pass") proxied = 1
+            if (depth <= 0) { if (proxied) { found++; fs = start; fe = NR } inloc = 0 } }
+    END { if (found == 1) print fs, fe; else print "0 0" }' "$real")"
+  read -r lstart lend <<<"$span"
+  (( lstart > 0 && lend > lstart )) || { fail 'BLOCKED: vhost does not have exactly one proxied "location / {"; nothing changed'; return 1; }
+  local body="$NGINX_BACKUPS/.body.$$"; mkdir -p "$NGINX_BACKUPS"; chmod 700 "$NGINX_BACKUPS"
+  sed -n "$((lstart + 1)),$((lend - 1))p" "$real" | grep -vE '^[[:space:]]*(client_max_body_size|client_body_timeout|proxy_read_timeout|proxy_send_timeout)\b' > "$body"
+  grep -qE '^[[:space:]]*proxy_pass[[:space:]]+http://(localhost|127\.0\.0\.1):[0-9]+/?;' "$body" || { rm -f "$body"; fail 'BLOCKED: unexpected upstream form in the proxied location; nothing changed'; return 1; }
+  grep -qE 'proxy_pass[^;]*\$' "$body" && { rm -f "$body"; fail 'BLOCKED: variable proxy_pass is not supported; nothing changed'; return 1; }
+  info "proxied location body copied for the upload paths: $(sed 's/^[[:space:]]*//' "$body" | tr '\n' ' ' | cut -c1-300)"
+  local generated="$NGINX_BACKUPS/.snippet.$$"
+  awk -v bodyfile="$body" '/__LOCATION_BODY__/ { while ((getline l < bodyfile) > 0) print "    " l; close(bodyfile); next } { print }' "$TPL" > "$generated"
+  # Idempotent: an already-applied, unchanged configuration is not re-backed-up
+  # (a second backup would capture the fixed state and defeat rollback).
+  if grep -qF "$INCLUDE_LINE" "$real" && [[ -f "$SNIPPET" ]] && cmp -s "$generated" "$SNIPPET"; then
+    rm -f "$body" "$generated"
+    nginx_effective | grep -q 'client_max_body_size 26m' && pass 'already applied: effective config allows 26m on the Mail attachment upload path (no change made)' || fail 'include present but effective limit not active'
+    return 0
+  fi
+  local stamp; stamp="$(date -u +%Y%m%dT%H%M%SZ)"; local bdir="$NGINX_BACKUPS/$stamp"; mkdir -p "$bdir"
+  cp -a "$real" "$bdir/vhost.conf"; printf '%s\n' "$real" > "$bdir/vhost.path"
+  [[ -f "$SNIPPET" ]] && cp -a "$SNIPPET" "$bdir/snippet.conf" || true
+  nginx_effective > "$bdir/effective-before.txt" 2>/dev/null || true; chmod 600 "$bdir"/*
+  info "backup of the effective configuration and vhost file: $bdir (root-only)"
+  mkdir -p /etc/nginx/snippets
+  cp "$generated" "$SNIPPET"; chmod 644 "$SNIPPET"; rm -f "$body" "$generated"
+  if ! grep -qF "$INCLUDE_LINE" "$real"; then
+    awk -v inc="    $INCLUDE_LINE" -v target="$lstart" 'NR == target { print inc } { print }' "$real" > "$NGINX_BACKUPS/.vhost-new.$$" && cat "$NGINX_BACKUPS/.vhost-new.$$" > "$real" && rm -f "$NGINX_BACKUPS/.vhost-new.$$"
+  fi
+  if ! nginx -t >"$bdir/nginx-t.txt" 2>&1; then
+    cp -a "$bdir/vhost.conf" "$real"; [[ -f "$bdir/snippet.conf" ]] && cp -a "$bdir/snippet.conf" "$SNIPPET" || rm -f "$SNIPPET"
+    fail "nginx -t failed; previous configuration restored ($(tail -n 2 "$bdir/nginx-t.txt" | tr '\n' ' '))"; return 1
+  fi
+  pass 'nginx -t passed'
+  if ! { systemctl reload nginx 2>/dev/null || nginx -s reload; }; then
+    cp -a "$bdir/vhost.conf" "$real"; [[ -f "$bdir/snippet.conf" ]] && cp -a "$bdir/snippet.conf" "$SNIPPET" || rm -f "$SNIPPET"
+    nginx -t >/dev/null 2>&1 && { systemctl reload nginx 2>/dev/null || nginx -s reload; }
+    fail 'reload failed; previous configuration restored'; return 1
+  fi
+  nginx_effective | grep -q 'client_max_body_size 26m' && pass 'effective config now allows 26m on the Mail attachment upload path' || { fail 'effective config does not show the 26m limit'; return 1; }
+  info "rollback: dispatch operation nginx-upload-rollback (restores $bdir) or restore it manually"
+}
+nginx_upload_rollback() {
+  local latest; latest="$(ls -1d "$NGINX_BACKUPS"/*/ 2>/dev/null | sort | tail -n 1 || true)"
+  [[ -n "$latest" && -f "$latest/vhost.conf" ]] || { fail 'no backup found'; return 1; }
+  local real; real="$(cat "$latest/vhost.path")"
+  cp -a "$latest/vhost.conf" "$real"
+  if [[ -f "$latest/snippet.conf" ]]; then cp -a "$latest/snippet.conf" "$SNIPPET"; else rm -f "$SNIPPET"; fi
+  nginx -t >/dev/null 2>&1 || { fail 'nginx -t failed after restore'; return 1; }
+  { systemctl reload nginx 2>/dev/null || nginx -s reload; } && pass "restored $latest and reloaded" || fail 'reload failed'
+}
+
 case "$mode" in
   --host-audit) host_audit ;;
   --secure-production-env) secure_production_env ;;
   --staging-env-access) staging_env_access ;;
+  --nginx-upload-diagnose) nginx_upload_diagnose ;;
+  --nginx-upload-apply) nginx_upload_apply ;;
+  --nginx-upload-rollback) nginx_upload_rollback ;;
 esac

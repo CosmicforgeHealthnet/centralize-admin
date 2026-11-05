@@ -19,6 +19,7 @@ function toGrant(row) {
     datasets: row.datasets,
     scope: row.scope,
     expires_at: row.expires_at ? row.expires_at.toISOString() : null,
+    not_before: row.not_before ? row.not_before.toISOString() : null,
     revoked_at: row.revoked_at ? row.revoked_at.toISOString() : null,
   };
 }

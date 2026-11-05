@@ -30,9 +30,12 @@ const operations = {
   events: { summary: "Bounded page of standard events for one partition", security, parameters: [query("dataset_id", { type: "string", pattern: C.PATTERNS.catalogId }, true), query("partition_key", { type: "string", pattern: C.PATTERNS.partitionKey }, true), query("after_sequence", { type: "integer", minimum: 0 }, true), query("limit", { type: "integer", minimum: 1, maximum: 100 })] },
   eventsAck: { summary: "Acknowledge events committed by HQ (sent only after commit)", security, requestBody: { required: true, content: { "application/json": { schema: ref("events-ack.v1") } } } },
   syncStatus: { summary: "Event source and partition head positions", security },
-  operationGet: { summary: "Operation status", security, parameters: [pathParam("operationId")] },
+  operationGet: { summary: "Operation status (requesting staff only)", security: [{ ServiceHmac: [], StaffDelegation: [] }], parameters: [pathParam("operationId")] },
   operationSubmit: { summary: "Typed command submission; disabled unless certified", security: [{ ServiceHmac: [], StaffDelegation: [] }], requestBody: { required: true, content: { "application/json": { schema: ref("operation-command.v1") } } } },
-  auditGet: { summary: "Sanitized audit trail for an operation", security, parameters: [pathParam("operationId")] },
+  auditGet: { summary: "Sanitized audit trail for an operation (requesting staff only)", security: [{ ServiceHmac: [], StaffDelegation: [] }], parameters: [pathParam("operationId")] },
+  resourceList: { summary: "(1.1) Bounded, scoped page of one collection of a READ capability; opaque continuation", security: [{ ServiceHmac: [], StaffDelegation: [] }], parameters: [pathParam("capabilityId"), pathParam("collectionId"), ...C.RESOURCE_QUERY.map((k) => query(k, C.READ_QUERY_SCHEMAS[k], k === "purpose"))] },
+  resourceGet: { summary: "(1.1) One scoped resource of a READ capability collection", security: [{ ServiceHmac: [], StaffDelegation: [] }], parameters: [pathParam("capabilityId"), pathParam("collectionId"), pathParam("resourceId"), ...C.RESOURCE_QUERY.filter((k) => !["limit", "continuation"].includes(k)).map((k) => query(k, C.READ_QUERY_SCHEMAS[k], k === "purpose"))] },
+  reportGet: { summary: "(1.1) One product report with source, grain, units, scope, coverage and lineage", security: [{ ServiceHmac: [], StaffDelegation: [] }], parameters: [pathParam("reportId"), ...C.REPORT_QUERY.map((k) => query(k, C.READ_QUERY_SCHEMAS[k], k === "purpose"))] },
 };
 
 const paths = {};
@@ -52,7 +55,7 @@ for (const name of Object.keys(C.schemas.SCHEMAS)) components.schemas[name.repla
 
 write("openapi/product-admin-protocol-v1.openapi.json", {
   openapi: "3.1.0",
-  info: { title: "CosmicForge Universal Product Admin Protocol", version: "1.0.0", description: "Product Admin to Headquarters private protocol. Not an alias for any product bridge. Private transport only; never exposed through public ingress." },
+  info: { title: "CosmicForge Universal Product Admin Protocol", version: C.PROTOCOL_VERSION.major + "." + C.PROTOCOL_VERSION.minor + ".0", description: "Product Admin to Headquarters private protocol. Not an alias for any product bridge. Private transport only; never exposed through public ingress." },
   paths,
   components,
 });

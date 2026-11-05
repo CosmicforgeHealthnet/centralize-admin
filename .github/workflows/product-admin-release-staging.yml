@@ -1,0 +1,245 @@
+name: Product Admin Release (staging, manual)
+
+# Release preparation for the two new private services — the independent
+# Karryam Admin and the HQ Product Integration Core. Manual, staging-only.
+#
+# What it does:
+#   1. Preflight: forward-only migrations (and the restricted runtime role)
+#      on a disposable PostgreSQL; configuration validation with disposable
+#      fixture keys; disabled-by-default startup.
+#   2. Builds both images with an immutable tag (staging-<commit SHA>) and
+#      smoke-tests them: non-root, read-only, no network, live=200,
+#      ready=503 while disabled, protocol endpoints refused, enabling without
+#      configuration fails closed.
+#   3. Optionally publishes those exact images to GHCR (publish=true and the
+#      confirmation phrase). An existing tag is never overwritten.
+#
+# What it never does: deploy, connect to a VPS, read staging or production
+# secrets, enable a service, or touch the Central Admin API release. Running
+# these services on staging needs the operator prerequisites in
+# docs/product-admin/release-runbook.md (database roles, secret files, signer
+# enrollment, Bridge enrollment, signed policies, private networking).
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the verified images to GHCR (no deployment)
+        required: true
+        type: boolean
+        default: false
+      confirm:
+        description: Type PUBLISH_STAGING_IMAGES to allow publishing
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-admin-release-staging
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Staging-only release gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse anything but the staging branch
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/staging" ]; then
+            echo "::error::This release workflow runs only from refs/heads/staging (got ${GITHUB_REF})."
+            exit 1
+          fi
+          echo "Release candidate: ${GITHUB_SHA}"
+
+  preflight:
+    name: Migration and configuration preflight
+    needs: gate
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install
+        run: |
+          npm --prefix services/product-integration-core ci
+          npm --prefix services/karryam-admin ci
+      - name: Product Integration Core migrations with a restricted runtime role
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE pic_release_preflight" -c "CREATE ROLE pic_runtime_preflight LOGIN PASSWORD 'preflight-only'"
+          PIC_MIGRATION_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pic_release_preflight PIC_RUNTIME_ROLE=pic_runtime_preflight \
+            node services/product-integration-core/scripts/migrate.js
+          # Idempotent: a second run applies nothing and verifies checksums.
+          PIC_MIGRATION_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pic_release_preflight PIC_RUNTIME_ROLE=pic_runtime_preflight \
+            node services/product-integration-core/scripts/migrate.js | tee /tmp/second-run.json
+          refuse() { if "$@"; then echo "::error::expected to be refused: $*"; exit 1; fi; }
+          refuse grep -q '"status":"APPLIED"' /tmp/second-run.json
+          # The runtime role cannot change the schema or delete audit history.
+          refuse env PGPASSWORD=preflight-only psql -h localhost -U pic_runtime_preflight -d pic_release_preflight -v ON_ERROR_STOP=1 -c "CREATE TABLE hq_integration.x (id int)"
+          refuse env PGPASSWORD=preflight-only psql -h localhost -U pic_runtime_preflight -d pic_release_preflight -v ON_ERROR_STOP=1 -c "DELETE FROM hq_integration.hq_product_admin_security_audit"
+      - name: Product Integration Core migration test suite
+        working-directory: services/product-integration-core
+        env:
+          PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: node --test tests/migrations-postgres.test.js
+      - name: Karryam Admin migrations
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE karryam_admin_release_preflight"
+          KARRYAM_ADMIN_MIGRATION_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/karryam_admin_release_preflight \
+            node services/karryam-admin/scripts/migrate.js
+      - name: Configuration preflight (disposable fixtures, never real keys)
+        run: |
+          set -euo pipefail
+          refuse() { if "$@"; then echo "::error::expected to be refused: $*"; exit 1; fi; }
+          dir="$(mktemp -d)"
+          key() { node -e "process.stdout.write(require('crypto').randomBytes(32).toString('base64url'))"; }
+          node -e "process.stdout.write(require('crypto').generateKeyPairSync('ed25519').publicKey.export({type:'spki',format:'pem'}))" > "$dir/signer.pem"
+          notafter="$(node -e "process.stdout.write(new Date(Date.now()+86400000).toISOString())")"
+          cat > "$dir/endpoints.json" <<JSON
+          {"endpoints":{"karryam-staging":{"product_id":"karryam","environment":"staging","transport":"unix","socket_path":"/run/cosmicforge/karryam/karryam-admin.sock","service_auth":{"key_id":"pic-karryam-k1","key_b64url":"$(key)"},"delegation":{"kid":"pic-karryam-d1","key_b64url":"$(key)"}}}}
+          JSON
+          cat > "$dir/signers.json" <<JSON
+          {"signers":{"karryam-staging-1":{"product_id":"karryam","environment":"staging","public_key_file":"$dir/signer.pem","not_after":"$notafter"}}}
+          JSON
+          cat > "$dir/hq.json" <<JSON
+          {"keys":{"hq-k1":{"key_b64url":"$(key)","not_after":"$notafter"}}}
+          JSON
+          # Disabled by default.
+          node services/product-integration-core/scripts/check-config.js | grep -q '"enabled":false'
+          node services/karryam-admin/scripts/check-config.js | grep -q '"enabled":false'
+          # Enabled with a complete staging configuration.
+          PIC_ENABLED=true PIC_ENVIRONMENT=staging PIC_EXPECT_ENVIRONMENT=staging PIC_DATABASE_URL=postgresql://runtime@db/pic \
+            PIC_ENDPOINTS_FILE="$dir/endpoints.json" PIC_TRUSTED_SIGNERS_FILE="$dir/signers.json" PIC_HQ_DELEGATION_KEYS_FILE="$dir/hq.json" \
+            node services/product-integration-core/scripts/check-config.js | tee "$dir/out.json"
+          grep -q '"sync_enabled":false' "$dir/out.json"
+          grep -q '"insecure_loopback":false' "$dir/out.json"
+          # Wrong environment, incomplete configuration and key reuse all fail closed.
+          refuse env PIC_ENABLED=true PIC_ENVIRONMENT=production PIC_EXPECT_ENVIRONMENT=staging PIC_DATABASE_URL=postgresql://runtime@db/pic \
+            PIC_ENDPOINTS_FILE="$dir/endpoints.json" PIC_TRUSTED_SIGNERS_FILE="$dir/signers.json" PIC_HQ_DELEGATION_KEYS_FILE="$dir/hq.json" \
+            node services/product-integration-core/scripts/check-config.js
+          refuse env PIC_ENABLED=true PIC_ENVIRONMENT=staging node services/product-integration-core/scripts/check-config.js
+          refuse env KARRYAM_ADMIN_ENABLED=true node services/karryam-admin/scripts/check-config.js
+          rm -rf "$dir"
+
+  images:
+    name: Build and smoke-test immutable images
+    needs: preflight
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Immutable tag
+        id: tag
+        run: echo "tag=staging-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Build
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          docker build --label "org.opencontainers.image.revision=${GITHUB_SHA}" -f services/karryam-admin/Dockerfile -t "ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}" .
+          docker build --label "org.opencontainers.image.revision=${GITHUB_SHA}" -f services/product-integration-core/Dockerfile -t "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}" .
+      - name: Non-root, read-only, disabled-by-default smoke test
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          status() { sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$1" "http://local$2"; }
+          check() { # name image socket uid protocol-path
+            local name="$1" image="$2" sock uid="$4" dir
+            dir="$(mktemp -d)"; chmod 0777 "$dir"; sock="$dir/$3"
+            docker run -d --rm --name "$name" --network none --read-only --cap-drop ALL --security-opt no-new-privileges -v "$dir:/run/cosmicforge" "$image" >/dev/null
+            for i in $(seq 1 30); do [ -S "$sock" ] && break; sleep 1; done
+            test -S "$sock"
+            test "$(docker exec "$name" id -u)" = "$uid"
+            test "$(status "$sock" /health/live)" = 200
+            test "$(status "$sock" /health/ready)" = 503
+            test "$(status "$sock" "$5")" = 503
+            docker exec "$name" node scripts/check-config.js | grep -q '"enabled":false'
+            echo "$name live=200 ready=503 protocol=503 uid=$uid"
+            docker stop "$name" >/dev/null
+          }
+          check ka-release "ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}" karryam-admin.sock 10001 /internal/product-admin/v1/manifest
+          check pic-release "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}" product-integration-core.sock 10002 /internal/pic/v1/products
+          refuse() { if "$@"; then echo "::error::expected to be refused: $*"; exit 1; fi; }
+          refuse docker run --rm --network none -e KARRYAM_ADMIN_ENABLED=true "ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}"
+          refuse docker run --rm --network none -e PIC_ENABLED=true "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}"
+      - name: Save images for the publish job
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: docker save "ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}" "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}" | gzip > /tmp/product-admin-images.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: product-admin-images
+          path: /tmp/product-admin-images.tar.gz
+          retention-days: 3
+
+  publish:
+    name: Publish verified images (no deployment)
+    needs: images
+    if: inputs.publish == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Require the confirmation phrase
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          if [ "$CONFIRM" != "PUBLISH_STAGING_IMAGES" ]; then
+            echo "::error::Publishing requires confirm=PUBLISH_STAGING_IMAGES."
+            exit 1
+          fi
+      - uses: actions/download-artifact@v4
+        with:
+          name: product-admin-images
+          path: /tmp
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push the exact smoke-tested images; never overwrite a tag
+        env:
+          TAG: ${{ needs.images.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gunzip -c /tmp/product-admin-images.tar.gz | docker load
+          for name in karryam-admin product-integration-core; do
+            ref="ghcr.io/cosmicforgehealthnet/${name}:${TAG}"
+            if docker manifest inspect "$ref" >/dev/null 2>&1; then
+              echo "::error::${ref} already exists; immutable tags are never overwritten."
+              exit 1
+            fi
+            docker push "$ref"
+            echo "Published ${ref}"
+          done
+          echo "Images published. Nothing was deployed; services remain disabled until the operator runbook is completed."

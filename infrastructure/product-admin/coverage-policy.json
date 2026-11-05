@@ -1,0 +1,461 @@
+{
+  "revision": 2,
+  "description": "Section 13.1 security-critical coverage policy. Thresholds are per file (line and branch %) and were set to the measured value rounded down on 2026-11-01 (Windows, Node 25, PostgreSQL 17); Linux CI runs additional POSIX-only tests and can only measure higher. Raise a threshold when coverage improves; never lower one without a reviewed reason. A source file whose path matches a security pattern must be listed here or exempted with a reason.",
+  "measured": {
+    "date": "2026-11-01",
+    "platform": "win32",
+    "node": "v25.2.1",
+    "database": "PostgreSQL 17.5 (disposable)"
+  },
+  "projects": [
+    {
+      "dir": "packages/admin-contracts"
+    },
+    {
+      "dir": "packages/event-contracts"
+    },
+    {
+      "dir": "packages/identity-and-permissions"
+    },
+    {
+      "dir": "packages/service-clients"
+    },
+    {
+      "dir": "services/karryam-admin",
+      "database_env": "KARRYAM_ADMIN_TEST_DATABASE_URL"
+    },
+    {
+      "dir": "services/product-integration-core",
+      "database_env": "PIC_TEST_DATABASE_URL",
+      "supplemental_coverage_env": "PIC_OPERATOR_COVERAGE_FILE"
+    }
+  ],
+  "security_patterns": [
+    "auth",
+    "delegation",
+    "hmac",
+    "signing",
+    "signature",
+    "nonce",
+    "permission",
+    "scope",
+    "approval",
+    "money",
+    "finance",
+    "governance",
+    "redact",
+    "keys",
+    "certification",
+    "canonical",
+    "/config/",
+    "access-log",
+    "continuation",
+    "targets",
+    "listen",
+    "retention",
+    "sync-policy",
+    "state-machine",
+    "endpoints",
+    "manifest",
+    "logger",
+    "quality",
+    "migrat"
+  ],
+  "modules": [
+    {
+      "path": "packages/service-clients/src/service-auth.js",
+      "category": "hmac",
+      "purpose": "cf-svc-v1 HMAC service request signing and verification",
+      "lines": 98,
+      "branches": 76
+    },
+    {
+      "path": "services/karryam-admin/src/bridge/client/signing.js",
+      "category": "hmac",
+      "purpose": "Bridge HMAC v2 canonical request and Ed25519 staff assertion signing",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "packages/identity-and-permissions/src/delegation.js",
+      "category": "delegation",
+      "purpose": "HS256 delegated staff context (JWS) issue/verify, request binding",
+      "lines": 96,
+      "branches": 81
+    },
+    {
+      "path": "services/product-integration-core/src/api/app.js",
+      "category": "delegation",
+      "purpose": "HQ delegation verification, replay claim and request-target validation",
+      "lines": 97,
+      "branches": 79
+    },
+    {
+      "path": "packages/service-clients/src/protocol-server.js",
+      "category": "delegation",
+      "purpose": "Product Admin protocol kit: service auth, delegation, audit-before-execute",
+      "lines": 96,
+      "branches": 67
+    },
+    {
+      "path": "packages/admin-contracts/src/params.js",
+      "category": "query_canonicalization",
+      "purpose": "Strict read query parsing and canonical ordering",
+      "lines": 100,
+      "branches": 76
+    },
+    {
+      "path": "packages/admin-contracts/src/canonical.js",
+      "category": "canonicalization",
+      "purpose": "Canonical JSON and digests bound into signatures",
+      "lines": 83,
+      "branches": 90
+    },
+    {
+      "path": "packages/identity-and-permissions/src/authorize.js",
+      "category": "permission_evaluation",
+      "purpose": "Grant evaluation, explicit DENY precedence and scope containment",
+      "lines": 100,
+      "branches": 81
+    },
+    {
+      "path": "packages/identity-and-permissions/src/actions.js",
+      "category": "permission_evaluation",
+      "purpose": "Closed action vocabulary",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/product-integration-core/src/authz/index.js",
+      "category": "permission_evaluation",
+      "purpose": "HQ staff product/dataset/scope authorization",
+      "lines": 93,
+      "branches": 91
+    },
+    {
+      "path": "services/karryam-admin/src/bridge/capabilities.js",
+      "category": "permission_evaluation",
+      "purpose": "Product grant role to Bridge permission mapping",
+      "lines": 100,
+      "branches": 93
+    },
+    {
+      "path": "services/karryam-admin/src/protocol/handlers.js",
+      "category": "permission_evaluation",
+      "purpose": "Protocol handler authorization, scope and capability checks",
+      "lines": 89,
+      "branches": 74
+    },
+    {
+      "path": "services/product-integration-core/src/registry/sync-policy.js",
+      "category": "scope_containment",
+      "purpose": "Subscription scope within product scope; sync policy blocks",
+      "lines": 99,
+      "branches": 90
+    },
+    {
+      "path": "services/karryam-admin/src/modules/reports.js",
+      "category": "finance",
+      "purpose": "Finance reports: per-currency totals, exact minor units, no FX",
+      "lines": 100,
+      "branches": 75
+    },
+    {
+      "path": "services/product-integration-core/src/projections/metrics.js",
+      "category": "metric_coverage",
+      "purpose": "Metric definition pinning, unit/currency separation, coverage and freshness",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/karryam-admin/src/modules/quality.js",
+      "category": "metric_coverage",
+      "purpose": "Reporting-truth states (LIVE/STALE/UNKNOWN/PARTIAL_COVERAGE)",
+      "lines": 100,
+      "branches": 81
+    },
+    {
+      "path": "packages/admin-contracts/src/envelope.js",
+      "category": "metric_coverage",
+      "purpose": "Envelope truthfulness: OBSERVED only with value, time and coverage",
+      "lines": 99,
+      "branches": 68
+    },
+    {
+      "path": "packages/admin-contracts/src/catalog.js",
+      "category": "data_classification",
+      "purpose": "Classification ceilings and prohibited fields",
+      "lines": 100,
+      "branches": 97
+    },
+    {
+      "path": "services/karryam-admin/src/sync/datasets.js",
+      "category": "data_classification",
+      "purpose": "Dataset privacy classes and minimized projections to HQ",
+      "lines": 100,
+      "branches": 96
+    },
+    {
+      "path": "services/karryam-admin/src/sync/bridge-events.js",
+      "category": "data_classification",
+      "purpose": "Bridge event validation and field minimization",
+      "lines": 100,
+      "branches": 81
+    },
+    {
+      "path": "packages/event-contracts/src/index.js",
+      "category": "data_classification",
+      "purpose": "Event envelope validation and classification",
+      "lines": 100,
+      "branches": 89
+    },
+    {
+      "path": "services/karryam-admin/src/db/operations.js",
+      "category": "idempotency",
+      "purpose": "Durable operation receipts and idempotency keys",
+      "lines": 96,
+      "branches": 75
+    },
+    {
+      "path": "services/karryam-admin/src/operations/service.js",
+      "category": "approval",
+      "purpose": "Governed command lifecycle, UNKNOWN_OUTCOME and readback",
+      "lines": 99,
+      "branches": 76
+    },
+    {
+      "path": "services/karryam-admin/src/db/approvals.js",
+      "category": "approval",
+      "purpose": "Bound independent approvals (intent digest, separation of duties)",
+      "lines": 100,
+      "branches": 77
+    },
+    {
+      "path": "services/karryam-admin/src/db/certifications.js",
+      "category": "approval",
+      "purpose": "High-risk certification in force",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/product-integration-core/src/onboarding/state-machine.js",
+      "category": "approval",
+      "purpose": "Onboarding transitions and distinct actors",
+      "lines": 100,
+      "branches": 95
+    },
+    {
+      "path": "services/karryam-admin/src/bridge/errors.js",
+      "category": "rate_limiting",
+      "purpose": "Bridge status mapping incl. RATE_LIMITED 429 and retryability",
+      "lines": 100,
+      "branches": 83
+    },
+    {
+      "path": "packages/admin-contracts/src/protocol.js",
+      "category": "rate_limiting",
+      "purpose": "Protocol HTTP status policy incl. RATE_LIMITED",
+      "lines": 100,
+      "branches": 88
+    },
+    {
+      "path": "services/karryam-admin/src/config/index.js",
+      "category": "config_validation",
+      "purpose": "Fail-closed Karryam Admin configuration",
+      "lines": 95,
+      "branches": 86
+    },
+    {
+      "path": "services/product-integration-core/src/config/index.js",
+      "category": "config_validation",
+      "purpose": "Fail-closed Product Integration Core configuration",
+      "lines": 78,
+      "branches": 78
+    },
+    {
+      "path": "services/karryam-admin/src/security/keys.js",
+      "category": "config_validation",
+      "purpose": "Key file loading, length, expiry and revocation",
+      "lines": 97,
+      "branches": 80
+    },
+    {
+      "path": "services/product-integration-core/src/registry/endpoints.js",
+      "category": "config_validation",
+      "purpose": "Endpoint allowlist and trust-store binding",
+      "lines": 91,
+      "branches": 72
+    },
+    {
+      "path": "services/karryam-admin/src/security/nonce-store.js",
+      "category": "replay_protection",
+      "purpose": "Durable nonce/JTI claims",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/product-integration-core/src/db/index.js",
+      "category": "replay_protection",
+      "purpose": "HQ nonce store",
+      "lines": 100,
+      "branches": 87
+    },
+    {
+      "path": "packages/service-clients/src/targets.js",
+      "category": "ssrf",
+      "purpose": "Private destination allowlist; no client-chosen targets",
+      "lines": 99,
+      "branches": 85
+    },
+    {
+      "path": "packages/service-clients/src/client.js",
+      "category": "ssrf",
+      "purpose": "Bounded, redirect-refusing Product Admin client",
+      "lines": 97,
+      "branches": 80
+    },
+    {
+      "path": "services/karryam-admin/src/transport/listener.js",
+      "category": "transport",
+      "purpose": "Unix socket mode, TLS 1.3 mTLS and fingerprint pinning",
+      "lines": 87,
+      "branches": 60
+    },
+    {
+      "path": "services/karryam-admin/src/transport/listen-spec.js",
+      "category": "transport",
+      "purpose": "Listener specification validation",
+      "lines": 100,
+      "branches": 84
+    },
+    {
+      "path": "services/karryam-admin/src/bridge/client/index.js",
+      "category": "transport",
+      "purpose": "Bridge client: pinned TLS 1.3 mTLS, private address only",
+      "lines": 98,
+      "branches": 89
+    },
+    {
+      "path": "packages/admin-contracts/src/manifest.js",
+      "category": "signing",
+      "purpose": "Ed25519 manifest signing and verification",
+      "lines": 96,
+      "branches": 76
+    },
+    {
+      "path": "services/karryam-admin/src/protocol/manifest.js",
+      "category": "signing",
+      "purpose": "Manifest provider",
+      "lines": 100,
+      "branches": 80
+    },
+    {
+      "path": "services/karryam-admin/src/modules/continuation.js",
+      "category": "cursor_sealing",
+      "purpose": "AES-GCM sealed, bound continuation tokens",
+      "lines": 100,
+      "branches": 96
+    },
+    {
+      "path": "services/karryam-admin/src/logger.js",
+      "category": "redaction",
+      "purpose": "Structured log redaction",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/karryam-admin/src/db/access-log.js",
+      "category": "redaction",
+      "purpose": "Sensitive data access records",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "packages/admin-contracts/src/validator.js",
+      "category": "schema_validation",
+      "purpose": "Closed JSON schema validator",
+      "lines": 91,
+      "branches": 73
+    },
+    {
+      "path": "packages/admin-contracts/src/compatibility.js",
+      "category": "contract_drift",
+      "purpose": "Catalog compatibility and drift classification",
+      "lines": 97,
+      "branches": 80
+    },
+    {
+      "path": "services/karryam-admin/src/bridge/contracts/registry.js",
+      "category": "contract_drift",
+      "purpose": "Pinned 435-capability registry",
+      "lines": 99,
+      "branches": 83
+    },
+    {
+      "path": "services/karryam-admin/src/bridge/contracts/schema.js",
+      "category": "contract_drift",
+      "purpose": "Pinned Bridge schema validation",
+      "lines": 100,
+      "branches": 81
+    },
+    {
+      "path": "services/karryam-admin/src/db/governance.js",
+      "category": "data_governance",
+      "purpose": "Retention, legal hold and erasure governance",
+      "lines": 98,
+      "branches": 67
+    },
+    {
+      "path": "services/product-integration-core/src/retention/index.js",
+      "category": "data_governance",
+      "purpose": "HQ inbox retention respecting legal holds",
+      "lines": 97,
+      "branches": 72
+    },
+    {
+      "path": "packages/admin-contracts/src/migration-safety.js",
+      "category": "database_privileges",
+      "purpose": "Runtime role privilege checks and migration safety",
+      "lines": 100,
+      "branches": 75
+    },
+    {
+      "path": "services/product-integration-core/src/db/migrate.js",
+      "category": "database_privileges",
+      "purpose": "Forward-only migrations and exact runtime grants",
+      "lines": 95,
+      "branches": 78
+    },
+    {
+      "path": "services/karryam-admin/src/audit/index.js",
+      "category": "audit",
+      "purpose": "Audit-before-execute records",
+      "lines": 100,
+      "branches": 91
+    },
+    {
+      "path": "services/product-integration-core/src/audit/index.js",
+      "category": "audit",
+      "purpose": "HQ security audit",
+      "lines": 100,
+      "branches": 93
+    },
+    {
+      "path": "services/product-integration-core/src/onboarding/operator.js",
+      "category": "owner_delegation",
+      "purpose": "Root-only signed staging operator delegation, exact pilot scope, short expiry, revocation and OPERATOR audit identity",
+      "lines": 100,
+      "branches": 90
+    }
+  ],
+  "exempt": [
+    {
+      "path": "packages/identity-and-permissions/src/index.js",
+      "reason": "Re-export only; the exported modules are listed individually."
+    },
+    {
+      "path": "services/product-integration-core/src/logger.js",
+      "reason": "Observability logger added in Section 12.5 by a parallel work package; list it with a measured threshold once its tests land."
+    }
+  ]
+}

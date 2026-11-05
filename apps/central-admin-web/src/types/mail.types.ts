@@ -79,7 +79,17 @@ export interface MarketingEntitlement {
   canApprove: boolean;
 }
 
+export interface MailLimits {
+  /** Largest single attachment the API accepts, in bytes. */
+  attachmentMaxBytes: number;
+  /** Largest message (body + attachments) that can be sent, in bytes. */
+  messageMaxBytes: number;
+  maxAttachmentsPerMessage: number;
+}
+
 export interface MailEntitlements {
+  /** Backend-driven limits. Absent on older APIs; the UI then relies on server errors. */
+  limits?: MailLimits;
   mailEnabled: boolean;
   sendingEnabled: boolean;
   marketingEnabled: boolean;

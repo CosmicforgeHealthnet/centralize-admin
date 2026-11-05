@@ -7,13 +7,31 @@
 const { randomUUID } = require("node:crypto");
 const C = require("../../../../packages/admin-contracts");
 const I = require("../../../../packages/identity-and-permissions");
+const clients = require("../../../../packages/service-clients");
 const { T } = require("../db");
 const { loadGrants, authorizeStaff, AuthorizationError } = require("../authz");
 const { resolveEndpoint, clientFor } = require("../registry/endpoints");
 const { integrationStatus } = require("../monitoring");
 const { scopeKey, freshnessOf } = require("../projections/metrics");
+const policy = require("../registry/sync-policy");
+const { recordAudit } = require("../audit");
 
 const DIMS = ["market", "organization", "zone", "tenant"];
+const validateCommand = C.compile(C.schemas.SCHEMAS["operation-command.v1"]);
+const SCOPE_VALUE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/;
+
+// The requested scope of a command, when well formed: known dimensions,
+// non-empty exact values, market and organization always present.
+function commandScope(body) {
+  const s = body && body.scope;
+  if (!s || typeof s !== "object" || Array.isArray(s)) return null;
+  const out = {};
+  for (const [dim, values] of Object.entries(s)) {
+    if (!DIMS.includes(dim) || !Array.isArray(values) || values.length === 0 || values.some((v) => !SCOPE_VALUE.test(String(v)))) return null;
+    out[dim] = values;
+  }
+  return out.market && out.organization ? out : null;
+}
 
 class ProductError extends Error {
   constructor(code, reason, status) {
@@ -24,19 +42,29 @@ class ProductError extends Error {
   }
 }
 
-function createProducts({ pool, endpoints, environment, now = Date.now, clientOptions = {} }) {
+function createProducts({ pool, endpoints, environment, trustStore = false, now = Date.now, clientOptions = {} }) {
+  // Same gate as the sync engine: a product that may not synchronize is not
+  // offered for live reads either, so navigation, reads and runtime state
+  // cannot disagree. Committed history is kept; it is served again once the
+  // product passes the gate.
+  const gateReason = (row, contract) => policy.syncBlock({ row, contract, trustStore, environment, nowMs: now() });
+
   async function liveRegistration(productId) {
     if (!new RegExp(C.PATTERNS.productId).test(String(productId))) throw new ProductError("NOT_FOUND", "UNKNOWN_PRODUCT");
     const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admins WHERE product_id = $1 AND environment = $2 AND lifecycle_status NOT IN ('REJECTED','REVOKED') ORDER BY created_at DESC LIMIT 1`, [productId, environment]);
     return rows[0] || null;
   }
 
-  async function enabledRegistration(productId) {
+  async function enabledRegistration(productId, { requireSyncGate = true } = {}) {
     const row = await liveRegistration(productId);
     if (!row) throw new ProductError("NOT_FOUND", "PRODUCT_NOT_REGISTERED");
     if (row.lifecycle_status !== "ENABLED") throw new ProductError("UNAVAILABLE", "PRODUCT_NOT_ENABLED");
     const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admin_contracts WHERE id = $1 AND status = 'ACTIVE'`, [row.current_contract_id]);
     if (!rows[0]) throw new ProductError("UNAVAILABLE", "NO_ACTIVE_CONTRACT");
+    if (requireSyncGate) {
+      const reason = policy.availabilityReason(gateReason(row, rows[0]));
+      if (reason) throw new ProductError("UNAVAILABLE", reason);
+    }
     return { row, contract: rows[0] };
   }
 
@@ -45,6 +73,59 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
   }
 
   const envelope = (productId, ctx, fields) => C.okEnvelope({ productId, correlationId: ctx.correlationId, ...fields });
+
+  // Short-lived (30 s) product delegation bound to one GET request, so the
+  // Product Admin can check the staff member, action and scope itself.
+  function productDelegation(subject, row, decision, action, uri) {
+    const endpoint = resolveEndpoint(endpoints, row);
+    return I.signDelegation({
+      iss: "product-integration-core", aud: row.product_id + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
+      auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: row.product_id, action,
+      scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
+    }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+  }
+
+  // Strict, allowlisted query for 1.1 reads; values checked against the
+  // published protocol schemas. Returns an ordered plain object.
+  const validateRead = Object.fromEntries(Object.entries(C.READ_QUERY_SCHEMAS).map(([k, schema]) => [k, C.compile(schema)]));
+  function readQuery(searchParams, keys) {
+    const out = {};
+    for (const [key, raw] of searchParams) {
+      if (!keys.includes(key)) throw new ProductError("INVALID_REQUEST", "UNKNOWN_PARAMETER");
+      if (Object.prototype.hasOwnProperty.call(out, key)) throw new ProductError("INVALID_REQUEST", "DUPLICATE_PARAMETER");
+      const value = key === "limit" ? (/^[0-9]{1,3}$/.test(raw) ? Number(raw) : raw) : raw;
+      if (!validateRead[key](value).valid) throw new ProductError("INVALID_REQUEST", "INVALID_PARAMETER");
+      out[key] = value;
+    }
+    if (!out.market || !out.organization) throw new ProductError("INVALID_REQUEST", "SCOPE_REQUIRED");
+    const ordered = {};
+    for (const k of keys) if (out[k] !== undefined) ordered[k] = out[k];
+    return ordered;
+  }
+
+  async function forwardRead(subject, row, action, endpointId, params, query, ctx) {
+    const requestedScope = {};
+    for (const dim of DIMS) if (query[dim] !== undefined) requestedScope[dim] = [query[dim]];
+    const decision = await authorize(subject, action, ctx, { productId: row.product_id, productAdminId: row.id, requestedScope, productScope: row.allowed_scope });
+    let uri;
+    try { uri = clients.buildUri(C.endpointPath(endpointId, params), query); } catch { throw new ProductError("INVALID_REQUEST", "PATH_PARAMETER_INVALID"); }
+    const endpoint = resolveEndpoint(endpoints, row);
+    const token = I.signDelegation({
+      iss: "product-integration-core", aud: row.product_id + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
+      auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: row.product_id, action,
+      scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
+    }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+    const client = clientFor(endpoints, row, clientOptions);
+    let res;
+    try {
+      res = endpointId === "resourceList" ? await client.listResources(params.capabilityId, params.collectionId, query, { delegation: token, correlationId: ctx.correlationId })
+        : endpointId === "resourceGet" ? await client.getResource(params.capabilityId, params.collectionId, params.resourceId, query, { delegation: token, correlationId: ctx.correlationId })
+          : await client.getReport(params.reportId, query, { delegation: token, correlationId: ctx.correlationId });
+    } catch {
+      throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE");
+    }
+    return { status: res.status, body: res.json };
+  }
 
   return {
     // Navigation contract: which products this staff member can see and why.
@@ -62,9 +143,9 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
           ? await pool.query(`SELECT catalog, revision, protocol_major, protocol_minor, status FROM ${T}hq_product_admin_contracts WHERE id = $1`, [row.current_contract_id])
           : { rows: [] };
         const enabled = row.lifecycle_status === "ENABLED" && contract && contract.status === "ACTIVE";
-        const compatible = enabled && C.isSupportedProtocol({ major: contract.protocol_major, minor: contract.protocol_minor });
-        const reason = !enabled ? "NOT_ENABLED" : !compatible ? "PROTOCOL_INCOMPATIBLE" : row.drift_status === "BREAKING_DETECTED" ? "CONTRACT_DRIFT" : null;
-        const datasets = enabled ? contract.catalog.datasets.map((d) => ({ dataset_id: d.dataset_id, title: d.title, granted: grants.some((g) => g.product_id === productId && g.effect === "ALLOW" && !g.revoked_at && (g.datasets || []).includes(d.dataset_id)) })) : [];
+        const reason = !enabled ? "NOT_ENABLED" : policy.availabilityReason(gateReason(row, { ...contract, id: row.current_contract_id }));
+        // Same decision as the read path: expiry, explicit deny, dataset and scope all apply.
+        const datasets = enabled ? contract.catalog.datasets.map((d) => ({ dataset_id: d.dataset_id, title: d.title, granted: I.authorize({ subject, productId, action: "metric.read", datasetId: d.dataset_id, grants, productScope: row.allowed_scope, now: now() }).allowed })) : [];
         const states = {};
         if (enabled) for (const cap of contract.catalog.capabilities) states[cap.state] = (states[cap.state] || 0) + 1;
         items.push({
@@ -86,7 +167,8 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
     },
 
     async manifest(subject, productId, ctx) {
-      const { row, contract } = await enabledRegistration(productId);
+      // Diagnostic: the approved contract and the recorded drift stay readable.
+      const { row, contract } = await enabledRegistration(productId, { requireSyncGate: false });
       await authorize(subject, "product.manifest.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
       return envelope(productId, ctx, { result: {
         product_id: productId, display_name: row.display_name, environment: row.environment, contract_revision: contract.revision,
@@ -101,13 +183,7 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
     async capabilities(subject, productId, ctx) {
       const { row } = await enabledRegistration(productId);
       const decision = await authorize(subject, "product.capabilities.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
-      const endpoint = resolveEndpoint(endpoints, row);
-      const uri = C.endpointPath("capabilities");
-      const token = I.signDelegation({
-        iss: "product-integration-core", aud: productId + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
-        auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: productId, action: "product.capabilities.read",
-        scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
-      }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+      const token = productDelegation(subject, row, decision, "product.capabilities.read", C.endpointPath("capabilities"));
       let res;
       try { res = await clientFor(endpoints, row, clientOptions).getCapabilities({ delegation: token, correlationId: ctx.correlationId }); }
       catch { throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE"); }
@@ -198,30 +274,99 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
 
     async operation(subject, productId, operationId, ctx) {
       const { row } = await enabledRegistration(productId);
-      await authorize(subject, "operation.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
+      const decision = await authorize(subject, "operation.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
       if (!new RegExp(C.PATTERNS.pathParam).test(String(operationId))) throw new ProductError("INVALID_REQUEST", "OPERATION_ID_INVALID");
       try {
-        const res = await clientFor(endpoints, row, clientOptions).getOperation(operationId, { correlationId: ctx.correlationId });
+        const delegation = productDelegation(subject, row, decision, "operation.read", C.endpointPath("operationGet", { operationId }));
+        const res = await clientFor(endpoints, row, clientOptions).getOperation(operationId, { correlationId: ctx.correlationId, delegation });
         return { status: res.status, body: res.json };
       } catch {
         throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE");
       }
     },
 
-    // Command submission stays disabled in this phase. The request is
-    // authorized and checked against the certified contract, then refused;
-    // no request body is ever forwarded as an arbitrary command.
+    // Protocol 1.1 scoped reads (resources and reports). Product-neutral:
+    // the capability must be a usable READ capability of the ACTIVE
+    // contract; only allowlisted query keys are forwarded; HQ authorizes the
+    // grant, recent MFA and requested scope, then delegates exactly that
+    // scope for this one request. The Product Admin re-checks everything
+    // and is the only component that talks to its source.
+    async resource(subject, productId, capabilityId, collectionId, resourceId, query, ctx) {
+      const endpointId = resourceId === null ? "resourceList" : "resourceGet";
+      const { row, contract } = await enabledRegistration(productId);
+      if (!C.endpointSupported(endpointId, { major: contract.protocol_major, minor: contract.protocol_minor })) throw new ProductError("UNAVAILABLE", "PROTOCOL_FEATURE_UNSUPPORTED");
+      const cap = contract.catalog.capabilities.find((c) => c.id === capabilityId);
+      if (!cap) throw new ProductError("NOT_FOUND", "UNKNOWN_CAPABILITY");
+      if (cap.kind !== "READ") throw new ProductError("INVALID_REQUEST", "CAPABILITY_NOT_READ");
+      if (!C.USABLE_CAPABILITY_STATES.includes(cap.state)) throw new ProductError("UNAVAILABLE", "CAPABILITY_" + cap.state);
+      const keys = resourceId === null ? C.RESOURCE_QUERY : C.RESOURCE_QUERY.filter((k) => !["limit", "continuation"].includes(k));
+      return forwardRead(subject, row, "resource.read", endpointId, { capabilityId, collectionId, ...(resourceId === null ? {} : { resourceId }) }, readQuery(query, keys), ctx);
+    },
+
+    async report(subject, productId, reportId, query, ctx) {
+      const { row, contract } = await enabledRegistration(productId);
+      if (!C.endpointSupported("reportGet", { major: contract.protocol_major, minor: contract.protocol_minor })) throw new ProductError("UNAVAILABLE", "PROTOCOL_FEATURE_UNSUPPORTED");
+      const cap = contract.catalog.capabilities.find((c) => c.id === reportId);
+      if (!cap || cap.kind !== "READ") throw new ProductError("NOT_FOUND", "UNKNOWN_REPORT");
+      if (!C.USABLE_CAPABILITY_STATES.includes(cap.state)) throw new ProductError("UNAVAILABLE", "CAPABILITY_" + cap.state);
+      return forwardRead(subject, row, "report.read", "reportGet", { reportId }, readQuery(query, C.REPORT_QUERY), ctx);
+    },
+
+    // Governed command submission (Sections 10.1.4 and 11.3), product-neutral.
+    // HQ authorizes the staff grant, recent MFA and the requested scope,
+    // validates the typed command against the protocol schema, checks that
+    // the capability is an AVAILABLE command of the ACTIVE contract and that
+    // operations were enabled for this product by an independent approver,
+    // then forwards the exact command bytes with a 30 s delegation bound to
+    // POST /operations and those bytes. The Product Admin re-checks
+    // everything (capability, risk, approvals, source policy); HQ never talks
+    // to a product bridge and never decides a source outcome.
     async submitOperation(subject, productId, body, ctx) {
       const { row, contract } = await enabledRegistration(productId);
-      await authorize(subject, "operation.submit", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
-      const capabilityId = body && typeof body.capability_id === "string" ? body.capability_id : null;
-      const capability = capabilityId ? contract.catalog.capabilities.find((c) => c.id === capabilityId) : null;
-      const reason = !capability ? "UNKNOWN_CAPABILITY"
-        : capability.kind !== "COMMAND" ? "NOT_A_COMMAND"
-        : capability.state !== "AVAILABLE" ? "CAPABILITY_" + capability.state
-        : !row.operations_enabled ? "OPERATIONS_NOT_ENABLED_FOR_PRODUCT"
-        : "COMMAND_EXECUTION_NOT_CERTIFIED";
-      return { status: 403, body: C.errorEnvelope({ productId, correlationId: ctx.correlationId, code: "DISABLED", reason, retryable: false }) };
+      const requestedScope = commandScope(body) || {};
+      const decision = await authorize(subject, "operation.submit", ctx, { productId, productAdminId: row.id, requestedScope, productScope: row.allowed_scope });
+      const refuse = (status, code, reason) => ({ status, body: C.errorEnvelope({ productId, correlationId: ctx.correlationId, code, reason, retryable: false }) });
+      if (!body || !validateCommand(body).valid || !commandScope(body)) return refuse(400, "INVALID_REQUEST", "COMMAND_INVALID");
+      const capability = contract.catalog.capabilities.find((c) => c.id === body.capability_id);
+      if (!capability) return refuse(404, "NOT_FOUND", "UNKNOWN_CAPABILITY");
+      if (capability.kind !== "COMMAND") return refuse(400, "INVALID_REQUEST", "NOT_A_COMMAND");
+      if (capability.state !== "AVAILABLE") return refuse(403, "DISABLED", "CAPABILITY_" + capability.state);
+      if (!row.operations_enabled) return refuse(403, "DISABLED", "OPERATIONS_NOT_ENABLED_FOR_PRODUCT");
+      const bytes = Buffer.from(JSON.stringify(body));
+      const endpoint = resolveEndpoint(endpoints, row);
+      const token = I.signDelegation({
+        iss: "product-integration-core", aud: row.product_id + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
+        auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: row.product_id, action: "operation.submit",
+        scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("POST", C.endpointPath("operationSubmit"), bytes),
+      }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+      let res;
+      try { res = await clientFor(endpoints, row, clientOptions).submitOperation(body, { delegation: token, correlationId: ctx.correlationId }); }
+      catch {
+        // The request may or may not have reached the Product Admin: the
+        // operation ID is returned so the caller reads back, never resubmits blindly.
+        await recordAudit(pool, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId, productAdminId: row.id, action: "operation.submit.forward", outcome: "ERROR", reasonCode: "PRODUCT_ADMIN_UNREACHABLE", metadata: { capability_id: capability.id, command_digest: C.digestOf(body) } }).catch(() => {});
+        return { status: 503, body: C.errorEnvelope({ productId, correlationId: ctx.correlationId, code: "UNAVAILABLE", reason: "PRODUCT_ADMIN_UNREACHABLE", retryable: false, operationId: body.command_id }) };
+      }
+      const result = res.json && res.json.result;
+      await recordAudit(pool, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId, productAdminId: row.id, action: "operation.submit.forward",
+        outcome: res.json && res.json.error ? "DENIED" : "RECORDED", reasonCode: res.json && res.json.error ? res.json.error.reason : null,
+        metadata: { capability_id: capability.id, command_digest: C.digestOf(body), operation_status: result && typeof result.status === "string" ? result.status : null } }).catch(() => {});
+      return { status: res.status, body: res.json };
+    },
+
+    // The original requester's audit trail of one operation (same owner rule
+    // as the operation itself: another staff member's operation is not found).
+    async operationAudit(subject, productId, operationId, ctx) {
+      const { row } = await enabledRegistration(productId);
+      const decision = await authorize(subject, "operation.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
+      if (!new RegExp(C.PATTERNS.pathParam).test(String(operationId))) throw new ProductError("INVALID_REQUEST", "OPERATION_ID_INVALID");
+      try {
+        const delegation = productDelegation(subject, row, decision, "operation.read", C.endpointPath("auditGet", { operationId }));
+        const res = await clientFor(endpoints, row, clientOptions).getAudit(operationId, { correlationId: ctx.correlationId, delegation });
+        return { status: res.status, body: res.json };
+      } catch {
+        throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE");
+      }
     },
   };
 }

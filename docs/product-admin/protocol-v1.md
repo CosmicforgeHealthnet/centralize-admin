@@ -27,9 +27,9 @@ or TLS 1.3 mutual TLS to a private address).
 | GET | `/events` | service | One bounded page for one partition (`events-page.v1`); query `dataset_id`, `partition_key`, `after_sequence`, `limit ≤ 100` |
 | POST | `/events/ack` | service | Acknowledge events HQ has committed (`events-ack.v1`) |
 | GET | `/sync/status` | service | Event source state and partition heads (`sync-status.v1`) |
-| GET | `/operations/{operationId}` | service | Operation status |
-| POST | `/operations` | service + product delegation | Typed command (`operation-command.v1`); disabled unless certified |
-| GET | `/audit/{operationId}` | service | Sanitized audit trail |
+| GET | `/operations/{operationId}` | service + product delegation (`operation.read`) | Operation status; only the requesting staff member's own operations (others answer 404) |
+| POST | `/operations` | service + product delegation | Typed command (`operation-command.v1`); command scope must lie within the delegated scope; disabled unless certified |
+| GET | `/audit/{operationId}` | service + product delegation (`operation.read`) | Sanitized audit trail; same ownership rule |
 
 ## Authentication
 
@@ -86,7 +86,8 @@ HQ verification (`verifyManifest`) requires: the exact registry-approved key
 ID; a signer enrolled by an operator for the same product and environment,
 unexpired and unrevoked; a valid signature and digest; product, instance,
 environment and workload identity equal to the registry; validity window;
-supported protocol major; no revision rollback; valid catalog semantics.
+supported protocol (same major, minor no newer than this HQ supports — an
+unknown newer minor is rejected); no revision rollback; valid catalog semantics.
 Every object is closed (`additionalProperties: false`), so a manifest cannot
 carry URLs, callback addresses or anything else that could redirect a
 connection or change permissions. Manifests propose; only reviewers decide.
@@ -122,8 +123,27 @@ meaning / unit / classification, metric definition / aggregation / grain /
 unit / currency, event schema ID / dataset / classification / projection,
 incompatible payload schemas, capability kind / risk / request schema, any
 breaking change without a major version, additive change without a version
-bump, or a silent schema-digest change. Capability state changes are
-additive but always need review. Nothing activates automatically:
+bump, a silent schema-digest change, any change to a capability's
+`requires_recent_mfa` or `requires_independent_approval` (authorization
+rules), an event family's `version_policy`, a payload schema that drops a
+required property or changes or adds any keyword other than optional
+`properties`, duplicate or malformed catalog entries, an inconsistent
+dataset schema digest, and any difference the comparator does not recognise
+(`UNCLASSIFIED_CHANGE`).
+
+The comparison is exhaustive: every rule records the keys it classified,
+then every matched object (catalog, protocol, dataset, field, metric,
+lineage, event family, capability) is compared key by key in canonical form,
+and any difference no rule accounted for is `UNCLASSIFIED_CHANGE`, also when
+recognised changes accompany it. A change in the relative order of entries
+or set values is unclassified too. Object key order is never a difference
+(canonical form). An unrecognised change can therefore never pass as
+`IDENTICAL` or `COMPATIBLE_ADDITIVE`. `activationDecision` refuses a
+comparison whose decision disagrees with its own change list, and contract
+activation re-compares the candidate against the contract active at that
+moment with the current comparator. Capability state, lineage (known keys),
+title, blockers, sunset and pure version bumps are additive but always need
+review. Nothing activates automatically:
 additive revisions need certification and explicit activation by a different
 person; breaking revisions are recorded as `REJECTED` and need a new
 registration with a dual-read migration plan. Pinned contract and schema

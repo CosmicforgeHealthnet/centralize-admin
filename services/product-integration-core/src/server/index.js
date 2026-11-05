@@ -11,8 +11,12 @@ const { createApp } = require("../api/app");
 const { createNonceStore } = require("../db");
 const { createSyncEngine } = require("../sync/engine");
 const { createHealthChecker } = require("../registry/health");
+const { createRetention } = require("../retention");
 
-const log = (entry) => process.stdout.write(JSON.stringify({ service: "product-integration-core", at: new Date().toISOString(), ...entry }) + "\n");
+const { createLogger } = require("../logger");
+const { createPicMetrics } = require("../observability/metrics");
+
+const log = createLogger();
 
 function start(env = process.env) {
   const config = loadConfig(env);
@@ -21,18 +25,31 @@ function start(env = process.env) {
   let timer = null;
   let running = false;
   let handler;
+  let observability = null;
 
   if (config.enabled) {
     pool = new Pool({ connectionString: config.databaseUrl, max: 10, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000, application_name: "product-integration-core" });
     pool.on("error", () => log({ event: "database_pool_error" }));
-    syncEngine = createSyncEngine({ pool, endpoints: config.endpoints, environment: config.environment, workerId: config.sync.workerId || undefined, leaseSeconds: config.sync.leaseSeconds, logger: log });
-    handler = createApp({ pool, endpoints: config.endpoints, trustStore: config.trustStore, hqDelegationKeys: config.hqDelegationKeys, environment: config.environment, nonceStore: createNonceStore(pool), logger: log, syncEngine });
+    syncEngine = createSyncEngine({ pool, endpoints: config.endpoints, environment: config.environment, trustStore: config.trustStore, workerId: config.sync.workerId || undefined, leaseSeconds: config.sync.leaseSeconds, logger: log });
+    observability = createPicMetrics({ pool, enabled: true, syncEnabled: config.sync.enabled, environment: config.environment, trustStore: config.trustStore, hqDelegationKeys: config.hqDelegationKeys, buildSha: env.PIC_BUILD_SHA });
+    handler = createApp({ pool, endpoints: config.endpoints, trustStore: config.trustStore, hqDelegationKeys: config.hqDelegationKeys, environment: config.environment, nonceStore: createNonceStore(pool), logger: log, syncEngine, observability, syncEnabled: config.sync.enabled });
     if (config.sync.enabled) {
       const health = createHealthChecker({ pool, endpoints: config.endpoints, trustStore: config.trustStore });
+      const retention = createRetention(pool);
+      let lastRetention = 0;
       timer = setInterval(async () => {
         if (running) return;
         running = true;
-        try { await health.checkAll(); await syncEngine.tick({ scheduled: true }); } catch (err) { log({ event: "sync_tick_failed", error: err && err.name }); } finally { running = false; }
+        try {
+          await health.checkAll();
+          observability.observeSync(await syncEngine.tick({ scheduled: true }));
+          // Daily per-dataset payload retention; legal holds are respected.
+          if (Date.now() - lastRetention >= 86400000) {
+            const r = await retention.clearExpiredInboxPayloads();
+            lastRetention = Date.now();
+            if (r.cleared || r.retainedUnderHold) log({ event: "inbox_retention", cleared: r.cleared, retained_under_hold: r.retainedUnderHold });
+          }
+        } catch (err) { log({ event: "sync_tick_failed", error: err && err.name }); } finally { running = false; }
       }, config.sync.intervalSeconds * 1000);
     }
   } else {

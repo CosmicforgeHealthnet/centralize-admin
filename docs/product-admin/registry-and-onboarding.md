@@ -100,9 +100,10 @@ authorized in PIC from explicit grants. Admin routes also require MFA within
 
 `GET /api/products` returns, per granted product: `product_id`,
 `display_name`, `available`, `reason` (`NOT_REGISTERED`, `NOT_ENABLED`,
-`PROTOCOL_INCOMPATIBLE`, `CONTRACT_DRIFT` or null), lifecycle status,
+`PROTOCOL_INCOMPATIBLE`, `IDENTITY_NOT_VERIFIED`, `CONTRACT_DRIFT` or null), lifecycle status,
 contract revision, protocol, effective scope, grant role, capability state
-counts, datasets with `granted` flags and `navigation` metadata (only when
+counts, datasets with `granted` flags (computed with the same decision as
+the metric read: expiry, explicit deny, dataset and scope) and `navigation` metadata (only when
 available). The frontend is unchanged; specialised product pages remain
 separate work.
 
@@ -115,21 +116,21 @@ separate work.
 | 3 | destination from registry | `clientFor(endpoints, row)` via `endpoint_ref`; endpoint bound to product+environment |
 | 4 | approved service identity | `cf-svc-v1` keys from the endpoint entry; TLS pin for HTTPS |
 | 5 | bounded page | `limit ≤ page_limit ≤ 100`, 1 MiB response cap, `events-page.v1` validation |
-| 6 | verify identity, schema, digest, sequence, source, scope | `createEventRegistry(...).validate` + `sequenceDecision` |
+| 6 | verify identity, schema, digest, sequence, source, scope | One deny-by-default gate, `src/registry/sync-policy.js`, evaluated before any request and again inside every apply, ACK and reconciliation transaction: product `ENABLED` in this environment; the contract in use is the active one with a supported protocol; drift status is exactly `NONE` (every other state — identity drift, `BREAKING_DETECTED`, `ADDITIVE_PENDING_REVIEW`, or any unrecognised value — blocks); stored manifest unexpired; trust store current (unchanged since load); approved signer present, unrevoked, unexpired and enrolled for this product/environment. Run result `BLOCKED_IDENTITY`, `BLOCKED_CONTRACT_DRIFT` or `BLOCKED_SYNC_POLICY` (mid-run: partition `BLOCKED`) with a sanitized alert. Per event: `createEventRegistry(...).validate` + `sequenceDecision` |
 | 7 | privacy and authorization policy | restricted classification refused; subscription allowed scope; dataset dimensions |
 | 8 | durable append-only inbox | `hq_product_admin_event_inbox` |
 | 9 | same ID, different digest | `DIGEST_CONFLICT` quarantine; identical replays counted as duplicates |
-| 10 | domain-neutral projections only | `METRIC_OBSERVATION` against the pinned metric definition |
+| 10 | domain-neutral projections only | `METRIC_OBSERVATION` against the pinned metric definition; other standard families (`projection: NONE`) are validated, stored and sequenced but never projected |
 | 11 | lineage + cursor in the same transaction | one transaction per event |
 | 12 | commit | — |
-| 13 | ACK after commit | `ack()` after the page; tested by inspecting the inbox from the ACK handler |
+| 13 | ACK after commit | `ack()` after the page, only for the contiguous committed sequence, and only if the gate still passes (else `SKIPPED_BLOCKED`, retried after recovery); tested by inspecting the inbox from the ACK handler |
 | 14 | retry ACK without re-applying | pending `acked < last` is retried first next run |
-| 15 | quarantine invalid/unsupported/out-of-scope/drifted | `quarantine()`; cursor advances, coverage `PARTIAL` |
+| 15 | quarantine invalid/unsupported/out-of-scope/drifted | An event at the next sequence that fails verification (unknown family or schema, identity, digest, payload, classification, reused event ID) is quarantined and **holds** the partition: the cursor stays before it (`gap_from = gap_to = sequence`, `hold_reason`), nothing after it is applied, it is never ACKed, and coverage is `PARTIAL`. Only reconciliation from a complete, approved snapshot that covers it moves the cursor on (the quarantine record is kept and marked `SUPERSEDED_BY_SNAPSHOT`). An authentic, schema-valid event outside the subscription's allowed scope (`SCOPE_DENIED`) is a policy filter: recorded and skipped. |
 | 16 | stop at gaps | `GAP` records `gap_from/gap_to`, stops the partition |
 | 17 | sanitized alerts | `integration.alert` audit rows + structured logs |
 | 18 | reconcile from snapshots | `reconcilePartition`: approved snapshot, version-guarded apply, cursor advanced only if the snapshot covers the gap |
 | 19 | never older over newer | `ON CONFLICT ... WHERE source_entity_version < EXCLUDED...` + trigger |
-| 20 | stop on revocation | product row `FOR SHARE` per event; revoked → run `ABORTED_REVOKED`, no ACK, no further requests |
+| 20 | stop on revocation | gate re-read `FOR SHARE` per event; revoked → run `ABORTED_REVOKED`, no ACK, no further requests; drift, trust change or a superseded contract recorded mid-run → `BLOCKED` |
 
 ## 5.7–5.9 Subscriptions, metrics, monitoring
 
@@ -142,13 +143,43 @@ observation, last reconciliation, coverage, gap status and quarantine count.
 Metric reads are exact-scope (no aggregation across scopes, products or
 currencies); a missing observation is 503 `NO_SOURCE_OBSERVATION`, never
 zero; `as_of` is the oldest genuine source observation; coverage is
-`PARTIAL` whenever the stream had gaps or quarantines.
+`PARTIAL` whenever the stream has gaps, holds or unresolved quarantines.
+Navigation and every live product read (`datasets`, `metrics`,
+`capabilities`, `operations`) apply the same gate as synchronization: a
+product that may not synchronize is reported unavailable
+(`IDENTITY_NOT_VERIFIED` or `CONTRACT_DRIFT`), while committed history is
+kept. Manifest and event-status reads stay available for diagnosis and show
+the drift.
 
 `GET .../monitoring` reports registry status, identity and manifest expiry,
 connection health, contract and drift, datasets, subscriptions with lag,
 cursors with sequence lag, unacknowledged counts and gaps, 24 h run stats
 (failed ACKs, lease failures, failed runs, last success), quarantine counts
 and alert counts by reason. Health is never inferred from local liveness.
+
+The scheduled health check runs before every scheduled synchronization tick.
+A fully verified manifest from the approved signer with an unchanged catalog
+refreshes the stored manifest digest, revision and expiry; anything else
+records drift and stops synchronization (above) until a later check verifies
+again. A changed catalog never refreshes the manifest: `ADDITIVE_PENDING_REVIEW`
+is cleared only by propose → independent certification → independent
+activation, `BREAKING_DETECTED` only by the product returning to the approved
+catalog (or a new major onboarding). A check whose registration changed
+contract or approved signer while it ran is discarded, not written. While
+any drift is unresolved, no dataset may be approved and no subscription
+created or enabled for the product (`CONTRACT_DRIFT_UNRESOLVED`).
+
+Trust-store lifecycle: the signer trust store is loaded at process start and
+never reloaded in place. Revoking, expiring or rotating a signer means
+changing the trust-store file (or a referenced public-key file) and
+restarting the service. Until the restart the running process does not keep
+trusting what it loaded: it re-reads the files at most every
+`PIC_TRUST_STORE_RECHECK_SECONDS` (default 5 s), and once any byte differs or
+a file is unreadable, synchronization, health refresh, onboarding and staff
+reads fail closed with `TRUST_STORE_CHANGED` until the restart. A revocation
+written to the file therefore takes effect within that interval as a full
+stop, and as the new trust after restart. Lifecycle state is never changed by a health check, so a `SUSPENDED`
+or `REVOKED` product is never reactivated by a new manifest.
 
 ## 5.10 Universal onboarding conformance
 

@@ -9,6 +9,7 @@ const catalog = require("./catalog");
 const manifest = require("./manifest");
 const compatibility = require("./compatibility");
 const params = require("./params");
+const migrationSafety = require("./migration-safety");
 
 module.exports = {
   ...protocol,
@@ -20,5 +21,6 @@ module.exports = {
   ...compatibility,
   ...params,
   schemas,
+  migrationSafety,
   PACKAGE_VERSION: "1.0.0",
 };

@@ -8,7 +8,6 @@ import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { formatFullDate, isValidEmail } from "@/components/mail/mail-utils";
 import { classifyMailError } from "@/lib/mail.service";
 import {
-  createContact,
   createSuppression,
   fetchAudiences,
   fetchContactProviderStates,
@@ -20,88 +19,33 @@ import {
   liftSuppression,
   withdrawConsent,
 } from "@/lib/mail-marketing.service";
-import type { ConsentSource, MarketingOrganization } from "@/types/mail-marketing.types";
+import type { ImportOriginalChannel, MarketingOrganization } from "@/types/mail-marketing.types";
 import { EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
 import ResubscriptionsPanel from "./ResubscriptionsPanel";
+import { AddContact, ConsentApprovals, RequestPermission, useConsentOptions } from "./ContactPermission";
 
-const SOURCES: ConsentSource[] = ["WEB_FORM", "EVENT", "MANUAL", "API", "IMPORT"];
-
-function AddContact({ org, onDone }: { org: MarketingOrganization; onDone: () => void }) {
-  const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [topic, setTopic] = useState("newsletter");
-  const [source, setSource] = useState<ConsentSource>("WEB_FORM");
-  const [policyVersion, setPolicyVersion] = useState("");
-  const [evidence, setEvidence] = useState("");
-  const [doubleOptIn, setDoubleOptIn] = useState(true);
-  const [msg, setMsg] = useState<string | null>(null);
-  const m = useMutation({
-    mutationFn: () =>
-      createContact(org.id, {
-        email: email.trim(),
-        firstName: firstName.trim() || undefined,
-        lastName: lastName.trim() || undefined,
-        consent: {
-          topic: topic.trim(),
-          source,
-          policyVersion: policyVersion.trim(),
-          doubleOptIn,
-          evidence: { reference: evidence.trim(), capturedAt: new Date().toISOString() },
-        },
-      }),
-    onSuccess: () => {
-      setEmail("");
-      setFirstName("");
-      setLastName("");
-      setEvidence("");
-      setMsg(doubleOptIn ? "Contact added. Consent stays pending until the contact confirms." : "Contact added with recorded consent.");
-      onDone();
-    },
-    onError: (e) => setMsg(classifyMailError(e).message),
-  });
-  const valid = isValidEmail(email) && topic.trim() && policyVersion.trim() && evidence.trim();
-  return (
-    <form
-      className="grid grid-cols-1 gap-2 rounded-md border border-border p-3 sm:grid-cols-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (valid) m.mutate();
-      }}
-      aria-label="Add contact"
-    >
-      <EmField label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={emInput} required /></EmField>
-      <EmField label="First name"><input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={emInput} /></EmField>
-      <EmField label="Last name"><input value={lastName} onChange={(e) => setLastName(e.target.value)} className={emInput} /></EmField>
-      <EmField label="Consent topic"><input value={topic} onChange={(e) => setTopic(e.target.value)} className={emInput} required /></EmField>
-      <EmField label="Consent source">
-        <select value={source} onChange={(e) => setSource(e.target.value as ConsentSource)} className={emInput}>
-          {SOURCES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-        </select>
-      </EmField>
-      <EmField label="Privacy policy version"><input value={policyVersion} onChange={(e) => setPolicyVersion(e.target.value)} className={emInput} required placeholder="e.g. 2026-10" /></EmField>
-      <div className="sm:col-span-2">
-        <EmField label="Consent evidence" hint="Form submission ID, event sign-up sheet reference, etc. Required.">
-          <input value={evidence} onChange={(e) => setEvidence(e.target.value)} className={emInput} required />
-        </EmField>
-      </div>
-      <label className="flex items-center gap-2 self-end text-[12px]">
-        <input type="checkbox" checked={doubleOptIn} onChange={(e) => setDoubleOptIn(e.target.checked)} /> Require double opt-in
-      </label>
-      <div className="sm:col-span-3 flex items-center gap-2">
-        <button type="submit" className={emBtn} disabled={!valid || m.isPending}>Add contact</button>
-        <EmMessage message={msg} />
-      </div>
-    </form>
-  );
-}
+const SOURCE_LABELS: Record<string, string> = {
+  MANUAL: "Added by staff",
+  IMPORT: "CSV import",
+  WEB_FORM: "Website form",
+  API: "API",
+  EVENT: "Event",
+};
+const IMPORT_CHANNELS: { value: ImportOriginalChannel; label: string }[] = [
+  { value: "WEB_FORM", label: "Website sign-up form" },
+  { value: "EVENT", label: "Event sign-up" },
+  { value: "OTHER", label: "Other documented opt-in" },
+];
 
 function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const audiences = useQuery({ queryKey: ["mail", "marketing", org.id, "audiences"], queryFn: () => fetchAudiences(org.id), gcTime: 300000, retry: false });
-  const [topic, setTopic] = useState("newsletter");
-  const [source, setSource] = useState("IMPORT");
-  const [policyVersion, setPolicyVersion] = useState("");
+  const options = useConsentOptions(org.id);
+  const [topicChoice, setTopic] = useState("");
+  const [originalChannel, setOriginalChannel] = useState<ImportOriginalChannel>("WEB_FORM");
+  const [policyChoice, setPolicyVersion] = useState("");
+  const topic = topicChoice || options.data?.topics[0] || "";
+  const policyVersion = policyChoice || options.data?.currentPolicyVersion || options.data?.policyVersions[0] || "";
   const [evidenceReference, setEvidenceReference] = useState("");
   const [audienceId, setAudienceId] = useState("");
   const [attest, setAttest] = useState(false);
@@ -114,7 +58,7 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
     mutationFn: () => {
       const file = fileRef.current?.files?.[0];
       if (!file) throw new Error("Choose a CSV file.");
-      return importContacts(org.id, file, { topic, source, policyVersion, evidenceReference, audienceId: audienceId || undefined, attestOptIn: attest, mode, fileSha256: mode === "commit" ? fileSha256.trim() : undefined });
+      return importContacts(org.id, file, { topic, originalChannel, policyVersion, evidenceReference, audienceId: audienceId || undefined, attestOptIn: attest, mode, fileSha256: mode === "commit" ? fileSha256.trim() : undefined });
     },
     onSuccess: (r) => {
       setReport(r);
@@ -126,7 +70,7 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
   return (
     <div className="flex flex-col gap-3">
       <p className="text-[12px] text-muted-foreground">
-        CSV with an <code>email</code> column (optional <code>first_name</code>, <code>last_name</code>, <code>consent_evidence</code>). Maximum 5,000 rows.
+        CSV with an <code>email</code> column (optional <code>first_name</code>, <code>last_name</code>, <code>consented_at</code> as an ISO date, <code>timezone</code> as an IANA zone). Maximum 5,000 rows.
         Only import people who gave verifiable consent; purchased, scraped or product customer lists are not eligible.
       </p>
       <form
@@ -137,13 +81,21 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
         }}
       >
         <EmField label="CSV file"><input ref={fileRef} type="file" accept=".csv,text/csv" className="text-[12px]" required /></EmField>
-        <EmField label="Consent topic"><input value={topic} onChange={(e) => setTopic(e.target.value)} className={emInput} required /></EmField>
-        <EmField label="Consent source">
-          <select value={source} onChange={(e) => setSource(e.target.value)} className={emInput}>
-            {SOURCES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+        <EmField label="Email list (topic)">
+          <select value={topic} onChange={(e) => setTopic(e.target.value)} className={emInput} required>
+            {(options.data?.topics ?? []).map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </EmField>
-        <EmField label="Policy version"><input value={policyVersion} onChange={(e) => setPolicyVersion(e.target.value)} className={emInput} required /></EmField>
+        <EmField label="Where did they opt in?" hint="Recorded as an import; this keeps where people originally agreed.">
+          <select value={originalChannel} onChange={(e) => setOriginalChannel(e.target.value as ImportOriginalChannel)} className={emInput}>
+            {IMPORT_CHANNELS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+        </EmField>
+        <EmField label="Privacy policy they agreed to">
+          <select value={policyVersion} onChange={(e) => setPolicyVersion(e.target.value)} className={emInput} required disabled={(options.data?.policyVersions ?? []).length === 0}>
+            {(options.data?.policyVersions ?? []).map((v) => <option key={v} value={v}>{v}{v === options.data?.currentPolicyVersion ? " (current)" : ""}</option>)}
+          </select>
+        </EmField>
         <EmField label="Evidence reference" hint="Where the consent records are held."><input value={evidenceReference} onChange={(e) => setEvidenceReference(e.target.value)} className={emInput} required /></EmField>
         <EmField label="Add to audience (optional)">
           <select value={audienceId} onChange={(e) => setAudienceId(e.target.value)} className={emInput}>
@@ -167,7 +119,7 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
           I confirm every person in this file opted in to this topic and the evidence is held as referenced.
         </label>
         <div className="sm:col-span-3 flex items-center gap-2">
-          <button type="submit" className={emBtn} disabled={m.isPending || !attest || !policyVersion.trim() || !evidenceReference.trim() || (mode === "commit" && !fileSha256.trim())}>
+          <button type="submit" className={emBtn} disabled={m.isPending || !attest || !topic || !policyVersion || evidenceReference.trim().length < 3 || (mode === "commit" && !fileSha256.trim())}>
             {m.isPending ? "Working…" : mode === "preview" ? "Preview import" : "Approve and import"}
           </button>
           <EmMessage message={msg} tone="error" />
@@ -263,7 +215,8 @@ function Suppressions({ org }: { org: MarketingOrganization }) {
 
 export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"contacts" | "add" | "import" | "suppressions" | "resubscriptions">("contacts");
+  const [tab, setTab] = useState<"contacts" | "add" | "import" | "approvals" | "suppressions" | "resubscriptions">("contacts");
+  const [requesting, setRequesting] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
@@ -292,6 +245,7 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
     { id: "contacts" as const, label: "Contacts" },
     ...(org.canAuthor ? [{ id: "add" as const, label: "Add contact" }] : []),
     ...(org.canAuthor || org.canApprove ? [{ id: "import" as const, label: "CSV import" }] : []),
+    ...(org.canAuthor || org.canApprove ? [{ id: "approvals" as const, label: "Approvals" }] : []),
     { id: "suppressions" as const, label: "Suppressions" },
     { id: "resubscriptions" as const, label: "Re-subscriptions" },
   ];
@@ -314,6 +268,7 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
       </div>
       {tab === "add" && <AddContact org={org} onDone={refresh} />}
       {tab === "import" && <ImportContacts org={org} onDone={refresh} />}
+      {tab === "approvals" && <ConsentApprovals org={org} />}
       {tab === "suppressions" && <Suppressions org={org} />}
       {tab === "resubscriptions" && <ResubscriptionsPanel org={org} />}
       {tab === "contacts" && (
@@ -344,12 +299,12 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
                         )}
                         <td>
                           <ul className="flex flex-col gap-1">
-                            {c.consents.length === 0 && <li className="text-muted-foreground">No consent recorded (not eligible)</li>}
+                            {c.consents.length === 0 && <li className="text-muted-foreground">No marketing permission (not eligible)</li>}
                             {c.consents.map((k) => (
-                              <li key={k.id} className="flex flex-wrap items-center gap-1.5">
+                              <li key={k.topic} className="flex flex-wrap items-center gap-1.5">
                                 <span className="font-semibold">{k.topic}</span>
                                 <EmBadge value={k.status} />
-                                <span className="text-muted-foreground">{k.source} · policy {k.policyVersion}</span>
+                                <span className="text-muted-foreground">{SOURCE_LABELS[k.source] ?? k.source} · policy {k.policyVersion}</span>
                                 {org.canAuthor && k.status !== "WITHDRAWN" && (
                                   <button
                                     type="button"
@@ -362,6 +317,12 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
                               </li>
                             ))}
                           </ul>
+                          {org.canAuthor && requesting !== c.id && !c.consents.some((k) => k.status === "GRANTED") && (
+                            <button type="button" className="mt-1 text-primary hover:underline" onClick={() => setRequesting(c.id)}>Request permission</button>
+                          )}
+                          {requesting === c.id && (
+                            <RequestPermission org={org} contactId={c.id} email={c.email} onCancel={() => setRequesting(null)} onDone={(text) => { setRequesting(null); setMsg(text); refresh(); }} />
+                          )}
                         </td>
                       </tr>
                     ))}

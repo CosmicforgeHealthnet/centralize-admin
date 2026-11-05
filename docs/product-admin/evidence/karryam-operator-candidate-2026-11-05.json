@@ -1,0 +1,39 @@
+{
+  "status": "CANDIDATE_TESTED_NOT_ACTIVATED",
+  "environment": "staging",
+  "live_data_used": false,
+  "existing_containers_changed": false,
+  "regression": {
+    "tests": 44,
+    "pass": 43,
+    "fail": 0,
+    "skip": 1,
+    "protected_proof": "/srv/cosmicforge/staging/backups/pic-operator-finalcheck-631a5b2313/result.json",
+    "completed_at": "2026-11-05T19:40:27.308119+00:00"
+  },
+  "coverage_run": {
+    "tests": 20,
+    "pass": 19,
+    "fail": 0,
+    "skip": 1,
+    "operator": {
+      "line": 100,
+      "branch": 94.9
+    },
+    "state_machine": {
+      "line": 100,
+      "branch": 96.55
+    },
+    "protected_proof": "/srv/cosmicforge/staging/backups/pic-operator-finalcheck-631a5b2313/coverage-04f0d89ff6/result.json"
+  },
+  "local_certification_tool_tests": {
+    "pass": 10,
+    "fail": 0
+  },
+  "limitations": [
+    "Root-only path requires Linux isolated sandbox.",
+    "Application source hashes are recorded in the protected regression proof; final CI must test the published commit.",
+    "No live authority, operator decision, registration, certification or enablement is asserted.",
+    "Source feed readiness and end-to-end acceptance remain pending."
+  ]
+}

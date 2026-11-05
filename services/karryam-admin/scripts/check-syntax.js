@@ -21,4 +21,5 @@ const files = [...walk(path.join(root, "src")), ...walk(path.join(root, "scripts
 for (const file of files) execFileSync(process.execPath, ["--check", file], { stdio: "inherit" });
 require(path.join(root, "src/server/app.js"));
 require(path.join(root, "src/server/index.js"));
+require(path.join(root, "src/worker/index.js"));
 console.log("syntax ok: " + files.length + " files");

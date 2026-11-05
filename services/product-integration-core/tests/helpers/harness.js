@@ -21,8 +21,8 @@ const PLATFORM_ROLES = {
   approver: ["integration.read", "integration.approve", "integration.suspend", "integration.revoke", "integration.subscriptions.manage"],
 };
 
-async function startHarness({ extraEndpoints = {}, extraSigners = {} } = {}) {
-  const database = await db.createDisposableDatabase();
+async function startHarness({ extraEndpoints = {}, extraSigners = {}, migrationsDir } = {}) {
+  const database = await db.createDisposableDatabase({ migrationsDir });
   const product = await startSyntheticProductAdmin();
   const endpoints = buildEndpoints({ endpoints: { ...product.endpointConfig(), ...extraEndpoints } }, { environment: "test", allowInsecureLoopback: true });
   const trustStore = buildTrustStore({ signers: { ...product.signerConfig(), ...extraSigners } }, { environment: "test" });
@@ -32,7 +32,7 @@ async function startHarness({ extraEndpoints = {}, extraSigners = {} } = {}) {
   const now = () => Date.now() + clock.offsetMs;
   const engines = [];
   const makeEngine = (options = {}) => {
-    const engine = createSyncEngine({ pool: database.pool, endpoints, environment: "test", now, leaseSeconds: 30, ...options });
+    const engine = createSyncEngine({ pool: database.pool, endpoints, environment: "test", trustStore, now, leaseSeconds: 30, ...options });
     engines.push(engine);
     return engine;
   };

@@ -8,6 +8,7 @@ name: Product Admin Platform CI
 on:
   pull_request:
     paths:
+      - "services/central-admin-api/scripts/social-operations/secret-scan.js"
       - "packages/**"
       - "services/karryam-admin/**"
       - "services/product-integration-core/**"
@@ -15,10 +16,13 @@ on:
       - "services/central-admin-api/tests/product-gateway*.test.js"
       - "infrastructure/product-admin/**"
       - "infrastructure/scripts/check-layout.mjs"
+      - "infrastructure/scripts/product-admin-*"
+      - "infrastructure/scripts/node-test-jsonl-reporter.mjs"
       - ".github/workflows/product-admin-platform-ci.yml"
   push:
     branches: [staging]
     paths:
+      - "services/central-admin-api/scripts/social-operations/secret-scan.js"
       - "packages/**"
       - "services/karryam-admin/**"
       - "services/product-integration-core/**"
@@ -26,6 +30,8 @@ on:
       - "services/central-admin-api/tests/product-gateway*.test.js"
       - "infrastructure/product-admin/**"
       - "infrastructure/scripts/check-layout.mjs"
+      - "infrastructure/scripts/product-admin-*"
+      - "infrastructure/scripts/node-test-jsonl-reporter.mjs"
       - ".github/workflows/product-admin-platform-ci.yml"
   workflow_dispatch:
 
@@ -58,6 +64,8 @@ jobs:
             npm --prefix "packages/$pkg" test
             echo "::endgroup::"
           done
+      - name: Redacted secret scan (Product Admin services, packages, templates, workflows)
+        run: node services/central-admin-api/scripts/social-operations/secret-scan.js --product-admin
       - name: Published schemas and OpenAPI are in sync with source
         run: |
           set -euo pipefail
@@ -94,10 +102,75 @@ jobs:
           node-version: "22"
       - run: npm ci
       - run: npm run check
-      - name: Protocol, security-negative, bridge, transport and PostgreSQL tests
+      - name: Read the pinned KarryGo bridge contract commit
+        id: karrygo-pin
+        run: echo "sha=$(node -p "require('./src/bridge/contracts/karrygo-backoffice-v1.json').source_commit")" >> "$GITHUB_OUTPUT"
+      # KarryGo is public; only the bridge contract artifacts are read (no code is run).
+      - name: Check out KarryGo bridge artifacts at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicforgeHealthnet/KarryGo
+          ref: ${{ steps.karrygo-pin.outputs.sha }}
+          path: _karrygo-pinned
+          persist-credentials: false
+          sparse-checkout: |
+            services/admin-backoffice-service/docs/openapi
+            shared/go/adminevents
+      - name: PostgreSQL client tools for the backup/restore drill
+        run: pg_dump --version && pg_restore --version
+      - name: Pinned registry, connector security, modules, operations, reports, Stage A/B pipeline, Section 9 database governance and backup/restore drill
         env:
           KARRYAM_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-        run: npm test
+          KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-pinned
+          KARRYGO_REQUIRE_CHECKOUT: "1"
+          PG_TOOLS_REQUIRED: "1"
+          RESTORE_DRILL_REPORT_DIR: ${{ github.workspace }}/_restore-drill-evidence
+        run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=../../infrastructure/scripts/node-test-jsonl-reporter.mjs --test-reporter-destination="$RUNNER_TEMP/karryam-admin.jsonl" tests/*.test.js
+      - name: No required security/database suite was skipped or missing
+        if: always()
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/_evidence"
+          node ../../infrastructure/scripts/product-admin-no-required-skips.mjs --results "$RUNNER_TEMP/karryam-admin.jsonl" --tests-dir tests --report "$GITHUB_WORKSPACE/_evidence/karryam-admin-required-suites.json"
+      - name: Contract audit (pinned Bridge contract, 435 capabilities, protocol v1.1, schemas, API catalog, HQ gateway routes)
+        env:
+          KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-pinned
+        run: |
+          npm --prefix ../product-integration-core ci
+          node ../../infrastructure/scripts/product-admin-contract-audit.mjs --require-checkout --out "$GITHUB_WORKSPACE/_evidence"
+      - name: Upload contract audit and required-suite evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-admin-contract-audit
+          path: ${{ github.workspace }}/_evidence
+          if-no-files-found: warn
+      - name: Upload backup/restore drill evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: karryam-admin-restore-drill
+          path: ${{ github.workspace }}/_restore-drill-evidence
+          if-no-files-found: warn
+      - name: Check out KarryGo staging HEAD for drift detection
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicforgeHealthnet/KarryGo
+          ref: staging
+          path: _karrygo-staging
+          persist-credentials: false
+          sparse-checkout: |
+            services/admin-backoffice-service/docs/openapi
+            shared/go/adminevents
+      - name: Report KarryGo bridge contract drift (warning only; re-pin after review)
+        env:
+          KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-staging
+          KARRYGO_REQUIRE_CHECKOUT: "1"
+        run: |
+          if node --test --test-name-pattern="pinned KarryGo" tests/boundaries.test.js; then
+            echo "KarryGo staging matches the pinned bridge contract."
+          else
+            echo "::warning title=KarryGo bridge contract drift::KarryGo staging no longer matches the pinned contract in src/bridge/contracts/karrygo-backoffice-v1.json. Review the change before re-pinning."
+          fi
 
   product-integration-core:
     name: Product Integration Core (registry, onboarding, sync, conformance)
@@ -118,6 +191,11 @@ jobs:
           --health-retries 10
     env:
       PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      PG_TOOLS_REQUIRED: "1"
+      RESTORE_DRILL_REPORT_DIR: ${{ github.workspace }}/_restore-drill-evidence
+      # Section 13.2: all twelve business journeys are required (fail, never skip).
+      JOURNEYS_REQUIRED: "1"
+      JOURNEY_REPORT_DIR: ${{ github.workspace }}/_journey-evidence
     defaults:
       run:
         working-directory: services/product-integration-core
@@ -137,8 +215,105 @@ jobs:
         run: node --test tests/migrations-postgres.test.js
       - name: Synthetic third Product Admin universal onboarding conformance (20 steps)
         run: node --test tests/conformance-synthetic-third-postgres.test.js
-      - name: Full suite (security negatives, sync edge cases, Karryam through HQ, static boundaries)
-        run: npm test
+      - name: Section 9 HQ schema governance and backup/restore drill
+        run: node --test tests/section9-postgres.test.js tests/restore-drill-postgres.test.js
+      - name: Full suite (security negatives, sync edge cases, Karryam through HQ, twelve business journeys, static boundaries)
+        run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=../../infrastructure/scripts/node-test-jsonl-reporter.mjs --test-reporter-destination="$RUNNER_TEMP/pic.jsonl" tests/*.test.js
+      - name: No required suite skipped; all twelve journeys present and passed
+        if: always()
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/_journey-evidence"
+          node ../../infrastructure/scripts/product-admin-no-required-skips.mjs --results "$RUNNER_TEMP/pic.jsonl" --tests-dir tests --report "$GITHUB_WORKSPACE/_journey-evidence/pic-required-suites.json"
+          node -e 'const r=require(process.argv[1]); const ids=new Set(r.journeys.filter(j=>j.status==="PASS").map(j=>j.id)); if (ids.size!==12 || r.status!=="PASS") { console.error("journeys:", r.status, [...ids]); process.exit(1); } console.log("12/12 journeys PASS")' "$GITHUB_WORKSPACE/_journey-evidence/product-admin-e2e-journeys.json"
+      - name: Upload business journey evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-admin-e2e-journeys
+          path: ${{ github.workspace }}/_journey-evidence
+          if-no-files-found: warn
+      - name: Upload backup/restore drill evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hq-integration-restore-drill
+          path: ${{ github.workspace }}/_restore-drill-evidence
+          if-no-files-found: warn
+
+  security-coverage:
+    name: Security-critical coverage gate (line and branch thresholds)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install every project
+        run: |
+          set -euo pipefail
+          npm --prefix services/karryam-admin ci
+          npm --prefix services/product-integration-core ci
+          for pkg in admin-contracts event-contracts identity-and-permissions service-clients; do if [ -f "packages/$pkg/package-lock.json" ]; then npm --prefix "packages/$pkg" ci; fi; done
+      - name: Read the pinned KarryGo bridge contract commit
+        id: karrygo-pin
+        run: echo "sha=$(node -p "require('./services/karryam-admin/src/bridge/contracts/karrygo-backoffice-v1.json').source_commit")" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: CosmicforgeHealthnet/KarryGo
+          ref: ${{ steps.karrygo-pin.outputs.sha }}
+          path: _karrygo-pinned
+          persist-credentials: false
+          sparse-checkout: |
+            services/admin-backoffice-service/docs/openapi
+            shared/go/adminevents
+      - name: Signed operator delegation in an isolated root filesystem and disposable PostgreSQL
+        env:
+          PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: |
+          set -euo pipefail
+          sudo install -d -m 0755 -o root -g root "$RUNNER_TEMP/operator-coverage"
+          docker run --rm --network host --user 0:0 --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --tmpfs /etc/cosmicforge:rw,nosuid,nodev,size=2m,mode=0700 --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=$GITHUB_WORKSPACE,readonly" \
+            --mount "type=bind,src=$RUNNER_TEMP/operator-coverage,dst=/reports" \
+            --workdir "$GITHUB_WORKSPACE/services/product-integration-core" \
+            --env PIC_TEST_DATABASE_URL --env PIC_OPERATOR_TEST_SANDBOX=1 node:22-alpine \
+            node --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=lcov --test-reporter-destination=/reports/operator.lcov.info tests/staging-operator.test.js tests/unit.test.js
+          node -e 'const fs=require("node:fs"),crypto=require("node:crypto");process.stdout.write(JSON.stringify({source_sha:process.argv[1],exit_code:0,sandbox:"isolated-root-postgresql",coverage_sha256:crypto.createHash("sha256").update(fs.readFileSync(process.argv[2])).digest("hex")}))' "$GITHUB_SHA" "$RUNNER_TEMP/operator-coverage/operator.lcov.info" | sudo tee "$RUNNER_TEMP/operator-coverage/operator.lcov.info.json" >/dev/null
+      - name: Coverage gate (all projects, real PostgreSQL)
+        env:
+          KARRYAM_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          PRODUCT_ADMIN_REQUIRE_DATABASE: "1"
+          PG_TOOLS_REQUIRED: "1"
+          KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-pinned
+          KARRYGO_REQUIRE_CHECKOUT: "1"
+          COVERAGE_REPORT_DIR: ${{ github.workspace }}/_coverage
+          PIC_OPERATOR_COVERAGE_FILE: ${{ runner.temp }}/operator-coverage/operator.lcov.info
+        run: node infrastructure/scripts/product-admin-coverage-gate.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-security-coverage
+          path: ${{ github.workspace }}/_coverage
+          if-no-files-found: warn
 
   containers:
     name: Build and smoke-test private service images (no push/deploy)
@@ -185,3 +360,67 @@ jobs:
           set -euo pipefail
           ! docker run --rm --network none -e KARRYAM_ADMIN_ENABLED=true cosmicforge-karryam-admin:ci
           ! docker run --rm --network none -e PIC_ENABLED=true cosmicforge-product-integration-core:ci
+          # The Stage A worker (same image) refuses to start while disabled.
+          ! docker run --rm --network none cosmicforge-karryam-admin:ci node src/worker/index.js
+          ! docker run --rm --network none -e KARRYAM_ADMIN_ENABLED=true cosmicforge-karryam-admin:ci node src/worker/index.js
+
+  staging-gates:
+    name: Section 13.3 staging gates (machine-readable and human-readable)
+    needs: [packages, karryam-admin, product-integration-core, security-coverage, containers]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        with:
+          path: _artifacts
+      - name: Status of the other required workflows for this exact commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node -e '
+            const { execFileSync } = require("child_process");
+            const runs = JSON.parse(execFileSync("gh", ["api", `repos/${process.env.GITHUB_REPOSITORY}/actions/runs?head_sha=${process.env.GITHUB_SHA}&per_page=100`])).workflow_runs;
+            const out = {};
+            for (const name of ["Product Admin Infrastructure Security CI", "Monorepo Layout and Container CI", "Social Operations CI"]) {
+              const r = runs.filter((x) => x.name === name).sort((a, b) => b.run_attempt - a.run_attempt)[0];
+              out[name] = !r ? "missing" : r.status !== "completed" ? "in_progress" : r.conclusion;
+            }
+            // This workflow: its own required jobs.
+            out["Product Admin Platform CI"] = process.argv[1] === "success" ? "success" : "failure";
+            require("fs").writeFileSync("ci-status.json", JSON.stringify(out, null, 2));
+            console.log(out);' "${{ needs.karryam-admin.result == 'success' && needs.product-integration-core.result == 'success' && needs.packages.result == 'success' && needs.security-coverage.result == 'success' && needs.containers.result == 'success' && 'success' || 'failure' }}"
+      - name: Evaluate the fourteen gates
+        env:
+          BASE: ${{ github.event_name == 'push' && github.event.before || github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p _gates
+          base_args=()
+          if [[ "$BASE" =~ ^[0-9a-f]{40}$ && "$BASE" != 0000000000000000000000000000000000000000 ]]; then base_args=(--base "$BASE"); fi
+          node infrastructure/scripts/product-admin-staging-gates.mjs --sha "$GITHUB_SHA" "${base_args[@]}" --artifacts _artifacts --ci-status ci-status.json \
+            --report _gates/product-admin-staging-gates.json --markdown _gates/product-admin-staging-gates.md
+          cat _gates/product-admin-staging-gates.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Section 14 WP/DoD and release closure (never self-certify live staging)
+        if: always()
+        run: |
+          set -euo pipefail
+          node --test infrastructure/scripts/tests/product-admin-section14-closure.test.mjs
+          node infrastructure/scripts/product-admin-section14-closure.mjs --sha "$GITHUB_SHA" --gates _gates/product-admin-staging-gates.json \
+            --report _gates/product-admin-section14-closure.json --markdown _gates/product-admin-section14-closure.md
+          cat _gates/product-admin-section14-closure.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-staging-gates
+          path: _gates/

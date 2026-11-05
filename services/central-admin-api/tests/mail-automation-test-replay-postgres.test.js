@@ -13,6 +13,7 @@
 //      windows skipping the weekend, missed windows and the brand fallback
 //   + pre-migration-37 behaviour (test mode works, replay answers 503).
 
+const { requestConfirmation, documented, confirmContact } = require("./helpers/marketing-consent");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -65,11 +66,11 @@ async function setup(t, { rollback37 = false } = {}) {
     assert.equal(response.status, 201, response.text);
     return response.body.data.stepUpId;
   };
-  const consent = (topic) => ({ topic, source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: `form-${crypto.randomUUID().slice(0, 8)}` } });
+  const consent = (topic) => requestConfirmation(topic);
   const newContact = async (email, topic = "newsletter", extra = {}) => {
     const response = await call("dave", "POST", `${mbase}/contacts`, { email, firstName: email.split("@")[0], consent: consent(topic), ...extra });
     assert.equal(response.status, 201, response.text);
-    return response.body.data;
+    return confirmContact(call, response);
   };
   const template = await call("dave", "POST", `${mbase}/templates`, { name: `Gap4 ${crypto.randomUUID().slice(0, 6)}` });
   assert.equal(template.status, 201, template.text);

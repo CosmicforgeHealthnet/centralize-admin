@@ -7,8 +7,13 @@ import type {
   CampaignHistory,
   CampaignInput,
   Consent,
+  ConsentApprovalRequest,
   ConsentInput,
+  ConsentOptions,
+  ConsentRequestResult,
   Contact,
+  ContactCreateResult,
+  ImportOriginalChannel,
   ContactInput,
   EmailTemplate,
   ImportReport,
@@ -86,11 +91,15 @@ export async function fetchMarketingOrganizations(): Promise<MarketingOrganizati
 export const fetchContacts = (orgId: string, params: { q?: string; status?: string; cursor?: string | null } = {}) =>
   getPaged<Contact>(`/${orgId}/contacts`, { ...params, cursor: params.cursor ?? undefined });
 export const fetchContact = (orgId: string, contactId: string) => get<Contact>(`/${orgId}/contacts/${contactId}`);
-export const createContact = (orgId: string, body: ContactInput) => post<Contact>(`/${orgId}/contacts`, body);
+export const createContact = (orgId: string, body: ContactInput) => post<ContactCreateResult>(`/${orgId}/contacts`, body);
+export const fetchConsentOptions = (orgId: string) => get<ConsentOptions>(`/${orgId}/consent-options`);
+export const fetchConsentApprovals = (orgId: string) => get<ConsentApprovalRequest[]>(`/${orgId}/consent-approvals`);
+export const decideConsentApproval = (orgId: string, requestId: string, decision: "APPROVE" | "REJECT", note?: string) =>
+  post<{ requestId: string; decision: string; topic: string; consentStatus: string }>(`/${orgId}/consent-approvals/${requestId}/decision`, { decision, note });
 export const updateContact = (orgId: string, contactId: string, body: Partial<ContactInput>) =>
   patch<Contact>(`/${orgId}/contacts/${contactId}`, body);
 export const recordConsent = (orgId: string, contactId: string, body: ConsentInput) =>
-  post<Consent>(`/${orgId}/contacts/${contactId}/consents`, body);
+  post<ConsentRequestResult>(`/${orgId}/contacts/${contactId}/consents`, body);
 export const withdrawConsent = (orgId: string, contactId: string, topic: string) =>
   post<Consent>(`/${orgId}/contacts/${contactId}/consents/${encodeURIComponent(topic)}/withdraw`);
 
@@ -107,7 +116,7 @@ export type ImportResult = ImportReport & {
 export async function importContacts(
   orgId: string,
   file: File,
-  fields: { topic: string; source: string; policyVersion: string; evidenceReference: string; audienceId?: string; attestOptIn?: boolean; mode?: ImportMode; fileSha256?: string },
+  fields: { topic: string; originalChannel: ImportOriginalChannel; policyVersion: string; evidenceReference: string; audienceId?: string; attestOptIn?: boolean; mode?: ImportMode; fileSha256?: string },
 ): Promise<ImportResult> {
   const form = new FormData();
   form.append("file", file);

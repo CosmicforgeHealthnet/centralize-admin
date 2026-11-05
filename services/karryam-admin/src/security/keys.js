@@ -62,14 +62,17 @@ function loadServiceKeys(file, { now = Date.now(), name = "HQ_SERVICE_KEYS" } = 
     if (!KEY_ID.test(keyId) || !entry || typeof entry !== "object") throw new ConfigError(name + "_ENTRY_INVALID");
     if (!SERVICE_ID.test(String(entry.service_id))) throw new ConfigError(name + "_SERVICE_ID_INVALID");
     const notAfter = parseNotAfter(entry.not_after, name, now);
-    if (notAfter.live) live += 1;
+    if (notAfter.live && entry.revoked !== true) live += 1;
     keys[keyId] = Object.freeze({ serviceId: entry.service_id, key: decodeKey(entry.key_b64url, name), notAfter: notAfter.iso, revoked: entry.revoked === true });
   }
   if (live === 0) throw new ConfigError(name + "_NO_LIVE_KEY");
   return Object.freeze(keys);
 }
 
-// { kid: { key_b64url, not_after } } -> { kid: { key, notAfter } }
+// { kid: { key_b64url, not_after, revoked? } } -> { kid: { key, notAfter, revoked } }
+// Rotation: enroll the new kid next to the old one (overlap), switch the
+// signer, then mark the old kid revoked or remove it. Emergency revocation:
+// set revoked: true and restart; tokens under that kid are refused at once.
 function loadDelegationKeys(file, { now = Date.now(), name = "DELEGATION_KEYS" } = {}) {
   const parsed = parseJsonFile(file, name);
   const keys = {};
@@ -77,8 +80,8 @@ function loadDelegationKeys(file, { now = Date.now(), name = "DELEGATION_KEYS" }
   for (const [kid, entry] of Object.entries(parsed)) {
     if (!KEY_ID.test(kid) || !entry || typeof entry !== "object") throw new ConfigError(name + "_ENTRY_INVALID");
     const notAfter = parseNotAfter(entry.not_after, name, now);
-    if (notAfter.live) live += 1;
-    keys[kid] = Object.freeze({ key: decodeKey(entry.key_b64url, name), notAfter: notAfter.iso });
+    if (notAfter.live && entry.revoked !== true) live += 1;
+    keys[kid] = Object.freeze({ key: decodeKey(entry.key_b64url, name), notAfter: notAfter.iso, revoked: entry.revoked === true });
   }
   if (live === 0) throw new ConfigError(name + "_NO_LIVE_KEY");
   return Object.freeze(keys);

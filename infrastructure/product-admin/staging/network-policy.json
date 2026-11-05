@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "description": "Section 12.1 same-VPS staging boundary for the private Product Admin services. Source of truth for the compose checker, the host preparation script, the firewall rules and the runtime network probes. Every flow not listed in allowed_flows is denied.",
+  "environment": "staging",
+  "compose_project": "cf-product-admin-staging",
+  "networks": {
+    "hq-private": {
+      "name": "cf-staging-hq-private",
+      "subnet_env": "PA_SUBNET_HQ",
+      "default_subnet": "10.231.10.0/28",
+      "internal": true,
+      "managed_by": "prepare-host",
+      "purpose": "Network A: Product Integration Core to the HQ database (DB-A). The Central Admin API reaches PIC only through the PIC Unix socket.",
+      "required_members": ["product-integration-core"],
+      "permitted_members": ["product-integration-core", "hq-database", "central-admin-api"]
+    },
+    "admin-private": {
+      "name": "cf-staging-admin-private",
+      "subnet_env": "PA_SUBNET_ADMIN",
+      "default_subnet": "10.231.11.0/28",
+      "internal": true,
+      "managed_by": "prepare-host",
+      "purpose": "Network B: Product Integration Core to Karryam Admin. Today the protocol runs over the Karryam Admin Unix socket; this network exists for a later TLS 1.3 mTLS listener and carries no other service.",
+      "required_members": ["product-integration-core", "karryam-admin"],
+      "permitted_members": ["product-integration-core", "karryam-admin"]
+    },
+    "karryam-bridge": {
+      "name": "cf-staging-karryam-bridge",
+      "subnet_env": "PA_SUBNET_BRIDGE",
+      "default_subnet": "10.231.12.0/28",
+      "internal": true,
+      "managed_by": "prepare-host",
+      "purpose": "Network C: Karryam Admin (server and Stage A worker) to the source-owned Karryam Backoffice Bridge on TLS 1.3 :8110. The Bridge container is attached by its owner with a fixed address (KARRYAM_BRIDGE_ADDRESS).",
+      "required_members": ["karryam-admin", "karryam-admin-worker"],
+      "permitted_members": ["karryam-admin", "karryam-admin-worker", "karryam-backoffice-bridge"]
+    },
+    "karryam-admin-db": {
+      "name": "cf-staging-karryam-admin-db",
+      "subnet_env": "PA_SUBNET_KADB",
+      "default_subnet": "10.231.13.0/28",
+      "internal": true,
+      "managed_by": "prepare-host",
+      "purpose": "Karryam Admin and its worker to the dedicated Karryam Admin database (DB-B). No HQ component joins it.",
+      "required_members": ["karryam-admin", "karryam-admin-worker", "karryam-admin-db"],
+      "permitted_members": ["karryam-admin", "karryam-admin-worker", "karryam-admin-db"]
+    }
+  },
+  "sockets": {
+    "pic": {
+      "host_dir": "run/pic",
+      "container_dir": "/run/cosmicforge/pic",
+      "socket": "product-integration-core.sock",
+      "owner_uid": 10002,
+      "owner_gid": 10002,
+      "dir_mode": "0750",
+      "socket_mode": "0660",
+      "writer": "product-integration-core",
+      "readers": ["central-admin-api"]
+    },
+    "karryam-admin": {
+      "host_dir": "run/karryam-admin",
+      "container_dir": "/run/cosmicforge/karryam",
+      "socket": "karryam-admin.sock",
+      "owner_uid": 10001,
+      "owner_gid": 10001,
+      "dir_mode": "0750",
+      "socket_mode": "0660",
+      "writer": "karryam-admin",
+      "readers": ["product-integration-core"]
+    }
+  },
+  "allowed_flows": [
+    { "from": "central-admin-api", "to": "product-integration-core", "via": "unix-socket:pic", "purpose": "HQ gateway (cf-hq-delegation+jwt)" },
+    { "from": "product-integration-core", "to": "karryam-admin", "via": "unix-socket:karryam-admin", "purpose": "Product Admin Protocol (cf-svc-v1 + product delegation)" },
+    { "from": "karryam-admin", "to": "karryam-backoffice-bridge", "via": "network:karryam-bridge", "port": 8110, "protocol": "TLS1.3-mTLS", "purpose": "Bridge reads, governed commands" },
+    { "from": "karryam-admin-worker", "to": "karryam-backoffice-bridge", "via": "network:karryam-bridge", "port": 8110, "protocol": "TLS1.3-mTLS", "purpose": "Stage A event feed and ACK" },
+    { "from": "product-integration-core", "to": "hq-database", "via": "network:hq-private", "port": 5432, "purpose": "DB-A, schema hq_integration, runtime role" },
+    { "from": "karryam-admin", "to": "karryam-admin-db", "via": "network:karryam-admin-db", "port": 5432, "purpose": "DB-B runtime role" },
+    { "from": "karryam-admin-worker", "to": "karryam-admin-db", "via": "network:karryam-admin-db", "port": 5432, "purpose": "DB-B runtime role" },
+    { "from": "karryam-backoffice-bridge", "to": "bridge-metadata-database", "via": "source-owned", "purpose": "DB-C, owned and operated by Karryam Backoffice; outside this project" }
+  ],
+  "forbidden_flows": [
+    { "from": "central-admin-api", "to": "karryam-backoffice-bridge", "reason": "HQ never talks to source bridges" },
+    { "from": "product-integration-core", "to": "karryam-backoffice-bridge", "reason": "only Karryam Admin holds Bridge credentials" },
+    { "from": "central-admin-api", "to": "karryam-admin-db", "reason": "HQ has no Karryam Admin database credentials" },
+    { "from": "product-integration-core", "to": "karryam-admin-db", "reason": "DB-B belongs to Karryam Admin" },
+    { "from": "karryam-admin", "to": "hq-database", "reason": "Karryam Admin has no HQ credentials" },
+    { "from": "karryam-admin", "to": "source-operational-database", "reason": "source data only through the Bridge" },
+    { "from": "product-integration-core", "to": "source-operational-database", "reason": "source data only through Product Admins" },
+    { "from": "public-internet", "to": "product-integration-core", "reason": "no public listener" },
+    { "from": "public-internet", "to": "karryam-admin", "reason": "no public listener" },
+    { "from": "public-internet", "to": "karryam-backoffice-bridge", "reason": "no public Bridge route" },
+    { "from": "browser", "to": "internal-product-admin-endpoint", "reason": "Nginx denies /internal/* and private health/metrics paths" }
+  ],
+  "public_ingress": {
+    "api_hostname": "stagingca.cosmicforge-healthnet.com",
+    "web_origin": "https://centralize-admin-staging.vercel.app",
+    "upstream": "127.0.0.1:4001",
+    "denied_path_prefixes": ["/internal", "/_internal", "/metrics", "/sync/status", "/health/live", "/health/ready"],
+    "must_remain_public": ["/health", "/api/auth/login"]
+  }
+}

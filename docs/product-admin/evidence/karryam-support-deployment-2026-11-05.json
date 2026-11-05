@@ -1,0 +1,28 @@
+﻿{
+  "state": "SUPPORT_STAGING_DEPLOY_VERIFIED",
+  "checked_at": "2026-11-05T09:02:53.655884+00:00",
+  "release_sha": "00800825db714c50da5edd1c9bac0c5fa39c5aac",
+  "workflow_run_id": 41998635339,
+  "restore_run_id": 41997807447,
+  "health": "healthy",
+  "ready": true,
+  "live_image_id": "sha256:e86a5d7a6deb830c27e141bdc4be209b13dda0cf19ddcc4fac39ae6570e92f20",
+  "denial_checks": {
+    "/internal/support/v1/admin/resources/cases": 503,
+    "/api/v1/support-disputes/complaints": 401,
+    "/api/v1/support-disputes/admin/complaints": 401
+  },
+  "owner_authorization_tables": [
+    "admin_owner_context_heads",
+    "admin_owner_context_history",
+    "admin_owner_context_preparation_audit",
+    "admin_owner_policy_revisions"
+  ],
+  "changed_preexisting_containers": [
+    "/karrygo-support-dispute-service"
+  ],
+  "unexpected_changed_containers": [],
+  "new_containers": [],
+  "bridge_data_access_enabled": false,
+  "whole_integration_complete": false
+}

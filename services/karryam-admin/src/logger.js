@@ -5,9 +5,20 @@
 
 const SENSITIVE = /(token|secret|password|passphrase|authorization|cookie|signature|private|credential|body|headers?|delegation|assertion|key_b64url|^key$)/i;
 
+// Credentials embedded in strings: user:password@ in any URI, bearer/basic
+// authorization values, compact JWS/JWT tokens and PEM blocks.
+const URI_CREDENTIALS = /\b([a-z][a-z0-9+.-]*:\/\/)[^\s/@]+@/gi;
+const AUTH_VALUE = /\b(bearer|basic)\s+[A-Za-z0-9._~+/=-]+/gi;
+const COMPACT_JWS = /\beyJ[A-Za-z0-9_-]{4,}\.[A-Za-z0-9_-]{4,}\.[A-Za-z0-9_-]*/g;
+const PEM = /-----BEGIN [A-Z ]+-----[\s\S]*?(?:-----END [A-Z ]+-----|$)/g;
+
+function scrub(text) {
+  return text.replace(PEM, "[redacted-pem]").replace(URI_CREDENTIALS, "$1[redacted]@").replace(AUTH_VALUE, "$1 [redacted]").replace(COMPACT_JWS, "[redacted-token]");
+}
+
 function redact(value, depth = 0) {
   if (value === null || value === undefined) return value;
-  if (typeof value === "string") return value.length > 200 ? value.slice(0, 200) + "…" : value;
+  if (typeof value === "string") { const clean = scrub(value); return clean.length > 200 ? clean.slice(0, 200) + "…" : clean; }
   if (typeof value === "number" || typeof value === "boolean") return value;
   if (depth > 3) return "[truncated]";
   if (Array.isArray(value)) return value.slice(0, 10).map((item) => redact(item, depth + 1));
@@ -29,4 +40,4 @@ function createLogger({ write = (line) => process.stdout.write(line + "\n"), ser
   };
 }
 
-module.exports = { createLogger, redact };
+module.exports = { createLogger, redact, scrub };

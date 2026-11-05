@@ -1,0 +1,328 @@
+name: Product Admin Infrastructure Security CI
+
+# Section 12.1/12.2/12.4 and 13.1.8-13.1.9 on disposable infrastructure only:
+#   static     policy/compose/Nginx/firewall checks, release state machine
+#   nginx      the real deny snippet in a real Nginx, probed with raw requests
+#   rehearsal  the exact staging host operations script on this runner:
+#              prepare host (networks, dirs, DOCKER-USER), deploy by digest,
+#              network probes, DB role audit, backup + restore drill,
+#              migration preview/apply, enabled deploy, second release,
+#              rollback, refused bad configuration, emergency disable, and
+#              S0-S2 release state with evidence (environment "rehearsal").
+# Nothing here connects to the VPS or reads staging/production secrets. A
+# rehearsal never counts as staging evidence.
+
+on:
+  pull_request:
+    paths:
+      - "infrastructure/product-admin/**"
+      - "infrastructure/scripts/product-admin-*"
+      - "infrastructure/scripts/tests/**"
+      - "services/karryam-admin/**"
+      - "services/product-integration-core/**"
+      - "packages/**"
+      - ".github/workflows/product-admin-infrastructure-ci.yml"
+      - ".github/workflows/product-admin-staging-ops.yml"
+  push:
+    branches: [staging]
+    paths:
+      - "infrastructure/product-admin/**"
+      - "infrastructure/scripts/product-admin-*"
+      - "infrastructure/scripts/tests/**"
+      - "services/karryam-admin/**"
+      - "services/product-integration-core/**"
+      - "packages/**"
+      - ".github/workflows/product-admin-infrastructure-ci.yml"
+      - ".github/workflows/product-admin-staging-ops.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-admin-infra-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Policy, compose, Nginx, firewall and release-state checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Infrastructure unit tests (checker, release state machine, evidence, certification tools)
+        run: node --test infrastructure/scripts/tests/*.test.mjs
+      - name: Shell syntax and lint
+        run: |
+          set -euo pipefail
+          for f in infrastructure/product-admin/release/pa-staging-ops.sh infrastructure/product-admin/firewall/docker-user-rules.sh; do bash -n "$f"; done
+          shellcheck -S warning infrastructure/product-admin/release/pa-staging-ops.sh infrastructure/product-admin/firewall/docker-user-rules.sh
+      - name: Empty placeholder env files at the real host paths (disposable runner; compose requires them to exist)
+        run: |
+          sudo install -d /etc/cosmicforge/staging
+          sudo touch /etc/cosmicforge/staging/product-integration-core.env /etc/cosmicforge/staging/karryam-admin.env
+      - name: Resolved staging compose model passes the policy (digest-pinned)
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          d="$(printf 'a%.0s' $(seq 64))"
+          export PIC_IMAGE="ghcr.io/cosmicforgehealthnet/product-integration-core@sha256:$d" KARRYAM_ADMIN_IMAGE="ghcr.io/cosmicforgehealthnet/karryam-admin@sha256:$d" KARRYAM_ADMIN_DB_IMAGE="docker.io/library/postgres@sha256:$d"
+          docker compose -f infrastructure/product-admin/staging/docker-compose.yml config --format json > artifacts/resolved-compose.json
+          node infrastructure/scripts/product-admin-infra-check.mjs --compose-json artifacts/resolved-compose.json --require-digests --report artifacts/product-admin-network-policy-report.json
+      - name: A mutable tag or a missing image reference is refused
+        run: |
+          set -euo pipefail
+          d="$(printf 'a%.0s' $(seq 64))"
+          PIC_IMAGE="ghcr.io/cosmicforgehealthnet/product-integration-core:staging-latest" KARRYAM_ADMIN_IMAGE="ghcr.io/cosmicforgehealthnet/karryam-admin@sha256:$d" KARRYAM_ADMIN_DB_IMAGE="postgres:16-alpine" \
+            docker compose -f infrastructure/product-admin/staging/docker-compose.yml config --format json > /tmp/mutable.json
+          if node infrastructure/scripts/product-admin-infra-check.mjs --compose-json /tmp/mutable.json --require-digests; then echo "::error::mutable tags were accepted"; exit 1; fi
+          if docker compose -f infrastructure/product-admin/staging/docker-compose.yml config >/dev/null 2>&1; then echo "::error::compose resolved without image references"; exit 1; fi
+      - name: Alert rules are valid Prometheus rules (promtool)
+        run: docker run --rm -v "$PWD/infrastructure/product-admin/monitoring:/w:ro" --entrypoint promtool prom/prometheus:v2.53.0 check rules /w/alerts.yml
+      - name: Redacted secret scan (includes infrastructure/product-admin)
+        run: node services/central-admin-api/scripts/social-operations/secret-scan.js --product-admin
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-network-policy-report
+          path: artifacts/
+          if-no-files-found: warn
+
+  nginx:
+    name: Public ingress denial (real Nginx, raw-request probe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Start Nginx with the deny snippet in front of a recording backend
+        run: |
+          set -euo pipefail
+          t="$GITHUB_WORKSPACE/infrastructure/product-admin/nginx"
+          docker network create nginx-probe >/dev/null
+          docker run -d --name backend --network nginx-probe --network-alias backend -p 127.0.0.1:19001:9001 \
+            -v "$t/test/backend-stub.mjs:/stub.mjs:ro" node:22-alpine node /stub.mjs >/dev/null
+          docker run -d --name nginx --network nginx-probe -p 127.0.0.1:18080:8080 \
+            -v "$t/test/nginx.conf:/etc/nginx/nginx.conf:ro" -v "$t/internal-deny.conf:/etc/nginx/snippets/cosmicforge-internal-deny.conf:ro" nginx:1.27-alpine >/dev/null
+          docker exec nginx nginx -t
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:19001/ >/dev/null 2>&1 && curl -s -o /dev/null http://127.0.0.1:18080/ && break; sleep 1; done
+      - name: Probe (encoding, dot segments, slashes, case, Host and absolute-form tricks)
+        run: |
+          mkdir -p artifacts
+          node infrastructure/product-admin/nginx/test/probe.mjs --target http://127.0.0.1:18080 --host stagingca.test --control http://127.0.0.1:19001 --report artifacts/product-admin-ingress-probe.json
+      - name: Nginx logs on failure
+        if: failure()
+        run: docker logs nginx 2>&1 | tail -n 200
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-ingress-probe
+          path: artifacts/
+          if-no-files-found: warn
+
+  rehearsal:
+    name: Staging host rehearsal (prepare, deploy, probe, migrate, rollback, disable)
+    needs: [static, nginx]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      PA_REHEARSAL: "1"
+      PA_HQ_DB_CONTAINER: rehearsal-hq-db
+      PA_API_CONTAINER: rehearsal-api
+      PA_BRIDGE_CONTAINER: rehearsal-bridge
+      PA_BRIDGE_ADDRESS: 10.231.12.10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        with:
+          name: product-admin-ingress-probe
+          path: ${{ runner.temp }}/probe
+      - name: Rehearsal layout and ops wrapper
+        run: |
+          set -euo pipefail
+          echo "PA_HOST_ROOT=$RUNNER_TEMP/host" >> "$GITHUB_ENV"
+          echo "PA_CONFIG_ROOT=$RUNNER_TEMP/etc" >> "$GITHUB_ENV"
+          echo "PA_OUT=$RUNNER_TEMP/out" >> "$GITHUB_ENV"
+          echo "PA_LOGS=$GITHUB_WORKSPACE/_rehearsal" >> "$GITHUB_ENV"
+          mkdir -p "$GITHUB_WORKSPACE/_rehearsal"
+          cat > "$RUNNER_TEMP/ops" <<'SH'
+          #!/usr/bin/env bash
+          # Runs the real host script as root, like the VPS workflow does.
+          set -o pipefail
+          op="$1"; shift
+          sudo env PA_REHEARSAL=1 PA_HOST_ROOT="$PA_HOST_ROOT" PA_CONFIG_ROOT="$PA_CONFIG_ROOT" PA_HQ_DB_CONTAINER="$PA_HQ_DB_CONTAINER" \
+            PA_API_CONTAINER="$PA_API_CONTAINER" PA_BRIDGE_CONTAINER="$PA_BRIDGE_CONTAINER" PA_BRIDGE_ADDRESS="$PA_BRIDGE_ADDRESS" \
+            PA_PIC_IMAGE="${PA_PIC_IMAGE:-}" PA_KA_IMAGE="${PA_KA_IMAGE:-}" PA_RELEASE_SHA="${PA_RELEASE_SHA:-}" PA_RUN_ID="${GITHUB_RUN_ID}-${op}-$RANDOM" "$@" \
+            bash "$GITHUB_WORKSPACE/infrastructure/product-admin/release/pa-staging-ops.sh" "$op" 2>&1 | tee -a "$PA_LOGS/$op.log"
+          SH
+          chmod +x "$RUNNER_TEMP/ops"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Build release images (revision label = this commit) and push to a local registry for real digests
+        run: |
+          set -euo pipefail
+          docker run -d --name registry -p 127.0.0.1:5000:5000 registry:2 >/dev/null
+          build() { # sha suffix
+            docker build -q --label "org.opencontainers.image.revision=$1" -f services/karryam-admin/Dockerfile -t "127.0.0.1:5000/karryam-admin:$2" . >/dev/null
+            docker build -q --label "org.opencontainers.image.revision=$1" -f services/product-integration-core/Dockerfile -t "127.0.0.1:5000/product-integration-core:$2" . >/dev/null
+            for n in karryam-admin product-integration-core; do docker push -q "127.0.0.1:5000/$n:$2" >/dev/null; done
+          }
+          digest() { docker image inspect -f '{{range .RepoDigests}}{{println .}}{{end}}' "127.0.0.1:5000/$1:$2" | grep -m1 '^127.0.0.1:5000/'; }
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:5000/v2/ >/dev/null && break; sleep 1; done
+          build "$GITHUB_SHA" r1
+          sha2="$(printf '%s' "$GITHUB_SHA" | rev)"
+          # Release 2 = same code, different release identity (for the rollback rehearsal).
+          docker build -q --label "org.opencontainers.image.revision=$sha2" --label "rehearsal=r2" -f services/karryam-admin/Dockerfile -t 127.0.0.1:5000/karryam-admin:r2 . >/dev/null
+          docker build -q --label "org.opencontainers.image.revision=$sha2" --label "rehearsal=r2" -f services/product-integration-core/Dockerfile -t 127.0.0.1:5000/product-integration-core:r2 . >/dev/null
+          for n in karryam-admin product-integration-core; do docker push -q "127.0.0.1:5000/$n:r2" >/dev/null; done
+          {
+            echo "KA1=$(digest karryam-admin r1)"; echo "PIC1=$(digest product-integration-core r1)"
+            echo "KA2=$(digest karryam-admin r2)"; echo "PIC2=$(digest product-integration-core r2)"
+            echo "SHA2=$sha2"
+          } | tee -a "$GITHUB_ENV"
+      - name: Stand-ins for the existing HQ database and Central Admin API
+        run: |
+          set -euo pipefail
+          docker run -d --name rehearsal-hq-db -e POSTGRES_PASSWORD="$(openssl rand -hex 16)" -e POSTGRES_DB=cosmicforge_admin postgres:16-alpine >/dev/null
+          for i in $(seq 1 30); do docker exec rehearsal-hq-db pg_isready -q -h 127.0.0.1 -U postgres && break; sleep 2; done
+      - name: prepare-host (networks, socket dirs, config dirs, DB-A attachment, DOCKER-USER rules)
+        run: |
+          set -euo pipefail
+          ops prepare-host
+          sudo iptables -S DOCKER-USER | tee "$PA_LOGS/docker-user.txt"
+          grep -q 'cf-product-admin' "$PA_LOGS/docker-user.txt"
+          # Idempotent.
+          ops prepare-host >/dev/null
+          for n in cf-staging-hq-private cf-staging-admin-private cf-staging-karryam-bridge cf-staging-karryam-admin-db; do test "$(docker network inspect -f '{{.Internal}}' "$n")" = true; done
+          # The source-owned Bridge (stand-in) joins its private network with a fixed address; the API stand-in mounts the PIC socket read-only.
+          docker run -d --name rehearsal-bridge --network cf-staging-karryam-bridge --ip 10.231.12.10 node:22-alpine node -e "require('net').createServer(s=>s.end()).listen(8110)" >/dev/null
+          docker run -d --name rehearsal-api -v "$PA_HOST_ROOT/run/pic:/run/cosmicforge/pic:ro" node:22-alpine node -e "setInterval(()=>{},1<<30)" >/dev/null
+      - name: Deploy disabled-by-default (release 1)
+        run: |
+          set -euo pipefail
+          sudo "$(command -v node)" infrastructure/product-admin/release/rehearsal-fixtures.mjs --config-root "$PA_CONFIG_ROOT" --out "$PA_OUT" --mode disabled --release-sha "$GITHUB_SHA"
+          ops preflight
+          PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy
+          has() { grep -q "PA_CHECK {\"id\":\"$1\",\"status\":\"$2\"" "$PA_LOGS/deploy.log" || { echo "::error::expected $1=$2"; exit 1; }; }
+          for c in images_match_tested_digests containers_running_non_root no_published_ports network_membership_matches_policy socket_permissions health_live health_ready_expected unauthenticated_refused pic_to_karryam_socket hq_gateway_socket_reachable network_flows bridge_network_reachable_only_from_karryam; do has "$c" PASS; done
+          grep -q 'ready PIC 503 (expected 503), Karryam Admin 503' "$PA_LOGS/deploy.log"
+          if docker ps --filter label=com.docker.compose.project=cf-product-admin-staging --format '{{.Ports}}' | grep -q -- '->'; then echo "::error::a host port is published"; exit 1; fi
+      - name: Database roles, audit, preview, verified backup and migrations
+        run: |
+          set -euo pipefail
+          sudo "$(command -v node)" infrastructure/product-admin/release/rehearsal-fixtures.mjs --config-root "$PA_CONFIG_ROOT" --out "$PA_OUT" --mode enabled --release-sha "$GITHUB_SHA"
+          # Roles: the exact operator templates, on DB-A and the dedicated DB-B.
+          docker exec -i rehearsal-hq-db psql -U postgres -d cosmicforge_admin -v ON_ERROR_STOP=1 $(sudo cat "$PA_OUT/db-a.psqlvars") -f - < infrastructure/product-admin/staging/db-a-roles.sql
+          docker exec -i cf-product-admin-staging-karryam-admin-db-1 sh -c 'PGPASSWORD="$(cat /run/secrets/karryam-admin-db/postgres-password)" psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 "$@" -f -' _ $(sudo cat "$PA_OUT/db-b.psqlvars") < infrastructure/product-admin/staging/db-b-roles.sql
+          ops db-audit
+          grep -q 'PA_CHECK {"id":"db_roles_separated","status":"PENDING_EXTERNAL".*PUBLIC still holds CONNECT' "$PA_LOGS/db-audit.log"
+          # Operator decision simulated: explicit grants, then revoke PUBLIC CONNECT.
+          docker exec rehearsal-hq-db psql -U postgres -d cosmicforge_admin -v ON_ERROR_STOP=1 -c "GRANT CONNECT ON DATABASE cosmicforge_admin TO postgres" -c "REVOKE CONNECT ON DATABASE cosmicforge_admin FROM PUBLIC"
+          ops db-audit
+          grep -q 'PA_CHECK {"id":"db_roles_separated","status":"PASS"' "$PA_LOGS/db-audit.log"
+          ops migrate-preview
+          if PA_RELEASE_SHA="$GITHUB_SHA" ops migrate-apply; then echo "::error::migrations ran without a verified backup"; exit 1; fi
+          grep -q 'no verified, restorable backup' "$PA_LOGS/migrate-apply.log"
+          ops backup
+          grep -q 'PA_CHECK {"id":"backup_restorable","status":"PASS"' "$PA_LOGS/backup.log"
+          ops migrate-apply
+          grep -q 'PA_CHECK {"id":"migration_apply_pic","status":"PASS"' "$PA_LOGS/migrate-apply.log"
+          grep -q 'PA_CHECK {"id":"migration_apply_karryam","status":"PASS"' "$PA_LOGS/migrate-apply.log"
+          # The runtime roles cannot change the schema.
+          if docker exec rehearsal-hq-db sh -c 'psql -U pic_runtime -d cosmicforge_admin -c "CREATE TABLE hq_integration.x (id int)"' 2>/dev/null; then echo "::error::runtime role created a table"; exit 1; fi
+      - name: Enabled deploy (release 1), preflight and probes
+        run: |
+          set -euo pipefail
+          : > "$PA_LOGS/deploy.log"
+          ops preflight
+          PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy
+          grep -q 'ready PIC 200 (expected 200), Karryam Admin 200 (expected 200)' "$PA_LOGS/deploy.log"
+          grep -q 'PA_CHECK {"id":"unauthenticated_refused","status":"PASS","detail":"PIC 401, Karryam Admin 401' "$PA_LOGS/deploy.log"
+          ops network-probe
+          ops status
+      - name: Release state S0-S2 from collected evidence (environment rehearsal)
+        run: |
+          set -euo pipefail
+          r=infrastructure/product-admin/release
+          st="$PA_LOGS/state"
+          node $r/release-state.mjs init --dir "$st" --sha "$GITHUB_SHA" --environment rehearsal --actor ci-rehearsal
+          # S0 in a rehearsal is this workflow's own static and Nginx jobs (labelled; never staging evidence).
+          node -e 'const s=require("./infrastructure/product-admin/release/stages.json").stages[0];process.stdout.write(JSON.stringify(s.automated_checks.map(id=>({id,status:"PASS",detail:"rehearsal: static+nginx jobs of this run"}))))' > "$RUNNER_TEMP/s0.json"
+          node $r/release-state.mjs begin --dir "$st" --stage S0 --actor ci-rehearsal
+          node $r/collect-evidence.mjs --stage S0 --sha "$GITHUB_SHA" --environment rehearsal --extra "$RUNNER_TEMP/s0.json" --out "$RUNNER_TEMP/s0-evidence.json"
+          node $r/release-state.mjs complete --dir "$st" --stage S0 --evidence "$RUNNER_TEMP/s0-evidence.json" --actor ci-rehearsal
+          printf '[{"id":"db_roles_created","ref":"rehearsal:db-a-roles.sql,db-b-roles.sql","by":"ci-rehearsal"},{"id":"public_connect_revoked","ref":"rehearsal:db-audit","by":"ci-rehearsal"},{"id":"nginx_snippet_installed","ref":"rehearsal:nginx-job","by":"ci-rehearsal"}]' > "$RUNNER_TEMP/op.json"
+          printf '{"by":"ci-rehearsal","confirm":"APPLY_STAGING_PRODUCT_ADMIN_CHANGES"}' > "$RUNNER_TEMP/auth.json"
+          node $r/release-state.mjs begin --dir "$st" --stage S1 --actor ci-rehearsal
+          node $r/collect-evidence.mjs --stage S1 --sha "$GITHUB_SHA" --environment rehearsal --log "$PA_LOGS/preflight.log" --log "$PA_LOGS/db-audit.log" --log "$PA_LOGS/backup.log" --log "$PA_LOGS/migrate-preview.log" --log "$PA_LOGS/migrate-apply.log" \
+            --probe-report "$RUNNER_TEMP/probe/product-admin-ingress-probe.json" --operator-evidence "$RUNNER_TEMP/op.json" --authorization "$RUNNER_TEMP/auth.json" --out "$RUNNER_TEMP/s1-evidence.json"
+          node $r/release-state.mjs complete --dir "$st" --stage S1 --evidence "$RUNNER_TEMP/s1-evidence.json" --actor ci-rehearsal
+          node $r/release-state.mjs begin --dir "$st" --stage S2 --actor ci-rehearsal
+          node $r/collect-evidence.mjs --stage S2 --sha "$GITHUB_SHA" --environment rehearsal --log "$PA_LOGS/deploy.log" --authorization "$RUNNER_TEMP/auth.json" --out "$RUNNER_TEMP/s2-evidence.json"
+          node $r/release-state.mjs complete --dir "$st" --stage S2 --evidence "$RUNNER_TEMP/s2-evidence.json" --actor ci-rehearsal
+          # S3 cannot pass without a real Bridge enrollment: it stays blocked.
+          node $r/release-state.mjs begin --dir "$st" --stage S3 --actor ci-rehearsal
+          printf '[{"id":"karryam_config_valid_staging","status":"PASS"},{"id":"bridge_client_identity_current","status":"PENDING_EXTERNAL"},{"id":"bridge_tls13_mtls_reachable","status":"PENDING_EXTERNAL"},{"id":"manifest_signer_enrolled","status":"PASS"},{"id":"capability_discovery_read_only","status":"PENDING_EXTERNAL"},{"id":"unauthorized_scope_denied","status":"PENDING_EXTERNAL"}]' > "$RUNNER_TEMP/s3.json"
+          node $r/collect-evidence.mjs --stage S3 --sha "$GITHUB_SHA" --environment rehearsal --extra "$RUNNER_TEMP/s3.json" --out "$RUNNER_TEMP/s3-evidence.json"
+          rc=0; node $r/release-state.mjs complete --dir "$st" --stage S3 --evidence "$RUNNER_TEMP/s3-evidence.json" --actor ci-rehearsal || rc=$?
+          test "$rc" = 3
+          node $r/release-state.mjs status --dir "$st" | tee "$PA_LOGS/release-status.json"
+          node -e 'const s=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).stages; for (const [k,v] of Object.entries({S0:"PASSED",S1:"PASSED",S2:"PASSED",S3:"BLOCKED_EXTERNAL",S4:"PENDING"})) if (s[k].status!==v) { console.error(k, s[k]); process.exit(1); }' "$PA_LOGS/release-status.json"
+          if node $r/release-state.mjs begin --dir "$st" --stage S4 --actor ci-rehearsal; then echo "::error::S4 began while S3 is blocked"; exit 1; fi
+          node $r/release-state.mjs verify --dir "$st"
+      - name: Second release, rollback to the recorded digests, refused bad configuration, emergency disable
+        run: |
+          set -euo pipefail
+          : > "$PA_LOGS/deploy.log"
+          PA_PIC_IMAGE="$PIC2" PA_KA_IMAGE="$KA2" PA_RELEASE_SHA="$SHA2" ops deploy
+          test "$(docker inspect -f '{{.Config.Image}}' cf-product-admin-staging-karryam-admin-1)" = "$KA2"
+          # A release whose label does not match its commit is refused before anything changes.
+          if PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_RELEASE_SHA="$SHA2" ops deploy; then echo "::error::label/commit mismatch accepted"; exit 1; fi
+          test "$(docker inspect -f '{{.Config.Image}}' cf-product-admin-staging-karryam-admin-1)" = "$KA2"
+          ops rollback
+          test "$(docker inspect -f '{{.Config.Image}}' cf-product-admin-staging-karryam-admin-1)" = "$KA1"
+          test "$(docker inspect -f '{{.Config.Image}}' cf-product-admin-staging-product-integration-core-1)" = "$PIC1"
+          grep -q 'ROLLED_BACK to' "$PA_LOGS/rollback.log"
+          # Invalid operator configuration: refused inside the image, running release untouched.
+          sudo cp "$PA_CONFIG_ROOT/karryam-admin.env" "$RUNNER_TEMP/ka.env.bak"
+          sudo sed -i '/^KARRYAM_ADMIN_DATABASE_URL=/d' "$PA_CONFIG_ROOT/karryam-admin.env"
+          if PA_PIC_IMAGE="$PIC2" PA_KA_IMAGE="$KA2" PA_RELEASE_SHA="$SHA2" ops deploy; then echo "::error::invalid configuration deployed"; exit 1; fi
+          grep -q 'Karryam Admin configuration is invalid; nothing was changed' "$PA_LOGS/deploy.log"
+          test "$(docker inspect -f '{{.Config.Image}}' cf-product-admin-staging-karryam-admin-1)" = "$KA1"
+          sudo cp "$RUNNER_TEMP/ka.env.bak" "$PA_CONFIG_ROOT/karryam-admin.env"
+          # Emergency disable keeps DB-B, its data and all evidence.
+          ops disable
+          test "$(docker inspect -f '{{.State.Status}}' cf-product-admin-staging-karryam-admin-1)" = exited
+          test "$(docker inspect -f '{{.State.Status}}' cf-product-admin-staging-karryam-admin-db-1)" = running
+          docker exec cf-product-admin-staging-karryam-admin-db-1 sh -c 'PGPASSWORD="$(cat /run/secrets/karryam-admin-db/postgres-password)" psql -h 127.0.0.1 -U postgres -d karryam_admin -tAc "SELECT count(*) FROM karryam_admin.schema_migrations"' | grep -Eq '^[1-9]'
+          node infrastructure/product-admin/release/release-state.mjs rollback --dir "$PA_LOGS/state" --stage S2 --reason "rehearsal emergency disable" --actor ci-rehearsal
+          node infrastructure/product-admin/release/release-state.mjs status --dir "$PA_LOGS/state" | grep -q '"S2":{"status":"ROLLED_BACK"'
+          node infrastructure/product-admin/release/release-state.mjs verify --dir "$PA_LOGS/state"
+      - name: Image digests evidence
+        if: always()
+        run: |
+          printf '{"report":"product-admin-image-digests","environment":"rehearsal","source_sha":"%s","generated_at":"%s","images":{"karryam-admin":"%s","product-integration-core":"%s"},"note":"local rehearsal registry; staging digests are recorded by product-admin-staging-ops"}\n' \
+            "$GITHUB_SHA" "$(date -u +%FT%TZ)" "${KA1:-}" "${PIC1:-}" > "$PA_LOGS/product-admin-image-digests.json"
+          sudo chown -R "$(id -u):$(id -g)" "$PA_LOGS" || true
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          docker ps -a --format '{{.Names}} {{.Status}} {{.Image}}'
+          for c in $(docker ps -a --filter label=com.docker.compose.project=cf-product-admin-staging --format '{{.Names}}'); do echo "== $c"; docker logs --tail 60 "$c" 2>&1; done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-release-rehearsal
+          path: _rehearsal/
+          if-no-files-found: warn

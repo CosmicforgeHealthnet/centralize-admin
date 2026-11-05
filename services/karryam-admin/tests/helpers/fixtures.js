@@ -62,6 +62,15 @@ async function startApp(config, deps = {}) {
     dbReady: deps.dbReady || (async () => true),
     logger: deps.logger || (() => {}),
     ...(deps.bridgeClient !== undefined ? { bridgeClient: deps.bridgeClient } : {}),
+    ...(deps.accessLog ? { accessLog: deps.accessLog } : {}),
+    ...(deps.approvals ? { approvals: deps.approvals } : {}),
+    ...(deps.pipeline ? { pipeline: deps.pipeline } : {}),
+    ...(deps.bridgeMetrics ? { bridgeMetrics: deps.bridgeMetrics } : {}),
+    ...(deps.certifications ? { certifications: deps.certifications } : {}),
+    ...(deps.governance ? { governance: deps.governance } : {}),
+    ...(deps.now ? { now: deps.now } : {}),
+    ...(deps.pool ? { pool: deps.pool } : {}),
+    ...(deps.observability ? { observability: deps.observability } : {}),
   };
   const server = http.createServer(createApp(config, full));
   server.listen(0, "127.0.0.1");

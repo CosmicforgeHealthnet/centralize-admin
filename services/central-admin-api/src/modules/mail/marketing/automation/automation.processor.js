@@ -60,7 +60,7 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
 
   function triggerMatches(automation, version, event) {
     // Imported consents are not sign-ups and never start welcome flows.
-    if (event.source === "CONSENT") return automation.triggerType === "CONSENT_GRANTED" && event.payload?.origin !== "IMPORT" && event.payload?.topic === version.triggerConfig.topic;
+    if (event.source === "CONSENT") return automation.triggerType === "CONSENT_GRANTED" && !["IMPORT", "DOCUMENTED"].includes(event.payload?.origin) && event.payload?.topic === version.triggerConfig.topic;
     if (event.source === "PRODUCT") return automation.triggerType === "PRODUCT_EVENT" && event.eventType === `${version.triggerConfig.eventType}@${version.triggerConfig.version}`;
     return false;
   }

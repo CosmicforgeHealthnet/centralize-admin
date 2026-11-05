@@ -5,3 +5,7 @@ scripts/security/*.js text eol=lf
 .github/workflows/*.yml text eol=lf
 .github/workflows/*.yaml text eol=lf
 src/generated/admin-client/** -whitespace
+
+# Migration checksums hash the exact file bytes: never convert line endings.
+services/karryam-admin/migrations/*.sql -text
+services/product-integration-core/migrations/*.sql -text
