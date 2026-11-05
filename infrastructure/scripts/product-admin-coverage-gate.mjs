@@ -31,6 +31,7 @@
 
 import { spawnSync, execFileSync } from "node:child_process";
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -163,6 +164,21 @@ export function evaluate(policy, coverage, sources) {
   return { modules, unlisted, problems, status: problems.length === 0 ? "PASS" : "FAIL" };
 }
 
+// The root-only run is separate from ordinary CI. Accept its coverage only
+// with successful same-commit evidence bound to the exact LCOV bytes.
+export function readSupplementalCoverage(file, sourceSha, baseDir = ROOT) {
+  const fail = (problem) => ({ coverage: null, problem });
+  if (!file || !fs.existsSync(file)) return fail("required isolated operator coverage is missing");
+  try {
+    const text = fs.readFileSync(file, "utf8");
+    const proof = JSON.parse(fs.readFileSync(file + ".json", "utf8"));
+    if (!/^[0-9a-f]{40}$/.test(sourceSha || "") || proof.source_sha !== sourceSha || proof.exit_code !== 0 || proof.sandbox !== "isolated-root-postgresql" || proof.coverage_sha256 !== createHash("sha256").update(text).digest("hex")) return fail("operator coverage proof is not current and successful");
+    const coverage = parseLcov(text, baseDir);
+    if (!Object.keys(coverage).length) return fail("isolated operator coverage is empty");
+    return { coverage, problem: null };
+  } catch { return fail("operator coverage or its proof is unreadable or invalid"); }
+}
+
 function gitSha() {
   if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
   try { return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim(); } catch { return null; }
@@ -222,6 +238,15 @@ async function main() {
     process.stderr.write(`coverage: ${project.dir} (database: ${dbVar ? (dbAvailable ? "yes" : "no") : "n/a"})\n`);
     const run = runProject(project, outDir, { ...process.env }, args.reuse);
     run.postgresql = dbVar ? { env: dbVar, ran_with_database: dbAvailable } : null;
+    if (project.supplemental_coverage_env) {
+      const supplemental = process.env[project.supplemental_coverage_env];
+      const extra = readSupplementalCoverage(supplemental, gitSha(), path.join(ROOT, project.dir));
+      if (extra.problem) problems.push(project.dir + ": " + extra.problem);
+      else {
+        run.coverage = mergeCoverage([run.coverage, extra.coverage]);
+        run.supplemental_coverage = path.basename(supplemental);
+      }
+    }
     if (run.exit_code !== 0) {
       const msg = `${project.dir}: tests failed (exit ${run.exit_code}, fail ${run.summary.fail})`;
       if (args.testsMayFail) run.tests_failed_tolerated = true; else problems.push(msg);

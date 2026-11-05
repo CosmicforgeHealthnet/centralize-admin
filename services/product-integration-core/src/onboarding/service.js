@@ -13,6 +13,7 @@ const { recordAudit } = require("../audit");
 const { authorizeStaff } = require("../authz");
 const { resolveEndpoint, clientFor, EndpointError } = require("../registry/endpoints");
 const SM = require("./state-machine");
+const Operator = require("./operator");
 const policy = require("../registry/sync-policy");
 
 class OnboardingError extends Error {
@@ -48,13 +49,25 @@ function subsetScope(inner, outer) {
   return true;
 }
 
-function createOnboarding({ pool, endpoints, trustStore, environment, now = Date.now, clientOptions = {} }) {
-  const authz = (subject, action, ctx, extra = {}) => authorizeStaff(pool, { subject, action, correlationId: ctx.correlationId, now: now(), ...extra });
+function createOnboarding({ pool, endpoints, trustStore, environment, now = Date.now, clientOptions = {}, operatorPermit = null }) {
+  const operatorMode = () => {
+    if (!operatorPermit) return false;
+    if (!Operator.validPermit(operatorPermit, { environment, now: now() })) throw new OnboardingError("OPERATOR_NOT_AUTHORIZED", 403);
+    return true;
+  };
+  operatorMode(); // Reject forged/expired permits before constructing any workflow.
+  const authz = (subject, action, ctx, extra = {}) => operatorMode()
+    ? Operator.authorizeOperator(pool, operatorPermit, { environment, subject, action, correlationId: ctx.correlationId, now: now() })
+    : authorizeStaff(pool, { subject, action, correlationId: ctx.correlationId, now: now(), ...extra });
+  function assertOperatorScope(row) {
+    if (operatorMode() && !Operator.validPermit(operatorPermit, { environment, productId: row.product_id, scope: row.allowed_scope, now: now() })) throw new OnboardingError("OPERATOR_SCOPE_DENIED", 403);
+  }
 
   async function lockRow(client, id) {
     if (!/^[0-9a-f-]{36}$/.test(String(id))) throw new OnboardingError("NOT_FOUND", 404);
     const { rows } = await client.query(`SELECT * FROM ${T}hq_product_admins WHERE id = $1 AND environment = $2 FOR UPDATE`, [id, environment]);
     if (!rows[0]) throw new OnboardingError("NOT_FOUND", 404);
+    assertOperatorScope(rows[0]);
     return rows[0];
   }
 
@@ -62,10 +75,12 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
     if (!/^[0-9a-f-]{36}$/.test(String(id))) throw new OnboardingError("NOT_FOUND", 404);
     const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admins WHERE id = $1 AND environment = $2`, [id, environment]);
     if (!rows[0]) throw new OnboardingError("NOT_FOUND", 404);
+    assertOperatorScope(rows[0]);
     return rows[0];
   }
 
   async function approval(client, row, fields, ctx) {
+    if (operatorMode()) fields = { ...fields, actorId: "operator:" + operatorPermit.decision.operator, reasonCode: "OWNER_DELEGATED_STAGING_SETUP", evidenceRef: fields.evidenceRef || operatorPermit.decision.decision_id };
     await client.query(
       `INSERT INTO ${T}hq_product_admin_onboarding_approvals (product_admin_id, decision, from_status, to_status, actor_id, reason_code, evidence_ref, expected_revision, resulting_revision, contract_id, dataset_row_id, subscription_id, correlation_id)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
@@ -73,11 +88,11 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
   }
 
   async function audit(client, subject, row, action, ctx, metadata = {}, outcome = "RECORDED", reasonCode = null) {
-    await recordAudit(client, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId: row ? row.product_id : null, productAdminId: row ? row.id : null, action, outcome, reasonCode, metadata });
+    await recordAudit(client, { correlationId: ctx.correlationId, actorType: operatorMode() ? "OPERATOR" : "STAFF", actorId: subject.staffId, productId: row ? row.product_id : null, productAdminId: row ? row.id : null, action, outcome, reasonCode: operatorMode() ? "OWNER_DELEGATED_STAGING_SETUP" : reasonCode, metadata: operatorMode() ? { ...metadata, decision_ref: operatorPermit.decision.decision_id, independence_exception: true } : metadata });
   }
 
   async function transition(client, row, to, subject, opts, ctx) {
-    SM.assertTransition({ from: row.lifecycle_status, to, actorId: subject.staffId, requestedBy: row.requested_by, certifiedBy: opts.certifiedBy || null, expectedRevision: opts.expectedRevision, currentRevision: row.revision, reviewedFromSuspension: Boolean(opts.reviewedFromSuspension) });
+    SM.assertTransition({ operatorPermit, environment, productId: row.product_id, scope: row.allowed_scope, now: now(), from: row.lifecycle_status, to, actorId: subject.staffId, requestedBy: row.requested_by, certifiedBy: opts.certifiedBy || null, expectedRevision: opts.expectedRevision, currentRevision: row.revision, reviewedFromSuspension: Boolean(opts.reviewedFromSuspension) });
     const set = opts.set || {};
     const keys = Object.keys(set);
     for (const key of keys) if (!SETTABLE.has(key)) throw new Error("column_not_settable:" + key);
@@ -189,8 +204,9 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
     return { id, revision: next };
   }
 
-  return {
+  const workflow = {
     async list(subject, ctx) {
+      if (operatorMode()) throw new OnboardingError("OPERATOR_LIST_DENIED", 403);
       await authz(subject, "integration.read", ctx);
       const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admins WHERE environment = $1 ORDER BY product_id, created_at`, [environment]);
       return rows;
@@ -212,6 +228,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
     // product is trusted until each gate below passes.
     async request(subject, input, ctx) {
       await authz(subject, "integration.request", ctx);
+      assertOperatorScope({ product_id: input && input.product_id, allowed_scope: input && input.allowed_scope });
       const fields = ["product_id", "display_name", "service_instance_id", "environment", "endpoint_ref", "workload_identity", "approved_signer_kid", "identity_fingerprint_ref", "allowed_scope"];
       for (const key of Object.keys(input || {})) if (!fields.includes(key)) throw new OnboardingError("UNKNOWN_FIELD", 400);
       const p = C.PATTERNS;
@@ -304,7 +321,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       return withTx(pool, async (client) => {
         const row = await lockRow(client, id);
         if (!["CONTRACT_VALIDATED", "POLICY_REVIEWED", "CERTIFIED_STAGING", "ENABLED"].includes(row.lifecycle_status)) throw new SM.TransitionError("TRANSITION_NOT_ALLOWED");
-        if (!I.requireIndependentActor(subject.staffId, [row.requested_by])) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
+        if (!operatorMode() && !I.requireIndependentActor(subject.staffId, [row.requested_by])) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
         const { rows } = await client.query(`SELECT * FROM ${T}hq_product_admin_datasets WHERE product_admin_id = $1 AND dataset_id = $2 AND version = $3 FOR UPDATE`, [id, datasetId, version]);
         const ds = rows[0];
         if (!ds) throw new OnboardingError("UNKNOWN_DATASET", 404);
@@ -335,7 +352,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         if (!contract) throw new OnboardingError("NO_VALIDATED_CONTRACT", 409);
         if (await approvedDatasetCount(client, id) === 0) throw new OnboardingError("NO_APPROVED_DATASET", 409);
         if (contract.status === "VALIDATED") {
-          if (contract.validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
+          if (!operatorMode() && contract.validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
           await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4 WHERE id = $1`, [contract.id, subject.staffId, new Date(now()), evidence_ref]);
           await approval(client, row, { decision: "CONTRACT_CERTIFIED", actorId: subject.staffId, contractId: contract.id, evidenceRef: evidence_ref }, ctx);
         } else if (!["CERTIFIED", "ACTIVE"].includes(contract.status)) {
@@ -357,7 +374,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         if (!row.identity_verified_at) throw new OnboardingError("IDENTITY_NOT_VERIFIED", 409);
         if (!row.manifest_expires_at || row.manifest_expires_at.getTime() <= now()) throw new OnboardingError("MANIFEST_EXPIRED", 409);
         if (await approvedDatasetCount(client, id) === 0) throw new OnboardingError("NO_APPROVED_DATASET", 409);
-        SM.assertTransition({ from: row.lifecycle_status, to: "ENABLED", actorId: subject.staffId, requestedBy: row.requested_by, certifiedBy: contract.certified_by, expectedRevision: expected_revision, currentRevision: row.revision });
+        SM.assertTransition({ operatorPermit, environment, productId: row.product_id, scope: row.allowed_scope, now: now(), from: row.lifecycle_status, to: "ENABLED", actorId: subject.staffId, requestedBy: row.requested_by, certifiedBy: contract.certified_by, expectedRevision: expected_revision, currentRevision: row.revision });
         if (contract.status === "CERTIFIED") {
           await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'SUPERSEDED' WHERE product_admin_id = $1 AND status = 'ACTIVE'`, [id]);
           await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'ACTIVE', activated_at = $2 WHERE id = $1`, [contract.id, new Date(now())]);
@@ -601,6 +618,11 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       });
     },
   };
+  if (!operatorPermit) return workflow;
+  // This local capability cannot administer grants/subscriptions, command
+  // switches, suspension/revocation or subsequent contract replacements.
+  const allowed = ["get", "request", "verifyIdentity", "validateContract", "reviewPolicy", "approveDataset", "certifyStaging", "approve"];
+  return Object.freeze(Object.fromEntries(allowed.map((name) => [name, workflow[name]])));
 }
 
 module.exports = { createOnboarding, OnboardingError, validScope, subsetScope, EndpointError };

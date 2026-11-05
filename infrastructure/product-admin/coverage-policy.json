@@ -1,5 +1,5 @@
 {
-  "revision": 1,
+  "revision": 2,
   "description": "Section 13.1 security-critical coverage policy. Thresholds are per file (line and branch %) and were set to the measured value rounded down on 2026-11-01 (Windows, Node 25, PostgreSQL 17); Linux CI runs additional POSIX-only tests and can only measure higher. Raise a threshold when coverage improves; never lower one without a reviewed reason. A source file whose path matches a security pattern must be listed here or exempted with a reason.",
   "measured": {
     "date": "2026-11-01",
@@ -26,7 +26,8 @@
     },
     {
       "dir": "services/product-integration-core",
-      "database_env": "PIC_TEST_DATABASE_URL"
+      "database_env": "PIC_TEST_DATABASE_URL",
+      "supplemental_coverage_env": "PIC_OPERATOR_COVERAGE_FILE"
     }
   ],
   "security_patterns": [
@@ -438,6 +439,13 @@
       "purpose": "HQ security audit",
       "lines": 100,
       "branches": 93
+    },
+    {
+      "path": "services/product-integration-core/src/onboarding/operator.js",
+      "category": "owner_delegation",
+      "purpose": "Root-only signed staging operator delegation, exact pilot scope, short expiry, revocation and OPERATOR audit identity",
+      "lines": 100,
+      "branches": 90
     }
   ],
   "exempt": [

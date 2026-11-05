@@ -4,9 +4,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseLcov, mergeCoverage, summarize, evaluate, pct, parseTapSummary } from "../product-admin-coverage-gate.mjs";
+import { parseLcov, mergeCoverage, summarize, evaluate, pct, parseTapSummary, readSupplementalCoverage } from "../product-admin-coverage-gate.mjs";
 import { evaluateJsonl, evaluateTap, parseTap, parseJsonl } from "../product-admin-no-required-skips.mjs";
 import { runAudit, samplePaths } from "../product-admin-contract-audit.mjs";
 
@@ -120,4 +122,25 @@ test("contract audit passes without a KarryGo checkout, and fails closed when on
   const strict = await runAudit({ checkout: path.join(ROOT, "no-such-karrygo-checkout"), requireCheckout: true });
   assert.equal(strict.status, "FAIL");
   assert.equal(strict.checks.find((c) => c.id === "bridge.source_methods_and_paths").status, "FAIL");
+});
+
+test("root operator coverage: require successful exact-commit, hash-bound, nonempty evidence", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pic-operator-coverage-"));
+  try {
+    const file = path.join(dir, "operator.lcov.info"), sha = "a".repeat(40);
+    const text = LCOV("src/onboarding/operator.js", [[1, 1]], [[1, 0, 0, 1]]);
+    const proof = { source_sha: sha, exit_code: 0, sandbox: "isolated-root-postgresql", coverage_sha256: createHash("sha256").update(text).digest("hex") };
+    assert.ok(readSupplementalCoverage(file, sha).problem);
+    fs.writeFileSync(file, text); fs.writeFileSync(file + ".json", JSON.stringify(proof));
+    assert.equal(readSupplementalCoverage(file, sha).problem, null);
+    for (const change of [{ source_sha: "b".repeat(40) }, { exit_code: 1 }, { sandbox: "production" }, { coverage_sha256: "0".repeat(64) }]) {
+      fs.writeFileSync(file + ".json", JSON.stringify({ ...proof, ...change }));
+      assert.ok(readSupplementalCoverage(file, sha).problem);
+    }
+    fs.writeFileSync(file + ".json", JSON.stringify(proof)); fs.writeFileSync(file, text + "tampered");
+    assert.ok(readSupplementalCoverage(file, sha).problem);
+    fs.writeFileSync(file, ""); fs.writeFileSync(file + ".json", JSON.stringify({ ...proof, coverage_sha256: createHash("sha256").update("").digest("hex") }));
+    assert.ok(readSupplementalCoverage(file, sha).problem);
+    fs.writeFileSync(file + ".json", "{"); assert.ok(readSupplementalCoverage(file, sha).problem);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
