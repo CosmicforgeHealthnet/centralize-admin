@@ -21,10 +21,13 @@ export type SuppressionReason = "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "MAN
 
 export interface MarketingOrganization {
   id: string;
+  organizationId?: string;
   slug: string;
   name: string;
+  canView?: boolean;
   canAuthor: boolean;
   canApprove: boolean;
+  access?: "DEPARTMENT" | "EXPLICIT" | "PLATFORM_ADMIN";
 }
 
 export interface Consent {

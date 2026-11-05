@@ -66,7 +66,21 @@ const post = async <T>(url: string, body?: unknown) => (await api.post<Envelope<
 const patch = async <T>(url: string, body: unknown) => (await api.patch<Envelope<T>>(`${BASE}${url}`, body)).data.data;
 const del = async <T>(url: string, body?: unknown) => (await api.delete<Envelope<T>>(`${BASE}${url}`, { data: body })).data.data;
 
-export const fetchMarketingOrganizations = () => get<MarketingOrganization[]>("/organizations");
+// Mail's backend returns `organizationId`, whereas the UI uses `id`.
+// Normalize at the API boundary so every campaign/audience/template request
+// is made against a real brand ID (never /marketing/undefined/...).
+type MarketingOrganizationWire = Omit<MarketingOrganization, "id"> & {
+  organizationId?: string;
+  id?: string; // compatibility with older mocked/test responses
+};
+export async function fetchMarketingOrganizations(): Promise<MarketingOrganization[]> {
+  const rows = await get<MarketingOrganizationWire[]>("/organizations");
+  return rows.map(({ organizationId, id, ...row }) => {
+    const resolvedId = organizationId ?? id;
+    if (!resolvedId) throw new Error("Invalid Marketing organization response");
+    return { ...row, id: resolvedId };
+  });
+}
 
 // Contacts & consent
 export const fetchContacts = (orgId: string, params: { q?: string; status?: string; cursor?: string | null } = {}) =>

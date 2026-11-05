@@ -165,7 +165,7 @@ test.describe("Section 16 visual acceptance — deterministic inbox fixtures", (
     api.on("GET", `${M}/mailboxes/mb-alice`, ok({ ...mailbox(), senderIdentities: [], signatureHtml: null }));
     api.on("GET", `${M}/mailboxes/mb-alice/threads`, ok([], { nextCursor: null }));
     await gotoWithEntitlements(page, "/dashboard/mail/mb-alice");
-    await expect(page.getByText("No conversations here.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "No conversations", exact: true })).toBeVisible();
     await attachScreenshot(page, testInfo, "mail-empty");
 
     await page.route("**/api/mail/v1/mailboxes/mb-alice/threads**", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ success: false, code: "UNAVAILABLE", message: "Mail is temporarily unavailable." }) }));

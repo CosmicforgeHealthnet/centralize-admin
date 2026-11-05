@@ -110,20 +110,27 @@ function registerDepartmentOwnership(department, sections) {
   DEPARTMENT_OWNERSHIP[department] = [...(DEPARTMENT_OWNERSHIP[department] || []), ...sections.map(([m, s, mode]) => own(m, s, mode || null))];
 }
 
-// Departments whose leaders manage Email Marketing brands authorised for them
-// (brand isolation: only these brand slugs). Override with
+// Departments whose members/leaders work with the Email Marketing brands
+// authorised for them (brand isolation: only these brand slugs).
 // MAIL_MARKETING_DEPARTMENT_BRANDS="MARKETING:karryam,other;SOCIAL_MEDIA:karryam"
-// (empty value disables). No migration: this is configuration, not data.
+// ADDS mappings on top of the built-in default (MARKETING:karryam). The
+// default can never be removed by an empty, blank or malformed override, so a
+// bad production value cannot lock the Marketing department out of Karryam.
+// No migration: this is configuration, not data.
 const DEFAULT_DEPARTMENT_BRANDS = "MARKETING:karryam";
-function departmentBrands(env = process.env) {
-  const raw = env.MAIL_MARKETING_DEPARTMENT_BRANDS === undefined ? DEFAULT_DEPARTMENT_BRANDS : String(env.MAIL_MARKETING_DEPARTMENT_BRANDS);
-  const map = {};
-  for (const part of raw.split(";")) {
+function parseDepartmentBrands(raw, map) {
+  for (const part of String(raw || "").split(";")) {
     const [dept, list] = part.split(":");
-    if (!dept || !list) continue;
-    map[dept.trim().toUpperCase()] = list.split(",").map((b) => b.trim().toLowerCase()).filter(Boolean);
+    const key = String(dept || "").trim().toUpperCase();
+    if (!/^[A-Z_]+$/.test(key) || !list) continue;
+    const slugs = list.split(",").map((b) => b.trim().toLowerCase()).filter((b) => /^[a-z0-9][a-z0-9-]*$/.test(b));
+    if (slugs.length) map[key] = [...new Set([...(map[key] || []), ...slugs])];
   }
   return map;
+}
+function departmentBrands(env = process.env) {
+  const map = parseDepartmentBrands(DEFAULT_DEPARTMENT_BRANDS, {});
+  return parseDepartmentBrands(env.MAIL_MARKETING_DEPARTMENT_BRANDS, map);
 }
 
 // Derived per-role view of the registry (kept for callers and tests).

@@ -10,8 +10,9 @@
 // - Mail administration (domains/addresses/provisioning) uses AdminSectionGrant
 //   module "mail" section "admin"; SUPER keeps its existing implicit admin
 //   capability here because it never exposes mail content.
-// - Break-glass request/approve, export and marketing scopes require explicit
-//   grants (no tier bypass).
+// - Break-glass request/approve and export require explicit grants; SUPER
+//   may administer active Marketing brands without per-brand grants. This does
+//   not grant private mailbox content or bypass independent approvals/MFA.
 // - Resources the caller cannot see are reported as 404 to avoid enumeration.
 
 const { mailError } = require("../mail.errors");
@@ -239,10 +240,19 @@ async function requireSenderIdentity(client, user, access, addressId, options = 
 
 async function marketingScopes(client, user, { now = new Date(), env = process.env } = {}) {
   if (!user || user.status !== "ACTIVE") return [];
-  const grants = await activeSectionGrants(client, user.id, MARKETING_MODULE, now);
-  // Brand isolation: a brand is visible only through (a) an explicit brand
-  // grant (Module Permissions) or (b) the brand being authorised for the
-  // account's own department (MAIL_MARKETING_DEPARTMENT_BRANDS). Department
+  // Global SUPER has management access across all active marketing brands.
+  // This does NOT grant mailbox content, break-glass, or bypass approval
+  // separation, MFA/step-up, consent or dispatch safety gates.
+  const isSuperAdmin = user.tier === "SUPER";
+  // Platform Admin (ADMIN tier; Department Manager is a role, not a tier) sees
+  // every ACTIVE BRAND organization and may author/administer, resolved by the
+  // backend from the live account row. Unlike SUPER it cannot approve without
+  // department leadership or an explicit approve:<brand> grant.
+  const isPlatformAdmin = user.tier === "ADMIN";
+  const grants = isSuperAdmin ? [] : await activeSectionGrants(client, user.id, MARKETING_MODULE, now);
+  // Brand isolation for non-SUPER staff: (a) explicit brand grants or (b)
+  // the account's department mapping (MAIL_MARKETING_DEPARTMENT_BRANDS).
+  // Department
   // members author for those brands; Team Leads and Department Managers also
   // manage and approve them. Approval still needs a reviewer other than the
   // author, step-up, and the broadcast dispatch gates (unchanged).
@@ -252,7 +262,7 @@ async function marketingScopes(client, user, { now = new Date(), env = process.e
     const roleGrants = await activeSectionGrants(client, user.id, ROLE_GRANT_MODULE, now);
     leads = ["TEAM_LEAD", "MANAGER"].includes(departmentRole(user, roleGrants.map((grant) => ({ ...grant, module: ROLE_GRANT_MODULE }))));
   }
-  if (!grants.length && !brands.length) return [];
+  if (!isSuperAdmin && !isPlatformAdmin && !grants.length && !brands.length) return [];
   const organizations = await client.mailOrganization.findMany({ where: { status: "ACTIVE" }, orderBy: { name: "asc" } });
   return organizations
     .map((organization) => {
@@ -260,14 +270,15 @@ async function marketingScopes(client, user, { now = new Date(), env = process.e
       const authoring = [...matches(organization.slug), ...matches("*")];
       const approving = [...matches(`approve:${organization.slug}`), ...matches("approve:*")];
       const viaDepartment = brands.includes(String(organization.slug).toLowerCase());
+      const viaPlatform = isPlatformAdmin && organization.kind === "BRAND";
       return {
         organizationId: organization.id,
         slug: organization.slug,
         name: organization.name,
-        canView: authoring.length > 0 || approving.length > 0 || viaDepartment,
-        canAuthor: authoring.some((grant) => grant.mode === "EDIT") || (user.department === "MARKETING" && leads && authoring.length > 0) || viaDepartment,
-        canApprove: approving.some((grant) => grant.mode === "EDIT") || (viaDepartment && leads),
-        access: viaDepartment ? "DEPARTMENT" : "EXPLICIT",
+        canView: isSuperAdmin || viaPlatform || authoring.length > 0 || approving.length > 0 || viaDepartment,
+        canAuthor: isSuperAdmin || viaPlatform || authoring.some((grant) => grant.mode === "EDIT") || (user.department === "MARKETING" && leads && authoring.length > 0) || viaDepartment,
+        canApprove: isSuperAdmin || approving.some((grant) => grant.mode === "EDIT") || (viaDepartment && leads),
+        access: isSuperAdmin ? "SUPER" : viaDepartment ? "DEPARTMENT" : authoring.length || approving.length ? "EXPLICIT" : "PLATFORM_ADMIN",
       };
     })
     .filter((scope) => scope.canView);
