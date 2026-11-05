@@ -108,13 +108,13 @@ readonly -a MIGRATIONS=(
 
 mode="${1:-}"
 case "$mode" in
-  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup|--storage-setup|--storage-check|--mail-diagnose) ;;
-  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks|--mail-diagnose [--target=production] | --services-remove|--production-schema-names|--containers|--pilot-storage-setup' >&2; exit 2 ;;
+  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup|--storage-setup|--storage-check|--mail-diagnose|--marketing-access-diagnose) ;;
+  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks|--mail-diagnose|--marketing-access-diagnose [--target=production] | --services-remove|--production-schema-names|--containers|--pilot-storage-setup' >&2; exit 2 ;;
 esac
 [[ "$mode" == --pilot-storage-setup ]] && mode=--storage-setup
 if [[ -n "${2:-}" ]]; then
   case "$mode" in
-    --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks|--mail-diagnose) ok_target=yes ;;
+    --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks|--mail-diagnose|--marketing-access-diagnose) ok_target=yes ;;
     *) ok_target=no ;;
   esac
   [[ "${2:-}" == --target=production && "$ok_target" == yes && -z "${3:-}" ]] \
@@ -135,7 +135,7 @@ lock_holder() {
 # during a mutating Mail operation or the database isolation cutover, and a
 # concurrent production deploy waits for them instead of reporting a cutover.
 readonly_mode=false
-case "$mode" in --migrate-preflight|--services-preflight|--production-schema-names|--containers|--staging-checks|--storage-check|--mail-diagnose) readonly_mode=true ;; esac
+case "$mode" in --migrate-preflight|--services-preflight|--production-schema-names|--containers|--staging-checks|--storage-check|--mail-diagnose|--marketing-access-diagnose) readonly_mode=true ;; esac
 lock_kind=-x; [[ "$readonly_mode" == true ]] && lock_kind=-s
 mkdir -p /run/lock
 exec 8>"/run/lock/centralize-admin-mail-$target.lock"
@@ -145,7 +145,7 @@ exec 9>/run/lock/centralize-admin-db-isolation.lock
 db_lock_note=''
 if ! flock "$lock_kind" -n 9; then
   holder="$(lock_holder /run/lock/centralize-admin-db-isolation.lock)"
-  if [[ "$mode" == --mail-diagnose ]]; then
+  if [[ "$mode" == --mail-diagnose || "$mode" == --marketing-access-diagnose ]]; then
     # The diagnostic only reads; it reports the holder instead of refusing.
     db_lock_note="the DB isolation lock is held by: ${holder:-unknown}"; exec 9>&-
   else
@@ -961,6 +961,17 @@ mail_diagnose() {
   info "readiness endpoint: $(docker exec "$APP" node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/api/mail/v1/health/ready').then(r=>r.text()).then(t=>process.stdout.write(t.slice(0,1500)))" 2>/dev/null || echo unavailable)"
 }
 
+marketing_access_diagnose() {
+  identity || { fail "$target identity"; return 1; }
+  pass "$target identity (app runs on $DEST)"
+  info "app: image $(docker inspect -f '{{.Config.Image}}' "$APP"), started $(docker inspect -f '{{.State.StartedAt}}' "$APP")"
+  local out
+  out="$(docker exec -i -w /app "$APP" node - < "$BUNDLE_DIR/ca-marketing-access-diagnose.js" 2>/dev/null | grep '^CA_MKT_DIAG ' | tail -1 || true)"
+  [[ -n "$out" ]] || { fail 'marketing access diagnostic produced no output'; return 1; }
+  echo "$out"
+  pass 'read-only marketing access diagnostic recorded (counts, booleans, brand slugs only)'
+}
+
 list_containers() {
   local id
   for id in $(docker ps -aq --no-trunc); do
@@ -972,6 +983,7 @@ list_containers() {
 case "$mode" in
   --containers) list_containers ;;
   --mail-diagnose) mail_diagnose ;;
+  --marketing-access-diagnose) marketing_access_diagnose ;;
   --staging-checks) staging_checks ;;
   --storage-setup) storage_setup ;;
   --storage-check) storage_check ;;
