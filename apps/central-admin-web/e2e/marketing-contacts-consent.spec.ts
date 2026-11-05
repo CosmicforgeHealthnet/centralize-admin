@@ -1,5 +1,6 @@
 import { test, expect, signIn, defaultMocks, entitlements, ok, noHorizontalScroll, SUPER_USER, type MockApi } from "./fixtures";
 import type { Page } from "@playwright/test";
+import type { ConsentOptions } from "../src/types/mail-marketing.types";
 // The backend's own request schemas: every body the UI sends must satisfy them.
 import openapi from "../../../services/central-admin-api/src/modules/mail/openapi/mail.openapi.js";
 
@@ -10,9 +11,9 @@ import openapi from "../../../services/central-admin-api/src/modules/mail/openap
 
 const MK = "/api/mail/v1/marketing";
 const ORG = { id: "org-cf", slug: "cosmicforge", name: "CosmicForge" };
-const OPTIONS = { topics: ["newsletter", "offers"], policyVersions: ["2026-11", "2026-10"], currentPolicyVersion: "2026-11", policyVersionsConfigured: true, importOriginalChannels: ["WEB_FORM", "EVENT", "OTHER"], adminModes: ["REQUEST_CONFIRMATION", "DOCUMENTED"], approvalTtlHours: 168 };
+const OPTIONS: ConsentOptions = { topics: ["newsletter", "offers"], policyVersions: ["2026-11", "2026-10"], currentPolicyVersion: "2026-11", policyVersionsConfigured: true, importOriginalChannels: ["WEB_FORM", "EVENT", "OTHER"], adminModes: ["REQUEST_CONFIRMATION", "DOCUMENTED"], approvalTtlHours: 168 };
 
-type Schema = { type?: string; required?: string[]; properties?: Record<string, Schema>; enum?: unknown[]; maxLength?: number; format?: string };
+type Schema = { type?: string | string[]; required?: string[]; properties?: Record<string, Schema>; enum?: unknown[]; maxLength?: number; format?: string };
 /** Strict validation: unknown keys are errors too (the UI must not send extras). */
 function violations(schema: Schema, value: unknown, path = "body"): string[] {
   const out: string[] = [];
@@ -31,7 +32,7 @@ function violations(schema: Schema, value: unknown, path = "body"): string[] {
   if (schema.type === "string" && value !== undefined && typeof value !== "string") out.push(`${path}: expected string`);
   return out;
 }
-const contract = (key: string, body: unknown) => violations(openapi.REQUEST_BODIES[key] as Schema, body);
+const contract = (key: string, body: unknown) => violations((openapi.REQUEST_BODIES as unknown as Record<string, Schema>)[key], body);
 
 function mocks(api: MockApi, { options = OPTIONS, canApprove = true } = {}) {
   defaultMocks(api, SUPER_USER, entitlements({ marketingEnabled: true, marketing: [{ organizationId: ORG.id, slug: ORG.slug, name: ORG.name, canAuthor: true, canApprove }] }));
@@ -39,7 +40,7 @@ function mocks(api: MockApi, { options = OPTIONS, canApprove = true } = {}) {
     .on("GET", /^\/api\/notifications\/unread-count/, ok({ unreadCount: 0 }))
     .on("GET", new RegExp(`^${MK}/.*`), ok([], { nextCursor: null }))
     .on("GET", `${MK}/organizations`, ok([{ organizationId: ORG.id, slug: ORG.slug, name: ORG.name, canAuthor: true, canApprove }]))
-    .on("GET", `${MK}/org-cf/consent-options`, ok(options))
+    .on("GET", `${MK}/org-cf/consent-options`, ok({ ...options } as Record<string, unknown>))
     .on("GET", `${MK}/org-cf/contacts`, ok([{ id: "ct-1", email: "saved@reader.example", firstName: null, lastName: null, status: "ACTIVE", source: "manual", consents: [], createdAt: "2026-11-05T08:00:00Z" }], { nextCursor: null }));
 }
 
