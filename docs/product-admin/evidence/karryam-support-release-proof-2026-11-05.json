@@ -1,0 +1,43 @@
+﻿{
+    "services":  {
+                     "support-dispute-service":  {
+                                                     "artifact_location":  "/srv/cosmicforge/staging/backups/support-readiness-20261105T070638Z-6d422840/support-cluster.sql.gz",
+                                                     "backup_sha256":  "aa324312730f3ff8c1716d53501bf011a26345fb74f78330c32dd70a4305e504",
+                                                     "commands_succeeded":  true,
+                                                     "completed_at":  "2026-11-05T07:06:57.326648+00:00",
+                                                     "restore_database_version":  16,
+                                                     "source_database_version":  16,
+                                                     "validated":  true,
+                                                     "validation_sha256":  "b89f14e8fc79816cbea4e5c8e949afaa1ed963f576139874f64b3d496235084b",
+                                                     "validation_summary":  {
+                                                                                "postgres":  [
+                                                                                                 "logical_columns",
+                                                                                                 "indexes",
+                                                                                                 "enum_labels",
+                                                                                                 "roles_and_privileges"
+                                                                                             ],
+                                                                                "support_dispute_service":  [
+                                                                                                                "logical_columns",
+                                                                                                                "indexes",
+                                                                                                                "enum_labels",
+                                                                                                                "roles_and_privileges",
+                                                                                                                "table_content_complaint_context_snapshots",
+                                                                                                                "table_content_complaint_events",
+                                                                                                                "table_content_complaint_evidence",
+                                                                                                                "table_content_complaints",
+                                                                                                                "table_content_disputes",
+                                                                                                                "table_content_help_articles",
+                                                                                                                "table_content_support_action_requests",
+                                                                                                                "table_content_support_case_outbox",
+                                                                                                                "table_content_support_chat_messages"
+                                                                                                            ]
+                                                                            },
+                                                     "runtime_compatibility_attested":  true
+                                                 }
+                 },
+    "environment":  "staging",
+    "schema":  1,
+    "completed_at":  "2026-11-05T07:06:57.326648+00:00",
+    "operator_attested":  true,
+    "release_sha":  "00800825db714c50da5edd1c9bac0c5fa39c5aac"
+}

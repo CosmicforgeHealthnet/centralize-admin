@@ -1,0 +1,56 @@
+﻿{
+    "state":  "EXACT_IMAGE_RUNTIME_PREVIEW_PASS",
+    "source_commit":  "00800825db714c50da5edd1c9bac0c5fa39c5aac",
+    "build":  "Exact services/Dockerfile staging verification image",
+    "image_id":  "sha256:4ed321c634f23f22220bd7f7f0b2ffcd2df23569afcf5f5cc228b80d7e80f644",
+    "runtime_harness_image":  "sha256:4ed321c634f23f22220bd7f7f0b2ffcd2df23569afcf5f5cc228b80d7e80f644",
+    "restore_verified":  true,
+    "passes":  [
+                   {
+                       "round":  1,
+                       "ready":  true,
+                       "commit_sha":  "00800825db714c50da5edd1c9bac0c5fa39c5aac",
+                       "denial_checks":  {
+                                             "/internal/support/v1/admin/resources/cases":  503,
+                                             "/api/v1/support-disputes/complaints":  401,
+                                             "/api/v1/support-disputes/admin/complaints":  401
+                                         },
+                       "legacy_data_changed_tables":  [
+
+                                                      ],
+                       "schema_sha256":  "583ede82d6c5f819796a66e582f58e0cb54c6d854ca78a72179e6b8fac81e46b"
+                   },
+                   {
+                       "round":  2,
+                       "ready":  true,
+                       "commit_sha":  "00800825db714c50da5edd1c9bac0c5fa39c5aac",
+                       "denial_checks":  {
+                                             "/internal/support/v1/admin/resources/cases":  503,
+                                             "/api/v1/support-disputes/complaints":  401,
+                                             "/api/v1/support-disputes/admin/complaints":  401
+                                         },
+                       "legacy_data_changed_tables":  [
+
+                                                      ],
+                       "schema_sha256":  "583ede82d6c5f819796a66e582f58e0cb54c6d854ca78a72179e6b8fac81e46b"
+                   }
+               ],
+    "previous_image_compatibility":  {
+                                         "ready_after_new_migrations":  true,
+                                         "legacy_data_changed_tables":  [
+
+                                                                        ],
+                                         "schema_unchanged":  true,
+                                         "image_id":  "sha256:17d1ade008bb0b004af426152dab52ebb324fd99a60679224d2ac6e82ab0d697"
+                                     },
+    "preexisting_containers_changed":  [
+
+                                       ],
+    "live_migrations_applied":  false,
+    "release_approval_created":  false,
+    "limitation":  "Exact staging Dockerfile image tested against fresh isolated restored PostgreSQL; outbound integrations disabled. Deployment workflow rebuild digest and end-to-end integration remain separate.",
+    "evidence_directory":  "/srv/cosmicforge/staging/backups/support-readiness-20261105T070638Z-6d422840/runtime-preview-20261105T084547Z",
+    "temporary_containers_cleanup_failed":  [
+
+                                            ]
+}
