@@ -19,7 +19,6 @@ const { buildPdf } = require("./helpers/make-pdf");
 
 const ROOT = path.resolve(__dirname, "../../..");
 const TEMPLATE = fs.readFileSync(path.join(ROOT, "infrastructure/mail/nginx/ca-mail-upload-limits.conf.tpl"), "utf8");
-const EXAMPLE = fs.readFileSync(path.join(ROOT, "infrastructure/product-admin/nginx/central-admin-api.server.example.conf"), "utf8");
 const NGINX = ["/usr/sbin/nginx", "/usr/local/sbin/nginx", "/usr/bin/nginx"].find((p) => fs.existsSync(p));
 const ATTACH = "/api/mail/v1/drafts/11111111-1111-4111-8111-111111111111/attachments";
 
@@ -97,9 +96,8 @@ http {
   }
 }
 
-test("tracked Nginx template and example config agree and cover the API ceiling", () => {
+test("tracked Mail Nginx upload template covers the API ceiling independently of Product Admin", () => {
   assert.match(TEMPLATE, /location ~ \^\/api\/mail\/v1\/drafts\/\[\^\/\]\+\/attachments\$ \{\s*client_max_body_size 26m;/);
-  assert.match(EXAMPLE, /location ~ \^\/api\/mail\/v1\/drafts\/\[\^\/\]\+\/attachments\$ \{\s*client_max_body_size 26m;/);
   // 26m must exceed the largest per-file value the API accepts (25 MiB) plus multipart overhead.
   const { loadMailConfig } = require("../src/modules/mail/mail.config");
   const max = loadMailConfig({ MAIL_ATTACHMENT_MAX_BYTES: String(10 ** 12) }).limits.attachmentMaxBytes;
