@@ -1,7 +1,9 @@
 # Managed by .github/scripts/ca-host-ops.sh --nginx-upload-apply (template:
 # infrastructure/mail/nginx/ca-mail-upload-limits.conf.tpl). Included inside the
-# Central Admin API server block ONLY. __UPSTREAM__ is read from that block's
-# own `location /` proxy_pass; nothing else is changed.
+# Central Admin API server block ONLY. The body placeholder inside each
+# location below is replaced with the proxy directives of that block's own proxied `location /` (proxy_pass and any
+# proxy_set_header), minus the directives set below, so the upload paths are
+# proxied exactly like every other path; nothing else is changed.
 #
 # Nginx's built-in client_max_body_size is 1m: larger uploads are answered by
 # Nginx itself with a bare HTML 413 and never reach the API. The API owns the
@@ -14,8 +16,7 @@
 location ~ ^/api/mail/v1/drafts/[^/]+/attachments$ {
     client_max_body_size 26m;
     client_body_timeout 120s;
-    proxy_pass __UPSTREAM__;
-    proxy_http_version 1.1;
+    __LOCATION_BODY__
     proxy_read_timeout 120s;
     proxy_send_timeout 120s;
 }
@@ -24,7 +25,6 @@ location ~ ^/api/mail/v1/drafts/[^/]+/attachments$ {
 location ~ ^/api/mail/v1/marketing/[^/]+/contacts/import$ {
     client_max_body_size 3m;
     client_body_timeout 60s;
-    proxy_pass __UPSTREAM__;
-    proxy_http_version 1.1;
+    __LOCATION_BODY__
     proxy_read_timeout 60s;
 }

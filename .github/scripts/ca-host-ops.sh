@@ -195,25 +195,40 @@ nginx_upload_apply() {
   local f; f="$(vhost_file)" || { fail "CA staging vhost file: $f"; return 1; }
   [[ "$f" == /etc/nginx/* ]] || { fail "unexpected vhost path $f"; return 1; }
   local real="$f"; [[ -L "$f" ]] && real="$(readlink -f "$f")"
-  [[ "$(grep -cE '^\s*location\s+/\s*\{' "$real")" == 1 ]] || { fail 'BLOCKED: vhost does not have exactly one "location / {" to anchor on; nothing changed'; return 1; }
-  local upstream; upstream="$(awk '/^[ \t]*location[ \t]+\/[ \t]*\{/{in_loc=1} in_loc && $1=="proxy_pass"{gsub(";","",$2); print $2; exit}' "$real")"
-  [[ "$upstream" =~ ^http://127\.0\.0\.1:[0-9]+$ ]] || { fail "BLOCKED: unexpected upstream form '$upstream'; nothing changed"; return 1; }
+  # The one proxied "location / {" block (the vhost also has a Certbot HTTP
+  # redirect block whose "location /" has no proxy_pass).
+  local span lstart lend
+  span="$(awk '
+    function count(str, ch,   parts) { return split(str, parts, ch) - 1 }
+    /^[ \t]*location[ \t]+\/[ \t]*\{/ && !inloc { inloc = 1; start = NR; depth = 0; proxied = 0 }
+    inloc { depth += count($0, "{") - count($0, "}"); if ($1 == "proxy_pass") proxied = 1
+            if (depth <= 0) { if (proxied) { found++; fs = start; fe = NR } inloc = 0 } }
+    END { if (found == 1) print fs, fe; else print "0 0" }' "$real")"
+  read -r lstart lend <<<"$span"
+  (( lstart > 0 && lend > lstart )) || { fail 'BLOCKED: vhost does not have exactly one proxied "location / {"; nothing changed'; return 1; }
+  local body="$NGINX_BACKUPS/.body.$$"; mkdir -p "$NGINX_BACKUPS"; chmod 700 "$NGINX_BACKUPS"
+  sed -n "$((lstart + 1)),$((lend - 1))p" "$real" | grep -vE '^[[:space:]]*(client_max_body_size|client_body_timeout|proxy_read_timeout|proxy_send_timeout)\b' > "$body"
+  grep -qE '^[[:space:]]*proxy_pass[[:space:]]+http://(localhost|127\.0\.0\.1):[0-9]+/?;' "$body" || { rm -f "$body"; fail 'BLOCKED: unexpected upstream form in the proxied location; nothing changed'; return 1; }
+  grep -qE 'proxy_pass[^;]*\$' "$body" && { rm -f "$body"; fail 'BLOCKED: variable proxy_pass is not supported; nothing changed'; return 1; }
+  info "proxied location body copied for the upload paths: $(sed 's/^[[:space:]]*//' "$body" | tr '\n' ' ' | cut -c1-300)"
+  local generated="$NGINX_BACKUPS/.snippet.$$"
+  awk -v bodyfile="$body" '/__LOCATION_BODY__/ { while ((getline l < bodyfile) > 0) print "    " l; close(bodyfile); next } { print }' "$TPL" > "$generated"
   # Idempotent: an already-applied, unchanged configuration is not re-backed-up
   # (a second backup would capture the fixed state and defeat rollback).
-  if grep -qF "$INCLUDE_LINE" "$real" && [[ -f "$SNIPPET" ]] && [[ "$(sed "s#__UPSTREAM__#$upstream#g" "$TPL")" == "$(cat "$SNIPPET")" ]]; then
+  if grep -qF "$INCLUDE_LINE" "$real" && [[ -f "$SNIPPET" ]] && cmp -s "$generated" "$SNIPPET"; then
+    rm -f "$body" "$generated"
     nginx_effective | grep -q 'client_max_body_size 26m' && pass 'already applied: effective config allows 26m on the Mail attachment upload path (no change made)' || fail 'include present but effective limit not active'
     return 0
   fi
-  mkdir -p "$NGINX_BACKUPS"; chmod 700 "$NGINX_BACKUPS"
   local stamp; stamp="$(date -u +%Y%m%dT%H%M%SZ)"; local bdir="$NGINX_BACKUPS/$stamp"; mkdir -p "$bdir"
   cp -a "$real" "$bdir/vhost.conf"; printf '%s\n' "$real" > "$bdir/vhost.path"
   [[ -f "$SNIPPET" ]] && cp -a "$SNIPPET" "$bdir/snippet.conf" || true
   nginx_effective > "$bdir/effective-before.txt" 2>/dev/null || true; chmod 600 "$bdir"/*
   info "backup of the effective configuration and vhost file: $bdir (root-only)"
   mkdir -p /etc/nginx/snippets
-  sed "s#__UPSTREAM__#$upstream#g" "$TPL" > "$SNIPPET"; chmod 644 "$SNIPPET"
+  cp "$generated" "$SNIPPET"; chmod 644 "$SNIPPET"; rm -f "$body" "$generated"
   if ! grep -qF "$INCLUDE_LINE" "$real"; then
-    awk -v inc="    $INCLUDE_LINE" '!done && /^[ \t]*location[ \t]+\/[ \t]*\{/{print inc; done=1} {print}' "$real" > "$real.ca-new" && cat "$real.ca-new" > "$real" && rm -f "$real.ca-new"
+    awk -v inc="    $INCLUDE_LINE" -v target="$lstart" 'NR == target { print inc } { print }' "$real" > "$NGINX_BACKUPS/.vhost-new.$$" && cat "$NGINX_BACKUPS/.vhost-new.$$" > "$real" && rm -f "$NGINX_BACKUPS/.vhost-new.$$"
   fi
   if ! nginx -t >"$bdir/nginx-t.txt" 2>&1; then
     cp -a "$bdir/vhost.conf" "$real"; [[ -f "$bdir/snippet.conf" ]] && cp -a "$bdir/snippet.conf" "$SNIPPET" || rm -f "$SNIPPET"

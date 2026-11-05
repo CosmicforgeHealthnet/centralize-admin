@@ -60,7 +60,7 @@ async function withNginx(includeFix, run) {
   const port = probe.address().port; await new Promise((r) => probe.close(r));
   // Nginx runs in its own process, so the suite network guard must be told this loopback port is ours.
   const releasePort = require("./helpers/network-guard").registerLocalPort(port);
-  const snippet = TEMPLATE.replaceAll("__UPSTREAM__", upstream);
+  const snippet = TEMPLATE.replaceAll("__LOCATION_BODY__", `proxy_pass ${upstream}; proxy_http_version 1.1; proxy_set_header X-Forwarded-Proto https;`);
   const conf = `
 ${process.getuid && process.getuid() === 0 ? "user root;" : ""}
 worker_processes 1; daemon off; error_log ${dir}/error.log warn; pid ${dir}/nginx.pid;
