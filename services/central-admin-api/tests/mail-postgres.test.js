@@ -1454,7 +1454,12 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       const orgs = await call("dave", "GET", "/marketing/organizations");
       assert.deepEqual(orgs.body.data.map((org) => org.slug), ["cosmicforge"]);
       assert.equal((await call("dave", "GET", `/marketing/${state.org2Id}/contacts`)).status, 404, "cross-brand access denied");
-      assert.equal((await call("super", "GET", `/marketing/${state.orgId}/contacts`)).status, 404, "marketing scopes need explicit grants");
+      assert.equal((await call("super", "GET", `/marketing/${state.orgId}/contacts`)).status, 200, "SUPER can view marketing brands without individual grants");
+      const adminOrgs = await call("mailAdmin", "GET", "/marketing/organizations");
+      assert.ok(adminOrgs.body.data.length > 0 && adminOrgs.body.data.every((org) => org.access === "PLATFORM_ADMIN" && org.canApprove === false && org.slug !== "cosmicforge"), "Platform Admin sees ACTIVE BRAND organizations only (no COMPANY), cannot approve by tier");
+      assert.ok(adminOrgs.body.data.some((org) => org.slug === "karryam"));
+      assert.equal((await call("mailAdmin", "GET", `/marketing/${state.orgId}/contacts`)).status, 404, "Platform Admin: COMPANY organizations are not marketing brands");
+      assert.equal((await call("mailAdmin", "GET", `/marketing/${state.org2Id}/contacts`)).status, 200);
       const base = `/marketing/${state.orgId}`;
       const consent = (topic = "newsletter", extra = {}) => ({ topic, source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: "form-submission-881", formUrl: "https://cosmicforge.example/subscribe" }, ...extra });
       const granted = await call("dave", "POST", `${base}/contacts`, { email: "Fan@Reader.example", firstName: "Fan", consent: consent() });

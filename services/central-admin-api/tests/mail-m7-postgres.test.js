@@ -88,7 +88,7 @@ test("CosmicForge Mail M7 broadcasts and automation on real PostgreSQL", { timeo
       const tooSoon = await schedule(campaign.id, { sendAtUtc: new Date(harness.clock().getTime() + 5000).toISOString() });
       assert.equal(tooSoon.status, 400, tooSoon.text);
       assert.equal((await call("kim", "POST", `${mbase}/campaigns/${campaign.id}/schedule`, { revision: 1 })).status, 404, "other brand cannot see the campaign");
-      assert.equal((await call("super", "POST", `${mbase}/campaigns/${campaign.id}/schedule`, { revision: 1 })).status, 404, "SUPER has no implicit marketing scope");
+      assert.equal((await call("super", "GET", `${mbase}/campaigns`)).status, 200, "SUPER can view every marketing brand without an individual grant");
 
       // Local wall-clock time in the brand time zone (Lagos, UTC+1).
       const tomorrow = new Date(harness.clock().getTime() + 2 * 86400000).toISOString().slice(0, 10);

@@ -8,6 +8,7 @@ import * as so from "../src/lib/social-operations.mock";
 const sections = ["overview", "campaigns", "content-manager", "email-template", "social-media", "banners-promotion", "performance-dashboard", "marketing-intelligence", "ai-marketing-intelligence", "social-operations", "advertising-execution"];
 const nested: Record<string, string> = { "marketing-intelligence": "Marketing Intelligence views", "ai-marketing-intelligence": "AI Marketing Intelligence views", "social-operations": "Social Operations views", "advertising-execution": "Advertising Execution views" };
 const org = { id: "org-cf", slug: "cosmicforge", name: "CosmicForge", canAuthor: true, canApprove: true };
+const mkPath = (suffix: string) => `/api/mail/v1/marketing/${org.id}/${suffix}`;
 const meta = { page: 1, limit: 20, total: 1, totalPages: 1 };
 const now = "2026-11-04T09:00:00Z";
 const row = { id: "review-1", title: "November community health awareness campaign", name: "Community health newsletter", type: "Email", status: "Draft", progress: 30, metrics: [], date: now, author: "Marketing team", updatedAt: now, performance: 15, eventCode: "WELCOME", event: "Welcome message", customerChannels: ["Email"], recipientChannels: ["Email"], validToDate: now, mediaType: "Image", description: "A longer description to check wrapping without squeezing other columns.", display: "Homepage", externalLink: "https://example.com/health", discountType: "Percentage", startDate: now, endDate: now, grossSales: "1,000", averageRate: "5%", grossRevenue: "100" };
@@ -32,7 +33,8 @@ function fixtures(api: MockApi) {
   });
   const mk = "/api/mail/v1/marketing";
   api.on("GET", new RegExp("^" + mk + "/.*"), ok([], { nextCursor: null }));
-  api.on("GET", mk + "/organizations", ok([org]));
+  // Match the real backend wire contract: brand IDs arrive as organizationId.
+  api.on("GET", mk + "/organizations", ok([{ organizationId: org.id, slug: org.slug, name: org.name, canAuthor: org.canAuthor, canApprove: org.canApprove }]));
   api.on("GET", mk + "/org-cf/reports/overview", ok({flags:{broadcastDispatchEnabled:false,emergencyStop:false},recipientsLast30Days:{},activeSuppressions:{},automations:{},enrollments:{},jobs:[]}));
   api.on("GET", mk + "/org-cf/settings", ok({organizationId:org.id, defaultTimeZone:"Africa/Lagos", postalAddress:"Lagos", dailyBroadcastCap:1000, dailyAutomationCap:500, maxBroadcastRecipients:1000, hardMaxBroadcastRecipients:1000, dispatchPaused:false, provider:{configured:false}, flags:{broadcastDispatchEnabled:false,automationEnabled:false,confirmationEmailsEnabled:false,emergencyStop:false}}));
   api.on("GET", mk + "/org-cf/campaigns", ok([{ id: "cmp-1", name: row.name, status: "DRAFT", topic: "newsletter", revision: 1, updatedAt: now }]));
@@ -87,6 +89,12 @@ for (const width of [360,390,768,1024,1440]) for (const theme of ["light","dark"
       if (theme === "dark" && !await page.locator("html").evaluate(e=>e.classList.contains("dark"))) await page.getByRole("button",{name:"Dark mode",exact:true}).click();
       await expect(page.locator("html")).toHaveClass(theme === "dark" ? /dark/ : /^(?!.*\bdark\b)/);
       await inspect(page,"email-marketing/"+section,width);visited.push("email-marketing/"+section);
+      if (section === "" && width === 390 && theme === "light") {
+        await expect(page.getByText("Not found", { exact: true })).toHaveCount(0);
+        await expect.poll(() => api.callsTo("GET", mkPath("campaigns")).length).toBeGreaterThan(0);
+        await expect.poll(() => api.callsTo("GET", mkPath("audiences")).length).toBeGreaterThan(0);
+        await expect.poll(() => api.callsTo("GET", mkPath("templates")).length).toBeGreaterThan(0);
+      }
     }
     await info.attach("visited-views",{body:JSON.stringify(visited,null,2),contentType:"application/json"});
     expect(errors).toEqual([]);
