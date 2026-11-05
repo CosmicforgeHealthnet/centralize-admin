@@ -26,10 +26,20 @@ Sanitized evidence:
 
 Protected backup, detailed verification logs and pre/post container snapshots remain only on the VPS under /srv/cosmicforge/staging/backups/support-readiness-20261105T070638Z-6d422840. No raw backup, private key, token or protected environment value is included here.
 
+## Approved read-only connection completed at 12:20 UTC
+
+The user explicitly approved protected key generation/policy installation and then the specific 12 Taxi + 2 Support allocations, certificate enrollment and scoped read-only activation. The signed policy is installed for `karryam-staging-operations-readonly`, revision 1, expiring 5 December 2026. The staging administrative scope is product `karryam`, market `NG-LAG`, zone `NG-LAG-MAIN`, organization `karryam-staging`, tenant `karryam-staging-operations`. This new authorization grouping does not rewrite source business ownership or assert native geography for Support cases.
+
+Source endpoints accepted all 14 separately signed owner contexts. Karryam Admin's verified workload certificate is enrolled until policy expiry. Bridge remote access, generic Taxi/Support read adapters and Karryam Admin's Bridge client are enabled. The only product role mapping is `karryam.customer-care.viewer` to the same Bridge role; the policy permits only `taxi.independent_rides.read` and `support.cases.read` for `support-review`. No staff grants were created. Recent actual MFA and HQ authorization remain required.
+
+An isolated internal network connects only the Bridge and these two sources; the Bridge receives only their reader HMAC files. Private signing keys and publisher credentials are not mounted in the Bridge or HQ. Only the three planned source/Bridge containers changed during that activation; their images stayed unchanged and no unrelated container changed. Karryam Admin was then recreated with its same image. All six relevant services passed health checks. Actual Karryam Admin-to-Bridge TLS 1.3 mutual authentication passed with the pinned server certificate; unsigned requests returned 401. Source requests without credentials also returned 401. Fresh backup/restore checks before policy installation passed 24 Support, 77 Taxi and 36 Bridge assertions.
+
+Support subject previews are bounded and credential-redacted free text; this is not a guarantee that all personal information is removed. Dedicated contact, GPS, financial, messages/evidence and write capabilities were not enabled. Stage A feed, Stage A worker and synchronization remain off. Dispatch and production were untouched by this connection package.
+
+Sanitized evidence: `evidence/karryam-readonly-connection-2026-11-05.json`. Its `current_state` is authoritative; historical step summaries retain their earlier flags. Detailed backups, signatures, contexts and rollback artifacts remain only under `/etc/cosmicforge/staging/karryam-source-access/20261105T112448Z-3169bf92` on the VPS.
+
 ## Remaining integration work
 
-Fresh post-release inspection confirms the Backoffice, Karryam Admin, PIC and dedicated Karryam Admin database are healthy. Backoffice ADMIN_REMOTE_ENABLED is false; ADMIN_ACCESS_POLICY_FILE and ADMIN_ACCESS_POLICY_KEYS_FILE remain unconfigured. Karryam Bridge access/feed and PIC synchronization remain false. No Stage A worker was activated.
+The signed policy, record allocations, certificate enrollment and read-only transport setup above are complete. Real staff capability discovery and authorized source reads have not yet passed. Existing audited HQ onboarding, staff grants and dataset certification remain required; do not fabricate MFA, actor identities or lifecycle approvals.
 
-Complete the real source access policy and actual administrative organization/tenant allocation, Bridge trust/enrollment, existing audited HQ onboarding/staff grants and dataset certification. The existing code requires distinct real actors for onboarding review/certification/approval; the delegated Support deployment waiver does not fabricate those business approvals. Do not invent scope identifiers, reuse fixture grants, bypass MFA or directly edit lifecycle rows.
-
-Then verify real Taxi and Support reads, Stage A and Stage B, replay/restart/duplicate handling and authorized Central Admin Web reporting. Keep source business writes and the explicit Dispatch deployment hold unchanged. This checkpoint does not claim those remaining acceptance checks passed.
+Then verify real Taxi and Support reads, Stage A and Stage B, replay/restart/duplicate handling and authorized Central Admin Web reporting. Keep business writes and the explicit Dispatch deployment hold unchanged. Full integration is not complete, and these remaining acceptance checks are not recorded as passes.
