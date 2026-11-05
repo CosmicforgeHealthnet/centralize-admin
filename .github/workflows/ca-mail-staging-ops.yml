@@ -12,6 +12,10 @@ name: CA Mail staging operations (manual)
 #   services-remove    remove the staging ClamAV + worker containers
 #   production-schema-names  READ-ONLY production catalog names, classified
 #                      on the runner per manifest migration (no data)
+#   nginx-upload-diagnose / -apply / -rollback  the CA API vhost of the chosen
+#                      target (stagingca or liveca); diagnose is read-only,
+#                      production apply/rollback need
+#                      confirm=APPLY_PRODUCTION_NGINX_UPLOAD_LIMITS
 # Mutating operations need confirm=APPLY_STAGING_MAIL_CHANGES (staging),
 # APPLY_PRODUCTION_MAIL_CHANGES (production services/storage) or
 # APPLY_PRODUCTION_MAIL_MIGRATIONS (production migrations).
@@ -36,12 +40,12 @@ on:
         options: [mail-diagnose, marketing-access-diagnose, migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, storage-setup, storage-check, production-schema-names, containers, staging-checks, host-audit, secure-production-env, staging-env-access, pilot-storage-setup, nginx-upload-diagnose, nginx-upload-apply, nginx-upload-rollback]
         default: migrate-preflight
       target:
-        description: "staging or production (migration, services, storage and check operations)"
+        description: "staging or production (migration, services, storage, check and nginx-upload operations)"
         type: choice
         options: [staging, production]
         default: staging
       confirm:
-        description: "Mutating: APPLY_STAGING_MAIL_CHANGES; production services/storage: APPLY_PRODUCTION_MAIL_CHANGES; production migrate-apply: APPLY_PRODUCTION_MAIL_MIGRATIONS; secure-production-env: SECURE_PRODUCTION_ENV"
+        description: "Mutating: APPLY_STAGING_MAIL_CHANGES; production services/storage: APPLY_PRODUCTION_MAIL_CHANGES; production migrate-apply: APPLY_PRODUCTION_MAIL_MIGRATIONS; secure-production-env: SECURE_PRODUCTION_ENV; production nginx-upload-apply/rollback: APPLY_PRODUCTION_NGINX_UPLOAD_LIMITS"
         required: false
         default: ''
 
@@ -81,12 +85,14 @@ jobs:
           set -euo pipefail
           if [[ "$TARGET" == production ]]; then
             case "$OP" in
-              migrate-preflight|services-preflight|storage-check|staging-checks|mail-diagnose|marketing-access-diagnose)
+              migrate-preflight|services-preflight|storage-check|staging-checks|mail-diagnose|marketing-access-diagnose|nginx-upload-diagnose)
                 [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; }; exit 0 ;;
               migrate-apply)
                 [[ "$CONFIRM" == APPLY_PRODUCTION_MAIL_MIGRATIONS ]] || { echo 'Production migrations need confirm=APPLY_PRODUCTION_MAIL_MIGRATIONS. Nothing was started.'; exit 1; }; exit 0 ;;
               services-deploy|storage-setup)
                 [[ "$CONFIRM" == APPLY_PRODUCTION_MAIL_CHANGES ]] || { echo "Production $OP needs confirm=APPLY_PRODUCTION_MAIL_CHANGES. Nothing was started."; exit 1; }; exit 0 ;;
+              nginx-upload-apply|nginx-upload-rollback)
+                [[ "$CONFIRM" == APPLY_PRODUCTION_NGINX_UPLOAD_LIMITS ]] || { echo "Production $OP needs confirm=APPLY_PRODUCTION_NGINX_UPLOAD_LIMITS. Nothing was started."; exit 1; }; exit 0 ;;
               *) echo "target=production does not apply to $OP."; exit 1 ;;
             esac
           fi
@@ -155,7 +161,8 @@ jobs:
           d="\$HOME/.ca-mail-staging/$BUNDLE_SHA256"
           run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           case "$OP" in
-            host-audit|secure-production-env|staging-env-access|nginx-upload-diagnose|nginx-upload-apply|nginx-upload-rollback) cmd="bash $d/ca-host-ops.sh --$OP" ;;
+            host-audit|secure-production-env|staging-env-access) cmd="bash $d/ca-host-ops.sh --$OP" ;;
+            nginx-upload-diagnose|nginx-upload-apply|nginx-upload-rollback) cmd="bash $d/ca-host-ops.sh --$OP --target=$TARGET" ;;
             *) cmd="bash $d/ca-mail-staging-ops.sh --$OP"
                if [[ "$TARGET" == production ]]; then cmd="$cmd --target=production"; fi ;;
           esac

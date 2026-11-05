@@ -42,6 +42,29 @@ function post(port, pathName, { body, boundary }) {
   });
 }
 
+// Announces a body of `bytes` with Expect: 100-continue and sends it only if
+// Nginx asks for it, so an over-limit answer (and its headers) is read
+// deterministically instead of racing a connection reset.
+function postAnnounced(port, pathName, bytes, origin) {
+  return new Promise((resolve, reject) => {
+    const req = http.request({ host: "127.0.0.1", port, path: pathName, method: "POST", headers: { origin, expect: "100-continue", "content-type": "multipart/form-data; boundary=x", "content-length": bytes } }, (res) => {
+      const chunks = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => resolve({ status: res.statusCode, headers: res.headers, text: Buffer.concat(chunks).toString() }));
+    });
+    req.on("continue", () => req.end(Buffer.alloc(bytes)));
+    req.on("error", reject);
+    req.flushHeaders();
+  });
+}
+
+// The `if ($http_origin ~ "...")` allowlist of the JSON 413 handler.
+function templateOriginPattern() {
+  const match = TEMPLATE.match(/if \(\$http_origin ~ "([^"]+)"\)/);
+  assert.ok(match, "the 413 handler has an exact-origin allowlist");
+  return new RegExp(match[1]);
+}
+
 async function withNginx(includeFix, run) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ca-nginx-"));
   const received = [];
@@ -137,5 +160,64 @@ test("real Nginx: with the tracked fix 3 MiB, 5 MiB and ceiling-size uploads rea
     assert.equal(received.length, before);
     const csv = await post(port, "/api/mail/v1/marketing/org-1/contacts/import", multipart(Buffer.alloc(2 * 1024 * 1024, 97), "contacts.csv"));
     assert.equal(csv.status, 201, "CSV import (API limit 2 MiB) is no longer capped at 1 MiB by the proxy");
+  });
+});
+
+test("the gateway 413 CORS allowlist is exactly the API's trusted Admin origins (no wildcard)", () => {
+  assert.ok(!/Access-Control-Allow-Origin\s+\*/.test(TEMPLATE), "never a wildcard origin");
+  assert.match(TEMPLATE, /add_header Access-Control-Allow-Origin \$ca_mail_cors_origin always;/);
+  const nginxAllows = templateOriginPattern();
+  const { createOriginPolicy } = require("../src/shared/config/cors-origins");
+  const apiAllows = createOriginPolicy({ CORS_ORIGINS: "" });
+  const origins = [
+    "https://centralize-admin.vercel.app",
+    "https://centralize-admin.cosmiforgegroup.cloud",
+    "https://centralize-admin-staging.vercel.app",
+    "https://centralize-admin-staging-cosmicforgedevteamgmailcoms-projects.vercel.app",
+    "https://centralize-admin-abc123-cosmicforgedevteamgmailcoms-projects.vercel.app",
+    "https://evil.vercel.app",
+    "https://centralize-admin.vercel.app.evil.example",
+    "http://centralize-admin.vercel.app",
+    "https://centralize-admin-x-otherteam-projects.vercel.app",
+    "https://xcentralize-admin.vercel.app",
+    "null",
+  ];
+  for (const origin of origins) {
+    assert.equal(nginxAllows.test(origin), apiAllows(origin), `Nginx and API disagree on ${origin}`);
+  }
+  // Every hard-coded canonical origin in the API source must be in the Nginx list.
+  const source = fs.readFileSync(path.join(ROOT, "services/central-admin-api/src/shared/config/cors-origins.js"), "utf8");
+  for (const [, origin] of source.matchAll(/"(https:\/\/[^"]+)"/g)) assert.ok(nginxAllows.test(origin), `${origin} missing from the Nginx 413 allowlist`);
+});
+
+test("real Nginx: above the ceiling Nginx answers JSON 413 with CORS only for trusted origins and no API code (the web app gateway-rejection branch)", { skip: !NGINX && "nginx binary not available" }, async () => {
+  await withNginx(true, async ({ port, received }) => {
+    const trusted = await postAnnounced(port, ATTACH, 27 * 1024 * 1024, "https://centralize-admin.vercel.app");
+    assert.equal(trusted.status, 413);
+    assert.match(trusted.headers["content-type"], /^application\/json/);
+    assert.equal(trusted.headers["access-control-allow-origin"], "https://centralize-admin.vercel.app");
+    assert.equal(trusted.headers["access-control-allow-credentials"], "true");
+    assert.match(trusted.headers.vary || "", /Origin/);
+    const body = JSON.parse(trusted.text);
+    assert.equal(body.success, false);
+    assert.equal(body.code, undefined, "no API code: the web app maps a code-less 413 to its gateway message");
+    assert.equal(body.errors[0].reason, "GATEWAY_BODY_TOO_LARGE");
+    assert.equal(body.errors[0].maxBytes, 26 * 1024 * 1024);
+
+    const untrusted = await postAnnounced(port, ATTACH, 27 * 1024 * 1024, "https://evil.example");
+    assert.equal(untrusted.status, 413);
+    assert.equal(untrusted.headers["access-control-allow-origin"], undefined, "no CORS for an untrusted origin");
+    assert.equal(untrusted.headers["access-control-allow-credentials"], undefined);
+
+    const csv = await postAnnounced(port, "/api/mail/v1/marketing/org-1/contacts/import", 4 * 1024 * 1024, "https://centralize-admin-staging.vercel.app");
+    assert.equal(csv.status, 413);
+    assert.equal(csv.headers["access-control-allow-origin"], "https://centralize-admin-staging.vercel.app");
+
+    // Other routes are untouched: still Nginx's own (HTML) 413, no CORS added.
+    const elsewhere = await postAnnounced(port, "/api/mail/v1/mailboxes/x/threads", 3 * 1024 * 1024, "https://centralize-admin.vercel.app");
+    assert.equal(elsewhere.status, 413);
+    assert.match(elsewhere.headers["content-type"] || "", /text\/html/);
+    assert.equal(elsewhere.headers["access-control-allow-origin"], undefined);
+    assert.equal(received.length, 0, "nothing above the ceiling reached the API");
   });
 });
