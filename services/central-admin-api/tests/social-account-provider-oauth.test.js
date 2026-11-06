@@ -28,7 +28,7 @@ function fixture(provider='X') {
   auditLog:{create:async({data})=>audits.push(data)},
  };
  db.$transaction=async work=>work(db);
- const http={post:async(url,body,options)=>{calls.push({url,body,options});return {data:{access_token:'private-test-access',refresh_token:'private-test-refresh',expires_in:3600,scope:'users.read tweet.read'}};},get:async(url)=>{
+ const http={post:async(url,body,options)=>{calls.push({url,body,options});return {data:{access_token:'private-test-access',refresh_token:'rotated-refresh-token',expires_in:3600,scope:'users.read tweet.read'}};},get:async(url)=>{
   if(url.includes('/permissions'))return {data:{data:[{permission:'pages_show_list',status:'granted'}]}};
   if(url.includes('/accounts'))return {data:{data:[{id:'page-1',name:'Example page',instagram_business_account:{id:'ig-1',username:'example'}}]}};
   if(provider==='META')return {data:{id:'user-1',name:'Example'}};
