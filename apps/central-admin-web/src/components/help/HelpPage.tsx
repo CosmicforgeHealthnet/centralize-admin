@@ -1,4 +1,3 @@
-import ProductMetrics from "@/components/help/ProductMetrics";
 import HelpSubNav from "@/components/help/HelpSubNav";
 import HelpStatCards from "@/components/help/HelpStatCards";
 import RecentTickets from "@/components/help/RecentTickets";
@@ -29,7 +28,6 @@ export default function HelpPage() {
         <div className="flex gap-4">
           <div className="flex-1 min-w-0 flex flex-col gap-4">
             <HelpStatCards />
-            <ProductMetrics />
             <RecentTickets />
           </div>
           <div className="hidden min-[1014px]:flex flex-col gap-4 w-[200px] shrink-0">
