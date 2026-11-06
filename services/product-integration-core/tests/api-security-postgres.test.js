@@ -183,3 +183,31 @@ test("REGRESSION: an explicit DENY cannot be revoked by the staff member it rest
     assert.equal(other.status, 200);
   } finally { await h.close(); }
 });
+
+
+test("replay storage outage denies a valid delegation before any application query", async () => {
+  const I = require("../../../packages/identity-and-permissions");
+  const key = require("node:crypto").randomBytes(32);
+  const now = Date.now(), path = "/internal/pic/v1/products";
+  let queries = 0;
+  const app = createApp({
+    pool: { query: async () => { queries++; throw new Error("must not reach application storage"); } },
+    endpoints: new Map(), trustStore: {}, environment: "test",
+    hqDelegationKeys: { "outage-test": { key } }, now: () => now,
+    nonceStore: { claim: async () => { throw new Error("private storage failure detail"); } },
+  });
+  const token = I.signDelegation({ iss: "central-admin-api", aud: "product-integration-core", sub: "staff-requester", sid: "session-outage", auth_time: Math.floor(now / 1000) - 20, mfa_at: Math.floor(now / 1000) - 10, bnd: I.requestBinding("GET", path, Buffer.alloc(0)) }, { key, kid: "outage-test", typ: I.TYPES.HQ, now });
+  const server = http.createServer(app); server.listen(0, "127.0.0.1"); await once(server, "listening");
+  try {
+    const response = await new Promise((resolve, reject) => {
+      const req = http.get({ host: "127.0.0.1", port: server.address().port, path, headers: { "X-CF-HQ-Delegation": token } }, (res) => {
+        let body = ""; res.on("data", (part) => { body += part; });
+        res.on("end", () => resolve({ status: res.statusCode, body: JSON.parse(body) }));
+      }); req.on("error", reject);
+    });
+    assert.equal(response.status, 503);
+    assert.deepEqual(response.body.error, { code: "UNAVAILABLE", reason: "REPLAY_STORE_UNAVAILABLE" });
+    assert.equal(queries, 0, "authentication must fail closed before product or onboarding queries");
+    assert.doesNotMatch(JSON.stringify(response.body), /private storage failure/);
+  } finally { server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); }
+});

@@ -53,5 +53,16 @@
     "protected_proof": "/srv/cosmicforge/staging/backups/pic-operator-genericcheck-f9f5059f94/result.json",
     "existing_containers_changed": false,
     "live_data_used": false
+  },
+  "replay_store_fail_closed_regression": {
+    "tests": 27,
+    "pass": 26,
+    "fail": 0,
+    "skip": 1,
+    "protected_proof": "/srv/cosmicforge/staging/backups/pic-operator-genericcheck-59183fc8d4/result.json",
+    "application_database_queries_on_auth_outage": 0,
+    "live_data_used": false,
+    "existing_containers_changed": false,
+    "local_limitation": "Windows checkout lacks pg dependency; PostgreSQL API regression verified in isolated Linux runtime instead."
   }
 }
