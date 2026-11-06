@@ -173,6 +173,17 @@ test("root sandbox: protected permits, revocation and real PostgreSQL operator a
   for (const changes of [{dataset_id:"karryam.other"},{consumer_department:"finance"},{enabled:false},{version:"2.0.0"},{allowed_scope:{...scope,tenant:["other"]}}]) assert.throws(()=>subscriptions.createSubscription({staffId:actor},id,{...input,...changes},ctx),/SUBSCRIPTION_SCOPE_DENIED/);
   const subscription=await subscriptions.createSubscription({staffId:actor},id,input,ctx);assert.match(subscription.subscription_id,/^[0-9a-f-]{36}$/);
   assert.equal(subscriptions.grant,undefined);assert.equal(subscriptions.setSubscriptionEnabled,undefined);
+  const readBootstrap=require("../scripts/bootstrap-product-read-grant");
+  const reader=randomUUID(),readArgs=["--product","karryam","--staff",reader,"--datasets","karryam.support_operations","--scope",JSON.stringify(scope),"--expires",new Date(now+3600000).toISOString()];
+  const bootstrapEnv={PIC_ENVIRONMENT:"staging",PIC_EXPECT_ENVIRONMENT:"staging",PIC_MIGRATION_DATABASE_URL:db.migrationUrl};
+  await readBootstrap.run(readArgs,bootstrapEnv);
+  const {rows:readGrants}=await db.pool.query(`SELECT * FROM hq_integration.hq_product_admin_grants WHERE staff_id=$1`,[reader]);
+  assert.equal(readGrants.length,1);assert.deepEqual(readGrants[0].scope,scope);assert.deepEqual(readGrants[0].actions,readBootstrap.ACTIONS);
+  const identity=require("../../../packages/identity-and-permissions");
+  assert.equal(identity.authorize({subject:{staffId:reader},productId:"karryam",action:"metric.read",datasetId:"karryam.support_operations",grants:readGrants,productScope:scope,now}).allowed,true);
+  for(const action of ["resource.read","operation.submit","integration.grants.manage"])assert.equal(identity.authorize({subject:{staffId:reader},productId:"karryam",action,grants:readGrants,productScope:scope,now}).allowed,false);
+  await assert.rejects(readBootstrap.run(readArgs,bootstrapEnv),/FIRST_PRODUCT_GRANT_ONLY/);
+  const bootstrapAudit=await db.pool.query(`SELECT actor_type,metadata FROM hq_integration.hq_product_admin_security_audit WHERE action='integration.product_read.bootstrap'`);assert.equal(bootstrapAudit.rows.length,1);assert.equal(bootstrapAudit.rows[0].actor_type,"OPERATOR");assert.equal(bootstrapAudit.rows[0].metadata.staff_ref,reader);
   fs.writeFileSync(trustFile,rawTrust);
   fs.writeFileSync(file, rawDecision + "\n"); assert.equal(O.validPermit(load(), { environment: "staging", now }), true);
 });
