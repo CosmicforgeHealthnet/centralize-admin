@@ -35,5 +35,23 @@
     "Application source hashes are recorded in the protected regression proof; final CI must test the published commit.",
     "No live authority, operator decision, registration, certification or enablement is asserted.",
     "Source feed readiness and end-to-end acceptance remain pending."
-  ]
+  ],
+  "generic_verifier_correction": {
+    "reason": "Keep the shared HQ engine product-neutral; independently pin product and scope in protected authority configuration and in the Karryam CLI.",
+    "tests": 21,
+    "pass": 20,
+    "fail": 0,
+    "skip": 1,
+    "operator_coverage": {
+      "line": 100,
+      "branch": 94.34
+    },
+    "state_machine_coverage": {
+      "line": 100,
+      "branch": 96.55
+    },
+    "protected_proof": "/srv/cosmicforge/staging/backups/pic-operator-genericcheck-f9f5059f94/result.json",
+    "existing_containers_changed": false,
+    "live_data_used": false
+  }
 }

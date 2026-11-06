@@ -11,7 +11,7 @@ const { recordAudit } = require("../audit");
 const permits = new WeakSet();
 const DOMAIN = "cosmicforge-staging-onboarding-delegation-v1\n";
 const TRUST_FILE = "/etc/cosmicforge/staging/secrets/pic-operator-authority/public-keys.json";
-const SCOPE = Object.freeze({ market: ["NG-LAG"], organization: ["karryam-staging"], zone: ["NG-LAG-MAIN"], tenant: ["karryam-staging-operations"] });
+const DIMENSIONS = Object.freeze(["market", "organization", "zone", "tenant"]);
 const ACTIONS = Object.freeze(["integration.read", "integration.request", "integration.verify", "integration.review", "integration.certify", "integration.approve"]);
 const TOKEN = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$/;
 function denied(reason) { throw Object.assign(new Error(reason), { reason, status: 403 }); }
@@ -20,8 +20,8 @@ function canonical(value) {
   if (value !== null && typeof value === "object") return "{" + Object.keys(value).sort().map((k) => JSON.stringify(k) + ":" + canonical(value[k])).join(",") + "}";
   return JSON.stringify(value);
 }
-function equalScope(a, b = SCOPE) {
-  return Boolean(a && b && Object.keys(a).sort().join(",") === "market,organization,tenant,zone" && Object.keys(b).sort().join(",") === "market,organization,tenant,zone" && Object.keys(SCOPE).every((k) => Array.isArray(a[k]) && a[k].length === 1 && Array.isArray(b[k]) && b[k].length === 1 && a[k][0] === b[k][0]));
+function equalScope(a, b) {
+  return Boolean(a && b && Object.keys(a).sort().join(",") === "market,organization,tenant,zone" && Object.keys(b).sort().join(",") === "market,organization,tenant,zone" && DIMENSIONS.every((k) => Array.isArray(a[k]) && a[k].length === 1 && typeof a[k][0] === "string" && TOKEN.test(a[k][0]) && Array.isArray(b[k]) && b[k].length === 1 && a[k][0] === b[k][0]));
 }
 function parseSignedDecision(raw, trust, { environment, operator, now = Date.now() }) {
   if (environment !== "staging") denied("OPERATOR_STAGING_ONLY");
@@ -29,12 +29,15 @@ function parseSignedDecision(raw, trust, { environment, operator, now = Date.now
   try { envelope = JSON.parse(raw); } catch { denied("OPERATOR_DECISION_INVALID"); }
   if (!envelope || Object.keys(envelope).sort().join(",") !== "document,key_id,signature") denied("OPERATOR_DECISION_INVALID");
   const d = envelope.document;
+  // Scope and product pins come from the separately installed root-owned trust
+  // entry, never from the incoming decision or a caller-supplied scope.
+  const entry = trust && trust.keys && Object.prototype.hasOwnProperty.call(trust.keys, envelope.key_id) ? trust.keys[envelope.key_id] : null;
+  if (!entry || entry.revoked !== false || entry.purpose !== "OWNER_DELEGATION" || !TOKEN.test(entry.product_id || "") || entry.environment !== "staging" || !equalScope(entry.allowed_scope, entry.allowed_scope) || !(Date.parse(entry.not_after) > now)) denied("OPERATOR_SIGNER_NOT_TRUSTED");
   const fields = ["schema_version", "decision_id", "operator", "owner_delegation_ref", "environment", "product_id", "allowed_scope", "issued_at", "expires_at", "allow_setup_without_staff_sessions", "allow_single_operator_onboarding"];
-  if (!d || typeof d !== "object" || Array.isArray(d) || Object.keys(d).length !== fields.length || Object.keys(d).some((k) => !fields.includes(k)) || d.schema_version !== 1 || d.environment !== "staging" || d.product_id !== "karryam" || d.operator !== operator || !TOKEN.test(operator || "") || !TOKEN.test(d.decision_id || "") || !TOKEN.test(d.owner_delegation_ref || "") || d.allow_setup_without_staff_sessions !== true || d.allow_single_operator_onboarding !== true || !equalScope(d.allowed_scope)) denied("OPERATOR_DECISION_INVALID");
+  if (!d || typeof d !== "object" || Array.isArray(d) || Object.keys(d).length !== fields.length || Object.keys(d).some((k) => !fields.includes(k)) || d.schema_version !== 1 || d.environment !== "staging" || d.product_id !== entry.product_id || d.operator !== operator || !TOKEN.test(operator || "") || !TOKEN.test(d.decision_id || "") || !TOKEN.test(d.owner_delegation_ref || "") || d.allow_setup_without_staff_sessions !== true || d.allow_single_operator_onboarding !== true || !equalScope(d.allowed_scope, entry.allowed_scope)) denied("OPERATOR_DECISION_INVALID");
   const issued = Date.parse(d.issued_at), expires = Date.parse(d.expires_at);
   if (!Number.isFinite(issued) || !Number.isFinite(expires) || issued > now || expires <= now || expires <= issued || expires - issued > 3600000) denied("OPERATOR_DECISION_EXPIRED_OR_INVALID");
-  const entry = trust && trust.keys && Object.prototype.hasOwnProperty.call(trust.keys, envelope.key_id) ? trust.keys[envelope.key_id] : null;
-  if (!entry || entry.revoked !== false || entry.purpose !== "OWNER_DELEGATION" || entry.product_id !== "karryam" || entry.environment !== "staging" || !(Date.parse(entry.not_after) > now) || Date.parse(entry.not_after) < expires) denied("OPERATOR_SIGNER_NOT_TRUSTED");
+  if (Date.parse(entry.not_after) < expires) denied("OPERATOR_SIGNER_NOT_TRUSTED");
   try {
     const key = createPublicKey(entry.public_key_pem);
     if (key.asymmetricKeyType !== "ed25519" || typeof envelope.signature !== "string" || !/^[A-Za-z0-9_-]{86}$/.test(envelope.signature) || !verify(null, Buffer.from(DOMAIN + canonical(d)), key, Buffer.from(envelope.signature, "base64url"))) denied("OPERATOR_SIGNATURE_INVALID");
@@ -64,8 +67,8 @@ function loadOperatorPermit(file, { environment, now = Date.now() } = {}) {
   permits.add(permit);
   return permit;
 }
-function validPermit(permit, { environment, productId = "karryam", scope, now = Date.now() } = {}) {
-  if (!permit || !permits.has(permit) || environment !== "staging" || productId !== "karryam" || Date.parse(permit.decision.expires_at) <= now || scope && !equalScope(scope)) return false;
+function validPermit(permit, { environment, productId, scope, now = Date.now() } = {}) {
+  if (!permit || !permits.has(permit) || environment !== "staging" || productId !== undefined && productId !== permit.decision.product_id || Date.parse(permit.decision.expires_at) <= now || scope && !equalScope(scope, permit.decision.allowed_scope)) return false;
   try {
     const raw = protectedRead(permit.file, true), trust = protectedRead(TRUST_FILE, false);
     if (createHash("sha256").update(raw).digest("hex") !== permit.digest || createHash("sha256").update(trust).digest("hex") !== permit.trustDigest) { permits.delete(permit); return false; }
@@ -75,7 +78,7 @@ function validPermit(permit, { environment, productId = "karryam", scope, now = 
 }
 async function authorizeOperator(db, permit, { environment, subject, action, correlationId, now }) {
   if (!validPermit(permit, { environment, now }) || subject.staffId !== "operator:" + permit.decision.operator || !ACTIONS.includes(action)) denied("OPERATOR_NOT_AUTHORIZED");
-  await recordAudit(db, { correlationId, actorType: "OPERATOR", actorId: subject.staffId, productId: "karryam", action, outcome: "ALLOWED", reasonCode: "OWNER_DELEGATED_STAGING_SETUP", metadata: { decision_ref: permit.decision.decision_id, delegation_ref: permit.decision.owner_delegation_ref, staff_session_used: false, independence_exception: true } });
+  await recordAudit(db, { correlationId, actorType: "OPERATOR", actorId: subject.staffId, productId: permit.decision.product_id, action, outcome: "ALLOWED", reasonCode: "OWNER_DELEGATED_STAGING_SETUP", metadata: { decision_ref: permit.decision.decision_id, delegation_ref: permit.decision.owner_delegation_ref, staff_session_used: false, independence_exception: true } });
   return { allowed: true };
 }
 module.exports = { loadOperatorPermit, validPermit, authorizeOperator, parseSignedDecision, equalScope, canonical, DOMAIN };

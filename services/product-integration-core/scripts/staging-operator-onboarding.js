@@ -4,7 +4,7 @@
 // Runs only as root with a protected owner-signed staging delegation.
 const { randomUUID } = require("node:crypto");
 const { loadConfig } = require("../src/config");
-const { loadOperatorPermit } = require("../src/onboarding/operator");
+const { loadOperatorPermit, equalScope } = require("../src/onboarding/operator");
 const { createOnboarding } = require("../src/onboarding/service");
 
 function options(argv) {
@@ -29,6 +29,8 @@ async function run(argv = process.argv.slice(2), env = process.env) {
   const args = options(argv);
   if (env.PIC_ENVIRONMENT !== "staging" || env.PIC_EXPECT_ENVIRONMENT !== "staging") throw new Error("OPERATOR_STAGING_ONLY");
   const permit = loadOperatorPermit(args["--decision"], { environment: "staging" });
+  const approvedScope = { market: ["NG-LAG"], organization: ["karryam-staging"], zone: ["NG-LAG-MAIN"], tenant: ["karryam-staging-operations"] };
+  if (permit.decision.product_id !== "karryam" || !equalScope(permit.decision.allowed_scope, approvedScope)) throw new Error("OPERATOR_SCOPE_DENIED");
   const config = loadConfig(env);
   if (!config.enabled || config.environment !== "staging") throw new Error("STAGING_PIC_CONFIGURATION_REQUIRED");
   const registration = { product_id: "karryam", display_name: "Karryam", service_instance_id: "karryam-admin-staging-1", environment: "staging", endpoint_ref: "karryam-staging", workload_identity: "cf://staging/product-admin/karryam", approved_signer_kid: "karryam-staging-manifest-2026-11", allowed_scope: permit.decision.allowed_scope };

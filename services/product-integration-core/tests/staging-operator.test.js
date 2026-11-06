@@ -9,7 +9,7 @@ const key = generateKeyPairSync("ed25519");
 const scope = { market: ["NG-LAG"], organization: ["karryam-staging"], zone: ["NG-LAG-MAIN"], tenant: ["karryam-staging-operations"] };
 function decision(changes = {}) { return { schema_version: 1, decision_id: "decision-1", operator: "root@staging-host", owner_delegation_ref: "owner-delegation-1", environment: "staging", product_id: "karryam", allowed_scope: scope, issued_at: new Date(now - 1000).toISOString(), expires_at: new Date(now + 600000).toISOString(), allow_setup_without_staff_sessions: true, allow_single_operator_onboarding: true, ...changes }; }
 function envelope(d = decision(), signingKey = key.privateKey) { return { document: d, key_id: "owner-k1", signature: sign(null, Buffer.from(O.DOMAIN + O.canonical(d)), signingKey).toString("base64url") }; }
-function trust(changes = {}) { return { keys: { "owner-k1": { purpose: "OWNER_DELEGATION", product_id: "karryam", environment: "staging", not_after: new Date(now + 3600000).toISOString(), revoked: false, public_key_pem: key.publicKey.export({ type: "spki", format: "pem" }), ...changes } } }; }
+function trust(changes = {}) { return { keys: { "owner-k1": { purpose: "OWNER_DELEGATION", allowed_scope: scope, product_id: "karryam", environment: "staging", not_after: new Date(now + 3600000).toISOString(), revoked: false, public_key_pem: key.publicKey.export({ type: "spki", format: "pem" }), ...changes } } }; }
 const options = { environment: "staging", operator: "root@staging-host", now };
 function validate(e = envelope(), t = trust(), opts = options) { return O.parseSignedDecision(JSON.stringify(e), t, opts); }
 test("valid owner signature binds the exact staging product, operator and scope", () => { assert.equal(validate().decision_id, "decision-1"); });
@@ -31,8 +31,13 @@ test("decision validity is bounded to one hour and checked on every validation",
   for (const d of [decision({ issued_at: new Date(now + 1).toISOString() }), decision({ expires_at: new Date(now).toISOString() }), decision({ expires_at: new Date(now + 3600000).toISOString() }), decision({ expires_at: "invalid" })]) assert.throws(() => validate(envelope(d)), /EXPIRED_OR_INVALID/);
 });
 test("untrusted, revoked, expired, wrong-purpose and cross-environment authorities are refused", () => {
-  for (const t of [{}, trust({ revoked: true }), trust({ purpose: "SOURCE_POLICY" }), trust({ environment: "production" }), trust({ product_id: "other" }), trust({ not_after: new Date(now + 1000).toISOString() })]) assert.throws(() => validate(envelope(), t), /SIGNER_NOT_TRUSTED/);
+  for (const t of [{}, trust({ revoked: true }), trust({ purpose: "SOURCE_POLICY" }), trust({ environment: "production" }), trust({ allowed_scope: undefined }), trust({ allowed_scope: { ...scope, tenant: ["*"] } }), trust({ not_after: new Date(now + 1000).toISOString() })]) assert.throws(() => validate(envelope(), t), /SIGNER_NOT_TRUSTED/);
 });
+test("root trust pins are independent of the signed document", () => {
+  assert.throws(() => validate(envelope(), trust({ product_id: "other" })), /DECISION_INVALID/);
+  assert.throws(() => validate(envelope(), trust({ allowed_scope: { ...scope, market: ["NG-ABJ"] } })), /DECISION_INVALID/);
+});
+
 test("tampering or signing with an unenrolled key is refused", () => {
   const e = envelope(); e.document.owner_delegation_ref = "tampered";
   assert.throws(() => validate(e), /SIGNATURE_INVALID/);
@@ -50,9 +55,9 @@ test("a parsed decision remains data and cannot bypass normal independent approv
   assert.throws(() => SM.assertTransition({ from: "POLICY_REVIEWED", to: "CERTIFIED_STAGING", actorId: "same", requestedBy: "same", expectedRevision: 1, currentRevision: 1, operatorPermit: parsed, environment: "staging", productId: "karryam", scope, now }), /INDEPENDENT_REVIEWER_REQUIRED/);
 });
 test("scope matching rejects additional and absent dimensions", () => {
-  assert.equal(O.equalScope({ ...scope, region: ["all"] }), false);
-  assert.equal(O.equalScope({ market: scope.market }), false);
-  assert.equal(O.equalScope(scope), true);
+  assert.equal(O.equalScope({ ...scope, region: ["all"] }, scope), false);
+  assert.equal(O.equalScope({ market: scope.market }, scope), false);
+  assert.equal(O.equalScope(scope, scope), true);
 });
 test("the local permit loader cannot be used by a normal non-root or Windows process", { skip: process.platform === "linux" && process.getuid() === 0 }, () => { assert.throws(() => O.loadOperatorPermit("/etc/cosmicforge/staging/decision.json", options), /ROOT_REQUIRED/); });
 
