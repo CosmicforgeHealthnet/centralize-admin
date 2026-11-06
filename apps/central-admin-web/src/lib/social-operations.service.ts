@@ -30,7 +30,7 @@ import {
   mockSOSettings,
 } from "./social-operations.mock";
 
-const USE_MOCK = true;
+const USE_MOCK = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_SOCIAL_OPERATIONS_MOCK === "true";
 const BASE = "/api/v1/marketing/social";
 
 // ─── Connections & Identities (SO-02, SO-03) ──────────────────────────────────
@@ -38,7 +38,7 @@ const BASE = "/api/v1/marketing/social";
 export const fetchSOConnections = async (): Promise<SOConnection[]> => {
   if (USE_MOCK) { await delay(); return mockSOConnections; }
   const { data } = await api.get<SOApiEnvelope<SOConnection[]>>(`${BASE}/connections`);
-  return data.data;
+  return data.data.map((row: SOConnection & { providerConnectionId?: string; accessTokenExpiresAt?: string; _count?: { identities?: number } }) => ({ ...row, label: row.providerConnectionId ?? row.label, expiresAt: row.accessTokenExpiresAt ?? row.expiresAt, identityCount: row._count?.identities ?? row.identityCount ?? 0, webhookHealthy: row.webhookHealthy ?? null }));
 };
 
 export const testSOConnection = async (id: string): Promise<{ status: "SUCCESS" | "FAILED" }> => {
@@ -48,8 +48,13 @@ export const testSOConnection = async (id: string): Promise<{ status: "SUCCESS" 
 };
 
 export const reauthorizeSOConnection = async (id: string): Promise<void> => {
-  if (USE_MOCK) { await delay(); return; }
-  await api.post(`${BASE}/connections/${id}/reauthorize`);
+  const { data } = await api.post(`${BASE}/connections/${id}/reauthorize`);
+  const result = data.data;
+  const provider = result.provider as import("./social-account-connection.service").ConnectionProvider;
+  const allowed: Record<string, string> = { META: "www.facebook.com", TIKTOK: "www.tiktok.com", X: "x.com", LINKEDIN: "www.linkedin.com" };
+  const url = new URL(result.authorizationUrl);
+  if (url.protocol !== "https:" || !allowed[provider] || url.hostname !== allowed[provider] || url.username || url.password) throw new Error("Invalid provider sign-in address");
+  window.location.assign(url.toString());
 };
 
 export const disableSOConnection = async (id: string): Promise<void> => {
@@ -70,8 +75,9 @@ export const discoverSOIdentities = async (connectionId: string): Promise<SOIden
 
 export const fetchSOIdentities = async (): Promise<SOIdentity[]> => {
   if (USE_MOCK) { await delay(); return mockSOIdentities; }
-  const { data } = await api.get<SOApiEnvelope<SOIdentity[]>>(`${BASE}/identities`);
-  return data.data;
+  type IdentityRecord = SOIdentity & { type?: SOIdentity["identityType"]; name?: string; disabledAt?: string | null; connection?: { provider: SOIdentity["provider"]; status: SOIdentity["status"] } };
+  const { data } = await api.get<SOApiEnvelope<IdentityRecord[]>>(`${BASE}/identities`);
+  return data.data.map(row => ({ ...row, provider: row.connection?.provider ?? row.provider, identityType: row.type ?? row.identityType, username: row.username || row.name || "", status: row.disabledAt ? "DISABLED" : row.connection?.status ?? row.status }));
 };
 
 export const refreshSOIdentityCapabilities = async (id: string): Promise<SOIdentity> => {

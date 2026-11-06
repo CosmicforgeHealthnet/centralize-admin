@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+const { cookieName, providerReadiness } = require("../services/provider-oauth.service");
 const asyncHandler = require("../../../../shared/utils/asyncHandler");
 const socialApi = require("../services/social-api.service");
 const {
@@ -22,16 +24,41 @@ function send(res, data, status = 200) {
   });
 }
 
+function oauthCookieOptions(req) {
+  const secure = !["development", "test"].includes(process.env.NODE_ENV) || req.secure;
+  return { httpOnly: true, secure, sameSite: secure ? "none" : "lax", path: "/api/v1/marketing/social/oauth", maxAge: 10 * 60 * 1000 };
+}
+function sendOAuthStart(req, res, result, browserBinding) {
+  res.set({ "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" });
+  res.cookie(cookieName(result.state), browserBinding, oauthCookieOptions(req));
+  const { state, ...safe } = result;
+  return send(res, safe, 201);
+}
 const handlers = {
   oauthCallback: asyncHandler(async (req, res) => {
-    return send(
-      res,
-      await socialApi.verifyOAuthCallback({
-        provider: req.params.provider,
-        query: req.query,
-      }),
-    );
+    res.set({ "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" });
+    const name = cookieName(req.query?.state);
+    try {
+      const result = await socialApi.verifyOAuthCallback({ provider: req.params.provider, query: req.query, browserBinding: req.cookies?.[name] });
+      res.clearCookie(name, oauthCookieOptions(req));
+      if (process.env.ADMIN_FRONTEND_PUBLIC_URL) {
+        const target = new URL("/dashboard/marketing", process.env.ADMIN_FRONTEND_PUBLIC_URL);
+        target.search = new URLSearchParams({ section: "social-operations", socialView: "accounts", socialConnection: "connected" }).toString();
+        return res.redirect(303, target.toString());
+      }
+      return send(res, result);
+    } catch (error) {
+      res.clearCookie(name, oauthCookieOptions(req));
+      if (process.env.ADMIN_FRONTEND_PUBLIC_URL) {
+        const target = new URL("/dashboard/marketing", process.env.ADMIN_FRONTEND_PUBLIC_URL);
+        target.search = new URLSearchParams({ section: "social-operations", socialView: "accounts", socialConnection: "failed" }).toString();
+        return res.redirect(303, target.toString());
+      }
+      throw error;
+    }
   }),
+
+  oauthProviders: asyncHandler(async (_req, res) => { res.set("Cache-Control", "no-store"); return send(res, providerReadiness()); }),
 
   webhookChallenge: asyncHandler(async (req, res) => {
     const result = handleWebhookChallenge({
@@ -61,30 +88,19 @@ const handlers = {
   listConnections: asyncHandler(async (req, res) =>
     send(res, await socialApi.connectionList()),
   ),
-  startOAuth: asyncHandler(async (req, res) =>
-    send(
-      res,
-      await socialApi.startOAuth({
-        provider: req.params.provider,
-        context: context(req),
-        redirectUri: req.body?.redirectUri,
-      }),
-      201,
-    ),
-  ),
+  startOAuth: asyncHandler(async (req, res) => {
+    const browserBinding = crypto.randomBytes(32).toString("base64url");
+    const result = await socialApi.startOAuth({ provider: req.params.provider, context: context(req), browserBinding });
+    return sendOAuthStart(req, res, result, browserBinding);
+  }),
   testConnection: asyncHandler(async (req, res) =>
     send(res, await socialApi.testConnection({ id: req.params.id })),
   ),
-  reauthorizeConnection: asyncHandler(async (req, res) =>
-    send(
-      res,
-      await socialApi.reauthorizeConnection({
-        id: req.params.id,
-        context: context(req),
-      }),
-      201,
-    ),
-  ),
+  reauthorizeConnection: asyncHandler(async (req, res) => {
+    const browserBinding = crypto.randomBytes(32).toString("base64url");
+    const result = await socialApi.reauthorizeConnection({ id: req.params.id, context: context(req), browserBinding });
+    return sendOAuthStart(req, res, result, browserBinding);
+  }),
   disableConnection: asyncHandler(async (req, res) =>
     send(
       res,

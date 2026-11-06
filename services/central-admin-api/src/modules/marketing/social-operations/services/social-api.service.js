@@ -28,10 +28,6 @@ const {
   assertJobCancellable,
 } = require("./scheduling.service");
 const {
-  createOAuthState,
-  consumeOAuthState,
-} = require("../security/oauth-state.service");
-const {
   validateActionPayload,
 } = require("../security/sensitive-payload.validator");
 const { hmacContent } = require("../security/content-hash.service");
@@ -294,52 +290,12 @@ async function connectionList({ db = prisma } = {}) {
   return rows.map((row) => sanitizeConnectionRecord(row));
 }
 
-async function startOAuth({
-  provider,
-  context,
-  connectionId,
-  redirectUri,
-  db = prisma,
-} = {}) {
-  const stateRecord = await createOAuthState({
-    provider,
-    adminUserId: adminId(context),
-    connectionContext: connectionId ? { connectionId } : {},
-    redirectUri:
-      redirectUri ||
-      process.env.SOCIAL_OAUTH_DEFAULT_REDIRECT_URI ||
-      process.env.SOCIAL_OPERATIONS_OAUTH_DEFAULT_REDIRECT_URI,
-    db,
-  });
-  return {
-    provider,
-    state: stateRecord.state,
-    expiresAt: stateRecord.expiresAt,
-    pkceChallenge: stateRecord.pkceChallenge,
-    pkceMethod: stateRecord.pkceMethod,
-    authorizationUrl: null,
-    providerExchangeImplemented: false,
-  };
+async function startOAuth({ provider, context, connectionId, browserBinding, db = prisma } = {}) {
+  return require("./provider-oauth.service").createProviderOAuth({ db }).start({ provider, adminUserId: adminId(context), connectionId, browserBinding });
 }
 
-async function verifyOAuthCallback({ provider, query, db = prisma } = {}) {
-  const state = String(query?.state || "");
-  if (!state) throw new ApiError(400, "OAuth state is required");
-  await consumeOAuthState({
-    provider,
-    rawState: state,
-    redirectUri:
-      query?.redirectUri ||
-      process.env.SOCIAL_OAUTH_DEFAULT_REDIRECT_URI ||
-      process.env.SOCIAL_OPERATIONS_OAUTH_DEFAULT_REDIRECT_URI,
-    db,
-  });
-  return {
-    provider,
-    connected: false,
-    stateVerified: true,
-    status: "PROVIDER_EXCHANGE_NOT_IMPLEMENTED",
-  };
+async function verifyOAuthCallback({ provider, query, browserBinding, db = prisma } = {}) {
+  return require("./provider-oauth.service").createProviderOAuth({ db }).complete({ provider, query, browserBinding });
 }
 
 async function testConnection({ id, db = prisma } = {}) {
@@ -366,13 +322,14 @@ async function testConnection({ id, db = prisma } = {}) {
   return { id, provider: connection.provider, identities };
 }
 
-async function reauthorizeConnection({ id, context, db = prisma } = {}) {
+async function reauthorizeConnection({ id, context, browserBinding, db = prisma } = {}) {
   const connection = await db.socialAccountConnection.findUnique({ where: { id } });
   if (!connection) throw new ApiError(404, "Social connection not found");
   return startOAuth({
     provider: connection.provider,
     context,
     connectionId: id,
+    browserBinding,
     db,
   });
 }

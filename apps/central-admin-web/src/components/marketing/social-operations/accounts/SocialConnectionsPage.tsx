@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import AddSocialAccountModal from "../../social-media/AddSocialAccountModal";
 import { useSocialOperationsStore } from "@/stores/social-operations.store";
 import { useSocialPermissions } from "../../shared/useSocialPermissions";
 import ProviderBadge, { BadgeProvider } from "../../shared/ProviderBadge";
@@ -11,7 +13,9 @@ import IdentityDetailPage from "./IdentityDetailPage";
 import type { SOConnection } from "@/types/social-operations.types";
 
 export default function SocialConnectionsPage() {
+  const params = useSearchParams();
   const permissions = useSocialPermissions();
+  const [showConnect, setShowConnect] = useState(false);
   const {
     connections, isLoadingConnections, fetchConnections,
     testConnection, reauthorizeConnection, disableConnection, enableConnection,
@@ -46,7 +50,7 @@ export default function SocialConnectionsPage() {
       ) },
     { key: "expiresAt", header: "Expires", render: (c) => (c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : "—") },
     { key: "webhook", header: "Webhook", render: (c) => (
-        <StatusChip status={c.webhookHealthy ? "ACTIVE" : "ERROR"} label={c.webhookHealthy ? "Healthy" : "Degraded"} />
+        c.webhookHealthy === null ? <span className="text-xs text-muted-foreground">Not verified</span> : <StatusChip status={c.webhookHealthy ? "ACTIVE" : "ERROR"} label={c.webhookHealthy ? "Healthy" : "Degraded"} />
       ) },
     { key: "identityCount", header: "Identities", render: (c) => c.identityCount },
     { key: "actions", header: "Actions", render: (c) => {
@@ -85,6 +89,9 @@ export default function SocialConnectionsPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <PermissionGate hasPermission={permissions.social_connections === "EDIT"}><button type="button" onClick={() => setShowConnect(true)} className="min-h-11 self-start rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Connect account</button></PermissionGate>
+      {params.get("socialConnection") === "failed" && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">Your account was not connected. Authorization was declined, expired or could not be verified. Try connecting again.</p>}
+      {showConnect && <AddSocialAccountModal onClose={() => setShowConnect(false)} />}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-poppins">{error}</div>
       )}
