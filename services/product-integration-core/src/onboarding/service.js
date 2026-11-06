@@ -625,10 +625,18 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
     },
   };
   if (!operatorPermit) return workflow;
-  // This local capability cannot administer grants/subscriptions, command
+  // This local capability cannot administer grants, command
   // switches, suspension/revocation or subsequent contract replacements.
   const allowed = ["get", "request", "verifyIdentity", "validateContract", "reviewPolicy", "approveDataset", "certifyStaging", "approve"];
-  return Object.freeze(Object.fromEntries(allowed.map((name) => [name, workflow[name]])));
+  const restricted = Object.fromEntries(allowed.map((name) => [name, workflow[name]]));
+  if (operatorPermit.decision.allow_scoped_readonly_subscriptions === true) {
+    restricted.createSubscription = (subject, id, input = {}, ctx) => {
+      const d=operatorPermit.decision;
+      if (!d.readonly_subscription_datasets.includes(input.dataset_id) || input.version!=="1.0.0" || input.consumer_department!==d.readonly_subscription_department || input.enabled!==true || !Operator.equalScope(input.allowed_scope,d.allowed_scope)) throw new OnboardingError("OPERATOR_SUBSCRIPTION_SCOPE_DENIED",403);
+      return workflow.createSubscription(subject,id,input,ctx);
+    };
+  }
+  return Object.freeze(restricted);
 }
 
 module.exports = { createOnboarding, OnboardingError, validScope, subsetScope, EndpointError };

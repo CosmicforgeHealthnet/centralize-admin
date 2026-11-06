@@ -67,6 +67,19 @@ test("CLI refuses missing revisions, arbitrary datasets, duplicate flags and unk
   assert.equal(options(["--decision", "/d", "--step", "request"])["--apply"], undefined);
 });
 
+const subscriptionAuthority = { allow_scoped_readonly_subscriptions:true, readonly_subscription_datasets:["karryam.support_operations","karryam.sync_health"], readonly_subscription_department:"operations" };
+test("read-only subscription delegation requires matching independently pinned authority",()=>{
+  const d=decision(subscriptionAuthority), approved=trust(subscriptionAuthority);
+  assert.deepEqual(validate(envelope(d),approved).readonly_subscription_datasets,subscriptionAuthority.readonly_subscription_datasets);
+  assert.throws(()=>validate(envelope(d)),/SUBSCRIPTION_SCOPE_DENIED/);
+  for (const changes of [
+    {allow_scoped_readonly_subscriptions:false}, {readonly_subscription_datasets:null}, {readonly_subscription_datasets:[]},
+    {readonly_subscription_datasets:["karryam.a","karryam.b","karryam.c"]}, {readonly_subscription_datasets:["karryam.a","karryam.a"]},
+    {readonly_subscription_datasets:[1]}, {readonly_subscription_datasets:["*"]}, {readonly_subscription_datasets:["other.support"]},
+    {readonly_subscription_datasets:["karryam.other"]}, {readonly_subscription_department:"*"}, {readonly_subscription_department:"finance"},
+  ]) assert.throws(()=>validate(envelope(decision({...subscriptionAuthority,...changes})),approved),/SUBSCRIPTION_SCOPE_DENIED/);
+});
+
 test("root sandbox: protected permits, revocation and real PostgreSQL operator audits", { skip: process.env.PIC_OPERATOR_TEST_SANDBOX !== "1" }, async (t) => {
   const fs = require("node:fs"), os = require("node:os");
   const { createOnboarding } = require("../src/onboarding/service");
@@ -126,10 +139,10 @@ test("root sandbox: protected permits, revocation and real PostgreSQL operator a
   const contractId = randomUUID(), datasetId = randomUUID(), digest = "sha256:" + "a".repeat(64);
   await db.migClient.query(`INSERT INTO hq_integration.hq_product_admin_contracts
     (id,product_admin_id,revision,protocol_major,protocol_minor,manifest_revision,manifest_digest,catalog_digest,build_sha,catalog,status,validated_by)
-    VALUES($1,$2,1,1,0,1,$3,$3,'abcdef1','{}','VALIDATED',$4)`, [contractId,id,digest,actor]);
+    VALUES($1,$2,1,1,0,1,$3,$3,'abcdef1',$5,'VALIDATED',$4)`, [contractId,id,digest,actor,JSON.stringify({datasets:[{dataset_id:'karryam.support_operations',version:'1.0.0',schema_digest:digest}]})]);
   await db.migClient.query(`INSERT INTO hq_integration.hq_product_admin_datasets
     (id,product_admin_id,contract_id,dataset_id,version,schema_id,schema_digest,privacy_class,scope_dimensions,authorized_departments,semantic_grain,units,freshness_target_seconds,lineage,allowed_fields,metrics,retention_days,approval_status,approved_by,approved_at)
-    VALUES($1,$2,$3,'karryam.support_operations','1.0.0','support',$4,'INTERNAL',ARRAY['market','organization','zone','tenant'],ARRAY['support'],'DAY',ARRAY['count'],3600,'{}','[]','[]',90,'APPROVED',$5,now())`, [datasetId,id,contractId,digest,actor]);
+    VALUES($1,$2,$3,'karryam.support_operations','1.0.0','support',$4,'INTERNAL',ARRAY['market','organization','zone','tenant'],ARRAY['support','operations'],'DAY',ARRAY['count'],3600,'{}','[]','[]',90,'APPROVED',$5,now())`, [datasetId,id,contractId,digest,actor]);
   await assert.rejects(db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by=validated_by,certified_at=now() WHERE id=$1`, [contractId]), /hq_product_admin_contracts_certified/);
   await assert.rejects(db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by=validated_by,certified_at=now(),operator_certification_decision_ref='missing-decision' WHERE id=$1`, [contractId]), /scoped delegated certification evidence/);
   await db.migClient.query(`INSERT INTO hq_integration.hq_product_admin_onboarding_approvals(product_admin_id,decision,actor_id,contract_id) VALUES($1,'CONTRACT_VALIDATED',$2,$3)`,[id,actor,contractId]);
@@ -152,5 +165,14 @@ test("root sandbox: protected permits, revocation and real PostgreSQL operator a
   await db.migClient.query(`INSERT INTO hq_integration.hq_product_admin_contracts(id,product_admin_id,revision,protocol_major,protocol_minor,manifest_revision,manifest_digest,catalog_digest,build_sha,catalog,status,validated_by) VALUES($1,$2,1,1,0,1,$3,$3,'abcdef1','{}','VALIDATED',$4)`,[prodContract,prodId,digest,actor]);
   await assert.rejects(db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by=validated_by,certified_at=now(),operator_certification_decision_ref='decision-1' WHERE id=$1`,[prodContract]),/staging only/);
   await db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by='independent-reviewer',certified_at=now() WHERE id=$1`,[prodContract]);
+  const subscriptionDecision=JSON.stringify(envelope(decision({operator:realOperator,...subscriptionAuthority})));
+  fs.writeFileSync(trustFile,JSON.stringify(trust(subscriptionAuthority)));fs.writeFileSync(file,subscriptionDecision);
+  const subscriptionPermit=load();assert.ok(Object.isFrozen(subscriptionPermit.decision.readonly_subscription_datasets));
+  const subscriptions=createOnboarding({...args,operatorPermit:subscriptionPermit});
+  const input={dataset_id:"karryam.support_operations",version:"1.0.0",consumer_department:"operations",allowed_scope:scope,enabled:true};
+  for (const changes of [{dataset_id:"karryam.other"},{consumer_department:"finance"},{enabled:false},{version:"2.0.0"},{allowed_scope:{...scope,tenant:["other"]}}]) assert.throws(()=>subscriptions.createSubscription({staffId:actor},id,{...input,...changes},ctx),/SUBSCRIPTION_SCOPE_DENIED/);
+  const subscription=await subscriptions.createSubscription({staffId:actor},id,input,ctx);assert.match(subscription.subscription_id,/^[0-9a-f-]{36}$/);
+  assert.equal(subscriptions.grant,undefined);assert.equal(subscriptions.setSubscriptionEnabled,undefined);
+  fs.writeFileSync(trustFile,rawTrust);
   fs.writeFileSync(file, rawDecision + "\n"); assert.equal(O.validPermit(load(), { environment: "staging", now }), true);
 });

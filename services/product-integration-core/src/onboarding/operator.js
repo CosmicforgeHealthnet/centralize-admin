@@ -34,6 +34,11 @@ function parseSignedDecision(raw, trust, { environment, operator, now = Date.now
   const entry = trust && trust.keys && Object.prototype.hasOwnProperty.call(trust.keys, envelope.key_id) ? trust.keys[envelope.key_id] : null;
   if (!entry || entry.revoked !== false || entry.purpose !== "OWNER_DELEGATION" || !TOKEN.test(entry.product_id || "") || entry.environment !== "staging" || !equalScope(entry.allowed_scope, entry.allowed_scope) || !(Date.parse(entry.not_after) > now)) denied("OPERATOR_SIGNER_NOT_TRUSTED");
   const fields = ["schema_version", "decision_id", "operator", "owner_delegation_ref", "environment", "product_id", "allowed_scope", "issued_at", "expires_at", "allow_setup_without_staff_sessions", "allow_single_operator_onboarding"];
+  if (d && Object.hasOwn(d, "allow_scoped_readonly_subscriptions")) {
+    fields.push("allow_scoped_readonly_subscriptions", "readonly_subscription_datasets", "readonly_subscription_department");
+    const ids=d.readonly_subscription_datasets;
+    if (d.allow_scoped_readonly_subscriptions !== true || entry.allow_scoped_readonly_subscriptions !== true || !Array.isArray(ids) || ids.length < 1 || ids.length > 2 || new Set(ids).size !== ids.length || ids.some(id=>typeof id!=="string" || !/^[a-z][a-z0-9_.-]{1,95}$/.test(id) || !id.startsWith(entry.product_id+".")) || JSON.stringify(ids)!==JSON.stringify(entry.readonly_subscription_datasets) || !/^[a-z][a-z0-9_-]{1,31}$/.test(d.readonly_subscription_department || "") || d.readonly_subscription_department!==entry.readonly_subscription_department) denied("OPERATOR_SUBSCRIPTION_SCOPE_DENIED");
+  }
   if (!d || typeof d !== "object" || Array.isArray(d) || Object.keys(d).length !== fields.length || Object.keys(d).some((k) => !fields.includes(k)) || d.schema_version !== 1 || d.environment !== "staging" || d.product_id !== entry.product_id || d.operator !== operator || !TOKEN.test(operator || "") || !TOKEN.test(d.decision_id || "") || !TOKEN.test(d.owner_delegation_ref || "") || d.allow_setup_without_staff_sessions !== true || d.allow_single_operator_onboarding !== true || !equalScope(d.allowed_scope, entry.allowed_scope)) denied("OPERATOR_DECISION_INVALID");
   const issued = Date.parse(d.issued_at), expires = Date.parse(d.expires_at);
   if (!Number.isFinite(issued) || !Number.isFinite(expires) || issued > now || expires <= now || expires <= issued || expires - issued > 3600000) denied("OPERATOR_DECISION_EXPIRED_OR_INVALID");
@@ -63,7 +68,7 @@ function loadOperatorPermit(file, { environment, now = Date.now() } = {}) {
   if (process.platform !== "linux" || process.getuid() !== 0) denied("OPERATOR_ROOT_REQUIRED");
   const raw = protectedRead(file, true), trust = protectedRead(TRUST_FILE, false);
   const decision = parseSignedDecision(raw, JSON.parse(trust), { environment, operator: "root@" + os.hostname(), now });
-  const permit = Object.freeze({ decision: Object.freeze({ ...decision, allowed_scope: Object.freeze(Object.fromEntries(Object.entries(decision.allowed_scope).map(([k, v]) => [k, Object.freeze(v.slice())]))) }), file, digest: createHash("sha256").update(raw).digest("hex"), trustDigest: createHash("sha256").update(trust).digest("hex") });
+  const permit = Object.freeze({ decision: Object.freeze({ ...decision, ...(decision.readonly_subscription_datasets ? { readonly_subscription_datasets: Object.freeze(decision.readonly_subscription_datasets.slice()) } : {}), allowed_scope: Object.freeze(Object.fromEntries(Object.entries(decision.allowed_scope).map(([k, v]) => [k, Object.freeze(v.slice())]))) }), file, digest: createHash("sha256").update(raw).digest("hex"), trustDigest: createHash("sha256").update(trust).digest("hex") });
   permits.add(permit);
   return permit;
 }
@@ -77,7 +82,8 @@ function validPermit(permit, { environment, productId, scope, now = Date.now() }
   return true;
 }
 async function authorizeOperator(db, permit, { environment, subject, action, correlationId, now }) {
-  if (!validPermit(permit, { environment, now }) || subject.staffId !== "operator:" + permit.decision.operator || !ACTIONS.includes(action)) denied("OPERATOR_NOT_AUTHORIZED");
+  const subscriptionSetup = action === "integration.subscriptions.manage" && permit?.decision?.allow_scoped_readonly_subscriptions === true;
+  if (!validPermit(permit, { environment, now }) || subject.staffId !== "operator:" + permit.decision.operator || (!ACTIONS.includes(action) && !subscriptionSetup)) denied("OPERATOR_NOT_AUTHORIZED");
   await recordAudit(db, { correlationId, actorType: "OPERATOR", actorId: subject.staffId, productId: permit.decision.product_id, action, outcome: "ALLOWED", reasonCode: "OWNER_DELEGATED_STAGING_SETUP", metadata: { decision_ref: permit.decision.decision_id, delegation_ref: permit.decision.owner_delegation_ref, staff_session_used: false, independence_exception: true, environment, decision_issued_at: permit.decision.issued_at, decision_expires_at: permit.decision.expires_at, decision_digest: permit.digest, authority_digest: permit.trustDigest, scope_market: permit.decision.allowed_scope.market[0], scope_organization: permit.decision.allowed_scope.organization[0], scope_zone: permit.decision.allowed_scope.zone[0], scope_tenant: permit.decision.allowed_scope.tenant[0] } });
   return { allowed: true };
 }
