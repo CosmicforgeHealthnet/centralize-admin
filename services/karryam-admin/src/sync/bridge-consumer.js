@@ -22,7 +22,7 @@ const { partitionKeyFor } = require("./store");
 const { PINNED_BRIDGE_CONTRACT } = require("../bridge/contracts");
 const R = require("../bridge/contracts/registry");
 
-const SESSION_ROTATE_MS = 12 * 3600 * 1000;
+const SESSION_ROTATE_MS = 120 * 1000;
 const WINDOW_MS = 31 * 24 * 3600 * 1000 - 5 * 60 * 1000;
 const MAX_PAGES_PER_RUN = 20;
 
@@ -37,10 +37,10 @@ function createBridgeConsumer({ feed, store, bridgeClient, workerId = "karryam-f
   let session = { id: "feed-" + randomUUID(), startedAt: Math.floor(now() / 1000) };
 
   // The consumer principal is an operator-approved Bridge service subject.
-  // Its "session" is the worker credential session, rotated every 12 h so
-  // it stays well inside the Bridge's one-day session ceiling.
+  // Its session belongs to the authenticated workload, not a human login.
+  // Rotate before the staging Bridge's five-minute session limit expires.
   function staffFor(scope) {
-    if (now() - session.startedAt * 1000 > SESSION_ROTATE_MS) session = { id: "feed-" + randomUUID(), startedAt: Math.floor(now() / 1000) };
+    if (now() - session.startedAt * 1000 >= SESSION_ROTATE_MS) session = { id: "feed-" + randomUUID(), startedAt: Math.floor(now() / 1000) };
     return { sub: feed.subject, sessionId: session.id, authTime: session.startedAt, acr: feed.acr, role: feed.role, market: scope.market, organization: scope.organization, zone: scope.zone, tenant: scope.tenant };
   }
 
