@@ -78,7 +78,7 @@ function validPermit(permit, { environment, productId, scope, now = Date.now() }
 }
 async function authorizeOperator(db, permit, { environment, subject, action, correlationId, now }) {
   if (!validPermit(permit, { environment, now }) || subject.staffId !== "operator:" + permit.decision.operator || !ACTIONS.includes(action)) denied("OPERATOR_NOT_AUTHORIZED");
-  await recordAudit(db, { correlationId, actorType: "OPERATOR", actorId: subject.staffId, productId: permit.decision.product_id, action, outcome: "ALLOWED", reasonCode: "OWNER_DELEGATED_STAGING_SETUP", metadata: { decision_ref: permit.decision.decision_id, delegation_ref: permit.decision.owner_delegation_ref, staff_session_used: false, independence_exception: true } });
+  await recordAudit(db, { correlationId, actorType: "OPERATOR", actorId: subject.staffId, productId: permit.decision.product_id, action, outcome: "ALLOWED", reasonCode: "OWNER_DELEGATED_STAGING_SETUP", metadata: { decision_ref: permit.decision.decision_id, delegation_ref: permit.decision.owner_delegation_ref, staff_session_used: false, independence_exception: true, environment, decision_issued_at: permit.decision.issued_at, decision_expires_at: permit.decision.expires_at, decision_digest: permit.digest, authority_digest: permit.trustDigest, scope_market: permit.decision.allowed_scope.market[0], scope_organization: permit.decision.allowed_scope.organization[0], scope_zone: permit.decision.allowed_scope.zone[0], scope_tenant: permit.decision.allowed_scope.tenant[0] } });
   return { allowed: true };
 }
 module.exports = { loadOperatorPermit, validPermit, authorizeOperator, parseSignedDecision, equalScope, canonical, DOMAIN };

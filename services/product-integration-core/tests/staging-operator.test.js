@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const { generateKeyPairSync, sign } = require("node:crypto");
 const O = require("../src/onboarding/operator");
 const SM = require("../src/onboarding/state-machine");
-const now = Date.parse("2026-11-05T18:00:00Z");
+const now = Date.now();
 const key = generateKeyPairSync("ed25519");
 const scope = { market: ["NG-LAG"], organization: ["karryam-staging"], zone: ["NG-LAG-MAIN"], tenant: ["karryam-staging-operations"] };
 function decision(changes = {}) { return { schema_version: 1, decision_id: "decision-1", operator: "root@staging-host", owner_delegation_ref: "owner-delegation-1", environment: "staging", product_id: "karryam", allowed_scope: scope, issued_at: new Date(now - 1000).toISOString(), expires_at: new Date(now + 600000).toISOString(), allow_setup_without_staff_sessions: true, allow_single_operator_onboarding: true, ...changes }; }
@@ -121,5 +121,36 @@ test("root sandbox: protected permits, revocation and real PostgreSQL operator a
   await assert.rejects(workflow.get({ staffId: "other-actor" }, id, ctx), /OPERATOR_NOT_AUTHORIZED/);
   const row = await db.pool.query(`SELECT lifecycle_status,revision,operations_enabled FROM hq_integration.hq_product_admins WHERE id=$1`, [id]);
   assert.deepEqual(row.rows[0], { lifecycle_status: "POLICY_REVIEWED", revision: 2, operations_enabled: false });
+  // Exercise the real certification UPDATE and database constraint, not just
+  // the state-machine helper (the staging failure occurred at this boundary).
+  const contractId = randomUUID(), datasetId = randomUUID(), digest = "sha256:" + "a".repeat(64);
+  await db.migClient.query(`INSERT INTO hq_integration.hq_product_admin_contracts
+    (id,product_admin_id,revision,protocol_major,protocol_minor,manifest_revision,manifest_digest,catalog_digest,build_sha,catalog,status,validated_by)
+    VALUES($1,$2,1,1,0,1,$3,$3,'abcdef1','{}','VALIDATED',$4)`, [contractId,id,digest,actor]);
+  await db.migClient.query(`INSERT INTO hq_integration.hq_product_admin_datasets
+    (id,product_admin_id,contract_id,dataset_id,version,schema_id,schema_digest,privacy_class,scope_dimensions,authorized_departments,semantic_grain,units,freshness_target_seconds,lineage,allowed_fields,metrics,retention_days,approval_status,approved_by,approved_at)
+    VALUES($1,$2,$3,'karryam.support_operations','1.0.0','support',$4,'INTERNAL',ARRAY['market','organization','zone','tenant'],ARRAY['support'],'DAY',ARRAY['count'],3600,'{}','[]','[]',90,'APPROVED',$5,now())`, [datasetId,id,contractId,digest,actor]);
+  await assert.rejects(db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by=validated_by,certified_at=now() WHERE id=$1`, [contractId]), /hq_product_admin_contracts_certified/);
+  await assert.rejects(db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by=validated_by,certified_at=now(),operator_certification_decision_ref='missing-decision' WHERE id=$1`, [contractId]), /scoped delegated certification evidence/);
+  await db.migClient.query(`INSERT INTO hq_integration.hq_product_admin_onboarding_approvals(product_admin_id,decision,actor_id,contract_id) VALUES($1,'CONTRACT_VALIDATED',$2,$3)`,[id,actor,contractId]);
+  const {rows:[goodAudit]}=await db.pool.query(`SELECT metadata FROM hq_integration.hq_product_admin_security_audit WHERE action='integration.certify' ORDER BY id DESC LIMIT 1`);
+  const {recordAudit}=require("../src/audit");
+  for (const [ref,changes] of [["expired-decision",{decision_expires_at:new Date(now-1000).toISOString()}],["wrong-scope",{scope_tenant:"another-tenant"}],["null-expiry",{decision_expires_at:null}],["null-digest",{decision_digest:null}],["missing-waiver",{independence_exception:false}]]) {
+    await recordAudit(db.pool,{actorType:"OPERATOR",actorId:actor,productId:"karryam",action:"integration.certify",outcome:"ALLOWED",reasonCode:"OWNER_DELEGATED_STAGING_SETUP",metadata:{...goodAudit.metadata,...changes,decision_ref:ref}});
+    await assert.rejects(db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by=validated_by,certified_at=now(),operator_certification_decision_ref=$2 WHERE id=$1`,[contractId,ref]),/scoped delegated certification evidence/);
+  }
+  const certified = await workflow.certifyStaging({staffId:actor},id,{expected_revision:2,evidence_ref:"test:real-signed-delegated-certification"},ctx);
+  assert.equal(certified.lifecycle_status,"CERTIFIED_STAGING");
+  const persisted = await db.pool.query(`SELECT status,validated_by,certified_by,operator_certification_decision_ref FROM hq_integration.hq_product_admin_contracts WHERE id=$1`,[contractId]);
+  assert.deepEqual(persisted.rows[0],{status:"CERTIFIED",validated_by:actor,certified_by:actor,operator_certification_decision_ref:"decision-1"});
+  await assert.rejects(db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET operator_certification_decision_ref=NULL WHERE id=$1`,[contractId]),/evidence is immutable/);
+  await db.migClient.query(`UPDATE hq_integration.hq_product_admins SET identity_verified_at=now(),manifest_expires_at=now()+interval '10 minutes' WHERE id=$1`,[id]);
+  const enabled=await workflow.approve({staffId:actor},id,{expected_revision:3},ctx);
+  assert.equal(enabled.lifecycle_status,"ENABLED");
+  const prodId=randomUUID(),prodContract=randomUUID();
+  await db.migClient.query(`INSERT INTO hq_integration.hq_product_admins(id,product_id,display_name,service_instance_id,environment,endpoint_ref,workload_identity,approved_signer_kid,allowed_scope,lifecycle_status,requested_by) VALUES($1,'karryam','Test production','operator-prod-1','production','test','cf://production/product-admin/karryam','test-key',$2,'POLICY_REVIEWED',$3)`,[prodId,JSON.stringify(scope),actor]);
+  await db.migClient.query(`INSERT INTO hq_integration.hq_product_admin_contracts(id,product_admin_id,revision,protocol_major,protocol_minor,manifest_revision,manifest_digest,catalog_digest,build_sha,catalog,status,validated_by) VALUES($1,$2,1,1,0,1,$3,$3,'abcdef1','{}','VALIDATED',$4)`,[prodContract,prodId,digest,actor]);
+  await assert.rejects(db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by=validated_by,certified_at=now(),operator_certification_decision_ref='decision-1' WHERE id=$1`,[prodContract]),/staging only/);
+  await db.pool.query(`UPDATE hq_integration.hq_product_admin_contracts SET status='CERTIFIED',certified_by='independent-reviewer',certified_at=now() WHERE id=$1`,[prodContract]);
   fs.writeFileSync(file, rawDecision + "\n"); assert.equal(O.validPermit(load(), { environment: "staging", now }), true);
 });

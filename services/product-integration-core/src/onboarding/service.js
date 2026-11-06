@@ -353,7 +353,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         if (await approvedDatasetCount(client, id) === 0) throw new OnboardingError("NO_APPROVED_DATASET", 409);
         if (contract.status === "VALIDATED") {
           if (!operatorMode() && contract.validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
-          await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4 WHERE id = $1`, [contract.id, subject.staffId, new Date(now()), evidence_ref]);
+          await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4, operator_certification_decision_ref = $5 WHERE id = $1`, [contract.id, subject.staffId, new Date(now()), evidence_ref, operatorMode() ? operatorPermit.decision.decision_id : null]);
           await approval(client, row, { decision: "CONTRACT_CERTIFIED", actorId: subject.staffId, contractId: contract.id, evidenceRef: evidence_ref }, ctx);
         } else if (!["CERTIFIED", "ACTIVE"].includes(contract.status)) {
           throw new OnboardingError("CONTRACT_NOT_CERTIFIABLE", 409);
