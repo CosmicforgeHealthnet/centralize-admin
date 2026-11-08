@@ -167,6 +167,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
     else current = await candidateContract(client, row.id);
     const declared = current && (current.catalog.datasets || []).find((d) => d.dataset_id === ds.dataset_id && d.version === ds.version);
     if (!declared || declared.schema_digest !== ds.schema_digest) throw new OnboardingError("DATASET_NOT_IN_CURRENT_CONTRACT", 409);
+    return declared;
   }
 
   async function activeContract(client, productAdminId) {
@@ -327,10 +328,9 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         if (!ds) throw new OnboardingError("UNKNOWN_DATASET", 404);
         if (ds.approval_status !== "PROPOSED") throw new OnboardingError("DATASET_NOT_PROPOSED", 409);
         assertNoUnresolvedDrift(row);
-        if (decision === "APPROVE") await assertDeclaredByCurrentContract(client, row, ds);
-        // HQ can only approve what the product itself declares certified.
-        const { rows: [source] } = await client.query(`SELECT catalog FROM ${T}hq_product_admin_contracts WHERE id = $1`, [ds.contract_id]);
-        const declared = (source.catalog.datasets || []).find((d) => d.dataset_id === ds.dataset_id && d.version === ds.version);
+        // Read readiness from the contract currently in force. A dataset row
+        // can retain its original contract_id across a readiness-only revision.
+        const declared = decision === "APPROVE" ? await assertDeclaredByCurrentContract(client, row, ds) : null;
         if (decision === "APPROVE" && (!declared || declared.readiness !== "CERTIFIED_BY_PRODUCT")) throw new OnboardingError("DATASET_NOT_CERTIFIED_BY_PRODUCT", 409);
         const approve = decision === "APPROVE" && C.HQ_SYNCABLE_PRIVACY.includes(ds.privacy_class);
         await client.query(`UPDATE ${T}hq_product_admin_datasets SET approval_status = $2, approved_by = $3, approved_at = $4 WHERE id = $1`,
@@ -434,6 +434,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       return withTx(pool, async (client) => {
         const locked = await lockRow(client, id);
         const active = await activeContract(client, id);
+        if (operatorMode()) Operator.assertReadonlyCatalogChange(operatorPermit.decision, active.catalog, catalogOf(verified.manifest));
         if (active.catalog_digest === verified.catalogDigest) throw new OnboardingError("NO_CONTRACT_CHANGE", 409);
         const comparison = C.compareCatalogs(active.catalog, catalogOf(verified.manifest));
         const breaking = comparison.decision === "BREAKING";
@@ -456,8 +457,15 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         const { rows } = await client.query(`SELECT * FROM ${T}hq_product_admin_contracts WHERE id = $1 AND product_admin_id = $2 FOR UPDATE`, [contractId, id]);
         if (!rows[0]) throw new OnboardingError("UNKNOWN_CONTRACT", 404);
         if (rows[0].status !== "VALIDATED") throw new OnboardingError("CONTRACT_NOT_CERTIFIABLE", 409);
-        if (rows[0].validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
-        await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4 WHERE id = $1`, [contractId, subject.staffId, new Date(now()), evidence_ref]);
+        if (operatorMode()) {
+          const active = await activeContract(client, id);
+          if (!active) throw new OnboardingError("NO_ACTIVE_CONTRACT", 409);
+          Operator.assertReadonlyCatalogChange(operatorPermit.decision, active.catalog, rows[0].catalog);
+          await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4, operator_certification_decision_ref = $5 WHERE id = $1`, [contractId, subject.staffId, new Date(now()), evidence_ref, operatorPermit.decision.decision_id]);
+        } else {
+          if (rows[0].validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
+          await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4 WHERE id = $1`, [contractId, subject.staffId, new Date(now()), evidence_ref]);
+        }
         await approval(client, row, { decision: "CONTRACT_CERTIFIED", actorId: subject.staffId, contractId, evidenceRef: evidence_ref }, ctx);
         return { contract_id: contractId, status: "CERTIFIED" };
       });
@@ -473,7 +481,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         const contract = rows[0];
         if (!contract) throw new OnboardingError("UNKNOWN_CONTRACT", 404);
         if (contract.status !== "CERTIFIED") throw new OnboardingError("CONTRACT_NOT_CERTIFIED", 409);
-        if (contract.certified_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
+        if (!operatorMode() && contract.certified_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
         const decision = C.activationDecision(contract.compatibility, { reviewed: true });
         if (!decision.allowed) throw new OnboardingError(decision.reason, 409);
         // The stored comparison was made when the revision was proposed, by
@@ -483,6 +491,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         // a since-corrected comparator mis-classified) is refused.
         const { rows: [current] } = await client.query(`SELECT * FROM ${T}hq_product_admin_contracts WHERE product_admin_id = $1 AND status = 'ACTIVE' FOR UPDATE`, [id]);
         if (!current || current.id !== row.current_contract_id) throw new OnboardingError("NO_ACTIVE_CONTRACT", 409);
+        if (operatorMode()) Operator.assertReadonlyCatalogChange(operatorPermit.decision, current.catalog, contract.catalog);
         const fresh = C.activationDecision(C.compareCatalogs(current.catalog, contract.catalog), { reviewed: true });
         if (!fresh.allowed) throw new OnboardingError(fresh.reason === "IDENTICAL" ? "NO_CONTRACT_CHANGE" : fresh.reason, 409);
         await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'SUPERSEDED' WHERE product_admin_id = $1 AND status = 'ACTIVE'`, [id]);
@@ -626,9 +635,16 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
   };
   if (!operatorPermit) return workflow;
   // This local capability cannot administer grants, command
-  // switches, suspension/revocation or subsequent contract replacements.
+  // switches or suspension/revocation. A readiness-only catalog revision
+  // additionally requires independently pinned old/new digests and dataset IDs.
   const allowed = ["get", "request", "verifyIdentity", "validateContract", "reviewPolicy", "approveDataset", "certifyStaging", "approve"];
+  if (operatorPermit.decision.readonly_catalog_activation) allowed.push("proposeContractRevision", "certifyContract", "activateContract");
   const restricted = Object.fromEntries(allowed.map((name) => [name, workflow[name]]));
+  const datasetIds = operatorPermit.decision.readonly_catalog_activation?.dataset_ids || operatorPermit.decision.readonly_subscription_datasets;
+  if (datasetIds) restricted.approveDataset = (subject, id, datasetId, input, ctx) => {
+    if (!datasetIds.includes(datasetId) || input?.version !== "1.0.0" || input?.decision !== "APPROVE") throw new OnboardingError("OPERATOR_DATASET_SCOPE_DENIED", 403);
+    return workflow.approveDataset(subject, id, datasetId, input, ctx);
+  };
   if (operatorPermit.decision.allow_scoped_readonly_subscriptions === true) {
     restricted.createSubscription = (subject, id, input = {}, ctx) => {
       const d=operatorPermit.decision;

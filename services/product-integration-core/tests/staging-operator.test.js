@@ -63,7 +63,7 @@ test("the local permit loader cannot be used by a normal non-root or Windows pro
 
 test("CLI refuses missing revisions, arbitrary datasets, duplicate flags and unknown steps", () => {
   const { options } = require("../scripts/staging-operator-onboarding");
-  for (const args of [[], ["--decision", "/d", "--step", "grant"], ["--decision", "/d", "--step", "approve", "--id", "a".repeat(36)], ["--decision", "/d", "--step", "request", "--apply", "--apply"], ["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "karryam.marketing_campaigns", "--version", "1.0.0"]]) assert.throws(() => options(args));
+  for (const args of [[], ["--decision", "/d", "--step", "grant"], ["--decision", "/d", "--step", "approve", "--id", "a".repeat(36)], ["--decision", "/d", "--step", "request", "--apply", "--apply"], ["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "karryam.unreviewed", "--version", "1.0.0"]]) assert.throws(() => options(args));
   assert.equal(options(["--decision", "/d", "--step", "request"])["--apply"], undefined);
 });
 

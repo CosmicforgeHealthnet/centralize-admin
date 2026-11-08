@@ -39,6 +39,12 @@ function parseSignedDecision(raw, trust, { environment, operator, now = Date.now
     const ids=d.readonly_subscription_datasets;
     if (d.allow_scoped_readonly_subscriptions !== true || entry.allow_scoped_readonly_subscriptions !== true || !Array.isArray(ids) || ids.length < 1 || ids.length > 2 || new Set(ids).size !== ids.length || ids.some(id=>typeof id!=="string" || !/^[a-z][a-z0-9_.-]{1,95}$/.test(id) || !id.startsWith(entry.product_id+".")) || JSON.stringify(ids)!==JSON.stringify(entry.readonly_subscription_datasets) || !/^[a-z][a-z0-9_-]{1,31}$/.test(d.readonly_subscription_department || "") || d.readonly_subscription_department!==entry.readonly_subscription_department) denied("OPERATOR_SUBSCRIPTION_SCOPE_DENIED");
   }
+  if (d && Object.hasOwn(d, "readonly_catalog_activation")) {
+    fields.push("readonly_catalog_activation");
+    const pin = d.readonly_catalog_activation;
+    const ids = pin && pin.dataset_ids;
+    if (!pin || Object.keys(pin).sort().join(",") !== "base_digest,dataset_ids,target_digest" || canonical(pin) !== canonical(entry.readonly_catalog_activation) || !/^sha256:[0-9a-f]{64}$/.test(pin.base_digest || "") || !/^sha256:[0-9a-f]{64}$/.test(pin.target_digest || "") || pin.base_digest === pin.target_digest || !Array.isArray(ids) || ids.length < 1 || ids.length > 2 || new Set(ids).size !== ids.length || ids.some(id => typeof id !== "string" || !/^[a-z][a-z0-9_.-]{1,95}$/.test(id) || !id.startsWith(entry.product_id + "."))) denied("OPERATOR_CATALOG_SCOPE_DENIED");
+  }
   if (!d || typeof d !== "object" || Array.isArray(d) || Object.keys(d).length !== fields.length || Object.keys(d).some((k) => !fields.includes(k)) || d.schema_version !== 1 || d.environment !== "staging" || d.product_id !== entry.product_id || d.operator !== operator || !TOKEN.test(operator || "") || !TOKEN.test(d.decision_id || "") || !TOKEN.test(d.owner_delegation_ref || "") || d.allow_setup_without_staff_sessions !== true || d.allow_single_operator_onboarding !== true || !equalScope(d.allowed_scope, entry.allowed_scope)) denied("OPERATOR_DECISION_INVALID");
   const issued = Date.parse(d.issued_at), expires = Date.parse(d.expires_at);
   if (!Number.isFinite(issued) || !Number.isFinite(expires) || issued > now || expires <= now || expires <= issued || expires - issued > 3600000) denied("OPERATOR_DECISION_EXPIRED_OR_INVALID");
@@ -68,7 +74,7 @@ function loadOperatorPermit(file, { environment, now = Date.now() } = {}) {
   if (process.platform !== "linux" || process.getuid() !== 0) denied("OPERATOR_ROOT_REQUIRED");
   const raw = protectedRead(file, true), trust = protectedRead(TRUST_FILE, false);
   const decision = parseSignedDecision(raw, JSON.parse(trust), { environment, operator: "root@" + os.hostname(), now });
-  const permit = Object.freeze({ decision: Object.freeze({ ...decision, ...(decision.readonly_subscription_datasets ? { readonly_subscription_datasets: Object.freeze(decision.readonly_subscription_datasets.slice()) } : {}), allowed_scope: Object.freeze(Object.fromEntries(Object.entries(decision.allowed_scope).map(([k, v]) => [k, Object.freeze(v.slice())]))) }), file, digest: createHash("sha256").update(raw).digest("hex"), trustDigest: createHash("sha256").update(trust).digest("hex") });
+  const permit = Object.freeze({ decision: Object.freeze({ ...decision, ...(decision.readonly_catalog_activation ? { readonly_catalog_activation: Object.freeze({ ...decision.readonly_catalog_activation, dataset_ids: Object.freeze(decision.readonly_catalog_activation.dataset_ids.slice()) }) } : {}), ...(decision.readonly_subscription_datasets ? { readonly_subscription_datasets: Object.freeze(decision.readonly_subscription_datasets.slice()) } : {}), allowed_scope: Object.freeze(Object.fromEntries(Object.entries(decision.allowed_scope).map(([k, v]) => [k, Object.freeze(v.slice())]))) }), file, digest: createHash("sha256").update(raw).digest("hex"), trustDigest: createHash("sha256").update(trust).digest("hex") });
   permits.add(permit);
   return permit;
 }
@@ -87,4 +93,23 @@ async function authorizeOperator(db, permit, { environment, subject, action, cor
   await recordAudit(db, { correlationId, actorType: "OPERATOR", actorId: subject.staffId, productId: permit.decision.product_id, action, outcome: "ALLOWED", reasonCode: "OWNER_DELEGATED_STAGING_SETUP", metadata: { decision_ref: permit.decision.decision_id, delegation_ref: permit.decision.owner_delegation_ref, staff_session_used: false, independence_exception: true, environment, decision_issued_at: permit.decision.issued_at, decision_expires_at: permit.decision.expires_at, decision_digest: permit.digest, authority_digest: permit.trustDigest, scope_market: permit.decision.allowed_scope.market[0], scope_organization: permit.decision.allowed_scope.organization[0], scope_zone: permit.decision.allowed_scope.zone[0], scope_tenant: permit.decision.allowed_scope.tenant[0] } });
   return { allowed: true };
 }
-module.exports = { loadOperatorPermit, validPermit, authorizeOperator, parseSignedDecision, equalScope, canonical, DOMAIN };
+// Pure structural guard in addition to the separately pinned digests. A permit
+// can certify readiness of existing INTERNAL metric datasets, not alter their
+// data, departments, scopes, retention, commands or any other contract field.
+function assertReadonlyCatalogChange(decision, base, target) {
+  const C = require("../../../../packages/admin-contracts");
+  const pin = decision.readonly_catalog_activation;
+  if (!pin || base.product_id !== decision.product_id || target.product_id !== decision.product_id || C.catalogDigest(base) !== pin.base_digest || C.catalogDigest(target) !== pin.target_digest) denied("OPERATOR_CATALOG_SCOPE_DENIED");
+  const expected = JSON.parse(JSON.stringify(base));
+  for (const id of pin.dataset_ids) {
+    const dataset = expected.datasets.find(ds => ds.dataset_id === id);
+    const families = expected.event_families.filter(f => f.dataset_id === id);
+    if (!dataset || dataset.readiness !== "NOT_CERTIFIED" || dataset.privacy_class !== "INTERNAL" || families.length !== 1 || families[0].projection !== "METRIC_OBSERVATION" || families[0].status !== "NOT_CERTIFIED") denied("OPERATOR_CATALOG_SCOPE_DENIED");
+    dataset.readiness = "CERTIFIED_BY_PRODUCT";
+    dataset.blockers = [];
+    families[0].status = "ACTIVE";
+  }
+  if (canonical(expected) !== canonical(target)) denied("OPERATOR_CATALOG_CHANGE_DENIED");
+  return true;
+}
+module.exports = { assertReadonlyCatalogChange, loadOperatorPermit, validPermit, authorizeOperator, parseSignedDecision, equalScope, canonical, DOMAIN };
