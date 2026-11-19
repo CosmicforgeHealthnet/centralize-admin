@@ -2,6 +2,13 @@
 // Section 14: evidence-based final WP/DoD/release closure. Never promotes code
 // certification or disposable test results to real staging acceptance.
 // Consumes the Section 13.3 gate artifact for the SAME SHA.
+//
+//   node infrastructure/scripts/product-admin-section14-closure.mjs --sha SHA --gates gates.json \
+//     [--product karryam|cfmeet] [--report out.json] [--markdown out.md]
+//
+// --product cfmeet evaluates the same work packages against the CF Meet
+// Product Admin paths (services/cfmeet-admin); karryam is the default and its
+// output is unchanged.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,13 +52,33 @@ const STAGES = [
   { id:"B", name:"Staging release B — WP5-WP8", wp:["WP5","WP6","WP7","WP8"] },
   { id:"C", name:"Staging release C — WP9-WP11", wp:["WP9","WP10","WP11"] }
 ];
+// Product Admin path mapping for a product other than Karryam (same layout).
+export const PRODUCTS = {
+  karryam: { id: "karryam", label: "Karryam", map: (p) => p },
+  cfmeet: { id: "cfmeet", label: "CF Meet", map: (p) => p
+    .replace(/^services\/karryam-admin\//, "services/cfmeet-admin/")
+    .replace(/\/karrygo-([a-z0-9.-]+\.json)$/, "/cfmeet-$1")
+    .replace(/001_karryam_admin_foundation\.sql$/, "001_cfmeet_admin_foundation.sql") },
+};
+export function productProfile(product = "karryam") {
+  const p = PRODUCTS[product];
+  if (!p) throw new Error("unknown product " + product);
+  return p;
+}
+/** Work packages with product-specific source paths (karryam: unchanged). */
+export function workPackagesFor(product = "karryam") {
+  const p = productProfile(product);
+  return WORK_PACKAGES.map((w) => ({ ...w, name: product === "karryam" ? w.name : w.name.replace(/Karryam/g, p.label), paths: w.paths.map(p.map) }));
+}
 function statusFor(ids, byId) {
   const a=ids.map(id=>byId.get(id)?.status || "NOT_RUN");
   if(a.includes("FAIL")) return "FAIL";
   if(a.includes("NOT_RUN")) return "NOT_RUN";
   return a.includes("PENDING_EXTERNAL") ? "PENDING_EXTERNAL" : "PASS";
 }
-export function evaluate({sha, gatesReport, missingFiles=[]}) {
+export function evaluate({sha, gatesReport, missingFiles=[], product="karryam"}) {
+  const profile=productProfile(product);
+  const wps=workPackagesFor(product);
   const now=new Date().toISOString();
   const gates=gatesReport?.gates;
   const unique=Array.isArray(gates) ? new Map(gates.map(g=>[g.id,g])) : new Map();
@@ -61,7 +88,7 @@ export function evaluate({sha, gatesReport, missingFiles=[]}) {
     gates.every(g=>["PASS","FAIL","PENDING_EXTERNAL","NOT_RUN"].includes(g.status)));
   const status=(ids)=>valid ? statusFor(ids,unique) : "NOT_RUN";
   const missing=new Set(missingFiles);
-  const work_packages=WORK_PACKAGES.map(w=>{
+  const work_packages=wps.map(w=>{
     const missing_paths=w.paths.filter(p=>missing.has(p));
     const evidence_status=status(w.gates);
     return {id:w.id,name:w.name,evidence_status,
@@ -70,7 +97,7 @@ export function evaluate({sha, gatesReport, missingFiles=[]}) {
       required_gates:w.gates,source_paths:w.paths,missing_paths,
       live_status:evidence_status==="PASS" ? "PASS" : evidence_status};
   });
-  const backend_dod=BACKEND_DOD.map(d=>({...d,status:status(d.gates)}));
+  const backend_dod=BACKEND_DOD.map(d=>({...d,...(product==="karryam"?{}:{name:d.name.replace(/Karryam/g,profile.label)}),status:status(d.gates)}));
   const hq_dod=HQ_DOD.map(d=>({...d,status:status(d.gates)}));
   const releases=STAGES.map(s=>{
     const w=work_packages.filter(x=>s.wp.includes(x.id));
@@ -89,6 +116,7 @@ export function evaluate({sha, gatesReport, missingFiles=[]}) {
   const result=!code_ok ? "EVIDENCE_INCOMPLETE_OR_FAILED" :
     all_live ? "STAGING_GATES_PASSED_SIGNOFF_PENDING" : "CODE_ACCEPTED_STAGING_PENDING";
   return {report:"product-admin-section14-closure",schema_version:1,sha,generated_at:now,
+    ...(product==="karryam" ? {} : {product:profile.id}),
     source_gate_result:gatesReport?.result || null,valid_gate_evidence:valid,
     result,code_accepted:code_ok,ci_exit_code,all_staging_gates_passed:all_live,
     owner_signed_go_no_go_verified:false,production_promotion:"NO_GO",
@@ -111,7 +139,7 @@ export function markdown(r){
   return ["# Section 14 closure — "+r.result,"","Commit: "+r.sha+". Source gates: "+(r.source_gate_result||"missing")+".","",
     "Production promotion: **"+r.production_promotion+"**. Signed owner decision verified: **NO**.","",
     "## WP0–WP11","| WP | Engineering deliverable | Code evidence | Live certification |","|---|---|---|---|",rows(r.work_packages),"",
-    "## Karryam backend DoD (14.1)","| # | Requirement | Evidence status | Status |","|---|---|---|---|",rows(r.backend_dod),"",
+    "## "+(r.product ? productProfile(r.product).label : "Karryam")+" backend DoD (14.1)","| # | Requirement | Evidence status | Status |","|---|---|---|---|",rows(r.backend_dod),"",
     "## HQ universal DoD (14.2)","| # | Requirement | Evidence status | Status |","|---|---|---|---|",rows(r.hq_dod),"",
     "## Release groups (14.3)","| Release | Scope | Evidence status | Live status |","|---|---|---|---|",rows(r.releases),"",
     "## Required external evidence",...r.external_prerequisites.map(x=>"- "+x),"",
@@ -123,8 +151,10 @@ if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.
   if(!sha || !/^[a-f0-9]{40}$/.test(sha) || !gateFile){console.error("required: --sha FULL_SHA --gates PATH [--report PATH] [--markdown PATH]");process.exit(2);}
   let gateData=null;
   try{gateData=JSON.parse(fs.readFileSync(gateFile,"utf8"));}catch{}
-  const missingFiles=WORK_PACKAGES.flatMap(w=>w.paths).filter(p=>!fs.existsSync(path.join(ROOT,p)));
-  const r=evaluate({sha,gatesReport:gateData,missingFiles});
+  const product=arg("product")||"karryam";
+  try{productProfile(product);}catch(e){console.error(e.message);process.exit(2);}
+  const missingFiles=workPackagesFor(product).flatMap(w=>w.paths).filter(p=>!fs.existsSync(path.join(ROOT,p)));
+  const r=evaluate({sha,gatesReport:gateData,missingFiles,product});
   for(const [flag,contents] of [["report",JSON.stringify(r,null,2)],["markdown",markdown(r)]]){
     const file=arg(flag);if(file){fs.mkdirSync(path.dirname(path.resolve(file)),{recursive:true});fs.writeFileSync(file,contents+"\n");}
   }

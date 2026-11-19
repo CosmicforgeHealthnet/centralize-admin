@@ -11,7 +11,7 @@
       "automated_checks": ["commit_on_staging", "required_ci_green", "contract_drift_none", "database_security_suites", "container_build_smoke", "image_digests_recorded", "no_unrelated_changes"],
       "operator_evidence": [],
       "external_prerequisites": [],
-      "exit_criteria": ["Exact commit is the reviewed tip (or an ancestor) of origin/staging", "Product Admin Platform CI, Infrastructure Security CI and Monorepo CI succeeded for that commit", "Both images built from that commit with recorded sha256 digests"],
+      "exit_criteria": ["Exact commit is the reviewed tip (or an ancestor) of origin/staging", "Product Admin Platform CI, Infrastructure Security CI and Monorepo CI succeeded for that commit", "PIC and Karryam Admin images (and CF Meet Admin when it is part of the release) built from that commit with recorded sha256 digests"],
       "rollback": "Nothing deployed; choose another commit."
     },
     {
@@ -21,8 +21,8 @@
       "authorization": { "required": true, "by": "operator", "confirm": "APPLY_STAGING_PRODUCT_ADMIN_CHANGES" },
       "automated_checks": ["networks_internal_and_isolated", "socket_dirs_owned", "config_files_protected", "firewall_docker_user", "nginx_internal_denied", "db_roles_separated", "db_no_cross_credentials", "backup_restorable", "migration_preview_ok", "migrations_applied"],
       "operator_evidence": ["db_roles_created", "public_connect_revoked", "nginx_snippet_installed"],
-      "external_prerequisites": ["Operator creates DB-A/DB-B migration and runtime roles", "Operator writes env and secret files under /etc/cosmicforge/staging", "Operator includes the deny snippet in the live Nginx server block"],
-      "exit_criteria": ["Four internal networks with policy membership only", "DOCKER-USER rules verified", "Public probe: no private path answers", "Verified pre-migration backup with checksum and restore drill", "Preview reports ok, then approved migrations applied"],
+      "external_prerequisites": ["Operator creates DB-A/DB-B and CF Meet Admin database migration and runtime roles", "Operator writes env and secret files under /etc/cosmicforge/staging (cfmeet-admin.env only when CF Meet Admin joins the release)", "Operator includes the deny snippet in the live Nginx server block"],
+      "exit_criteria": ["Four internal networks with policy membership only (plus the two CF Meet Admin networks once prepare-host has created them)", "DOCKER-USER rules verified", "Public probe: no private path answers", "Verified pre-migration backup with checksum and restore drill", "Preview reports ok, then approved migrations applied"],
       "rollback": "Forward-only migrations: restore the verified backup (database-migration-runbook.md); networks and firewall rules are removable with prepare-host --remove."
     },
     {
@@ -30,11 +30,12 @@
       "title": "Deploy private services",
       "requires": ["S0", "S1"],
       "authorization": { "required": true, "by": "operator", "confirm": "APPLY_STAGING_PRODUCT_ADMIN_CHANGES" },
-      "automated_checks": ["images_match_tested_digests", "containers_running_non_root", "no_published_ports", "network_membership_matches_policy", "socket_permissions", "health_live", "health_ready_expected", "unauthenticated_refused", "pic_to_karryam_socket", "hq_gateway_socket_reachable"],
+      "automated_checks": ["images_match_tested_digests", "containers_running_non_root", "no_published_ports", "network_membership_matches_policy", "socket_permissions", "health_live", "health_ready_expected", "unauthenticated_refused", "pic_to_karryam_socket", "pic_to_cfmeet_socket", "product_admin_sockets_isolated", "hq_gateway_socket_reachable"],
+      "optional_product_checks": ["pic_to_cfmeet_socket"],
       "operator_evidence": [],
       "external_prerequisites": [],
       "exit_criteria": ["Exact tested digests running", "Live 200; readiness matches the configured activation state", "Unauthenticated protocol calls refused", "No host port published"],
-      "rollback": "Redeploy the previous recorded digests (pa-staging-ops.sh rollback) or disable (KARRYAM_ADMIN_ENABLED/PIC_ENABLED=false); data and evidence are preserved."
+      "rollback": "Redeploy the previous recorded digests (pa-staging-ops.sh rollback) or disable (KARRYAM_ADMIN_ENABLED/CFMEET_ADMIN_ENABLED/PIC_ENABLED=false); data and evidence are preserved."
     },
     {
       "id": "S3",

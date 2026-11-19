@@ -1,0 +1,9 @@
+{
+  "_comment": "Two separate files for CF Meet Admin. CFMEET_ADMIN_HQ_SERVICE_KEYS_FILE holds the PIC service key(s) (same bytes as the PIC endpoint cfmeet-staging service_auth key); CFMEET_ADMIN_DELEGATION_KEYS_FILE holds the PIC product delegation key(s) (same bytes as the PIC endpoint cfmeet-staging delegation key). Shown together here for reference only. Every CF Meet key differs from every Karryam Admin key.",
+  "hq_service_keys_file": {
+    "pic-cfmeet-staging-k1": { "service_id": "hq-product-integration-core", "key_b64url": "<same bytes as /run/secrets/pic-cfmeet-staging-service-key>", "not_after": "<ISO-8601 expiry>" }
+  },
+  "delegation_keys_file": {
+    "pic-cfmeet-staging-d1": { "key_b64url": "<same bytes as /run/secrets/pic-cfmeet-staging-delegation-key>", "not_after": "<ISO-8601 expiry>" }
+  }
+}

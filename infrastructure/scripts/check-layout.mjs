@@ -20,6 +20,9 @@ const required = [
   ...["identity-and-permissions","admin-contracts","service-clients","event-contracts"].flatMap(s=>["packages/"+s+"/package.json","packages/"+s+"/src/index.js","packages/"+s+"/tests"]),
   "packages/admin-contracts/openapi/product-admin-protocol-v1.openapi.json",
   ...["karryam-admin","product-integration-core"].flatMap(s=>["services/"+s+"/package.json","services/"+s+"/package-lock.json","services/"+s+"/Dockerfile","services/"+s+"/Dockerfile.dockerignore","services/"+s+"/.env.example","services/"+s+"/README.md","services/"+s+"/migrations","services/"+s+"/tests"]),
+  // CF Meet Product Admin: same layout as karryam-admin, plus the HQ contract draft and the dataset puller.
+  ...["package.json","package-lock.json","Dockerfile","Dockerfile.dockerignore",".env.example","README.md","migrations","tests","contract-draft/build-draft.js","src/sync/dataset-puller.js","src/config/index.js","src/worker/index.js","scripts/pin-bridge-contract.js","src/bridge/contracts/cfmeet-backoffice-v1.json"].map(f=>"services/cfmeet-admin/"+f),
+  "services/cfmeet-admin/migrations/001_cfmeet_admin_foundation.sql",
   "services/product-integration-core/migrations/001_product_admin_registry.sql",
   "services/product-integration-core/tests/conformance-synthetic-third-postgres.test.js",
   "infrastructure/product-admin/README.md",

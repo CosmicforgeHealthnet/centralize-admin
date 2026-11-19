@@ -11,6 +11,7 @@ API image, Mail and source-owned Karryam services are never touched.
 | [`network-policy.json`](network-policy.json) | Single source of truth: networks, members, sockets, allowed and forbidden flows, public ingress |
 | [`docker-compose.yml`](docker-compose.yml) | Project `cf-product-admin-staging`: PIC, Karryam Admin, Stage A worker, DB-B |
 | [`db-a-roles.sql`](db-a-roles.sql), [`db-b-roles.sql`](db-b-roles.sql) | Operator role templates for DB-A (HQ) and DB-B (Karryam Admin) |
+| [`cfmeet-admin-db-roles.sql`](cfmeet-admin-db-roles.sql), [`cfmeet-admin.env.template`](cfmeet-admin.env.template) | CF Meet Admin database roles and configuration template (see [section 7](#7-cf-meet-admin-cfmeet)) |
 | `*.env.template` | Sanitized configuration templates (no values) |
 | [`../nginx/internal-deny.conf`](../nginx/internal-deny.conf) | Public-ingress guard to `include` in the API server block |
 | [`../firewall/docker-user-rules.sh`](../firewall/docker-user-rules.sh) | DOCKER-USER host rules (UFW alone does not filter published Docker ports) |
@@ -201,3 +202,99 @@ The same operations run on every CI push in the **rehearsal** job of
 [Infrastructure Security CI](../../../.github/workflows/product-admin-infrastructure-ci.yml)
 against disposable stand-ins; rehearsal evidence is labelled `rehearsal` and
 can never satisfy a staging stage or gate.
+
+## 7. CF Meet Admin (`cfmeet`)
+
+CF Meet Admin (`services/cfmeet-admin`, product `cfmeet`) is the second
+Product Admin. When included in a release (see the rule below) it runs in the
+same compose project as Karryam Admin, with the same hardening, and shares **nothing** with it: own uid/gid,
+own socket directory, own Bridge network, own database server, own keys.
+Design: [`docs/product-admin/cfmeet-admin-design.md`](../../../docs/product-admin/cfmeet-admin-design.md).
+
+| Item | Value |
+|---|---|
+| Services | `cfmeet-admin`, `cfmeet-admin-worker` (Stage A, `node src/worker/index.js`, same image), `cfmeet-admin-db` |
+| Container user | `10003:10003` (Karryam Admin is 10001, PIC 10002) |
+| Socket | host `${PA_HOST_ROOT}/run/cfmeet-admin` (dir `10003:10003 0750`), container `/run/cosmicforge/cfmeet/cfmeet-admin.sock` (`0660`); PIC mounts it read-only with `group_add: ["10003"]` |
+| Networks | `cf-staging-cfmeet-bridge` `10.231.14.0/28` (CF Meet Admin + worker to the CF Meet Admin Bridge, TLS 1.3 mTLS, example Bridge address `10.231.14.10:8110`); `cf-staging-cfmeet-admin-db` `10.231.15.0/28` (CF Meet Admin + worker to `cfmeet-admin-db`). Both internal; no HQ component joins either, and Karryam services never join them |
+| Database | `cfmeet_admin` on `cfmeet-admin-db`; owner `cfmeet_admin_migrator`, runtime `cfmeet_admin_runtime` (no UPDATE/DELETE on append-only audit), from [`cfmeet-admin-db-roles.sql`](cfmeet-admin-db-roles.sql) |
+| Identity | instance `cfmeet-admin-staging-1`, workload `cf://staging/product-admin/cfmeet`, manifest signer kid `cfmeet-staging-manifest-2026-11` (Ed25519) |
+| Bridge | base `/internal/cfmeet-admin/v1`, HQ principal `cosmicforge-hq-cfmeet-admin`; owned and enrolled by the CF Meet team |
+
+Operator files (root-owned, same modes as Karryam Admin):
+
+| Host path | Mode | Container path | Files |
+|---|---|---|---|
+| `/etc/cosmicforge/staging/cfmeet-admin.env` | 0600 | (compose env) | from [`cfmeet-admin.env.template`](cfmeet-admin.env.template); `CFMEET_ADMIN_ENABLED=false`, `CFMEET_BRIDGE_ENABLED=false`, `CFMEET_BRIDGE_FEED_ENABLED=false` |
+| `/etc/cosmicforge/staging/cfmeet-admin.migrate.env` | 0600 | one-shot migration container only | see [`migrate.env.template`](migrate.env.template) |
+| `/etc/cosmicforge/staging/secrets/cfmeet-admin/` | dir 0750 root:10003, files 0440 | `/run/secrets/cfmeet-admin` (ro) | `hq-service-keys.json`, `delegation-keys.json`, `manifest-signer.pem`, `cursor-key`, Bridge `bridge-ca.pem`, `bridge-client.pem`, `bridge-client.key`, `bridge-hmac-key`, `bridge-staff-ed25519.pem` |
+| `/etc/cosmicforge/staging/secrets/cfmeet-admin-db/` | dir 0750 root:70, file 0440 | `/run/secrets/cfmeet-admin-db` (ro) | `postgres-password` (cfmeet-admin-db superuser; never given to a service) |
+
+PIC needs two more entries, then a restart (`deploy`): endpoint
+`cfmeet-staging` (`transport: unix`, `socket_path:
+/run/cosmicforge/cfmeet/cfmeet-admin.sock`, its own service and delegation
+keys) in `endpoints.json`, and signer `cfmeet-staging-manifest-2026-11` in
+`trusted-signers.json`. Shapes: [`../endpoints.example.json`](../endpoints.example.json),
+[`../trusted-signers.example.json`](../trusted-signers.example.json),
+[`../cfmeet-admin-keys.example.json`](../cfmeet-admin-keys.example.json).
+Every CF Meet key is at least 32 random bytes and differs from every Karryam
+and HQ key.
+
+The service starts **disabled** (ready 503) until the operator enables it
+after S1. Stages S0–S7 are the same as for Karryam (design section 9). As
+for Karryam, the privileged S1/S2 host steps (networks, directories, roles,
+backup, migrations, deploy) cannot run from GitHub Actions today
+(`BLOCKED_PRIVILEGED_HOST_OPERATION`): an authorized operator runs them on
+the server unless a narrowly scoped elevation path is approved first.
+
+CF Meet Admin is **optional** in a release (`release/pa-staging-ops.sh`):
+
+- **The rule.** CF Meet Admin joins a release iff `PA_CM_IMAGE` is set to a
+  `cfmeet-admin@sha256:<digest>` (revision label = release commit) **and**
+  `/etc/cosmicforge/staging/cfmeet-admin.env` exists. Otherwise the release is
+  PIC + Karryam Admin exactly as before, and existing Karryam-only deploys
+  need no CF Meet files.
+- **Partial setup is refused.** `PA_CM_IMAGE` set but `cfmeet-admin.env`,
+  `run/cfmeet-admin`, `secrets/cfmeet-admin-db/postgres-password` or a
+  `cf-staging-cfmeet-*` network missing: `deploy` stops before anything
+  changes. `cfmeet-admin.env` present but no `PA_CM_IMAGE`: the release is
+  PIC + Karryam only and the log says CF Meet Admin was skipped.
+- **Decided once, recorded.** `deploy` writes the decision into the release's
+  `images.env` (`CFMEET_ADMIN_IMAGE` and `CFMEET_ADMIN_DB_IMAGE`, the same
+  PostgreSQL digest as DB-B, present or absent). `verify`, `network-probe`,
+  `status`, `db-audit`, `backup`, `migrate-preview`/`migrate-apply`,
+  `rollback` and `disable` read it from there. The compose profile `cfmeet` is
+  activated only for such a release, and explicit service lists mean no
+  cfmeet container is created otherwise.
+- **Not deployed means skipped, never failed or passed.** Checks that need CF
+  Meet running (`pic_to_cfmeet_socket`, `bridge_network_reachable_only_from_cfmeet`,
+  `migration_*_cfmeet`) report `SKIPPED_NOT_DEPLOYED`. Stage evidence records
+  `pic_to_cfmeet_socket` as `NOT_APPLICABLE` (allowed only because S2 lists it
+  in `optional_product_checks`), and the S1 migration composites leave the
+  CF Meet part out while every other part must pass. Isolation checks that
+  assert the *absence* of CF Meet paths still run: no CF Meet roles in
+  DB-A/DB-B, no route to `cfmeet-admin-db`, and Karryam Admin cannot reach
+  the CF Meet socket.
+- **Rollback.** A release without `CFMEET_ADMIN_IMAGE` (including any
+  release from before CF Meet support) is a valid target: PIC + Karryam are
+  restored and any running CF Meet containers are stopped (their data volume
+  is kept).
+- **Host preparation.** `prepare-host` always creates `cf-staging-cfmeet-bridge`
+  and `cf-staging-cfmeet-admin-db` (`PA_SUBNET_CMBRIDGE`, `PA_SUBNET_CMDB`),
+  `run/cfmeet-admin` (10003:10003 0750), the CF Meet secret directories and the
+  DOCKER-USER rules for both subnets. PIC always bind-mounts the (empty)
+  `run/cfmeet-admin` directory read-only with `group_add` 10003; `deploy`
+  creates that empty directory if a host prepared before CF Meet support
+  lacks it. Re-run `prepare-host` (idempotent) on such a host to add the
+  networks and firewall rules; until then `preflight` reports the CF Meet
+  networks as "not created" without failing, but the firewall verification
+  lists their DOCKER-USER rules as missing.
+- **Cross-product credentials** fail preflight whenever the files exist, for
+  example a `KARRYAM_*` variable in `cfmeet-admin.env` or a CF Meet variable
+  in `karryam-admin.env`.
+- **CI.** `product-admin-staging-ops.yml` builds and passes the CF Meet image
+  only with `include_cfmeet=true`, or for automatic delivery when the
+  repository variable `PRODUCT_ADMIN_STAGING_CFMEET` is `true`.
+  `product-admin-release-staging.yml` builds and publishes it only with
+  `include_cfmeet=true`.
+- Each Stage A worker runs only when its own `*_BRIDGE_FEED_ENABLED=true`.

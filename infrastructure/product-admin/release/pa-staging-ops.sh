@@ -17,7 +17,16 @@
 # secrets, connection strings and keys are never printed.
 #
 # Never touches: production (/var/www/admin-server, admin-server-db-1),
-# the Central Admin API image, Mail, or any source-owned Karryam service.
+# the Central Admin API image, Mail, or any source-owned Karryam or CF Meet
+# service.
+#
+# CF Meet Admin (uid 10003) is OPTIONAL. deploy decides once: CF Meet Admin
+# joins the release iff PA_CM_IMAGE is a cfmeet-admin digest AND
+# $PA_CONFIG_ROOT/cfmeet-admin.env exists (PA_CM_IMAGE with missing CF Meet
+# files is refused). The decision is recorded in the release's images.env
+# (CFMEET_ADMIN_IMAGE present or absent); every later operation derives it
+# from there. Without CF Meet Admin the release is PIC + Karryam Admin exactly
+# as before, and checks that need CF Meet running report SKIPPED_NOT_DEPLOYED.
 set -euo pipefail
 umask 077
 
@@ -40,15 +49,21 @@ PA_API_CONTAINER="${PA_API_CONTAINER:-admin-server-staging-app-1}"
 PA_API_DIR="${PA_API_DIR:-/var/www/admin-server-staging}"
 PA_BRIDGE_CONTAINER="${PA_BRIDGE_CONTAINER:-}"
 PA_BRIDGE_ADDRESS="${PA_BRIDGE_ADDRESS:-}"
+PA_CM_BRIDGE_CONTAINER="${PA_CM_BRIDGE_CONTAINER:-}"
+PA_CM_BRIDGE_ADDRESS="${PA_CM_BRIDGE_ADDRESS:-}"
 PA_DB_IMAGE="${PA_DB_IMAGE:-postgres:16-alpine}"
 PA_SUBNET_HQ="${PA_SUBNET_HQ:-10.231.10.0/28}"
 PA_SUBNET_ADMIN="${PA_SUBNET_ADMIN:-10.231.11.0/28}"
 PA_SUBNET_BRIDGE="${PA_SUBNET_BRIDGE:-10.231.12.0/28}"
 PA_SUBNET_KADB="${PA_SUBNET_KADB:-10.231.13.0/28}"
-export PA_SUBNET_HQ PA_SUBNET_ADMIN PA_SUBNET_BRIDGE PA_SUBNET_KADB
+PA_SUBNET_CMBRIDGE="${PA_SUBNET_CMBRIDGE:-10.231.14.0/28}"
+PA_SUBNET_CMDB="${PA_SUBNET_CMDB:-10.231.15.0/28}"
+export PA_SUBNET_HQ PA_SUBNET_ADMIN PA_SUBNET_BRIDGE PA_SUBNET_KADB PA_SUBNET_CMBRIDGE PA_SUBNET_CMDB
 
 PROJECT="cf-product-admin-staging"
 NETWORKS=("cf-staging-hq-private:$PA_SUBNET_HQ" "cf-staging-admin-private:$PA_SUBNET_ADMIN" "cf-staging-karryam-bridge:$PA_SUBNET_BRIDGE" "cf-staging-karryam-admin-db:$PA_SUBNET_KADB")
+# CF Meet Admin networks: created by prepare-host, required only by a release that includes CF Meet Admin.
+CM_NETWORKS=("cf-staging-cfmeet-bridge:$PA_SUBNET_CMBRIDGE" "cf-staging-cfmeet-admin-db:$PA_SUBNET_CMDB")
 if [[ "$PA_REHEARSAL" == 1 ]]; then REGISTRY_PREFIX="${PA_REHEARSAL_REGISTRY:-127.0.0.1:5000}/"; else REGISTRY_PREFIX="ghcr.io/cosmicforgehealthnet/"; fi
 RELEASE_DIR="$PA_HOST_ROOT/release"
 RUN_DIR="$RELEASE_DIR/runs/${PA_RUN_ID:-manual-$(date -u +%Y%m%dT%H%M%SZ)}"
@@ -56,8 +71,12 @@ CTR_PIC="$PROJECT-product-integration-core-1"
 CTR_KA="$PROJECT-karryam-admin-1"
 CTR_KW="$PROJECT-karryam-admin-worker-1"
 CTR_KDB="$PROJECT-karryam-admin-db-1"
+CTR_CM="$PROJECT-cfmeet-admin-1"
+CTR_CW="$PROJECT-cfmeet-admin-worker-1"
+CTR_CDB="$PROJECT-cfmeet-admin-db-1"
 PIC_SOCK="$PA_HOST_ROOT/run/pic/product-integration-core.sock"
 KA_SOCK="$PA_HOST_ROOT/run/karryam-admin/karryam-admin.sock"
+CM_SOCK="$PA_HOST_ROOT/run/cfmeet-admin/cfmeet-admin.sock"
 
 FAILED=0
 check() {
@@ -68,7 +87,19 @@ check() {
 }
 die() { echo "BLOCKED: $*"; exit 1; }
 require_root() { [[ "$(id -u)" == 0 ]] || die "this operation needs root on the host"; }
-compose() { docker compose --project-name "$PROJECT" --env-file "$RELEASE_DIR/images.env" -f "$COMPOSE" "$@"; }
+# CF Meet Admin is part of a release iff its images.env records CFMEET_ADMIN_IMAGE.
+cm_in() { [[ -f "$1" ]] && grep -Eq '^CFMEET_ADMIN_IMAGE=.+' "$1"; }
+release_cm_on() { cm_in "$RELEASE_DIR/images.env"; }
+# The compose profile "cfmeet" is activated only for such a release.
+compose_with() {
+  local envf="$1"; shift
+  local prof=(); if cm_in "$envf"; then prof=(--profile cfmeet); fi
+  docker compose --project-name "$PROJECT" --env-file "$envf" -f "$COMPOSE" "${prof[@]}" "$@"
+}
+compose() { compose_with "$RELEASE_DIR/images.env" "$@"; }
+skipped() { check "$1" SKIPPED_NOT_DEPLOYED "CF Meet Admin is not part of this release"; }
+# Stop CF Meet containers left from an earlier release (data volumes are kept).
+stop_cfmeet() { local c; for c in "$@"; do if running "$c"; then docker stop "$c" >/dev/null; echo "stopped $c (CF Meet Admin is not part of this release; data kept)"; fi; done; }
 enabled_in() { [[ -f "$1" ]] && grep -Eq "^$2=true\s*$" "$1"; }
 running() { [[ "$(docker inspect -f '{{.State.Status}}' "$1" 2>/dev/null || true)" == running ]]; }
 
@@ -95,7 +126,9 @@ role_of() {
     "$PROJECT"-*-1) n="${n#"$PROJECT"-}"; echo "${n%-1}" ;;
     "$PA_HQ_DB_CONTAINER") echo hq-database ;;
     "$PA_API_CONTAINER") echo central-admin-api ;;
-    *) if [[ -n "$PA_BRIDGE_CONTAINER" && "$n" == "$PA_BRIDGE_CONTAINER" ]]; then echo karryam-backoffice-bridge; else echo "unknown:$n"; fi ;;
+    *) if [[ -n "$PA_BRIDGE_CONTAINER" && "$n" == "$PA_BRIDGE_CONTAINER" ]]; then echo karryam-backoffice-bridge
+       elif [[ -n "$PA_CM_BRIDGE_CONTAINER" && "$n" == "$PA_CM_BRIDGE_CONTAINER" ]]; then echo cfmeet-admin-bridge
+       else echo "unknown:$n"; fi ;;
   esac
 }
 
@@ -109,10 +142,14 @@ PY
 }
 
 audit_networks() {
-  local ok=1 bad="" entry name subnet
-  for entry in "${NETWORKS[@]}"; do
+  local ok=1 bad="" entry name subnet cmnote=""
+  for entry in "${NETWORKS[@]}" "${CM_NETWORKS[@]}"; do
     name="${entry%%:*}"; subnet="${entry#*:}"
-    if ! docker network inspect "$name" >/dev/null 2>&1; then ok=0; bad+="$name missing; "; continue; fi
+    if ! docker network inspect "$name" >/dev/null 2>&1; then
+      # The CF Meet networks are optional until a release includes CF Meet Admin.
+      if [[ "$name" == cf-staging-cfmeet-* ]] && ! release_cm_on; then cmnote+="$name not created; "; continue; fi
+      ok=0; bad+="$name missing; "; continue
+    fi
     [[ "$(docker network inspect -f '{{.Internal}}' "$name")" == true ]] || { ok=0; bad+="$name not internal; "; }
     [[ "$(docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}' "$name")" == "$subnet" ]] || { ok=0; bad+="$name subnet differs; "; }
     local c
@@ -120,7 +157,7 @@ audit_networks() {
       permitted "$name" "$(role_of "$c")" || { ok=0; bad+="$c not permitted on $name; "; }
     done
   done
-  if (( ok )); then check networks_internal_and_isolated PASS "4 internal networks, fixed subnets, policy membership only"; else check networks_internal_and_isolated FAIL "$bad"; fi
+  if (( ok )); then check networks_internal_and_isolated PASS "4 internal networks, fixed subnets, policy membership only${cmnote:+; CF Meet Admin (optional): $cmnote}"; else check networks_internal_and_isolated FAIL "$bad"; fi
 }
 
 mode_of() { stat -c '%a %u %g' "$1" 2>/dev/null || echo "missing"; }
@@ -129,6 +166,10 @@ audit_dirs() {
   local ok=1 bad=""
   [[ "$(mode_of "$PA_HOST_ROOT/run/pic")" == "750 10002 10002" ]] || { ok=0; bad+="run/pic $(mode_of "$PA_HOST_ROOT/run/pic"); "; }
   [[ "$(mode_of "$PA_HOST_ROOT/run/karryam-admin")" == "750 10001 10001" ]] || { ok=0; bad+="run/karryam-admin $(mode_of "$PA_HOST_ROOT/run/karryam-admin"); "; }
+  # Optional CF Meet Admin socket dir: if present (prepare-host/deploy create it) it must be owned by 10003.
+  if [[ -e "$PA_HOST_ROOT/run/cfmeet-admin" ]]; then
+    [[ "$(mode_of "$PA_HOST_ROOT/run/cfmeet-admin")" == "750 10003 10003" ]] || { ok=0; bad+="run/cfmeet-admin $(mode_of "$PA_HOST_ROOT/run/cfmeet-admin"); "; }
+  fi
   if (( ok )); then check socket_dirs_owned PASS "socket dirs 0750 owned by their service uid"; else check socket_dirs_owned FAIL "$bad"; fi
 }
 
@@ -147,6 +188,19 @@ audit_config_files() {
       [[ "$m" =~ ^[0-7][0-7]0$ && ! "$m" =~ ^[0-7][2367][0-7]$ ]] || weak+="$(basename "$f") mode $m; "
     done < <(find "$dir" -type f -print0)
   done
+  # Optional CF Meet Admin files: required once cfmeet-admin.env exists; checked whenever present.
+  if [[ -f "$PA_CONFIG_ROOT/cfmeet-admin.env" ]]; then
+    [[ "$(stat -c '%u %a' "$PA_CONFIG_ROOT/cfmeet-admin.env")" =~ ^0\ 6[04]0$ ]] || weak+="cfmeet-admin.env mode $(stat -c '%a' "$PA_CONFIG_ROOT/cfmeet-admin.env"); "
+  fi
+  for d in cfmeet-admin:10003 cfmeet-admin-db:70; do
+    local dir="$PA_CONFIG_ROOT/secrets/${d%%:*}"
+    if [[ ! -d "$dir" ]]; then [[ -f "$PA_CONFIG_ROOT/cfmeet-admin.env" ]] && missing+="secrets/${d%%:*} "; continue; fi
+    [[ "$(mode_of "$dir")" == "750 0 ${d#*:}" ]] || weak+="secrets/${d%%:*} $(mode_of "$dir"); "
+    while IFS= read -r -d '' f; do
+      local m; m="$(stat -c '%a' "$f")"
+      [[ "$m" =~ ^[0-7][0-7]0$ && ! "$m" =~ ^[0-7][2367][0-7]$ ]] || weak+="$(basename "$f") mode $m; "
+    done < <(find "$dir" -type f -print0)
+  done
   if [[ -n "$missing" ]]; then check config_files_protected PENDING_EXTERNAL "operator files missing: $missing"
   elif [[ -n "$weak" ]]; then check config_files_protected FAIL "$weak"
   else check config_files_protected PASS "env files root 0600/0640; secret dirs 0750 root:<service gid>; no world access"; fi
@@ -155,11 +209,20 @@ audit_config_files() {
   if [[ -f "$PA_CONFIG_ROOT/product-integration-core.env" ]]; then
     grep -Eq '^(KARRYAM_BRIDGE_|KARRYAM_ADMIN_DATABASE_URL|ADMIN_BACKOFFICE_)' "$PA_CONFIG_ROOT/product-integration-core.env" && cross+="PIC env has Karryam/Bridge credentials; "
     grep -Eq '@karryam-admin-db[:/]' "$PA_CONFIG_ROOT/product-integration-core.env" && cross+="PIC env points at DB-B; "
+    grep -Eq '^(CFMEET_BRIDGE_|CFMEET_ADMIN_DATABASE_URL)' "$PA_CONFIG_ROOT/product-integration-core.env" && cross+="PIC env has CF Meet Admin/Bridge credentials; "
+    grep -Eq '@cfmeet-admin-db[:/]' "$PA_CONFIG_ROOT/product-integration-core.env" && cross+="PIC env points at the CF Meet Admin database; "
   fi
   if [[ -f "$PA_CONFIG_ROOT/karryam-admin.env" ]]; then
     grep -Eq '^(PIC_DATABASE_URL|PIC_MIGRATION_DATABASE_URL|DATABASE_URL)=' "$PA_CONFIG_ROOT/karryam-admin.env" && cross+="Karryam Admin env has HQ database variables; "
     grep -Eq "@hq-db[:/]|/$PA_HQ_DB_NAME(\?|$)" "$PA_CONFIG_ROOT/karryam-admin.env" && cross+="Karryam Admin env points at DB-A; "
     grep -Eq '^KARRYAM_ADMIN_DATABASE_URL=postgres(ql)?://postgres[:@]' "$PA_CONFIG_ROOT/karryam-admin.env" && cross+="Karryam Admin runtime uses the postgres superuser; "
+    grep -Eq '^CFMEET_|@cfmeet-admin-db[:/]' "$PA_CONFIG_ROOT/karryam-admin.env" && cross+="Karryam Admin env has CF Meet Admin variables; "
+  fi
+  if [[ -f "$PA_CONFIG_ROOT/cfmeet-admin.env" ]]; then
+    grep -Eq '^(PIC_DATABASE_URL|PIC_MIGRATION_DATABASE_URL|DATABASE_URL)=' "$PA_CONFIG_ROOT/cfmeet-admin.env" && cross+="CF Meet Admin env has HQ database variables; "
+    grep -Eq "@hq-db[:/]|/$PA_HQ_DB_NAME(\?|$)" "$PA_CONFIG_ROOT/cfmeet-admin.env" && cross+="CF Meet Admin env points at DB-A; "
+    grep -Eq '^CFMEET_ADMIN_DATABASE_URL=postgres(ql)?://postgres[:@]' "$PA_CONFIG_ROOT/cfmeet-admin.env" && cross+="CF Meet Admin runtime uses the postgres superuser; "
+    grep -Eq '^(KARRYAM_|ADMIN_BACKOFFICE_)|@karryam-admin-db[:/]' "$PA_CONFIG_ROOT/cfmeet-admin.env" && cross+="CF Meet Admin env has Karryam variables; "
   fi
   if [[ -f "$PA_CONFIG_ROOT/product-integration-core.env" ]] && grep -Eq '^PIC_DATABASE_URL=postgres(ql)?://postgres[:@]' "$PA_CONFIG_ROOT/product-integration-core.env"; then cross+="PIC runtime uses the postgres superuser; "; fi
   if [[ -n "$cross" ]]; then check db_no_cross_credentials FAIL "$cross"
@@ -180,13 +243,17 @@ prepare_host() {
   install -d -m 0755 -o 0 -g 0 "$PA_HOST_ROOT" "$PA_HOST_ROOT/run"
   install -d -m 0750 -o 10002 -g 10002 "$PA_HOST_ROOT/run/pic"
   install -d -m 0750 -o 10001 -g 10001 "$PA_HOST_ROOT/run/karryam-admin"
+  # Created even when CF Meet Admin is not deployed: PIC bind-mounts it (empty) read-only.
+  install -d -m 0750 -o 10003 -g 10003 "$PA_HOST_ROOT/run/cfmeet-admin"
   install -d -m 0700 -o 0 -g 0 "$RELEASE_DIR" "$PA_HOST_ROOT/backups"
   install -d -m 0750 -o 0 -g 0 "$PA_CONFIG_ROOT" "$PA_CONFIG_ROOT/secrets"
   install -d -m 0750 -o 0 -g 10002 "$PA_CONFIG_ROOT/secrets/product-integration-core"
   install -d -m 0750 -o 0 -g 10001 "$PA_CONFIG_ROOT/secrets/karryam-admin"
   install -d -m 0750 -o 0 -g 70 "$PA_CONFIG_ROOT/secrets/karryam-admin-db"
+  install -d -m 0750 -o 0 -g 10003 "$PA_CONFIG_ROOT/secrets/cfmeet-admin"
+  install -d -m 0750 -o 0 -g 70 "$PA_CONFIG_ROOT/secrets/cfmeet-admin-db"
   local entry name subnet
-  for entry in "${NETWORKS[@]}"; do
+  for entry in "${NETWORKS[@]}" "${CM_NETWORKS[@]}"; do
     name="${entry%%:*}"; subnet="${entry#*:}"
     if docker network inspect "$name" >/dev/null 2>&1; then
       [[ "$(docker network inspect -f '{{.Internal}}' "$name")" == true ]] || die "$name exists but is not internal; remove it after review"
@@ -227,7 +294,7 @@ resolve_db_image() {
   echo "$d"
 }
 
-valid_ref() { [[ "$1" =~ ^${REGISTRY_PREFIX//./\\.}(karryam-admin|product-integration-core)@sha256:[0-9a-f]{64}$ ]]; }
+valid_ref() { [[ "$1" =~ ^${REGISTRY_PREFIX//./\\.}(karryam-admin|cfmeet-admin|product-integration-core)@sha256:[0-9a-f]{64}$ ]]; }
 
 config_check() { # image envfile secretsdir target-dir enabled-var expect-var
   local image="$1" envf="$2" sec="$3" target="$4" en="$5" expect="$6" envname="$7" out
@@ -247,17 +314,37 @@ deploy() {
   [[ -d "$PA_HOST_ROOT/run/pic" && -d "$PA_HOST_ROOT/run/karryam-admin" ]] || die "host not prepared: run prepare-host"
   for f in product-integration-core.env karryam-admin.env; do [[ -f "$PA_CONFIG_ROOT/$f" ]] || die "operator env file $PA_CONFIG_ROOT/$f is missing"; done
   [[ -f "$PA_CONFIG_ROOT/secrets/karryam-admin-db/postgres-password" ]] || die "DB-B superuser password file is missing"
+  # CF Meet Admin decision, made once and recorded in images.env.
+  local cm="${PA_CM_IMAGE:-}" cm_on=0
+  if [[ -n "$cm" ]]; then
+    valid_ref "$cm" && [[ "$cm" == *cfmeet-admin@* ]] || die "PA_CM_IMAGE must be ${REGISTRY_PREFIX}cfmeet-admin@sha256:<digest>"
+    [[ -f "$PA_CONFIG_ROOT/cfmeet-admin.env" ]] || die "PA_CM_IMAGE is set but $PA_CONFIG_ROOT/cfmeet-admin.env is missing: provision the CF Meet Admin files (staging/README.md section 7) or deploy without PA_CM_IMAGE; nothing was changed"
+    [[ -d "$PA_HOST_ROOT/run/cfmeet-admin" ]] || die "PA_CM_IMAGE is set but $PA_HOST_ROOT/run/cfmeet-admin is missing: run prepare-host; nothing was changed"
+    [[ -f "$PA_CONFIG_ROOT/secrets/cfmeet-admin-db/postgres-password" ]] || die "PA_CM_IMAGE is set but the CF Meet Admin database superuser password file is missing; nothing was changed"
+    for entry in "${CM_NETWORKS[@]}"; do docker network inspect "${entry%%:*}" >/dev/null 2>&1 || die "PA_CM_IMAGE is set but ${entry%%:*} is missing: run prepare-host; nothing was changed"; done
+    cm_on=1
+    echo "CF Meet Admin is part of this release ($cm)."
+  elif [[ -f "$PA_CONFIG_ROOT/cfmeet-admin.env" ]]; then
+    echo "CF Meet Admin skipped: $PA_CONFIG_ROOT/cfmeet-admin.env exists but PA_CM_IMAGE is not set; this release is PIC + Karryam Admin only."
+  else
+    echo "CF Meet Admin not part of this release (no PA_CM_IMAGE, no cfmeet-admin.env)."
+  fi
+  # PIC always bind-mounts the CF Meet socket directory read-only; on a host
+  # prepared before CF Meet support it may not exist yet (empty is fine).
+  if [[ ! -d "$PA_HOST_ROOT/run/cfmeet-admin" ]]; then install -d -m 0750 -o 10003 -g 10003 "$PA_HOST_ROOT/run/cfmeet-admin"; echo "created empty $PA_HOST_ROOT/run/cfmeet-admin for the PIC read-only mount"; fi
   install -d -m 0700 "$RUN_DIR"
 
   if [[ -n "${GHCR_TOKEN:-}" ]]; then
     local auth; auth="$(mktemp -d)"
-    DOCKER_CONFIG="$auth" bash -c 'printf "%s" "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin >/dev/null && docker pull -q "$1" >/dev/null && docker pull -q "$2" >/dev/null' _ "$pic" "$ka"
+    DOCKER_CONFIG="$auth" bash -c 'printf "%s" "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin >/dev/null && docker pull -q "$1" >/dev/null && docker pull -q "$2" >/dev/null && { [[ -z "$3" ]] || docker pull -q "$3" >/dev/null; }' _ "$pic" "$ka" "$([[ $cm_on == 1 ]] && echo "$cm")"
     rm -rf "$auth"; unset GHCR_TOKEN
   else
     docker pull -q "$pic" >/dev/null; docker pull -q "$ka" >/dev/null
+    if (( cm_on )); then docker pull -q "$cm" >/dev/null; fi
   fi
-  local img
-  for img in "$pic" "$ka"; do
+  local img imgs=("$pic" "$ka")
+  if (( cm_on )); then imgs+=("$cm"); fi
+  for img in "${imgs[@]}"; do
     local rev; rev="$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$img")"
     [[ "$rev" == "$sha" ]] || die "image $img was built from $rev, not the release commit $sha"
   done
@@ -271,16 +358,25 @@ deploy() {
   echo "Karryam Admin configuration: $c2"
   [[ "$c1" == *'"event":"config_valid"'* ]] || die "Product Integration Core configuration is invalid; nothing was changed"
   [[ "$c2" == *'"event":"config_valid"'* ]] || die "Karryam Admin configuration is invalid; nothing was changed"
+  if (( cm_on )); then
+    local c3
+    c3="$(config_check "$cm" "$PA_CONFIG_ROOT/cfmeet-admin.env" "$PA_CONFIG_ROOT/secrets/cfmeet-admin" /run/secrets/cfmeet-admin CFMEET_ADMIN_ENABLED CFMEET_ADMIN_EXPECT_ENVIRONMENT CFMEET_ADMIN_ENVIRONMENT)"
+    echo "CF Meet Admin configuration: $c3"
+    [[ "$c3" == *'"event":"config_valid"'* ]] || die "CF Meet Admin configuration is invalid; nothing was changed"
+  fi
 
   [[ -f "$RELEASE_DIR/images.env" ]] && cp "$RELEASE_DIR/images.env" "$RELEASE_DIR/previous-images.env"
   printf 'PIC_IMAGE=%s\nKARRYAM_ADMIN_IMAGE=%s\nKARRYAM_ADMIN_DB_IMAGE=%s\nPA_HOST_ROOT=%s\nPA_CONFIG_ROOT=%s\nPA_RELEASE_SHA=%s\n' "$pic" "$ka" "$db" "$PA_HOST_ROOT" "$PA_CONFIG_ROOT" "$sha" > "$RUN_DIR/images.env"
+  # Recording CFMEET_ADMIN_IMAGE is THE decision that CF Meet Admin is in this release (same PostgreSQL digest as DB-B).
+  if (( cm_on )); then printf 'CFMEET_ADMIN_IMAGE=%s\nCFMEET_ADMIN_DB_IMAGE=%s\n' "$cm" "$db" >> "$RUN_DIR/images.env"; fi
 
   # Static policy check of the exact resolved model, with the release image's own node.
-  docker compose --project-name "$PROJECT" --env-file "$RUN_DIR/images.env" -f "$COMPOSE" config --format json > "$RUN_DIR/resolved.json"
+  local req=(); if (( cm_on )); then req=(--require-product cfmeet); fi
+  compose_with "$RUN_DIR/images.env" config --format json > "$RUN_DIR/resolved.json"
   chmod 0644 "$RUN_DIR/resolved.json"; chmod 0755 "$RUN_DIR"
   if docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user 0:0 \
       -v "$BUNDLE:/bundle:ro" -v "$RUN_DIR:/out" --entrypoint node "$pic" \
-      "/bundle/$INFRA_CHECK" --compose-json /out/resolved.json --require-digests --report /out/network-policy-report.json; then
+      "/bundle/$INFRA_CHECK" --compose-json /out/resolved.json --require-digests "${req[@]}" --report /out/network-policy-report.json; then
     check compose_policy PASS "resolved model passes the network/container policy"
   else
     chmod 0700 "$RUN_DIR"; die "resolved compose model violates the policy; nothing was changed"
@@ -290,8 +386,19 @@ deploy() {
   cp "$RUN_DIR/images.env" "$RELEASE_DIR/images.env"
   local feed=0
   enabled_in "$PA_CONFIG_ROOT/karryam-admin.env" KARRYAM_BRIDGE_FEED_ENABLED && feed=1
-  if (( feed )); then compose up -d --no-build --pull never --remove-orphans karryam-admin-db karryam-admin product-integration-core karryam-admin-worker
-  else compose up -d --no-build --pull never --remove-orphans karryam-admin-db karryam-admin product-integration-core; compose rm -f -s karryam-admin-worker >/dev/null 2>&1 || true; fi
+  # Explicit service lists: without CF Meet Admin no cfmeet service is ever created.
+  local up=(karryam-admin-db karryam-admin)
+  if (( cm_on )); then up+=(cfmeet-admin-db cfmeet-admin); fi
+  up+=(product-integration-core)
+  if (( feed )); then up+=(karryam-admin-worker); fi
+  if (( cm_on )) && enabled_in "$PA_CONFIG_ROOT/cfmeet-admin.env" CFMEET_BRIDGE_FEED_ENABLED; then up+=(cfmeet-admin-worker); fi
+  compose up -d --no-build --pull never --remove-orphans "${up[@]}"
+  if (( ! feed )); then compose rm -f -s karryam-admin-worker >/dev/null 2>&1 || true; fi
+  if (( cm_on )); then
+    enabled_in "$PA_CONFIG_ROOT/cfmeet-admin.env" CFMEET_BRIDGE_FEED_ENABLED || { compose rm -f -s cfmeet-admin-worker >/dev/null 2>&1 || true; }
+  else
+    stop_cfmeet "$CTR_CW" "$CTR_CM" "$CTR_CDB"
+  fi
 
   FAILED=0
   verify_deploy "$pic" "$ka"
@@ -300,28 +407,39 @@ deploy() {
     restore_previous
     exit 1
   fi
-  echo "DEPLOYED $sha (PIC $pic, Karryam Admin $ka)"
+  if (( cm_on )); then echo "DEPLOYED $sha (PIC $pic, Karryam Admin $ka, CF Meet Admin $cm)"; else echo "DEPLOYED $sha (PIC $pic, Karryam Admin $ka)"; fi
 }
 
 restore_previous() {
   if [[ -f "$RELEASE_DIR/previous-images.env" ]]; then
     cp "$RELEASE_DIR/previous-images.env" "$RELEASE_DIR/images.env"
-    compose up -d --no-build --pull never karryam-admin-db karryam-admin product-integration-core || true
+    # A previous release without CF Meet Admin is a valid target: PIC + Karryam only, CF Meet stopped.
+    if release_cm_on; then compose up -d --no-build --pull never karryam-admin-db karryam-admin cfmeet-admin-db cfmeet-admin product-integration-core || true
+    else compose up -d --no-build --pull never karryam-admin-db karryam-admin product-integration-core || true; stop_cfmeet "$CTR_CW" "$CTR_CM" "$CTR_CDB"; fi
     echo "ROLLED_BACK to $(grep '^PA_RELEASE_SHA=' "$RELEASE_DIR/images.env" | cut -d= -f2)"
   else
     compose stop karryam-admin karryam-admin-worker product-integration-core || true
+    stop_cfmeet "$CTR_CW" "$CTR_CM"
     echo "No previous release: new services stopped (data and evidence preserved)."
   fi
 }
 
 verify_deploy() {
-  local pic="$1" ka="$2"
-  for _ in $(seq 1 40); do [[ -S "$PIC_SOCK" && -S "$KA_SOCK" ]] && break; sleep 2; done
+  local pic="$1" ka="$2" cm="" cm_on=0
+  # CF Meet Admin participation comes from the release's images.env, never from a fresh guess.
+  if release_cm_on; then cm_on=1; cm="$(grep '^CFMEET_ADMIN_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)"; fi
+  for _ in $(seq 1 40); do [[ -S "$PIC_SOCK" && -S "$KA_SOCK" ]] && { (( ! cm_on )) || [[ -S "$CM_SOCK" ]]; } && break; sleep 2; done
   local okimg=1
   [[ "$(docker inspect -f '{{.Config.Image}}' "$CTR_PIC" 2>/dev/null)" == "$pic" ]] || okimg=0
   [[ "$(docker inspect -f '{{.Config.Image}}' "$CTR_KA" 2>/dev/null)" == "$ka" ]] || okimg=0
   [[ "$(docker inspect -f '{{.Image}}' "$CTR_PIC" 2>/dev/null)" == "$(docker image inspect -f '{{.Id}}' "$pic")" ]] || okimg=0
   [[ "$(docker inspect -f '{{.Image}}' "$CTR_KA" 2>/dev/null)" == "$(docker image inspect -f '{{.Id}}' "$ka")" ]] || okimg=0
+  if (( cm_on )); then
+    [[ "$(docker inspect -f '{{.Config.Image}}' "$CTR_CM" 2>/dev/null)" == "$cm" ]] || okimg=0
+    [[ "$(docker inspect -f '{{.Image}}' "$CTR_CM" 2>/dev/null)" == "$(docker image inspect -f '{{.Id}}' "$cm")" ]] || okimg=0
+  elif running "$CTR_CM" || running "$CTR_CW" || running "$CTR_CDB"; then
+    okimg=0  # a CF Meet container outside a CF Meet release
+  fi
   if (( okimg )); then check images_match_tested_digests PASS "running containers use exactly the release digests"; else check images_match_tested_digests FAIL "running image differs from the release digest"; fi
 
   local nr="" c
@@ -336,7 +454,19 @@ verify_deploy() {
     [[ "$(docker exec "$CTR_KW" id -u 2>/dev/null || true)" == 10001 ]] || nr+="$CTR_KW uid; "
   fi
   [[ "$(docker exec "$CTR_KDB" id -u 2>/dev/null || true)" == 70 ]] || nr+="$CTR_KDB uid; "
-  if [[ -z "$nr" ]]; then check containers_running_non_root PASS "PIC uid 10002, Karryam Admin uid 10001, DB-B uid 70"; else check containers_running_non_root FAIL "$nr"; fi
+  local cmdetail=""
+  if (( cm_on )); then
+    running "$CTR_CM" || nr+="$CTR_CM not running; "
+    [[ "$(docker exec "$CTR_CM" id -u 2>/dev/null || true)" == 10003 ]] || nr+="$CTR_CM uid; "
+    running "$CTR_CDB" || nr+="$CTR_CDB not running; "
+    [[ "$(docker exec "$CTR_CDB" id -u 2>/dev/null || true)" == 70 ]] || nr+="$CTR_CDB uid; "
+    if enabled_in "$PA_CONFIG_ROOT/cfmeet-admin.env" CFMEET_BRIDGE_FEED_ENABLED; then
+      running "$CTR_CW" || nr+="$CTR_CW not running although the feed is enabled; "
+      [[ "$(docker exec "$CTR_CW" id -u 2>/dev/null || true)" == 10003 ]] || nr+="$CTR_CW uid; "
+    fi
+    cmdetail=", CF Meet Admin uid 10003, CF Meet Admin database uid 70"
+  fi
+  if [[ -z "$nr" ]]; then check containers_running_non_root PASS "PIC uid 10002, Karryam Admin uid 10001, DB-B uid 70$cmdetail"; else check containers_running_non_root FAIL "$nr"; fi
 
   local pub=""
   for c in $(docker ps -a --filter "label=com.docker.compose.project=$PROJECT" --format '{{.Names}}'); do
@@ -355,23 +485,45 @@ verify_deploy() {
   local sp=""
   [[ "$(mode_of "$PIC_SOCK")" == "660 10002 10002" ]] || sp+="PIC socket $(mode_of "$PIC_SOCK"); "
   [[ "$(mode_of "$KA_SOCK")" == "660 10001 10001" ]] || sp+="Karryam Admin socket $(mode_of "$KA_SOCK"); "
+  if (( cm_on )); then [[ "$(mode_of "$CM_SOCK")" == "660 10003 10003" ]] || sp+="CF Meet Admin socket $(mode_of "$CM_SOCK"); "; fi
   if [[ -z "$sp" ]]; then check socket_permissions PASS "sockets 0660 owned by the service uid/gid"; else check socket_permissions FAIL "$sp"; fi
 
-  local l1 l2; l1="$(sock_status "$PIC_SOCK" /health/live)"; l2="$(sock_status "$KA_SOCK" /health/live)"
-  if [[ "$l1" == 200 && "$l2" == 200 ]]; then check health_live PASS "live 200 on both sockets"; else check health_live FAIL "PIC $l1, Karryam Admin $l2"; fi
+  # With CF Meet Admin out of the release its expected values equal the observed placeholders,
+  # so the Karryam/PIC results and detail texts are exactly as before.
+  local l1 l2 l3=200; l1="$(sock_status "$PIC_SOCK" /health/live)"; l2="$(sock_status "$KA_SOCK" /health/live)"
+  if (( cm_on )); then l3="$(sock_status "$CM_SOCK" /health/live)"; fi
+  if [[ "$l1" == 200 && "$l2" == 200 && "$l3" == 200 ]]; then check health_live PASS "live 200 on $( (( cm_on )) && echo "all three" || echo both) sockets"; else check health_live FAIL "PIC $l1, Karryam Admin $l2$( (( cm_on )) && echo ", CF Meet Admin $l3")"; fi
 
-  local e1=503 e2=503
+  local e1=503 e2=503 e3=503
   enabled_in "$PA_CONFIG_ROOT/product-integration-core.env" PIC_ENABLED && e1=200
   enabled_in "$PA_CONFIG_ROOT/karryam-admin.env" KARRYAM_ADMIN_ENABLED && e2=200
-  local r1 r2
-  for _ in $(seq 1 15); do r1="$(sock_status "$PIC_SOCK" /health/ready)"; r2="$(sock_status "$KA_SOCK" /health/ready)"; [[ "$r1" == "$e1" && "$r2" == "$e2" ]] && break; sleep 2; done
-  if [[ "$r1" == "$e1" && "$r2" == "$e2" ]]; then check health_ready_expected PASS "ready PIC $r1 (expected $e1), Karryam Admin $r2 (expected $e2)"; else check health_ready_expected FAIL "ready PIC $r1 (expected $e1), Karryam Admin $r2 (expected $e2)"; fi
+  if (( cm_on )) && enabled_in "$PA_CONFIG_ROOT/cfmeet-admin.env" CFMEET_ADMIN_ENABLED; then e3=200; fi
+  local r1 r2 r3="$e3"
+  for _ in $(seq 1 15); do r1="$(sock_status "$PIC_SOCK" /health/ready)"; r2="$(sock_status "$KA_SOCK" /health/ready)"; if (( cm_on )); then r3="$(sock_status "$CM_SOCK" /health/ready)"; fi; [[ "$r1" == "$e1" && "$r2" == "$e2" && "$r3" == "$e3" ]] && break; sleep 2; done
+  local rd="ready PIC $r1 (expected $e1), Karryam Admin $r2 (expected $e2)"
+  if (( cm_on )); then rd+=", CF Meet Admin $r3 (expected $e3)"; fi
+  if [[ "$r1" == "$e1" && "$r2" == "$e2" && "$r3" == "$e3" ]]; then check health_ready_expected PASS "$rd"; else check health_ready_expected FAIL "$rd"; fi
 
-  local u1 u2; u1="$(sock_status "$PIC_SOCK" /internal/pic/v1/products)"; u2="$(sock_status "$KA_SOCK" /internal/product-admin/v1/manifest)"
-  if [[ "$u1" =~ ^(401|503)$ && "$u2" =~ ^(401|503)$ ]]; then check unauthenticated_refused PASS "PIC $u1, Karryam Admin $u2 without credentials"; else check unauthenticated_refused FAIL "PIC $u1, Karryam Admin $u2 without credentials"; fi
+  local u1 u2 u3=401; u1="$(sock_status "$PIC_SOCK" /internal/pic/v1/products)"; u2="$(sock_status "$KA_SOCK" /internal/product-admin/v1/manifest)"
+  if (( cm_on )); then u3="$(sock_status "$CM_SOCK" /internal/product-admin/v1/manifest)"; fi
+  local ud="PIC $u1, Karryam Admin $u2"
+  if (( cm_on )); then ud+=", CF Meet Admin $u3"; fi
+  if [[ "$u1" =~ ^(401|503)$ && "$u2" =~ ^(401|503)$ && "$u3" =~ ^(401|503)$ ]]; then check unauthenticated_refused PASS "$ud without credentials"; else check unauthenticated_refused FAIL "$ud without credentials"; fi
 
   local p; p="$(docker exec "$CTR_PIC" node -e 'require("http").get({socketPath:"/run/cosmicforge/karryam/karryam-admin.sock",path:"/health/live"},r=>{console.log(r.statusCode);process.exit(0)}).on("error",e=>{console.log(e.code);process.exit(0)})' 2>/dev/null || echo error)"
   if [[ "$p" == 200 ]]; then check pic_to_karryam_socket PASS "PIC reaches the Karryam Admin socket"; else check pic_to_karryam_socket FAIL "PIC to Karryam Admin socket: $p"; fi
+  if (( cm_on )); then
+    p="$(docker exec "$CTR_PIC" node -e 'require("http").get({socketPath:"/run/cosmicforge/cfmeet/cfmeet-admin.sock",path:"/health/live"},r=>{console.log(r.statusCode);process.exit(0)}).on("error",e=>{console.log(e.code);process.exit(0)})' 2>/dev/null || echo error)"
+    if [[ "$p" == 200 ]]; then check pic_to_cfmeet_socket PASS "PIC reaches the CF Meet Admin socket"; else check pic_to_cfmeet_socket FAIL "PIC to CF Meet Admin socket: $p"; fi
+  else
+    skipped pic_to_cfmeet_socket
+  fi
+  # Product Admins cannot reach each other's sockets (not mounted, other uid/gid).
+  # The Karryam side is asserted in every release; the CF Meet side when it runs.
+  p="$(docker exec "$CTR_KA" node -e 'require("http").get({socketPath:"/run/cosmicforge/cfmeet/cfmeet-admin.sock",path:"/health/live"},r=>{console.log(r.statusCode);process.exit(0)}).on("error",e=>{console.log(e.code);process.exit(0)})' 2>/dev/null || echo error)"
+  local q="CF Meet Admin not deployed"
+  if (( cm_on )); then q="$(docker exec "$CTR_CM" node -e 'require("http").get({socketPath:"/run/cosmicforge/karryam/karryam-admin.sock",path:"/health/live"},r=>{console.log(r.statusCode);process.exit(0)}).on("error",e=>{console.log(e.code);process.exit(0)})' 2>/dev/null || echo error)"; fi
+  if [[ "$p" != 200 && "$q" != 200 ]]; then check product_admin_sockets_isolated PASS "Karryam Admin to CF Meet socket $p; CF Meet Admin to Karryam socket $q"; else check product_admin_sockets_isolated FAIL "Karryam Admin to CF Meet socket $p; CF Meet Admin to Karryam socket $q"; fi
 
   if docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1 && [[ "$(docker inspect -f '{{range .Mounts}}{{.Destination}} {{end}}' "$PA_API_CONTAINER")" == *"/run/cosmicforge/pic"* ]]; then
     p="$(docker exec "$PA_API_CONTAINER" node -e 'require("http").get({socketPath:"/run/cosmicforge/pic/product-integration-core.sock",path:"/health/live"},r=>{console.log(r.statusCode);process.exit(0)}).on("error",e=>{console.log(e.code);process.exit(0)})' 2>/dev/null || echo error)"
@@ -382,32 +534,56 @@ verify_deploy() {
 }
 
 network_probe() {
-  running "$CTR_PIC" && running "$CTR_KA" || { check network_flows NOT_RUN "services not running"; return; }
+  local cm_on=0; release_cm_on && cm_on=1
+  running "$CTR_PIC" && running "$CTR_KA" && { (( ! cm_on )) || running "$CTR_CM"; } || { check network_flows NOT_RUN "services not running"; return; }
   local r bad="" good=""
   expect_closed() { r="$(tcp_from "$1" "$2" "$3")"; if [[ "$r" == OPEN ]]; then bad+="$1 -> $2:$3 open; "; else good+="$1 -> $2:$3 $r; "; fi; }
   expect_open() { r="$(tcp_from "$1" "$2" "$3")"; if [[ "$r" == OPEN ]]; then good+="$1 -> $2:$3 open; "; else bad+="$1 -> $2:$3 $r (expected open); "; fi; }
   # Allowed flows.
   expect_open "$CTR_KA" karryam-admin-db 5432
+  if (( cm_on )); then expect_open "$CTR_CM" cfmeet-admin-db 5432; fi
   if docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' cf-staging-hq-private | grep -qw "$PA_HQ_DB_CONTAINER"; then expect_open "$CTR_PIC" hq-db 5432; else good+="hq-db not attached; "; fi
   # Forbidden flows.
   expect_closed "$CTR_PIC" karryam-admin-db 5432
   expect_closed "$CTR_KA" hq-db 5432
   expect_closed "$CTR_PIC" 1.1.1.1 443
   expect_closed "$CTR_KA" 1.1.1.1 443
+  # Absence of a path to the CF Meet Admin database holds whether or not it is deployed.
+  expect_closed "$CTR_PIC" cfmeet-admin-db 5432
+  expect_closed "$CTR_KA" cfmeet-admin-db 5432
+  if (( cm_on )); then
+    expect_closed "$CTR_CM" hq-db 5432
+    expect_closed "$CTR_CM" 1.1.1.1 443
+    expect_closed "$CTR_CM" karryam-admin-db 5432
+  fi
   if [[ -n "$PA_BRIDGE_ADDRESS" ]]; then
     expect_open "$CTR_KA" "$PA_BRIDGE_ADDRESS" 8110
     expect_closed "$CTR_PIC" "$PA_BRIDGE_ADDRESS" 8110
     docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1 && expect_closed "$PA_API_CONTAINER" "$PA_BRIDGE_ADDRESS" 8110
+    if (( cm_on )); then expect_closed "$CTR_CM" "$PA_BRIDGE_ADDRESS" 8110; fi
     check bridge_network_reachable_only_from_karryam "$([[ -z "$bad" ]] && echo PASS || echo FAIL)" "Bridge $PA_BRIDGE_ADDRESS:8110"
   else
     check bridge_network_reachable_only_from_karryam PENDING_EXTERNAL "Bridge not attached to cf-staging-karryam-bridge yet"
   fi
-  if docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1; then expect_closed "$PA_API_CONTAINER" karryam-admin-db 5432; fi
+  if (( ! cm_on )); then
+    skipped bridge_network_reachable_only_from_cfmeet
+  elif [[ -n "$PA_CM_BRIDGE_ADDRESS" ]]; then
+    local before_cm="$bad"
+    expect_open "$CTR_CM" "$PA_CM_BRIDGE_ADDRESS" 8110
+    expect_closed "$CTR_PIC" "$PA_CM_BRIDGE_ADDRESS" 8110
+    expect_closed "$CTR_KA" "$PA_CM_BRIDGE_ADDRESS" 8110
+    docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1 && expect_closed "$PA_API_CONTAINER" "$PA_CM_BRIDGE_ADDRESS" 8110
+    check bridge_network_reachable_only_from_cfmeet "$([[ "$bad" == "$before_cm" ]] && echo PASS || echo FAIL)" "CF Meet Bridge $PA_CM_BRIDGE_ADDRESS:8110"
+  else
+    check bridge_network_reachable_only_from_cfmeet PENDING_EXTERNAL "CF Meet Bridge not attached to cf-staging-cfmeet-bridge yet"
+  fi
+  if docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1; then expect_closed "$PA_API_CONTAINER" karryam-admin-db 5432; expect_closed "$PA_API_CONTAINER" cfmeet-admin-db 5432; fi
   if [[ -z "$bad" ]]; then check network_flows PASS "$good"; else check network_flows FAIL "$bad"; fi
 }
 
 # ---------------------------------------------------------------------------
 psql_kdb() { docker exec -i "$CTR_KDB" sh -c 'PGPASSWORD="$(cat /run/secrets/karryam-admin-db/postgres-password)" psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -tA "$@"' _ "$@"; }
+psql_cdb() { docker exec -i "$CTR_CDB" sh -c 'PGPASSWORD="$(cat /run/secrets/cfmeet-admin-db/postgres-password)" psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -tA "$@"' _ "$@"; }
 psql_hq() { docker exec -i "$PA_HQ_DB_CONTAINER" sh -c 'psql -U "${POSTGRES_USER:-postgres}" -v ON_ERROR_STOP=1 -tA "$@"' _ "$@"; }
 
 db_audit() {
@@ -418,19 +594,30 @@ db_audit() {
     elif [[ -z "$r" ]]; then pending+="DB-B roles not created; "
     elif [[ "$r" == *true* ]]; then bad+="a Karryam Admin role is privileged ($r); "; fi
     [[ "$(psql_kdb -d postgres -c "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'pic_%'" 2>/dev/null || echo 0)" == 0 ]] || bad+="HQ roles exist in DB-B; "
+    [[ "$(psql_kdb -d postgres -c "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'cfmeet_admin_%'" 2>/dev/null || echo 0)" == 0 ]] || bad+="CF Meet Admin roles exist in DB-B; "
   else pending+="DB-B not running; "; fi
+  local cmnote=""
+  if ! release_cm_on; then cmnote="; CF Meet Admin database not audited (not part of this release)"
+  elif running "$CTR_CDB"; then
+    local c; c="$(psql_cdb -d postgres -c "SELECT string_agg(rolname || ':' || rolsuper || rolcreaterole || rolcreatedb || rolbypassrls, ',') FROM pg_roles WHERE rolname LIKE 'cfmeet_admin_%'" 2>/dev/null || echo ERROR)"
+    if [[ "$c" == ERROR ]]; then bad+="CF Meet Admin database unreadable; "
+    elif [[ -z "$c" ]]; then pending+="CF Meet Admin database roles not created; "
+    elif [[ "$c" == *true* ]]; then bad+="a CF Meet Admin role is privileged ($c); "; fi
+    [[ "$(psql_cdb -d postgres -c "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'pic_%' OR rolname LIKE 'karryam_admin_%'" 2>/dev/null || echo 0)" == 0 ]] || bad+="HQ or Karryam Admin roles exist in the CF Meet Admin database; "
+  else pending+="CF Meet Admin database not running; "; fi
   if docker inspect "$PA_HQ_DB_CONTAINER" >/dev/null 2>&1; then
     local h; h="$(psql_hq -d "$PA_HQ_DB_NAME" -c "SELECT string_agg(rolname || ':' || rolsuper || rolcreaterole || rolcreatedb || rolbypassrls, ',') FROM pg_roles WHERE rolname LIKE 'pic_%'" 2>/dev/null || echo ERROR)"
     if [[ "$h" == ERROR ]]; then bad+="DB-A unreadable; "
     elif [[ -z "$h" ]]; then pending+="DB-A PIC roles not created; "
     elif [[ "$h" == *true* ]]; then bad+="a PIC role is privileged ($h); "; fi
     [[ "$(psql_hq -d "$PA_HQ_DB_NAME" -c "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'karryam_admin_%'" 2>/dev/null || echo 0)" == 0 ]] || bad+="Karryam Admin roles exist in DB-A; "
+    [[ "$(psql_hq -d "$PA_HQ_DB_NAME" -c "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'cfmeet_admin_%'" 2>/dev/null || echo 0)" == 0 ]] || bad+="CF Meet Admin roles exist in DB-A; "
     local acl; acl="$(psql_hq -d "$PA_HQ_DB_NAME" -c "SELECT coalesce(datacl::text, 'DEFAULT') FROM pg_database WHERE datname = '$PA_HQ_DB_NAME'" 2>/dev/null || echo ERROR)"
     if [[ "$acl" == DEFAULT || "$acl" =~ (\{|,)=[A-Za-z]*c ]]; then pending+="PUBLIC still holds CONNECT on $PA_HQ_DB_NAME (operator decision, runbook 9.1); "; fi
   else pending+="DB-A container $PA_HQ_DB_CONTAINER not found; "; fi
   if [[ -n "$bad" ]]; then check db_roles_separated FAIL "$bad"
   elif [[ -n "$pending" ]]; then check db_roles_separated PENDING_EXTERNAL "$pending"
-  else check db_roles_separated PASS "migration/runtime roles unprivileged; no cross-database roles; DB-B on its own server"; fi
+  else check db_roles_separated PASS "migration/runtime roles unprivileged; no cross-database roles; DB-B on its own server$cmnote"; fi
 }
 
 backup() {
@@ -445,6 +632,11 @@ backup() {
   if running "$CTR_KDB" && [[ "$(psql_kdb -d postgres -c "SELECT count(*) FROM pg_database WHERE datname='karryam_admin'" 2>/dev/null || echo 0)" == 1 ]]; then
     docker exec "$CTR_KDB" sh -c 'PGPASSWORD="$(cat /run/secrets/karryam-admin-db/postgres-password)" pg_dump -h 127.0.0.1 -U postgres -Fc karryam_admin' > "$d/db-b-karryam_admin.dump"
     parts+=("db-b-karryam_admin.dump:$(docker inspect -f '{{.Config.Image}}' "$CTR_KDB")")
+  fi
+  if ! release_cm_on; then echo "CF Meet Admin database not backed up: not part of this release."
+  elif running "$CTR_CDB" && [[ "$(psql_cdb -d postgres -c "SELECT count(*) FROM pg_database WHERE datname='cfmeet_admin'" 2>/dev/null || echo 0)" == 1 ]]; then
+    docker exec "$CTR_CDB" sh -c 'PGPASSWORD="$(cat /run/secrets/cfmeet-admin-db/postgres-password)" pg_dump -h 127.0.0.1 -U postgres -Fc cfmeet_admin' > "$d/db-cfmeet-cfmeet_admin.dump"
+    parts+=("db-cfmeet-cfmeet_admin.dump:$(docker inspect -f '{{.Config.Image}}' "$CTR_CDB")")
   fi
   (( ${#parts[@]} )) || { check backup_restorable PENDING_EXTERNAL "no database to back up yet"; return; }
   (cd "$d" && sha256sum ./*.dump > SHA256SUMS)
@@ -483,7 +675,9 @@ latest_verified_backup_age_ok() {
 migrate_service() { # mode service
   local mode="$1" svc="$2" image net envf user
   [[ -f "$RELEASE_DIR/images.env" ]] || { check "migration_${mode}_$svc" NOT_RUN "no deployed release images"; return; }
+  if [[ "$svc" == cfmeet ]] && ! release_cm_on; then skipped "migration_${mode}_$svc"; return; fi
   if [[ "$svc" == pic ]]; then image="$(grep '^PIC_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)"; net=cf-staging-hq-private; envf="$PA_CONFIG_ROOT/product-integration-core.migrate.env"; user=10002:10002
+  elif [[ "$svc" == cfmeet ]]; then image="$(grep '^CFMEET_ADMIN_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)"; net=cf-staging-cfmeet-admin-db; envf="$PA_CONFIG_ROOT/cfmeet-admin.migrate.env"; user=10003:10003
   else image="$(grep '^KARRYAM_ADMIN_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)"; net=cf-staging-karryam-admin-db; envf="$PA_CONFIG_ROOT/karryam-admin.migrate.env"; user=10001:10001; fi
   [[ -f "$envf" ]] || { check "migration_${mode}_$svc" PENDING_EXTERNAL "operator migration env file missing"; return; }
   local args=(--rm --network "$net" --read-only --cap-drop ALL --security-opt no-new-privileges --user "$user" --env-file "$envf" "$image" node scripts/migrate.js)
@@ -493,12 +687,12 @@ migrate_service() { # mode service
   if (( rc == 0 )) && { [[ "$mode" == apply ]] || printf '%s' "$out" | grep -q '"ok":true'; }; then check "migration_${mode}_$svc" PASS "$svc $mode ok"; else check "migration_${mode}_$svc" FAIL "$svc $mode exit $rc"; fi
 }
 
-migrate_preview() { migrate_service preview pic; migrate_service preview karryam; }
+migrate_preview() { migrate_service preview pic; migrate_service preview karryam; migrate_service preview cfmeet; }
 migrate_apply() {
   require_root
   latest_verified_backup_age_ok || die "no verified, restorable backup from the last 24 hours: run backup first"
   FAILED=0; migrate_preview; (( FAILED )) && die "migration preview failed; nothing applied"
-  migrate_service apply pic; migrate_service apply karryam
+  migrate_service apply pic; migrate_service apply karryam; migrate_service apply cfmeet
   FAILED=0; migrate_preview
 }
 
@@ -506,6 +700,8 @@ disable() {
   require_root
   [[ -f "$RELEASE_DIR/images.env" ]] || die "nothing deployed"
   compose stop karryam-admin-worker karryam-admin product-integration-core
+  # CF Meet Admin (if in this release) stops too; its database is preserved like DB-B.
+  stop_cfmeet "$CTR_CW" "$CTR_CM"
   echo "DISABLED: Product Admin services stopped; DB-B, data, receipts and evidence preserved."
 }
 
@@ -531,9 +727,15 @@ attach_gateway() {
 
 status() {
   echo "== containers"; docker ps -a --filter "label=com.docker.compose.project=$PROJECT" --format '{{.Names}} {{.Status}} {{.Image}}' || true
-  echo "== release"; [[ -f "$RELEASE_DIR/images.env" ]] && grep -E '^(PIC_IMAGE|KARRYAM_ADMIN_IMAGE|PA_RELEASE_SHA)=' "$RELEASE_DIR/images.env" || echo "nothing deployed"
+  echo "== release"; [[ -f "$RELEASE_DIR/images.env" ]] && grep -E '^(PIC_IMAGE|KARRYAM_ADMIN_IMAGE|CFMEET_ADMIN_IMAGE|PA_RELEASE_SHA)=' "$RELEASE_DIR/images.env" || echo "nothing deployed"
   echo "== health"; echo "PIC live $(sock_status "$PIC_SOCK" /health/live) ready $(sock_status "$PIC_SOCK" /health/ready); Karryam Admin live $(sock_status "$KA_SOCK" /health/live) ready $(sock_status "$KA_SOCK" /health/ready)"
   echo "== sync"; [[ -S "$KA_SOCK" ]] && curl -s --max-time 5 --unix-socket "$KA_SOCK" http://local/sync/status | head -c 4000; echo
+  if release_cm_on; then
+    echo "== CF Meet Admin"; echo "live $(sock_status "$CM_SOCK" /health/live) ready $(sock_status "$CM_SOCK" /health/ready)"
+    [[ -S "$CM_SOCK" ]] && curl -s --max-time 5 --unix-socket "$CM_SOCK" http://local/sync/status | head -c 4000; echo
+  else
+    echo "== CF Meet Admin: not part of this release"
+  fi
 }
 
 LOCK="/run/lock/cf-product-admin-staging.lock"

@@ -10,7 +10,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseLcov, mergeCoverage, summarize, evaluate, pct, parseTapSummary, readSupplementalCoverage } from "../product-admin-coverage-gate.mjs";
 import { evaluateJsonl, evaluateTap, parseTap, parseJsonl } from "../product-admin-no-required-skips.mjs";
-import { runAudit, samplePaths } from "../product-admin-contract-audit.mjs";
+import { runAudit, samplePaths, profileFor, PRODUCTS } from "../product-admin-contract-audit.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const POLICY = JSON.parse(fs.readFileSync(path.join(ROOT, "infrastructure/product-admin/coverage-policy.json"), "utf8"));
@@ -143,4 +143,35 @@ test("root operator coverage: require successful exact-commit, hash-bound, nonem
     assert.ok(readSupplementalCoverage(file, sha).problem);
     fs.writeFileSync(file + ".json", "{"); assert.ok(readSupplementalCoverage(file, sha).problem);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("CF Meet contract audit: DRAFT defaults to the HQ draft checkout; bridge checks pass, and a missing required checkout fails closed", async () => {
+  const meta = JSON.parse(fs.readFileSync(path.join(ROOT, "services/cfmeet-admin/src/bridge/contracts/cfmeet-backoffice-v1.json"), "utf8"));
+  const report = await runAudit({ product: "cfmeet" });
+  assert.equal(report.product, "cfmeet");
+  const byId = Object.fromEntries(report.checks.map((c) => [c.id, c]));
+  assert.equal(byId["bridge.pinned_metadata"].status, "PASS", byId["bridge.pinned_metadata"].reason);
+  assert.equal(byId["bridge.pinned_metadata"].detail.contract_status, meta.contract_status);
+  assert.equal(byId["bridge.capability_registry"].status, "PASS", byId["bridge.capability_registry"].reason);
+  assert.equal(byId["bridge.capability_registry"].detail.capabilities, meta.capability_matrix.total);
+  if (meta.contract_status === "DRAFT") {
+    assert.equal(report.cfmeet_checkout, "PRESENT");
+    for (const id of ["bridge.source_artifact_digests", "bridge.source_methods_and_paths", "bridge.registry_regenerates"]) assert.equal(byId[id].status, "PASS", id + ": " + byId[id].reason);
+  }
+  assert.ok(byId["cfmeet_admin.api_catalog_in_sync"], "the CF Meet catalog is audited");
+  assert.equal(byId["karryam_admin.api_catalog_in_sync"], undefined);
+  const strict = await runAudit({ product: "cfmeet", checkout: path.join(ROOT, "no-such-cfmeet-checkout"), requireCheckout: true });
+  assert.equal(strict.checks.find((c) => c.id === "bridge.source_methods_and_paths").status, "FAIL");
+  assert.match(strict.checks.find((c) => c.id === "bridge.source_methods_and_paths").reason, /CFMEET_CHECKOUT/);
+  assert.equal(profileFor().product, "karryam");
+  assert.equal(PRODUCTS.cfmeet.reportFile, "cfmeet-admin-contract-audit.json");
+  assert.throws(() => profileFor("nope"));
+});
+
+test("committed policy covers CF Meet Admin like Karryam Admin", () => {
+  assert.ok(POLICY.projects.some((p) => p.dir === "services/cfmeet-admin" && p.database_env === "CFMEET_ADMIN_TEST_DATABASE_URL"));
+  const karryam = POLICY.modules.filter((m) => m.path.startsWith("services/karryam-admin/")).map((m) => m.path.replace("services/karryam-admin/", "").replace("/karrygo-", "/cfmeet-"));
+  const cfmeet = new Set(POLICY.modules.filter((m) => m.path.startsWith("services/cfmeet-admin/")).map((m) => m.path.replace("services/cfmeet-admin/", "")));
+  for (const p of karryam) assert.ok(cfmeet.has(p), "CF Meet policy is missing " + p);
+  assert.ok(cfmeet.has("src/sync/dataset-puller.js"));
 });

@@ -27,8 +27,14 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 
 export const REQUIRED_WORKFLOWS = ["Product Admin Platform CI", "Product Admin Infrastructure Security CI", "Monorepo Layout and Container CI"];
 export const COMPAT_WORKFLOWS = ["Social Operations CI"];
+// Product Admins evaluated by the static naming and boundary checks. Each
+// owns its Bridge network; no HQ component may be permitted on it.
+export const PRODUCT_ADMINS = [
+  { product: "karryam", service: "karryam-admin", bridgeNetwork: "karryam-bridge", bridgeEnvPrefix: "KARRYAM_BRIDGE_" },
+  { product: "cfmeet", service: "cfmeet-admin", bridgeNetwork: "cfmeet-bridge", bridgeEnvPrefix: "CFMEET_BRIDGE_" },
+];
 // Paths a Product Admin release range may touch (Sections 1-13 scope).
-const RELEASE_SCOPE = [/^services\/(karryam-admin|product-integration-core)\//, /^packages\//, /^infrastructure\/product-admin\//, /^infrastructure\/scripts\/(product-admin-|node-test-jsonl-reporter|tests\/)/, /^\.github\/workflows\/(product-admin-[a-z-]+|staging)\.yml$/, /^docs\/product-admin\//, /^services\/central-admin-api\/src\/modules\/product-gateway\//, /^services\/central-admin-api\/tests\/product-gateway/];
+const RELEASE_SCOPE = [/^services\/(karryam-admin|cfmeet-admin|product-integration-core)\//, /^packages\//, /^infrastructure\/product-admin\//, /^infrastructure\/scripts\/(product-admin-|node-test-jsonl-reporter|tests\/)/, /^\.github\/workflows\/(product-admin-[a-z-]+|staging)\.yml$/, /^docs\/product-admin\//, /^services\/central-admin-api\/src\/modules\/product-gateway\//, /^services\/central-admin-api\/tests\/product-gateway/];
 const PROTECTED_PATHS = [/^services\/central-admin-api\/src\/modules\/(mail|healthnet|marketing|auth|logistics)\//, /^services\/healthnet-admin\//, /^apps\/central-admin-web\//, /^\.github\/workflows\/production\.yml$/];
 
 function findFiles(dir, names) {
@@ -83,7 +89,7 @@ export function evaluate(inp) {
   // 2. Product naming
   const naming = inp.naming;
   if (!naming) gate(2, "Product naming", "NOT_RUN", { reason: "naming scan not run" });
-  else gate(2, "Product naming", naming.violations.length ? "FAIL" : "PASS", { evidence: ["static:naming-scan"], reason: naming.violations.length ? naming.violations.slice(0, 5).join("; ") : "product_id=karryam; KarryGo only in repository names, pinned contract paths and legacy technical paths" });
+  else gate(2, "Product naming", naming.violations.length ? "FAIL" : "PASS", { evidence: ["static:naming-scan"], reason: naming.violations.length ? naming.violations.slice(0, 5).join("; ") : "product_id=karryam" + (naming.products?.includes("cfmeet") ? ", product_id=cfmeet" : "") + "; KarryGo only in repository names, pinned contract paths and legacy technical paths" });
 
   const required = art.required_suites;
   const dbDisposable = required === undefined ? null : required.every((r) => r.status === "PASS");
@@ -92,10 +98,12 @@ export function evaluate(inp) {
   // 4. Headquarters boundary
   stagingGate(4, "Headquarters boundary", ["S1", "S2"], ok(inp.boundaryStatic), ["static:network-policy", "ci:static-boundaries", "rehearsal:network-probe"], "S1 db_no_cross_credentials and S2 network probe on the real host");
   // 5. Private Bridge
-  stagingGate(5, "Private Bridge", ["S3"], ok(inp.boundaryStatic), ["rehearsal:bridge-network-probe", "ci:connector-security (TLS 1.3 mTLS, pinned fingerprints)"], "Karryam Backoffice enrollment and attachment to cf-staging-karryam-bridge (S3)");
+  stagingGate(5, "Private Bridge", ["S3"], ok(inp.boundaryStatic), ["rehearsal:bridge-network-probe", "ci:connector-security (TLS 1.3 mTLS, pinned fingerprints)"], "Karryam Backoffice enrollment and attachment to cf-staging-karryam-bridge (S3); CF Meet Admin Bridge enrollment and attachment to cf-staging-cfmeet-bridge (S3)");
   // 6. Capability discovery
   const audit = art.contract_audit;
-  stagingGate(6, "Capability discovery", ["S3"], audit === undefined ? null : (audit.status ?? audit.result) === "PASS", ["ci:product-admin-contract-audit (435 capabilities)"], "Live discovery against the enrolled Bridge (S3)");
+  // Every product audit that was produced must pass (Karryam: 435 capabilities; CF Meet: its pinned or DRAFT total).
+  const audits = [audit, art.cfmeet_contract_audit].filter((a) => a !== undefined);
+  stagingGate(6, "Capability discovery", ["S3"], audit === undefined ? null : audits.every((a) => (a?.status ?? a?.result) === "PASS"), ["ci:product-admin-contract-audit (435 capabilities)", ...(art.cfmeet_contract_audit !== undefined ? ["ci:cfmeet-admin-contract-audit"] : [])], "Live discovery against the enrolled Bridge (S3)");
   // 7. Database migrations
   const drills = art.restore_drills;
   stagingGate(7, "Database migrations", ["S1"], drills === undefined && dbDisposable === null ? null : dbDisposable !== false && (drills === undefined || drills), ["ci:migrations + restore drills (disposable PostgreSQL)", "rehearsal:backup+migrate-apply"], "Staging backup, preview and approved migration (S1)");
@@ -134,10 +142,11 @@ export function evaluate(inp) {
 }
 
 export function collect({ sha, base, artifactsDir, ciStatusFile, stagingStateFile }) {
-  const files = findFiles(artifactsDir, ["product-admin-contract-audit.json", "karryam-admin-required-suites.json", "pic-required-suites.json", "product-admin-e2e-journeys.json", "product-admin-security-coverage.json", "product-admin-release-state.json", "release-status.json"]);
+  const files = findFiles(artifactsDir, ["product-admin-contract-audit.json", "cfmeet-admin-contract-audit.json", "karryam-admin-required-suites.json", "cfmeet-admin-required-suites.json", "pic-required-suites.json", "product-admin-e2e-journeys.json", "product-admin-security-coverage.json", "product-admin-release-state.json", "release-status.json"]);
   const artifacts = {};
   if (files["product-admin-contract-audit.json"]) artifacts.contract_audit = readJson(files["product-admin-contract-audit.json"][0]);
-  const req = [...(files["karryam-admin-required-suites.json"] || []), ...(files["pic-required-suites.json"] || [])].map(readJson).filter(Boolean);
+  if (files["cfmeet-admin-contract-audit.json"]) artifacts.cfmeet_contract_audit = readJson(files["cfmeet-admin-contract-audit.json"][0]);
+  const req = [...(files["karryam-admin-required-suites.json"] || []), ...(files["cfmeet-admin-required-suites.json"] || []), ...(files["pic-required-suites.json"] || [])].map(readJson).filter(Boolean);
   if (req.length) artifacts.required_suites = req;
   if (files["product-admin-e2e-journeys.json"]) artifacts.journeys = readJson(files["product-admin-e2e-journeys.json"][0]);
   const rehearsalStatus = files["release-status.json"] ? readJson(files["release-status.json"][0]) : null;
@@ -165,19 +174,24 @@ export function collect({ sha, base, artifactsDir, ciStatusFile, stagingStateFil
     Object.assign(production, { checked: Boolean(mainHead), mainChanged: mainHead ? git("merge-base", "--is-ancestor", sha, "origin/main") !== null : false, productionWorkflowChanged: changed.includes(".github/workflows/production.yml") });
   }
   // Naming: new Product Admin files must use Karryam; KarryGo only in allowed technical contexts.
-  const naming = { violations: [] };
+  const products = PRODUCT_ADMINS.filter((p) => fs.existsSync(path.join(ROOT, "services", p.service, "src/config/index.js")));
+  const naming = { violations: [], products: products.map((p) => p.product) };
   const allowed = /karrygo-backoffice|KarryGo repository|CosmicforgeHealthnet\/KarryGo|_karrygo|KARRYGO_|karrygo\/dispatch|legacy|pinned KarryGo|KarryGo checkout|KarryGo source|KarryGo staging|source_commit|KarryGo `services|KarryGo bridge|\bKarryGo\s*$|KarryGo (shared|services)\/|karrygo-[a-z-]+\.(v\d|json)/i;
-  for (const dir of ["infrastructure/product-admin", "services/karryam-admin/src", "services/product-integration-core/src"]) {
+  for (const dir of ["infrastructure/product-admin", ...products.map((p) => `services/${p.service}/src`), "services/product-integration-core/src"]) {
     const walk = (d) => { for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) { if (!/contracts|node_modules/.test(e.name)) walk(p); } else if (/\.(js|mjs|json|md|yml|sh|sql)$/.test(e.name)) { const lines = fs.readFileSync(path.join(ROOT, p), "utf8").split("\n"); lines.forEach((l, i) => { if (/karrygo/i.test(l) && !allowed.test(l)) naming.violations.push(`${p.replace(/\\/g, "/")}:${i + 1}`); }); } } };
     if (fs.existsSync(path.join(ROOT, dir))) walk(dir);
   }
   const productIdOk = fs.readFileSync(path.join(ROOT, "services/karryam-admin/src/config/index.js"), "utf8").includes('const PRODUCT_ID = "karryam"');
   if (!productIdOk) naming.violations.push("Karryam Admin PRODUCT_ID is not karryam");
+  for (const p of products.filter((x) => x.product !== "karryam")) {
+    if (!fs.readFileSync(path.join(ROOT, "services", p.service, "src/config/index.js"), "utf8").includes(`const PRODUCT_ID = "${p.product}"`)) naming.violations.push(`${p.service} PRODUCT_ID is not ${p.product}`);
+  }
   // HQ boundary (static): PIC template has no Bridge credentials; policy forbids the bypasses.
   const policy = readJson(path.join(ROOT, "infrastructure/product-admin/staging/network-policy.json"));
   const picTemplate = fs.readFileSync(path.join(ROOT, "infrastructure/product-admin/staging/product-integration-core.env.template"), "utf8");
-  const boundaryStatic = Boolean(policy) && !/KARRYAM_BRIDGE_|ADMIN_BACKOFFICE_/.test(picTemplate) &&
-    ["central-admin-api", "product-integration-core"].every((m) => !policy.networks["karryam-bridge"].permitted_members.includes(m));
+  // Every present Product Admin must have its Bridge network in the policy, and no HQ component may be permitted on it.
+  const boundaryStatic = Boolean(policy) && !/KARRYAM_BRIDGE_|CFMEET_BRIDGE_|ADMIN_BACKOFFICE_/.test(picTemplate) &&
+    products.every((p) => Boolean(policy.networks?.[p.bridgeNetwork]) && ["central-admin-api", "product-integration-core"].every((m) => !policy.networks[p.bridgeNetwork].permitted_members.includes(m)));
   const ci = ciStatusFile ? readJson(ciStatusFile) || {} : {};
   const staging = stagingStateFile ? readJson(stagingStateFile) : null;
   // The rehearsal runs in Infrastructure Security CI; without its artifact, that workflow's result for this commit is the evidence.

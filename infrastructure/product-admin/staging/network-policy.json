@@ -43,6 +43,26 @@
       "purpose": "Karryam Admin and its worker to the dedicated Karryam Admin database (DB-B). No HQ component joins it.",
       "required_members": ["karryam-admin", "karryam-admin-worker", "karryam-admin-db"],
       "permitted_members": ["karryam-admin", "karryam-admin-worker", "karryam-admin-db"]
+    },
+    "cfmeet-bridge": {
+      "name": "cf-staging-cfmeet-bridge",
+      "subnet_env": "PA_SUBNET_CMBRIDGE",
+      "default_subnet": "10.231.14.0/28",
+      "internal": true,
+      "managed_by": "prepare-host",
+      "purpose": "Network D: CF Meet Admin (server and Stage A worker) to the source-owned CF Meet Admin Bridge on TLS 1.3 :8110. The Bridge container is attached by its owner with a fixed address (CFMEET_BRIDGE_ADDRESS). No HQ component and no other Product Admin joins it.",
+      "required_members": ["cfmeet-admin", "cfmeet-admin-worker"],
+      "permitted_members": ["cfmeet-admin", "cfmeet-admin-worker", "cfmeet-admin-bridge"]
+    },
+    "cfmeet-admin-db": {
+      "name": "cf-staging-cfmeet-admin-db",
+      "subnet_env": "PA_SUBNET_CMDB",
+      "default_subnet": "10.231.15.0/28",
+      "internal": true,
+      "managed_by": "prepare-host",
+      "purpose": "CF Meet Admin and its worker to the dedicated CF Meet Admin database (cfmeet_admin). No HQ component and no other Product Admin joins it.",
+      "required_members": ["cfmeet-admin", "cfmeet-admin-worker", "cfmeet-admin-db"],
+      "permitted_members": ["cfmeet-admin", "cfmeet-admin-worker", "cfmeet-admin-db"]
     }
   },
   "sockets": {
@@ -67,6 +87,17 @@
       "socket_mode": "0660",
       "writer": "karryam-admin",
       "readers": ["product-integration-core"]
+    },
+    "cfmeet-admin": {
+      "host_dir": "run/cfmeet-admin",
+      "container_dir": "/run/cosmicforge/cfmeet",
+      "socket": "cfmeet-admin.sock",
+      "owner_uid": 10003,
+      "owner_gid": 10003,
+      "dir_mode": "0750",
+      "socket_mode": "0660",
+      "writer": "cfmeet-admin",
+      "readers": ["product-integration-core"]
     }
   },
   "allowed_flows": [
@@ -77,7 +108,13 @@
     { "from": "product-integration-core", "to": "hq-database", "via": "network:hq-private", "port": 5432, "purpose": "DB-A, schema hq_integration, runtime role" },
     { "from": "karryam-admin", "to": "karryam-admin-db", "via": "network:karryam-admin-db", "port": 5432, "purpose": "DB-B runtime role" },
     { "from": "karryam-admin-worker", "to": "karryam-admin-db", "via": "network:karryam-admin-db", "port": 5432, "purpose": "DB-B runtime role" },
-    { "from": "karryam-backoffice-bridge", "to": "bridge-metadata-database", "via": "source-owned", "purpose": "DB-C, owned and operated by Karryam Backoffice; outside this project" }
+    { "from": "karryam-backoffice-bridge", "to": "bridge-metadata-database", "via": "source-owned", "purpose": "DB-C, owned and operated by Karryam Backoffice; outside this project" },
+    { "from": "product-integration-core", "to": "cfmeet-admin", "via": "unix-socket:cfmeet-admin", "purpose": "Product Admin Protocol (cf-svc-v1 + product delegation)" },
+    { "from": "cfmeet-admin", "to": "cfmeet-admin-bridge", "via": "network:cfmeet-bridge", "port": 8110, "protocol": "TLS1.3-mTLS", "purpose": "Bridge reads, governed commands" },
+    { "from": "cfmeet-admin-worker", "to": "cfmeet-admin-bridge", "via": "network:cfmeet-bridge", "port": 8110, "protocol": "TLS1.3-mTLS", "purpose": "Stage A event feed, ACK and certified dataset pulls" },
+    { "from": "cfmeet-admin", "to": "cfmeet-admin-db", "via": "network:cfmeet-admin-db", "port": 5432, "purpose": "CF Meet Admin database runtime role" },
+    { "from": "cfmeet-admin-worker", "to": "cfmeet-admin-db", "via": "network:cfmeet-admin-db", "port": 5432, "purpose": "CF Meet Admin database runtime role" },
+    { "from": "cfmeet-admin-bridge", "to": "bridge-metadata-database", "via": "source-owned", "purpose": "Owned and operated by CF Meet; outside this project" }
   ],
   "forbidden_flows": [
     { "from": "central-admin-api", "to": "karryam-backoffice-bridge", "reason": "HQ never talks to source bridges" },
@@ -90,6 +127,20 @@
     { "from": "public-internet", "to": "product-integration-core", "reason": "no public listener" },
     { "from": "public-internet", "to": "karryam-admin", "reason": "no public listener" },
     { "from": "public-internet", "to": "karryam-backoffice-bridge", "reason": "no public Bridge route" },
+    { "from": "central-admin-api", "to": "cfmeet-admin-bridge", "reason": "HQ never talks to source bridges" },
+    { "from": "product-integration-core", "to": "cfmeet-admin-bridge", "reason": "only CF Meet Admin holds CF Meet Bridge credentials" },
+    { "from": "central-admin-api", "to": "cfmeet-admin-db", "reason": "HQ has no CF Meet Admin database credentials" },
+    { "from": "product-integration-core", "to": "cfmeet-admin-db", "reason": "the CF Meet Admin database belongs to CF Meet Admin" },
+    { "from": "cfmeet-admin", "to": "hq-database", "reason": "CF Meet Admin has no HQ credentials" },
+    { "from": "cfmeet-admin", "to": "source-operational-database", "reason": "source data only through the Bridge" },
+    { "from": "karryam-admin", "to": "cfmeet-admin", "reason": "Product Admins never talk to each other" },
+    { "from": "cfmeet-admin", "to": "karryam-admin", "reason": "Product Admins never talk to each other" },
+    { "from": "karryam-admin", "to": "cfmeet-admin-bridge", "reason": "a Product Admin talks only to its own source Bridge" },
+    { "from": "cfmeet-admin", "to": "karryam-backoffice-bridge", "reason": "a Product Admin talks only to its own source Bridge" },
+    { "from": "karryam-admin", "to": "cfmeet-admin-db", "reason": "a Product Admin uses only its own database" },
+    { "from": "cfmeet-admin", "to": "karryam-admin-db", "reason": "a Product Admin uses only its own database" },
+    { "from": "public-internet", "to": "cfmeet-admin", "reason": "no public listener" },
+    { "from": "public-internet", "to": "cfmeet-admin-bridge", "reason": "no public Bridge route" },
     { "from": "browser", "to": "internal-product-admin-endpoint", "reason": "Nginx denies /internal/* and private health/metrics paths" }
   ],
   "public_ingress": {

@@ -1,7 +1,7 @@
 # Product Admin observability (Section 12.5)
 
-What exists in the repository: private metrics and status endpoints in both
-services, alert rules, and tests. What does **not** exist yet: a deployed
+What exists in the repository: private metrics and status endpoints in every
+Product Admin service (Karryam Admin, CF Meet Admin) and in PIC, alert rules, and tests. What does **not** exist yet: a deployed
 Prometheus/Alertmanager, scrape configuration on the staging host, or any
 alert routing. Nothing here claims a running monitoring stack.
 
@@ -19,6 +19,7 @@ to these sockets.
 | Karryam Admin | `GET /metrics` | Prometheus text 0.0.4; when disabled only process and `*_enabled` gauges | private socket |
 | Karryam Admin | `GET /sync/status` | sanitized cursors, holds, quarantine counts, last runs, coverage, HQ outbox heads/ACKs; `503 DISABLED` when disabled | private socket |
 | Karryam Admin | `GET /internal/product-admin/v1/sync/status` | protocol endpoint (unchanged) | cf-svc-v1 service auth (PIC only) |
+| CF Meet Admin | same routes as Karryam Admin (`/health/live`, `/health/ready`, `/metrics` with the `cfmeet_admin_` prefix, `/sync/status`, protocol sync status) | identical shapes; Bridge = CF Meet Admin Bridge | private socket `/run/cosmicforge/cfmeet/cfmeet-admin.sock` |
 | PIC | `GET /health/live`, `GET /health/ready` | database; `trust_store` (`CURRENT`, `CHANGED_RESTART_REQUIRED` → 503, `UNBOUND`); sync mode | private socket |
 | PIC | `GET /metrics` | Prometheus text 0.0.4 | private socket |
 
@@ -41,8 +42,9 @@ Central Admin API correlation ID).
 A Prometheus on the same host can scrape the sockets through a local
 socket-to-loopback bridge owned by the monitoring account (for example a
 `socat` sidecar in the service's socket group), or a node-exporter textfile
-job running `curl --unix-socket … /metrics`. Use `job="karryam-admin"` and
-`job="product-integration-core"` (the rules rely on these names). Do not
+job running `curl --unix-socket … /metrics`. Use `job="karryam-admin"`,
+`job="cfmeet-admin"` and `job="product-integration-core"` (the rules rely on
+these names). Do not
 publish the metrics ports and do not add them to public Nginx.
 
 ## Alert rules
@@ -51,6 +53,16 @@ publish the metrics ports and do not add them to public Nginx.
 `services/product-integration-core/tests/alert-rules.test.js`, which checks
 every rule has `for:`, a severity and a summary, that the required alerts
 exist, and that every referenced metric is exported by a service.
+
+CF Meet Admin exports the same metric set as Karryam Admin with the
+`cfmeet_admin_` prefix. The shared rules (`ProductAdmin*`: service down,
+database, crash loop, collector, revoked key, authentication, replay,
+quarantine, sync runs, migrations) cover both through `or` terms and the
+`job` label; every Karryam-specific rule (`Karryam*`, and the Karryam
+certificate-expiry and audit-persistence rules) has a `Cfmeet*` twin with the
+same threshold. The CF Meet Admin Bridge source-policy rule has no PIC
+subscription term (PIC subscription state is product-wide and already covered
+by `KarryamSourcePolicyUnavailable`).
 
 ```
 docker run --rm -v "$PWD/infrastructure/product-admin/monitoring:/w:ro" --entrypoint promtool prom/prometheus:v2.53.0 check rules /w/alerts.yml

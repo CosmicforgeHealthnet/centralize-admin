@@ -25,6 +25,10 @@
       "database_env": "KARRYAM_ADMIN_TEST_DATABASE_URL"
     },
     {
+      "dir": "services/cfmeet-admin",
+      "database_env": "CFMEET_ADMIN_TEST_DATABASE_URL"
+    },
+    {
       "dir": "services/product-integration-core",
       "database_env": "PIC_TEST_DATABASE_URL",
       "supplemental_coverage_env": "PIC_OPERATOR_COVERAGE_FILE"
@@ -432,6 +436,195 @@
       "purpose": "Audit-before-execute records",
       "lines": 100,
       "branches": 91
+    },
+    {
+      "path": "services/cfmeet-admin/src/bridge/client/signing.js",
+      "category": "hmac",
+      "purpose": "Bridge HMAC v2 canonical request and Ed25519 staff assertion signing",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/cfmeet-admin/src/bridge/capabilities.js",
+      "category": "permission_evaluation",
+      "purpose": "Product grant role to Bridge permission mapping",
+      "lines": 100,
+      "branches": 93
+    },
+    {
+      "path": "services/cfmeet-admin/src/protocol/handlers.js",
+      "category": "permission_evaluation",
+      "purpose": "Protocol handler authorization, scope and capability checks",
+      "lines": 89,
+      "branches": 74
+    },
+    {
+      "path": "services/cfmeet-admin/src/modules/reports.js",
+      "category": "finance",
+      "purpose": "Finance reports: per-currency totals, exact minor units, no FX",
+      "lines": 100,
+      "branches": 75
+    },
+    {
+      "path": "services/cfmeet-admin/src/modules/quality.js",
+      "category": "metric_coverage",
+      "purpose": "Reporting-truth states (LIVE/STALE/UNKNOWN/PARTIAL_COVERAGE)",
+      "lines": 100,
+      "branches": 81
+    },
+    {
+      "path": "services/cfmeet-admin/src/sync/datasets.js",
+      "category": "data_classification",
+      "purpose": "Dataset privacy classes and minimized projections to HQ",
+      "lines": 100,
+      "branches": 96
+    },
+    {
+      "path": "services/cfmeet-admin/src/sync/bridge-events.js",
+      "category": "data_classification",
+      "purpose": "Bridge event validation and field minimization",
+      "lines": 100,
+      "branches": 81
+    },
+    {
+      "path": "services/cfmeet-admin/src/db/operations.js",
+      "category": "idempotency",
+      "purpose": "Durable operation receipts and idempotency keys",
+      "lines": 96,
+      "branches": 75
+    },
+    {
+      "path": "services/cfmeet-admin/src/operations/service.js",
+      "category": "approval",
+      "purpose": "Governed command lifecycle, UNKNOWN_OUTCOME and readback",
+      "lines": 99,
+      "branches": 76
+    },
+    {
+      "path": "services/cfmeet-admin/src/db/approvals.js",
+      "category": "approval",
+      "purpose": "Bound independent approvals (intent digest, separation of duties)",
+      "lines": 100,
+      "branches": 77
+    },
+    {
+      "path": "services/cfmeet-admin/src/db/certifications.js",
+      "category": "approval",
+      "purpose": "High-risk certification in force",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/cfmeet-admin/src/bridge/errors.js",
+      "category": "rate_limiting",
+      "purpose": "Bridge status mapping incl. RATE_LIMITED 429 and retryability",
+      "lines": 100,
+      "branches": 83
+    },
+    {
+      "path": "services/cfmeet-admin/src/config/index.js",
+      "category": "config_validation",
+      "purpose": "Fail-closed CF Meet Admin configuration",
+      "lines": 95,
+      "branches": 86
+    },
+    {
+      "path": "services/cfmeet-admin/src/security/keys.js",
+      "category": "config_validation",
+      "purpose": "Key file loading, length, expiry and revocation",
+      "lines": 97,
+      "branches": 80
+    },
+    {
+      "path": "services/cfmeet-admin/src/security/nonce-store.js",
+      "category": "replay_protection",
+      "purpose": "Durable nonce/JTI claims",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/cfmeet-admin/src/transport/listener.js",
+      "category": "transport",
+      "purpose": "Unix socket mode, TLS 1.3 mTLS and fingerprint pinning",
+      "lines": 87,
+      "branches": 60
+    },
+    {
+      "path": "services/cfmeet-admin/src/transport/listen-spec.js",
+      "category": "transport",
+      "purpose": "Listener specification validation",
+      "lines": 100,
+      "branches": 84
+    },
+    {
+      "path": "services/cfmeet-admin/src/bridge/client/index.js",
+      "category": "transport",
+      "purpose": "Bridge client: pinned TLS 1.3 mTLS, private address only",
+      "lines": 98,
+      "branches": 89
+    },
+    {
+      "path": "services/cfmeet-admin/src/protocol/manifest.js",
+      "category": "signing",
+      "purpose": "Manifest provider",
+      "lines": 100,
+      "branches": 80
+    },
+    {
+      "path": "services/cfmeet-admin/src/modules/continuation.js",
+      "category": "cursor_sealing",
+      "purpose": "AES-GCM sealed, bound continuation tokens",
+      "lines": 100,
+      "branches": 96
+    },
+    {
+      "path": "services/cfmeet-admin/src/logger.js",
+      "category": "redaction",
+      "purpose": "Structured log redaction",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/cfmeet-admin/src/db/access-log.js",
+      "category": "redaction",
+      "purpose": "Sensitive data access records",
+      "lines": 100,
+      "branches": 100
+    },
+    {
+      "path": "services/cfmeet-admin/src/bridge/contracts/registry.js",
+      "category": "contract_drift",
+      "purpose": "Pinned CF Meet capability registry",
+      "lines": 99,
+      "branches": 83
+    },
+    {
+      "path": "services/cfmeet-admin/src/bridge/contracts/schema.js",
+      "category": "contract_drift",
+      "purpose": "Pinned Bridge schema validation",
+      "lines": 100,
+      "branches": 81
+    },
+    {
+      "path": "services/cfmeet-admin/src/db/governance.js",
+      "category": "data_governance",
+      "purpose": "Retention, legal hold and erasure governance",
+      "lines": 98,
+      "branches": 67
+    },
+    {
+      "path": "services/cfmeet-admin/src/audit/index.js",
+      "category": "audit",
+      "purpose": "Audit-before-execute records",
+      "lines": 100,
+      "branches": 91
+    },
+    {
+      "path": "services/cfmeet-admin/src/sync/dataset-puller.js",
+      "category": "data_classification",
+      "purpose": "Certified Bridge dataset pull: bounded daily windows, minimized projections into the CF Meet Admin database (provisional floor until measured on PostgreSQL in CI; raise to the measured value)",
+      "lines": 50,
+      "branches": 50
     },
     {
       "path": "services/product-integration-core/src/audit/index.js",

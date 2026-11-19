@@ -25,7 +25,7 @@
 //
 // Usage:
 //   node infrastructure/scripts/product-admin-coverage-gate.mjs [--only <project>] [--tests-may-fail] [--measure] [--reuse]
-// Env: COVERAGE_REPORT_DIR (default ./artifacts), KARRYAM_ADMIN_TEST_DATABASE_URL,
+// Env: COVERAGE_REPORT_DIR (default ./artifacts), KARRYAM_ADMIN_TEST_DATABASE_URL, CFMEET_ADMIN_TEST_DATABASE_URL,
 //      PIC_TEST_DATABASE_URL, PRODUCT_ADMIN_REQUIRE_DATABASE=1.
 // Output: <dir>/product-admin-security-coverage.json, raw lcov/TAP per project.
 

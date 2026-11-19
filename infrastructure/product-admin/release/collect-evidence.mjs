@@ -9,15 +9,22 @@
 // The latest line for a check wins (a re-run supersedes). Stage checks that
 // aggregate several host checks are derived here; a missing input is
 // NOT_RUN, never PASS.
+//
+// CF Meet Admin is optional: when a release does not include it, the host
+// script reports its checks as SKIPPED_NOT_DEPLOYED. Such a result is "not
+// applicable" only where the stage or composite declares it optional
+// (NOT_APPLICABLE in the evidence, or left out of a composite whose other
+// parts must still pass); anywhere else it is NOT_RUN.
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { STAGES, buildEvidence } from "./release-state.mjs";
 
+export const SKIPPED = "SKIPPED_NOT_DEPLOYED";
 const COMPOSITE = {
-  migration_preview_ok: ["migration_preview_pic", "migration_preview_karryam"],
-  migrations_applied: ["migration_apply_pic", "migration_apply_karryam"],
+  migration_preview_ok: { parts: ["migration_preview_pic", "migration_preview_karryam", "migration_preview_cfmeet"], optional: ["migration_preview_cfmeet"] },
+  migrations_applied: { parts: ["migration_apply_pic", "migration_apply_karryam", "migration_apply_cfmeet"], optional: ["migration_apply_cfmeet"] },
 };
 
 export function parseChecks(text) {
@@ -31,7 +38,7 @@ export function parseChecks(text) {
 }
 
 function combine(parts) {
-  if (parts.some((p) => !p)) return "NOT_RUN";
+  if (!parts.length || parts.some((p) => !p || p.status === SKIPPED)) return "NOT_RUN";
   if (parts.some((p) => p.status === "FAIL")) return "FAIL";
   if (parts.some((p) => p.status === "NOT_RUN")) return "NOT_RUN";
   if (parts.some((p) => p.status === "PENDING_EXTERNAL")) return "PENDING_EXTERNAL";
@@ -41,11 +48,20 @@ function combine(parts) {
 export function stageChecks(stageId, found) {
   const def = STAGES.stages.find((s) => s.id === stageId);
   if (!def) throw new Error("UNKNOWN_STAGE " + stageId);
+  const optional = new Set(def.optional_product_checks || []);
   return def.automated_checks.map((id) => {
-    if (found.has(id)) return found.get(id);
+    if (found.has(id)) {
+      const c = found.get(id);
+      if (c.status !== SKIPPED) return c;
+      return optional.has(id)
+        ? { id, status: "NOT_APPLICABLE", detail: c.detail || "optional product not part of this release" }
+        : { id, status: "NOT_RUN", detail: `reported ${SKIPPED} but ${id} is not an optional-product check` };
+    }
     if (COMPOSITE[id]) {
-      const parts = COMPOSITE[id].map((p) => found.get(p));
-      return { id, status: combine(parts), detail: COMPOSITE[id].map((p) => `${p}=${found.get(p)?.status || "MISSING"}`).join(", ") };
+      const { parts, optional: opt } = COMPOSITE[id];
+      // An optional part that reported SKIPPED_NOT_DEPLOYED is left out; every other part must pass.
+      const counted = parts.filter((p) => !(opt.includes(p) && found.get(p)?.status === SKIPPED)).map((p) => found.get(p));
+      return { id, status: combine(counted), detail: parts.map((p) => `${p}=${found.get(p)?.status || "MISSING"}`).join(", ") };
     }
     return { id, status: "NOT_RUN", detail: "no result recorded for this run" };
   });

@@ -177,3 +177,34 @@ test("verify detects altered or missing evidence and inconsistent PASSED stages"
   assert.ok(v.problems.some((p) => p.startsWith("S2 PASSED while S1")));
   assert.ok(v.problems.some((p) => p === "S2 PASSED without evidence"));
 });
+
+test("optional CF Meet Admin: NOT_APPLICABLE only for declared optional checks, never as PASS elsewhere", () => {
+  const d = def("S2");
+  assert.deepEqual(d.optional_product_checks, ["pic_to_cfmeet_socket"]);
+  const ev = (status) => buildEvidence({ stage: "S2", sha: SHA, environment: "staging", checks: d.automated_checks.map((id) => ({ id, status: status(id) })), authorization: { by: "operator-1", confirm: d.authorization.confirm } });
+  const ok = evaluateEvidence(d, ev((id) => (id === "pic_to_cfmeet_socket" ? "NOT_APPLICABLE" : "PASS")), { sha: SHA, environment: "staging" });
+  assert.equal(ok.status, "PASSED");
+  assert.ok(ok.reasons.includes("CHECK_NOT_APPLICABLE:pic_to_cfmeet_socket"));
+  const bad = evaluateEvidence(d, ev((id) => (id === "pic_to_karryam_socket" ? "NOT_APPLICABLE" : "PASS")), { sha: SHA, environment: "staging" });
+  assert.equal(bad.status, "FAILED");
+  assert.ok(bad.reasons.includes("CHECK_NOT_APPLICABLE_REFUSED:pic_to_karryam_socket"));
+});
+
+test("collect-evidence: SKIPPED_NOT_DEPLOYED becomes NOT_APPLICABLE or is left out of a composite only where optional", async () => {
+  const { stageChecks, parseChecks } = await import("../../product-admin/release/collect-evidence.mjs");
+  const line = (id, status) => `PA_CHECK {"id":"${id}","status":"${status}","detail":"x"}`;
+  const s1 = (cfmeet) => Object.fromEntries(stageChecks("S1", parseChecks([
+    line("migration_preview_pic", "PASS"), line("migration_preview_karryam", "PASS"), line("migration_preview_cfmeet", cfmeet),
+    line("migration_apply_pic", "PASS"), line("migration_apply_karryam", "PASS"), line("migration_apply_cfmeet", cfmeet),
+  ].join("\n"))).map((c) => [c.id, c.status]));
+  assert.equal(s1("SKIPPED_NOT_DEPLOYED").migrations_applied, "PASS");
+  assert.equal(s1("SKIPPED_NOT_DEPLOYED").migration_preview_ok, "PASS");
+  assert.equal(s1("FAIL").migrations_applied, "FAIL");
+  assert.equal(s1("PASS").migrations_applied, "PASS");
+  // A required part reported as skipped is never accepted.
+  const s1k = Object.fromEntries(stageChecks("S1", parseChecks([line("migration_apply_pic", "PASS"), line("migration_apply_karryam", "SKIPPED_NOT_DEPLOYED"), line("migration_apply_cfmeet", "PASS")].join("\n"))).map((c) => [c.id, c.status]));
+  assert.equal(s1k.migrations_applied, "NOT_RUN");
+  const s2 = Object.fromEntries(stageChecks("S2", parseChecks([line("pic_to_cfmeet_socket", "SKIPPED_NOT_DEPLOYED"), line("pic_to_karryam_socket", "SKIPPED_NOT_DEPLOYED")].join("\n"))).map((c) => [c.id, c.status]));
+  assert.equal(s2.pic_to_cfmeet_socket, "NOT_APPLICABLE");
+  assert.equal(s2.pic_to_karryam_socket, "NOT_RUN");
+});

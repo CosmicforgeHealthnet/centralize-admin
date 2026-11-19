@@ -24,6 +24,11 @@ name: Product Admin staging operations
 # push, `deploy` runs automatically ONLY when the repository variable
 # PRODUCT_ADMIN_STAGING_AUTO_DEPLOY is "true" AND the release state on the
 # host shows S1 PASSED for the host (prepared, migrated). Default: off.
+#
+# CF Meet Admin is optional: its image is built, smoke-tested and passed to
+# the host (PA_CM_IMAGE) only when include_cfmeet=true (manual run) or the
+# repository variable PRODUCT_ADMIN_STAGING_CFMEET is "true" (automatic
+# delivery). Otherwise a deploy is PIC + Karryam Admin exactly as before.
 
 on:
   push:
@@ -64,6 +69,11 @@ on:
         description: "Mutating operations: APPLY_STAGING_PRODUCT_ADMIN_CHANGES"
         required: false
         default: ""
+      include_cfmeet:
+        description: "deploy: include CF Meet Admin (needs the CF Meet operator files on the host)"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -105,6 +115,7 @@ jobs:
       sha: ${{ steps.p.outputs.sha }}
       host: ${{ steps.p.outputs.host }}
       auto: ${{ steps.p.outputs.auto }}
+      cfmeet: ${{ steps.p.outputs.cfmeet }}
     steps:
       - id: p
         env:
@@ -113,6 +124,8 @@ jobs:
           CONFIRM: ${{ inputs.confirm }}
           INPUT_SHA: ${{ inputs.release_sha }}
           RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          INCLUDE_CFMEET: ${{ inputs.include_cfmeet }}
+          AUTO_CFMEET: ${{ vars.PRODUCT_ADMIN_STAGING_CFMEET }}
         run: |
           set -euo pipefail
           if [[ "$EVENT" == push ]]; then op=connection-check; sha="$GITHUB_SHA"; auto=false
@@ -126,8 +139,12 @@ jobs:
               [[ "$auto" == true || "$CONFIRM" == APPLY_STAGING_PRODUCT_ADMIN_CHANGES ]] || { echo "::error::$op needs confirm=APPLY_STAGING_PRODUCT_ADMIN_CHANGES. Nothing was started."; exit 1; }; host=true ;;
             *) echo "::error::unknown operation $op"; exit 1 ;;
           esac
-          { echo "operation=$op"; echo "sha=$sha"; echo "host=$host"; echo "auto=$auto"; } >> "$GITHUB_OUTPUT"
-          echo "Operation $op, release commit $sha (automatic: $auto). Production is never targeted."
+          cfmeet=false
+          if [[ "$op" == deploy ]]; then
+            if [[ "$auto" == true ]]; then [[ "$AUTO_CFMEET" == true ]] && cfmeet=true; else [[ "$INCLUDE_CFMEET" == true ]] && cfmeet=true; fi
+          fi
+          { echo "operation=$op"; echo "sha=$sha"; echo "host=$host"; echo "auto=$auto"; echo "cfmeet=$cfmeet"; } >> "$GITHUB_OUTPUT"
+          echo "Operation $op, release commit $sha (automatic: $auto, CF Meet Admin: $cfmeet). Production is never targeted."
 
   s0:
     name: S0 - reviewed commit and required CI
@@ -180,6 +197,7 @@ jobs:
     outputs:
       pic: ${{ steps.d.outputs.pic }}
       ka: ${{ steps.d.outputs.ka }}
+      cm: ${{ steps.d.outputs.cm }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -194,20 +212,28 @@ jobs:
         id: d
         env:
           SHA: ${{ needs.plan.outputs.sha }}
+          CFMEET: ${{ needs.plan.outputs.cfmeet }}
         run: |
           set -euo pipefail
+          names=(karryam-admin product-integration-core)
+          specs=("karryam-admin:karryam-admin.sock:10001" "product-integration-core:product-integration-core.sock:10002")
+          cm_contract="not-included"
+          if [[ "$CFMEET" == true ]]; then names+=(cfmeet-admin); specs+=("cfmeet-admin:cfmeet-admin.sock:10003"); fi
           contract="$(node -p "require('./services/karryam-admin/src/bridge/contracts/karrygo-backoffice-v1.json').source_commit")"
-          for n in karryam-admin product-integration-core; do
+          # CF Meet Admin carries its own Bridge contract pin (DRAFT:DRAFT-UNPINNED until CF Meet publishes A0).
+          if [[ "$CFMEET" == true ]]; then cm_contract="$(node -p "const m=require('./services/cfmeet-admin/src/bridge/contracts/cfmeet-backoffice-v1.json'); m.contract_status + ':' + m.source_commit")"; fi
+          for n in "${names[@]}"; do
             ref="ghcr.io/cosmicforgehealthnet/$n:staging-$SHA"
+            label="$contract"; [[ "$n" == cfmeet-admin ]] && label="$cm_contract"
             if docker pull -q "$ref" >/dev/null 2>&1; then
               [[ "$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$ref")" == "$SHA" ]] || { echo "::error::$ref exists with another revision"; exit 1; }
               echo "$ref already published from $SHA (immutable, reused)"
             else
-              docker build -q --label "org.opencontainers.image.revision=$SHA" --label "com.cosmicforge.bridge-contract=$contract" --label "com.cosmicforge.protocol=1.1" -f "services/$n/Dockerfile" -t "$ref" . >/dev/null
+              docker build -q --label "org.opencontainers.image.revision=$SHA" --label "com.cosmicforge.bridge-contract=$label" --label "com.cosmicforge.protocol=1.1" -f "services/$n/Dockerfile" -t "$ref" . >/dev/null
             fi
           done
           # Smoke: non-root, read-only, live 200, ready 503 while disabled.
-          for spec in "karryam-admin:karryam-admin.sock:10001" "product-integration-core:product-integration-core.sock:10002"; do
+          for spec in "${specs[@]}"; do
             IFS=: read -r n sock uid <<< "$spec"; dir="$(mktemp -d)"; chmod 0777 "$dir"
             docker run -d --rm --name "smoke-$n" --network none --read-only --cap-drop ALL --security-opt no-new-privileges -v "$dir:/run/cosmicforge" "ghcr.io/cosmicforgehealthnet/$n:staging-$SHA" >/dev/null
             for i in $(seq 1 30); do [ -S "$dir/$sock" ] && break; sleep 1; done
@@ -217,15 +243,21 @@ jobs:
             docker stop "smoke-$n" >/dev/null
           done
           mkdir -p _evidence
-          for n in karryam-admin product-integration-core; do
+          # cm stays empty (PA_CM_IMAGE unset on the host) unless CF Meet Admin was built for this release.
+          echo "cm=" >> "$GITHUB_OUTPUT"
+          for n in "${names[@]}"; do
             ref="ghcr.io/cosmicforgehealthnet/$n:staging-$SHA"
             docker manifest inspect "$ref" >/dev/null 2>&1 || docker push -q "$ref" >/dev/null
             digest="$(docker image inspect -f '{{range .RepoDigests}}{{println .}}{{end}}' "$ref" | grep -m1 '^ghcr.io/cosmicforgehealthnet/')"
             [[ "$digest" == *@sha256:* ]] || { echo "::error::no registry digest for $ref"; exit 1; }
-            [[ "$n" == karryam-admin ]] && echo "ka=$digest" >> "$GITHUB_OUTPUT" || echo "pic=$digest" >> "$GITHUB_OUTPUT"
+            case "$n" in
+              karryam-admin) echo "ka=$digest" >> "$GITHUB_OUTPUT" ;;
+              cfmeet-admin) echo "cm=$digest" >> "$GITHUB_OUTPUT" ;;
+              *) echo "pic=$digest" >> "$GITHUB_OUTPUT" ;;
+            esac
             echo "$n $digest"
           done | tee _evidence/digests.txt
-          printf '{"report":"product-admin-image-digests","environment":"staging","source_sha":"%s","bridge_contract":"%s","generated_at":"%s","digests":"%s"}\n' "$SHA" "$contract" "$(date -u +%FT%TZ)" "$(tr '\n' ' ' < _evidence/digests.txt)" > _evidence/product-admin-image-digests.json
+          printf '{"report":"product-admin-image-digests","environment":"staging","source_sha":"%s","bridge_contract":"%s","cfmeet_bridge_contract":"%s","generated_at":"%s","digests":"%s"}\n' "$SHA" "$contract" "$cm_contract" "$(date -u +%FT%TZ)" "$(tr '\n' ' ' < _evidence/digests.txt)" > _evidence/product-admin-image-digests.json
       - uses: actions/upload-artifact@v4
         with:
           name: product-admin-image-digests
@@ -307,8 +339,8 @@ jobs:
           def docker_exists(kind, name):
               return call("docker",kind,"inspect",name)[0]==0
           sudo_rc,_=call("sudo","-n","-l")
-          networks=["cf-staging-hq-private","cf-staging-admin-private","cf-staging-karryam-bridge","cf-staging-karryam-admin-db"]
-          names=["admin-server-staging-app-1","admin-server-staging-db-1","cf-product-admin-staging-product-integration-core-1","cf-product-admin-staging-karryam-admin-1","cf-product-admin-staging-karryam-admin-db-1"]
+          networks=["cf-staging-hq-private","cf-staging-admin-private","cf-staging-karryam-bridge","cf-staging-karryam-admin-db","cf-staging-cfmeet-bridge","cf-staging-cfmeet-admin-db"]
+          names=["admin-server-staging-app-1","admin-server-staging-db-1","cf-product-admin-staging-product-integration-core-1","cf-product-admin-staging-karryam-admin-1","cf-product-admin-staging-karryam-admin-db-1","cf-product-admin-staging-cfmeet-admin-1","cf-product-admin-staging-cfmeet-admin-db-1"]
           result={
            "report":"product-admin-staging-readonly-inventory","environment":"staging",
            "user":os.environ.get("USER","unknown"),"euid":os.geteuid(),
@@ -334,6 +366,7 @@ jobs:
           AUTO: ${{ needs.plan.outputs.auto }}
           PIC: ${{ needs.images.outputs.pic }}
           KA: ${{ needs.images.outputs.ka }}
+          CM: ${{ needs.images.outputs.cm }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -345,7 +378,7 @@ jobs:
               || { echo "Automatic delivery skipped: no prepared host with S1 PASSED. Nothing changed."; exit 0; }
           fi
           # Secrets travel only on stdin, never on a remote command line.
-          { printf 'export PA_RELEASE_SHA=%q PA_PIC_IMAGE=%q PA_KA_IMAGE=%q PA_RUN_ID=%q GHCR_USER=%q GHCR_TOKEN=%q\n' "$SHA" "$PIC" "$KA" "$run" "$GHCR_USER" "$GHCR_TOKEN"
+          { printf 'export PA_RELEASE_SHA=%q PA_PIC_IMAGE=%q PA_KA_IMAGE=%q PA_CM_IMAGE=%q PA_RUN_ID=%q GHCR_USER=%q GHCR_TOKEN=%q\n' "$SHA" "$PIC" "$KA" "$CM" "$run" "$GHCR_USER" "$GHCR_TOKEN"
             printf 'bash %q/infrastructure/product-admin/release/pa-staging-ops.sh %q\n' "$d" "$OP"
           } | "$ssh" "bash -s" | tee ops.log
       - name: Stage evidence and durable release state

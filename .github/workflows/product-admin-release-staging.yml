@@ -1,13 +1,15 @@
 name: Product Admin Release (staging, manual)
 
-# Release preparation for the two new private services — the independent
-# Karryam Admin and the HQ Product Integration Core. Manual, staging-only.
+# Release preparation for the private Product Admin services — the
+# independent Karryam Admin, the independent CF Meet Admin and the HQ Product
+# Integration Core. Manual, staging-only. CF Meet Admin is optional: it is
+# migrated, built, smoke-tested and published only with include_cfmeet=true.
 #
 # What it does:
 #   1. Preflight: forward-only migrations (and the restricted runtime role)
 #      on a disposable PostgreSQL; configuration validation with disposable
 #      fixture keys; disabled-by-default startup.
-#   2. Builds both images with an immutable tag (staging-<commit SHA>) and
+#   2. Builds the images (CF Meet Admin only when included) with an immutable tag (staging-<commit SHA>) and
 #      smoke-tests them: non-root, read-only, no network, live=200,
 #      ready=503 while disabled, protocol endpoints refused, enabling without
 #      configuration fails closed.
@@ -33,6 +35,11 @@ on:
         required: false
         type: string
         default: ""
+      include_cfmeet:
+        description: Also migrate, build, smoke-test and publish CF Meet Admin
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,6 +47,9 @@ permissions:
 concurrency:
   group: product-admin-release-staging
   cancel-in-progress: false
+
+env:
+  INCLUDE_CFMEET: ${{ github.event.inputs.include_cfmeet == 'true' }}
 
 jobs:
   gate:
@@ -83,6 +93,7 @@ jobs:
         run: |
           npm --prefix services/product-integration-core ci
           npm --prefix services/karryam-admin ci
+          if [ "$INCLUDE_CFMEET" = true ]; then npm --prefix services/cfmeet-admin ci; fi
       - name: Product Integration Core migrations with a restricted runtime role
         env:
           PGPASSWORD: postgres
@@ -112,6 +123,20 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE karryam_admin_release_preflight"
           KARRYAM_ADMIN_MIGRATION_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/karryam_admin_release_preflight \
             node services/karryam-admin/scripts/migrate.js
+      - name: CF Meet Admin migrations with a restricted runtime role
+        if: env.INCLUDE_CFMEET == 'true'
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE cfmeet_admin_release_preflight" -c "CREATE ROLE cfmeet_admin_runtime_preflight LOGIN PASSWORD 'preflight-only'"
+          CFMEET_ADMIN_MIGRATION_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cfmeet_admin_release_preflight CFMEET_ADMIN_RUNTIME_ROLE=cfmeet_admin_runtime_preflight             node services/cfmeet-admin/scripts/migrate.js
+          # Idempotent: a second run applies nothing and verifies checksums.
+          CFMEET_ADMIN_MIGRATION_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cfmeet_admin_release_preflight CFMEET_ADMIN_RUNTIME_ROLE=cfmeet_admin_runtime_preflight             node services/cfmeet-admin/scripts/migrate.js | tee /tmp/cfmeet-second-run.json
+          grep -q '"event":"done","applied":0,' /tmp/cfmeet-second-run.json
+          # The runtime role cannot change the schema.
+          refuse() { if "$@"; then echo "::error::expected to be refused: $*"; exit 1; fi; }
+          refuse env PGPASSWORD=preflight-only psql -h localhost -U cfmeet_admin_runtime_preflight -d cfmeet_admin_release_preflight -v ON_ERROR_STOP=1 -c "CREATE TABLE cfmeet_admin.x (id int)"
       - name: Configuration preflight (disposable fixtures, never real keys)
         run: |
           set -euo pipefail
@@ -132,6 +157,7 @@ jobs:
           # Disabled by default.
           node services/product-integration-core/scripts/check-config.js | grep -q '"enabled":false'
           node services/karryam-admin/scripts/check-config.js | grep -q '"enabled":false'
+          if [ "$INCLUDE_CFMEET" = true ]; then node services/cfmeet-admin/scripts/check-config.js | grep -q '"enabled":false'; fi
           # Enabled with a complete staging configuration.
           PIC_ENABLED=true PIC_ENVIRONMENT=staging PIC_EXPECT_ENVIRONMENT=staging PIC_DATABASE_URL=postgresql://runtime@db/pic \
             PIC_ENDPOINTS_FILE="$dir/endpoints.json" PIC_TRUSTED_SIGNERS_FILE="$dir/signers.json" PIC_HQ_DELEGATION_KEYS_FILE="$dir/hq.json" \
@@ -144,6 +170,7 @@ jobs:
             node services/product-integration-core/scripts/check-config.js
           refuse env PIC_ENABLED=true PIC_ENVIRONMENT=staging node services/product-integration-core/scripts/check-config.js
           refuse env KARRYAM_ADMIN_ENABLED=true node services/karryam-admin/scripts/check-config.js
+          if [ "$INCLUDE_CFMEET" = true ]; then refuse env CFMEET_ADMIN_ENABLED=true node services/cfmeet-admin/scripts/check-config.js; fi
           rm -rf "$dir"
 
   images:
@@ -166,6 +193,7 @@ jobs:
           set -euo pipefail
           docker build --label "org.opencontainers.image.revision=${GITHUB_SHA}" -f services/karryam-admin/Dockerfile -t "ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}" .
           docker build --label "org.opencontainers.image.revision=${GITHUB_SHA}" -f services/product-integration-core/Dockerfile -t "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}" .
+          if [ "$INCLUDE_CFMEET" = true ]; then docker build --label "org.opencontainers.image.revision=${GITHUB_SHA}" -f services/cfmeet-admin/Dockerfile -t "ghcr.io/cosmicforgehealthnet/cfmeet-admin:${TAG}" .; fi
       - name: Non-root, read-only, disabled-by-default smoke test
         env:
           TAG: ${{ steps.tag.outputs.tag }}
@@ -188,13 +216,19 @@ jobs:
           }
           check ka-release "ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}" karryam-admin.sock 10001 /internal/product-admin/v1/manifest
           check pic-release "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}" product-integration-core.sock 10002 /internal/pic/v1/products
+          if [ "$INCLUDE_CFMEET" = true ]; then check cm-release "ghcr.io/cosmicforgehealthnet/cfmeet-admin:${TAG}" cfmeet-admin.sock 10003 /internal/product-admin/v1/manifest; fi
           refuse() { if "$@"; then echo "::error::expected to be refused: $*"; exit 1; fi; }
           refuse docker run --rm --network none -e KARRYAM_ADMIN_ENABLED=true "ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}"
+          if [ "$INCLUDE_CFMEET" = true ]; then refuse docker run --rm --network none -e CFMEET_ADMIN_ENABLED=true "ghcr.io/cosmicforgehealthnet/cfmeet-admin:${TAG}"; fi
           refuse docker run --rm --network none -e PIC_ENABLED=true "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}"
       - name: Save images for the publish job
         env:
           TAG: ${{ steps.tag.outputs.tag }}
-        run: docker save "ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}" "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}" | gzip > /tmp/product-admin-images.tar.gz
+        run: |
+          set -euo pipefail
+          imgs=("ghcr.io/cosmicforgehealthnet/karryam-admin:${TAG}" "ghcr.io/cosmicforgehealthnet/product-integration-core:${TAG}")
+          if [ "$INCLUDE_CFMEET" = true ]; then imgs+=("ghcr.io/cosmicforgehealthnet/cfmeet-admin:${TAG}"); fi
+          docker save "${imgs[@]}" | gzip > /tmp/product-admin-images.tar.gz
       - uses: actions/upload-artifact@v4
         with:
           name: product-admin-images
@@ -233,7 +267,9 @@ jobs:
         run: |
           set -euo pipefail
           gunzip -c /tmp/product-admin-images.tar.gz | docker load
-          for name in karryam-admin product-integration-core; do
+          names=(karryam-admin product-integration-core)
+          if [ "$INCLUDE_CFMEET" = true ]; then names+=(cfmeet-admin); fi
+          for name in "${names[@]}"; do
             ref="ghcr.io/cosmicforgehealthnet/${name}:${TAG}"
             if docker manifest inspect "$ref" >/dev/null 2>&1; then
               echo "::error::${ref} already exists; immutable tags are never overwritten."

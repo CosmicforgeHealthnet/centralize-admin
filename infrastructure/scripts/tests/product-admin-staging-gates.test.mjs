@@ -79,3 +79,17 @@ test("missing inputs are NOT_RUN, never PASS", () => {
   for (const id of [1, 2, 3, 6, 8, 9, 10, 11, 12, 13, 14]) assert.equal(s[id], "NOT_RUN", `gate ${id}`);
   assert.equal(evaluate(inputs({ ci: { ...ciAll, "Social Operations CI": "in_progress" } })).gates.find((g) => g.id === 13).status, "NOT_RUN");
 });
+
+test("CF Meet: its contract audit must pass too when present, and naming names both products", () => {
+  const withCfmeet = (status) => inputs({ artifacts: { ...inputs().artifacts, cfmeet_contract_audit: { status } }, naming: { violations: [], products: ["karryam", "cfmeet"] } });
+  const ok = evaluate(withCfmeet("PASS"));
+  assert.equal(byId(ok)[6], "PENDING_EXTERNAL");
+  assert.ok(ok.gates.find((g) => g.id === 6).supporting_evidence.includes("ci:cfmeet-admin-contract-audit"));
+  assert.match(ok.gates.find((g) => g.id === 2).reason, /product_id=cfmeet/);
+  assert.match(ok.gates.find((g) => g.id === 5).external_prerequisite, /cf-staging-cfmeet-bridge/);
+  const bad = evaluate(withCfmeet("FAIL"));
+  assert.equal(byId(bad)[6], "FAIL");
+  assert.equal(bad.result, "NOT_CERTIFIED");
+  // Without a cfmeet audit artifact the Karryam behaviour is unchanged.
+  assert.equal(byId(evaluate(inputs()))[6], "PENDING_EXTERNAL");
+});

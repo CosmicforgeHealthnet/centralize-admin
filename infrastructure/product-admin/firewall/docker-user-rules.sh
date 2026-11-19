@@ -18,7 +18,8 @@
 # Usage (root, through product-admin-staging-ops prepare-host / preflight):
 #   docker-user-rules.sh print|apply|verify|remove
 # Environment: PA_EXTERNAL_INTERFACE (default: interface of the default
-# route), PA_SUBNET_HQ, PA_SUBNET_ADMIN, PA_SUBNET_BRIDGE, PA_SUBNET_KADB
+# route), PA_SUBNET_HQ, PA_SUBNET_ADMIN, PA_SUBNET_BRIDGE, PA_SUBNET_KADB,
+# PA_SUBNET_CMBRIDGE, PA_SUBNET_CMDB
 # (defaults from infrastructure/product-admin/staging/network-policy.json).
 set -euo pipefail
 
@@ -28,7 +29,9 @@ PA_SUBNET_HQ="${PA_SUBNET_HQ:-10.231.10.0/28}"
 PA_SUBNET_ADMIN="${PA_SUBNET_ADMIN:-10.231.11.0/28}"
 PA_SUBNET_BRIDGE="${PA_SUBNET_BRIDGE:-10.231.12.0/28}"
 PA_SUBNET_KADB="${PA_SUBNET_KADB:-10.231.13.0/28}"
-SUBNETS=("$PA_SUBNET_HQ" "$PA_SUBNET_ADMIN" "$PA_SUBNET_BRIDGE" "$PA_SUBNET_KADB")
+PA_SUBNET_CMBRIDGE="${PA_SUBNET_CMBRIDGE:-10.231.14.0/28}"
+PA_SUBNET_CMDB="${PA_SUBNET_CMDB:-10.231.15.0/28}"
+SUBNETS=("$PA_SUBNET_HQ" "$PA_SUBNET_ADMIN" "$PA_SUBNET_BRIDGE" "$PA_SUBNET_KADB" "$PA_SUBNET_CMBRIDGE" "$PA_SUBNET_CMDB")
 PORTS=(5432 8110)
 
 ext_if() {

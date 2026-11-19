@@ -19,8 +19,16 @@
 //      no database is touched because authentication is checked first).
 //
 // Exit 1 on any failed check (undocumented breaking drift). Usage:
-//   node infrastructure/scripts/product-admin-contract-audit.mjs [--out <dir>] [--require-checkout]
-// Env: KARRYGO_CHECKOUT, KARRYGO_REQUIRE_CHECKOUT=1, CONTRACT_AUDIT_DIR.
+//   node infrastructure/scripts/product-admin-contract-audit.mjs [--product karryam|cfmeet] [--out <dir>] [--require-checkout]
+// Env: KARRYGO_CHECKOUT, KARRYGO_REQUIRE_CHECKOUT=1 (karryam, the default);
+//      CFMEET_CHECKOUT, CFMEET_REQUIRE_CHECKOUT=1 (cfmeet); CONTRACT_AUDIT_DIR.
+//
+// --product cfmeet audits services/cfmeet-admin the same way. While its
+// contract is "contract_status": "DRAFT" (source_commit DRAFT-UNPINNED) the
+// default checkout is the HQ draft in services/cfmeet-admin/contract-draft;
+// once PINNED, source_commit must be a full SHA and the checkout is the
+// public CosmicforgeHealthnet/cfmeet repository at that commit. The cfmeet
+// report is written as cfmeet-admin-contract-audit.json.
 
 import fs from "node:fs";
 import os from "node:os";
@@ -34,6 +42,28 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const require = createRequire(import.meta.url);
 const EXPECTED_CAPABILITIES = 435;
+
+// Per-product Bridge contract profiles. Karryam stays exactly as before.
+export const PRODUCTS = Object.freeze({
+  karryam: Object.freeze({
+    product: "karryam", service: "karryam-admin", checkoutEnv: "KARRYGO_CHECKOUT", requireEnv: "KARRYGO_REQUIRE_CHECKOUT", checkoutLabel: "karrygo_checkout",
+    schemasFile: "karrygo-bridge-schemas.v1.json", contractDir: "services/admin-backoffice-service/docs/openapi", matrixFile: "KARRYGO_ADMIN_CAPABILITY_MATRIX.json",
+    expectedCapabilities: EXPECTED_CAPABILITIES, reportFile: "product-admin-contract-audit.json", catalogCheckId: "karryam_admin.api_catalog_in_sync", draftDir: null,
+  }),
+  cfmeet: Object.freeze({
+    product: "cfmeet", service: "cfmeet-admin", checkoutEnv: "CFMEET_CHECKOUT", requireEnv: "CFMEET_REQUIRE_CHECKOUT", checkoutLabel: "cfmeet_checkout",
+    schemasFile: "cfmeet-bridge-schemas.v1.json", contractDir: "services/admin-bridge/docs/contract", matrixFile: "CFMEET_ADMIN_CAPABILITY_MATRIX.json",
+    // The CF Meet contract is still evolving (DRAFT): the expected count is the pinned matrix total.
+    expectedCapabilities: null, reportFile: "cfmeet-admin-contract-audit.json", catalogCheckId: "cfmeet_admin.api_catalog_in_sync", draftDir: "services/cfmeet-admin/contract-draft",
+  }),
+});
+const DRAFT_COMMIT = "DRAFT-UNPINNED";
+
+export function profileFor(product = "karryam") {
+  const p = PRODUCTS[product];
+  if (!p) throw new Error(`unknown product ${product} (expected ${Object.keys(PRODUCTS).join("|")})`);
+  return p;
+}
 const EXPECTED_PROTOCOL = { major: 1, minor: 1 };
 
 const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");
@@ -51,22 +81,27 @@ function check(id, fn) {
 
 function assert(cond, message) { if (!cond) throw new Error(message); }
 
-function bridgeContractChecks(checkout, requireCheckout) {
-  const ka = path.join(ROOT, "services", "karryam-admin");
+function bridgeContractChecks(checkout, requireCheckout, profile = PRODUCTS.karryam) {
+  const ka = path.join(ROOT, "services", profile.service);
   const R = require(path.join(ka, "src/bridge/contracts/registry"));
   const { PINNED_BRIDGE_CONTRACT: P } = require(path.join(ka, "src/bridge/contracts"));
   const { compileBridgeSchema } = require(path.join(ka, "src/bridge/contracts/schema"));
-  const components = require(path.join(ka, "src/bridge/contracts/karrygo-bridge-schemas.v1.json")).components.schemas;
+  const components = require(path.join(ka, "src/bridge/contracts", profile.schemasFile)).components.schemas;
+  const draft = Boolean(profile.draftDir) && P.contract_status === "DRAFT";
+  const expected = profile.expectedCapabilities ?? P.capability_matrix?.total;
   const out = [];
   out.push(check("bridge.pinned_metadata", () => {
-    assert(/^[0-9a-f]{40}$/.test(P.source_commit), "source_commit is not a full SHA");
-    assert(P.product === "karryam", "pinned product is not karryam");
+    if (draft) assert(P.source_commit === DRAFT_COMMIT, `a DRAFT contract must carry source_commit ${DRAFT_COMMIT}`);
+    else assert(/^[0-9a-f]{40}$/.test(P.source_commit), "source_commit is not a full SHA");
+    if (profile.draftDir) assert(["DRAFT", "PINNED"].includes(P.contract_status), "contract_status must be DRAFT or PINNED");
+    assert(P.product === profile.product, `pinned product is not ${profile.product}`);
     for (const [rel, sha] of Object.entries(P.artifacts)) assert(/^[0-9a-f]{64}$/.test(sha), "artifact digest malformed: " + rel);
-    return { contract: P.contract, contract_version: P.contract_version, source_repository: P.source_repository, source_branch: P.source_branch, source_commit: P.source_commit, reviewed_at: P.reviewed_at, bridge_base_path: P.bridge_base_path, artifacts: P.artifacts };
+    return { contract: P.contract, contract_version: P.contract_version, ...(profile.draftDir ? { contract_status: P.contract_status } : {}), source_repository: P.source_repository, source_branch: P.source_branch, source_commit: P.source_commit, reviewed_at: P.reviewed_at, bridge_base_path: P.bridge_base_path, artifacts: P.artifacts };
   }));
   out.push(check("bridge.capability_registry", () => {
     const caps = R.CAPABILITIES;
-    assert(caps.length === EXPECTED_CAPABILITIES, `expected ${EXPECTED_CAPABILITIES} capabilities, found ${caps.length}`);
+    assert(Number.isInteger(expected) && expected > 0, "pinned capability total missing");
+    assert(caps.length === expected, `expected ${expected} capabilities, found ${caps.length}`);
     assert(caps.length === P.capability_matrix.total, "registry total differs from pinned matrix total");
     const ids = new Set();
     const problems = [];
@@ -87,18 +122,18 @@ function bridgeContractChecks(checkout, requireCheckout) {
     assert(JSON.stringify(Object.fromEntries(Object.entries(tally.matrix_state).sort())) === JSON.stringify(Object.fromEntries(Object.entries(P.capability_matrix.by_state).sort())), "matrix states differ from pinned metadata");
     assert(problems.length === 0, problems.slice(0, 20).join("; "));
     const s = R.summary();
-    assert(s.source_artifacts.openapi_sha256 === P.artifacts["services/admin-backoffice-service/docs/openapi/openapi.json"], "registry built from a different OpenAPI than pinned");
-    assert(s.source_artifacts.capability_matrix_sha256 === P.artifacts["services/admin-backoffice-service/docs/openapi/KARRYGO_ADMIN_CAPABILITY_MATRIX.json"], "registry built from a different matrix than pinned");
+    assert(s.source_artifacts.openapi_sha256 === P.artifacts[`${profile.contractDir}/openapi.json`], "registry built from a different OpenAPI than pinned");
+    assert(s.source_artifacts.capability_matrix_sha256 === P.artifacts[`${profile.contractDir}/${profile.matrixFile}`], "registry built from a different matrix than pinned");
     return { capabilities: caps.length, unique_ids: ids.size, digest: sha256(JSON.stringify(caps.map((c) => [c.id, c.method, c.path, c.kind, c.risk, c.module, c.matrix_state]))), ...tally };
   }));
   out.push(check("bridge.registry_files", () => {
     const dir = path.join(ka, "src/bridge/contracts");
     return Object.fromEntries(fs.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().map((f) => [f, sha256(Buffer.from(lf(path.join(dir, f))))]));
   }));
-  const have = checkout && fs.existsSync(path.join(checkout, "services/admin-backoffice-service/docs/openapi"));
+  const have = checkout && fs.existsSync(path.join(checkout, profile.contractDir));
   const skipOrFail = (id) => check(id, () => {
-    assert(!requireCheckout, "KARRYGO_CHECKOUT is required but not present" + (checkout ? ": " + checkout : ""));
-    return { status: "SKIP", reason: "KARRYGO_CHECKOUT not available" };
+    assert(!requireCheckout, `${profile.checkoutEnv} is required but not present` + (checkout ? ": " + checkout : ""));
+    return { status: "SKIP", reason: `${profile.checkoutEnv} not available` };
   });
   if (!have) {
     out.push(skipOrFail("bridge.source_artifact_digests"), skipOrFail("bridge.source_methods_and_paths"), skipOrFail("bridge.registry_regenerates"));
@@ -114,7 +149,7 @@ function bridgeContractChecks(checkout, requireCheckout) {
     return { checked: Object.keys(P.artifacts).length };
   }));
   out.push(check("bridge.source_methods_and_paths", () => {
-    const openapi = JSON.parse(fs.readFileSync(path.join(checkout, "services/admin-backoffice-service/docs/openapi/openapi.json"), "utf8"));
+    const openapi = JSON.parse(fs.readFileSync(path.join(checkout, profile.contractDir, "openapi.json"), "utf8"));
     assert(openapi.info.version === P.openapi.info_version, "OpenAPI info.version differs");
     assert(Object.keys(openapi.paths).length === P.openapi.path_count, "OpenAPI path count differs");
     const missing = R.CAPABILITIES.filter((c) => { const p = openapi.paths[R.BRIDGE_BASE + c.path]; return !p || !p[c.method.toLowerCase()]; }).map((c) => `${c.id} ${c.method} ${c.path}`);
@@ -164,13 +199,14 @@ function protocolChecks() {
   return out;
 }
 
-function catalogCheck() {
-  return check("karryam_admin.api_catalog_in_sync", () => {
-    const { buildCatalog, OUT } = require(path.join(ROOT, "services", "karryam-admin", "scripts", "api-catalog.js"));
+function catalogCheck(profile = PRODUCTS.karryam) {
+  return check(profile.catalogCheckId, () => {
+    const { buildCatalog, OUT } = require(path.join(ROOT, "services", profile.service, "scripts", "api-catalog.js"));
     const json = JSON.stringify(buildCatalog(), null, 2) + "\n";
-    assert(fs.existsSync(OUT) && lf(OUT) === json, "API catalog drift: run node services/karryam-admin/scripts/api-catalog.js and review the change");
+    assert(fs.existsSync(OUT) && lf(OUT) === json, `API catalog drift: run node services/${profile.service}/scripts/api-catalog.js and review the change`);
     const cat = JSON.parse(json);
-    assert(cat.bridge_contract.capabilities === EXPECTED_CAPABILITIES, "catalog capability count differs");
+    const { PINNED_BRIDGE_CONTRACT: P } = require(path.join(ROOT, "services", profile.service, "src/bridge/contracts"));
+    assert(cat.bridge_contract.capabilities === (profile.expectedCapabilities ?? P.capability_matrix.total), "catalog capability count differs");
     const mismatched = cat.section_10_2_hq_bridge_contracts.filter((c) => !c.matches_specification).map((c) => c.capability_id || c.id);
     assert(mismatched.length === 0, "Section 10.2 contracts differ from the specification: " + mismatched.join(", "));
     return { file: path.relative(ROOT, OUT).split(path.sep).join("/"), sha256: sha256(Buffer.from(json)), families: cat.families.length, section_10_2_contracts: cat.section_10_2_hq_bridge_contracts.length };
@@ -189,7 +225,7 @@ export function samplePaths(source, fragments) {
   return list.map((p) => p.replace(/\\\//g, "/"));
 }
 
-async function gatewayCheck() {
+async function gatewayCheck(productId = "karryam") {
   const id = "hq_gateway.routes_map_to_pic";
   let routesModule;
   const Module = require("node:module");
@@ -210,7 +246,7 @@ async function gatewayCheck() {
   try { ({ createApp } = require(path.join(ROOT, "services/product-integration-core/src/api/app.js"))); }
   catch (err) { return { id, status: "FAIL", reason: "PIC router not loadable (install services/product-integration-core dependencies): " + err.message }; }
   const fragments = [
-    ["[a-z][a-z0-9-]{1,31}", "karryam"],
+    ["[a-z][a-z0-9-]{1,31}", productId],
     ["[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "00000000-0000-4000-8000-000000000001"],
     ["[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", "sample.id-1"],
   ];
@@ -255,9 +291,20 @@ function gitSha() {
   try { return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim(); } catch { return null; }
 }
 
-export async function runAudit({ checkout = process.env.KARRYGO_CHECKOUT || null, requireCheckout = process.env.KARRYGO_REQUIRE_CHECKOUT === "1" } = {}) {
+/** Default checkout: the product's env var; for a DRAFT contract, the committed HQ draft. */
+export function defaultCheckout(profile) {
+  if (process.env[profile.checkoutEnv]) return profile.draftDir ? path.resolve(process.env[profile.checkoutEnv]) : process.env[profile.checkoutEnv];
+  if (!profile.draftDir) return null;
+  const { PINNED_BRIDGE_CONTRACT: P } = require(path.join(ROOT, "services", profile.service, "src/bridge/contracts"));
+  return P.contract_status === "DRAFT" ? path.join(ROOT, profile.draftDir) : null;
+}
+
+export async function runAudit({ product = "karryam", checkout, requireCheckout } = {}) {
+  const profile = profileFor(product);
+  if (checkout === undefined) checkout = defaultCheckout(profile);
+  if (requireCheckout === undefined) requireCheckout = process.env[profile.requireEnv] === "1";
   const started = new Date().toISOString();
-  const checks = [...bridgeContractChecks(checkout, requireCheckout), ...protocolChecks(), catalogCheck(), await gatewayCheck()];
+  const checks = [...bridgeContractChecks(checkout, requireCheckout, profile), ...protocolChecks(), catalogCheck(profile), await gatewayCheck(profile.product)];
   const failed = checks.filter((c) => c.status === "FAIL");
   return {
     artifact: "product-admin-contract-audit",
@@ -266,7 +313,8 @@ export async function runAudit({ checkout = process.env.KARRYGO_CHECKOUT || null
     environment: process.env.GITHUB_ACTIONS ? "github-actions" : "local",
     node_version: process.version,
     tool: "infrastructure/scripts/product-admin-contract-audit.mjs",
-    karrygo_checkout: checkout && fs.existsSync(checkout) ? "PRESENT" : "ABSENT",
+    ...(profile.product === "karryam" ? {} : { product: profile.product }),
+    [profile.checkoutLabel]: checkout && fs.existsSync(checkout) ? "PRESENT" : "ABSENT",
     started_at: started,
     finished_at: new Date().toISOString(),
     checks,
@@ -279,9 +327,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const argv = process.argv.slice(2);
   const outIdx = argv.indexOf("--out");
   const outDir = path.resolve(outIdx >= 0 ? argv[outIdx + 1] : process.env.CONTRACT_AUDIT_DIR || path.join(ROOT, "artifacts"));
-  const report = await runAudit({ requireCheckout: argv.includes("--require-checkout") || process.env.KARRYGO_REQUIRE_CHECKOUT === "1" });
+  const prodIdx = argv.indexOf("--product");
+  const profile = profileFor(prodIdx >= 0 ? argv[prodIdx + 1] : "karryam");
+  const report = await runAudit({ product: profile.product, requireCheckout: argv.includes("--require-checkout") || process.env[profile.requireEnv] === "1" });
   fs.mkdirSync(outDir, { recursive: true });
-  const file = path.join(outDir, "product-admin-contract-audit.json");
+  const file = path.join(outDir, profile.reportFile);
   fs.writeFileSync(file, JSON.stringify(report, null, 2) + "\n");
   for (const c of report.checks) process.stderr.write(`${c.status.padEnd(4)} ${c.id}${c.reason ? " — " + c.reason : ""}\n`);
   process.stderr.write(`contract audit: ${report.status} -> ${file}\n`);

@@ -7,7 +7,12 @@
 // plus the Nginx deny snippet and the firewall rules script.
 //
 //   node infrastructure/scripts/product-admin-infra-check.mjs \
-//     --compose-json resolved.json [--require-digests] [--report out.json]
+//     --compose-json resolved.json [--require-digests] [--require-product cfmeet] [--report out.json]
+//
+// CF Meet Admin is optional (compose profile "cfmeet"): a model without any
+// CF Meet service is valid; a model with one must have all three, and
+// --require-product cfmeet makes them mandatory (deploy passes it when the
+// release includes CF Meet Admin).
 //
 // Without --compose-json only the policy, Nginx and firewall checks run (and
 // the report says the compose model was NOT checked). Exit 1 on any failure.
@@ -22,7 +27,13 @@ const NGINX_FILE = path.join(ROOT, "infrastructure/product-admin/nginx/internal-
 const FIREWALL_FILE = path.join(ROOT, "infrastructure/product-admin/firewall/docker-user-rules.sh");
 
 const DIGEST_REF = /^[a-z0-9.-]+(?::[0-9]+)?\/[a-z0-9._/-]+@sha256:[0-9a-f]{64}$/;
-const PRIVATE_SERVICES = new Set(["product-integration-core", "karryam-admin", "karryam-admin-worker", "karryam-admin-db"]);
+// Product Admins on the shared staging host. Each has its own Bridge network,
+// database network, socket and uid; none may reach another's.
+export const PRODUCTS = Object.freeze([
+  { id: "karryam", admin: "karryam-admin", worker: "karryam-admin-worker", db: "karryam-admin-db", bridge: "karryam-backoffice-bridge", bridgeNet: "karryam-bridge", dbNet: "karryam-admin-db" },
+  { id: "cfmeet", optional: true, admin: "cfmeet-admin", worker: "cfmeet-admin-worker", db: "cfmeet-admin-db", bridge: "cfmeet-admin-bridge", bridgeNet: "cfmeet-bridge", dbNet: "cfmeet-admin-db" },
+]);
+const PRIVATE_SERVICES = new Set(["product-integration-core", ...PRODUCTS.flatMap((p) => [p.admin, p.worker, p.db])]);
 const MAX_MEM_BYTES = 1024 * 1024 * 1024;
 
 function toBytes(v) {
@@ -35,15 +46,21 @@ function toBytes(v) {
 function list(v) { return Array.isArray(v) ? v : v === undefined || v === null ? [] : [v]; }
 
 /** Checks one resolved compose model. Returns an array of { check, service?, ok, detail }. */
-export function checkCompose(model, policy, { requireDigests = false } = {}) {
+export function checkCompose(model, policy, { requireDigests = false, requireProducts = [] } = {}) {
   const out = [];
   const add = (check, ok, detail, service) => out.push({ check, service, ok: Boolean(ok), detail });
   const services = model.services || {};
   const netByKey = policy.networks;
   const nameToKey = Object.fromEntries(Object.entries(netByKey).map(([k, n]) => [n.name, k]));
+  // An optional product counts as deployed when any of its services is in the
+  // model (or it is explicitly required); then all of its services must be.
+  const deployed = new Set(PRODUCTS.filter((p) => !p.optional || requireProducts.includes(p.id) || [p.admin, p.worker, p.db].some((n) => services[n])).map((p) => p.id));
+  const absentNetworks = new Set(PRODUCTS.filter((p) => !deployed.has(p.id)).flatMap((p) => [p.bridgeNet, p.dbNet]));
+  for (const id of requireProducts) add("required-product-known", PRODUCTS.some((p) => p.id === id), id);
 
   add("project-name", model.name === policy.compose_project, `project=${model.name}`);
-  for (const expected of PRIVATE_SERVICES) add("service-present", services[expected], expected, expected);
+  add("service-present", services["product-integration-core"], "product-integration-core", "product-integration-core");
+  for (const p of PRODUCTS.filter((x) => deployed.has(x.id))) for (const expected of [p.admin, p.worker, p.db]) add("service-present", services[expected], expected, expected);
 
   for (const [name, s] of Object.entries(services)) {
     add("known-service", PRIVATE_SERVICES.has(name), "only the reviewed private services may be in this project", name);
@@ -98,6 +115,8 @@ export function checkCompose(model, policy, { requireDigests = false } = {}) {
   const models = model.networks || {};
   for (const [key, n] of Object.entries(netByKey)) {
     const m = models[key];
+    // Networks used only by an optional product that is not deployed may be pruned from the model.
+    if (!m && absentNetworks.has(key)) continue;
     add("network-declared", m, key);
     if (!m) continue;
     add("network-name", m.name === n.name, `${key}=${m.name}`);
@@ -137,14 +156,27 @@ export function checkPolicy(policy) {
   }
   const allowed = new Set(policy.allowed_flows.map((f) => f.from + ">" + f.to));
   for (const f of policy.forbidden_flows) add("policy-flow-not-contradictory", !allowed.has(f.from + ">" + f.to), `${f.from} -> ${f.to}`);
-  for (const must of [["central-admin-api", "karryam-backoffice-bridge"], ["product-integration-core", "karryam-backoffice-bridge"], ["central-admin-api", "karryam-admin-db"], ["karryam-admin", "hq-database"]]) {
-    add("policy-forbids-required-bypass", policy.forbidden_flows.some((f) => f.from === must[0] && f.to === must[1]), must.join(" -> "));
+  for (const p of PRODUCTS) {
+    for (const must of [["central-admin-api", p.bridge], ["product-integration-core", p.bridge], ["central-admin-api", p.db], [p.admin, "hq-database"]]) {
+      add("policy-forbids-required-bypass", policy.forbidden_flows.some((f) => f.from === must[0] && f.to === must[1]), must.join(" -> "));
+    }
+    // No HQ component may share a network with the Bridge.
+    const bridge = policy.networks[p.bridgeNet];
+    add("policy-bridge-network-excludes-hq", bridge && !bridge.permitted_members.some((m) => ["central-admin-api", "product-integration-core", "hq-database"].includes(m)), `${p.bridgeNet} members`);
+    const db = policy.networks[p.dbNet];
+    add("policy-db-b-excludes-hq", db && !db.permitted_members.some((m) => ["central-admin-api", "product-integration-core"].includes(m)), `${p.dbNet} members`);
+    // Product Admins are isolated from each other: no other product's service
+    // on this product's Bridge or database network, no socket shared between them.
+    const others = PRODUCTS.filter((o) => o !== p).flatMap((o) => [o.admin, o.worker, o.db, o.bridge]);
+    add("policy-product-networks-isolated", [bridge, db].every((n) => n && !n.permitted_members.some((m) => others.includes(m))), `${p.bridgeNet}, ${p.dbNet} exclude other products`);
+    const sock = Object.values(policy.sockets || {}).find((s) => s.writer === p.admin);
+    add("policy-product-socket", sock && sock.readers.length === 1 && sock.readers[0] === "product-integration-core", `${p.admin} socket read only by product-integration-core`);
+    for (const o of PRODUCTS.filter((x) => x !== p)) {
+      for (const to of [o.bridge, o.db]) add("policy-forbids-cross-product", policy.forbidden_flows.some((f) => f.from === p.admin && f.to === to), `${p.admin} -> ${to}`);
+    }
   }
-  // No HQ component may share a network with the Bridge.
-  const bridge = policy.networks["karryam-bridge"];
-  add("policy-bridge-network-excludes-hq", !bridge.permitted_members.some((m) => ["central-admin-api", "product-integration-core", "hq-database"].includes(m)), "karryam-bridge members");
-  const kadb = policy.networks["karryam-admin-db"];
-  add("policy-db-b-excludes-hq", !kadb.permitted_members.some((m) => ["central-admin-api", "product-integration-core"].includes(m)), "karryam-admin-db members");
+  const uids = Object.values(policy.sockets || {}).map((s) => s.owner_uid);
+  add("policy-socket-uids-unique", new Set(uids).size === uids.length, `socket owner uids ${uids.join(",")}`);
   return out;
 }
 
@@ -191,7 +223,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   let composeChecked = false;
   if (args["compose-json"]) {
     const model = JSON.parse(fs.readFileSync(args["compose-json"], "utf8"));
-    results.push(...checkCompose(model, policy, { requireDigests: args["require-digests"] === "true" }).map((r) => ({ area: "compose", ...r })));
+    const requireProducts = args["require-product"] && args["require-product"] !== "true" ? args["require-product"].split(",") : [];
+    results.push(...checkCompose(model, policy, { requireDigests: args["require-digests"] === "true", requireProducts }).map((r) => ({ area: "compose", ...r })));
     composeChecked = true;
   }
   const failed = results.filter((r) => !r.ok);

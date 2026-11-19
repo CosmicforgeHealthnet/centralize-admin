@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {evaluate, WORK_PACKAGES, BACKEND_DOD, HQ_DOD} from "../product-admin-section14-closure.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import {fileURLToPath} from "node:url";
+import {evaluate, markdown, workPackagesFor, WORK_PACKAGES, BACKEND_DOD, HQ_DOD} from "../product-admin-section14-closure.mjs";
+const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../../..");
 const SHA="a".repeat(40);
 const PENDING=new Set([3,4,5,6,7,8,10,11,12]);
 const gates=(overrides={},sha=SHA)=>({sha,result:"CODE_CERTIFIED_STAGING_PENDING",gates:Array.from({length:14},(_,i)=>({id:i+1,status:overrides[i+1] || (PENDING.has(i+1)?"PENDING_EXTERNAL":"PASS")}))});
@@ -43,4 +47,25 @@ test("all live gates pass still requires an independently verified owner decisio
   assert.equal(r.result,"STAGING_GATES_PASSED_SIGNOFF_PENDING");
   assert.equal(r.owner_signed_go_no_go_verified,false);
   assert.equal(r.production_promotion,"NO_GO");
+});
+test("karryam work packages are unchanged by the product mapping",()=>{
+  assert.deepEqual(workPackagesFor("karryam"),WORK_PACKAGES.map(w=>({...w})));
+  assert.equal(evaluate({sha:SHA,gatesReport:gates()}).product,undefined);
+});
+test("CF Meet closure maps every Product Admin path to services/cfmeet-admin, and those paths exist",()=>{
+  const wps=workPackagesFor("cfmeet");
+  const paths=wps.flatMap(w=>w.paths);
+  assert.ok(!paths.some(p=>/karryam-admin|karrygo/.test(p)),paths.join(","));
+  assert.ok(paths.includes("services/cfmeet-admin/src/bridge/contracts/cfmeet-backoffice-v1.json"));
+  assert.ok(paths.includes("services/cfmeet-admin/migrations/001_cfmeet_admin_foundation.sql"));
+  for(const p of paths) assert.ok(fs.existsSync(path.join(ROOT,p)),p);
+  const r=evaluate({sha:SHA,gatesReport:gates(),product:"cfmeet"});
+  assert.equal(r.product,"cfmeet");
+  assert.equal(r.result,"CODE_ACCEPTED_STAGING_PENDING");
+  assert.equal(r.production_promotion,"NO_GO");
+  assert.match(markdown(r),/CF Meet backend DoD/);
+  assert.equal(r.work_packages.find(w=>w.id==="WP3").name,"CF Meet runtime");
+  const blocked=evaluate({sha:SHA,gatesReport:gates(),product:"cfmeet",missingFiles:["services/cfmeet-admin/src/modules/reads.js"]});
+  assert.equal(blocked.work_packages.find(w=>w.id==="WP5").code_status,"BLOCKED");
+  assert.throws(()=>evaluate({sha:SHA,gatesReport:gates(),product:"nope"}));
 });

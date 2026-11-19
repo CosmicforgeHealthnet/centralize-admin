@@ -29,7 +29,10 @@ import { fileURLToPath } from "node:url";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const STAGES = JSON.parse(fs.readFileSync(path.join(HERE, "stages.json"), "utf8"));
 export const STATUSES = Object.freeze(STAGES.statuses);
-const CHECK_STATUSES = new Set(["PASS", "FAIL", "PENDING_EXTERNAL", "NOT_RUN"]);
+// NOT_APPLICABLE: an optional Product Admin (CF Meet Admin) is not part of the
+// release. Accepted only for the checks a stage lists in optional_product_checks;
+// anywhere else it fails the stage. It never counts as PASS.
+const CHECK_STATUSES = new Set(["PASS", "FAIL", "PENDING_EXTERNAL", "NOT_RUN", "NOT_APPLICABLE"]);
 const SHA = /^[0-9a-f]{40}$/;
 const ENVIRONMENTS = new Set(["staging", "rehearsal"]);
 const STATE_SCHEMA = "cf-product-admin-release-state/v1";
@@ -199,6 +202,10 @@ export function evaluateEvidence(def, ev, { sha, environment, startedBy }) {
     if (c.status === "FAIL") { failed = true; reasons.push("CHECK_FAILED:" + id); }
     else if (c.status === "NOT_RUN") { failed = true; reasons.push("CHECK_NOT_RUN:" + id); }
     else if (c.status === "PENDING_EXTERNAL") { blocked = true; reasons.push("CHECK_PENDING_EXTERNAL:" + id); }
+    else if (c.status === "NOT_APPLICABLE") {
+      if ((def.optional_product_checks || []).includes(id)) reasons.push("CHECK_NOT_APPLICABLE:" + id);
+      else { failed = true; reasons.push("CHECK_NOT_APPLICABLE_REFUSED:" + id); }
+    }
   }
   const operator = new Map((Array.isArray(ev.operator_evidence) ? ev.operator_evidence : []).map((o) => [o && o.id, o]));
   for (const id of def.operator_evidence) {

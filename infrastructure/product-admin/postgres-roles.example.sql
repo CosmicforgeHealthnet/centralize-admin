@@ -2,7 +2,10 @@
 -- Run with psql as a database administrator, passing passwords as psql
 -- variables chosen out of band (host secret manager); never commit them:
 --   psql -v pic_migrator_password=... -v pic_runtime_password=... \
---        -v karryam_admin_migrator_password=... -v karryam_admin_runtime_password=... -f postgres-roles.example.sql
+--        -v karryam_admin_migrator_password=... -v karryam_admin_runtime_password=... \
+--        -v cfmeet_admin_migrator_password=... -v cfmeet_admin_runtime_password=... -f postgres-roles.example.sql
+-- (Karryam Admin and CF Meet Admin each get their own database server in
+-- staging; run each product section against that product's server.)
 -- Applications never run this file and never create roles at startup.
 
 -- ---------------------------------------------------------------------------
@@ -42,12 +45,34 @@ GRANT CONNECT ON DATABASE karryam_admin TO karryam_admin_runtime;
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 -- Runtime grants: `KARRYAM_ADMIN_RUNTIME_ROLE=karryam_admin_runtime npm run migrate`.
 
+-- ---------------------------------------------------------------------------
+-- CF Meet Admin: its OWN administrative database (schema cfmeet_admin). It
+-- never shares the HQ registry, the Karryam Admin database or any CF Meet
+-- operational database, and no HQ or Karryam role can connect to it.
+-- ---------------------------------------------------------------------------
+CREATE ROLE cfmeet_admin_migrator LOGIN PASSWORD :'cfmeet_admin_migrator_password'
+  NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT CONNECTION LIMIT 2;
+CREATE ROLE cfmeet_admin_runtime LOGIN PASSWORD :'cfmeet_admin_runtime_password'
+  NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT CONNECTION LIMIT 20;
+
+CREATE DATABASE cfmeet_admin OWNER cfmeet_admin_migrator;
+REVOKE ALL ON DATABASE cfmeet_admin FROM PUBLIC;
+GRANT CONNECT ON DATABASE cfmeet_admin TO cfmeet_admin_runtime;
+
+\connect cfmeet_admin
+-- PostgreSQL 15+ already denies CREATE on schema public to PUBLIC; make it explicit.
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+-- Runtime grants: `CFMEET_ADMIN_RUNTIME_ROLE=cfmeet_admin_runtime npm run migrate`.
+
 -- Verification (expected: all false):
 --   SELECT rolname, rolsuper, rolcreaterole, rolcreatedb, rolbypassrls FROM pg_roles WHERE rolname LIKE '%runtime';
 --   SELECT has_database_privilege('pic_runtime', 'karryam_admin', 'CONNECT');
 --   SELECT has_database_privilege('karryam_admin_runtime', 'cosmicforge_admin', 'CONNECT');
--- The last check is true while PUBLIC still holds CONNECT on cosmicforge_admin
--- (the PostgreSQL default). Karryam Admin still has no USAGE on
+--   SELECT has_database_privilege('pic_runtime', 'cfmeet_admin', 'CONNECT');
+--   SELECT has_database_privilege('cfmeet_admin_runtime', 'cosmicforge_admin', 'CONNECT');
+-- The two *_admin_runtime -> cosmicforge_admin checks are true while PUBLIC
+-- still holds CONNECT on cosmicforge_admin
+-- (the PostgreSQL default). Karryam Admin (and CF Meet Admin) still has no USAGE on
 -- hq_integration and cannot read it, but to close the connection path the
 -- operator should first GRANT CONNECT explicitly to every existing Central
 -- Admin role that needs it and then:

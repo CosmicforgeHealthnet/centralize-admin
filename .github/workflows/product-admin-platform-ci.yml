@@ -1,7 +1,7 @@
 name: Product Admin Platform CI
 
 # Validates the Universal Product Admin Protocol packages, the independent
-# Karryam Admin service, the HQ Product Integration Core (registry,
+# Karryam Admin and CF Meet Admin services, the HQ Product Integration Core (registry,
 # onboarding, synchronization, synthetic third-product conformance) and both
 # container images. Build/test only: nothing is pushed or deployed.
 
@@ -11,6 +11,7 @@ on:
       - "services/central-admin-api/scripts/social-operations/secret-scan.js"
       - "packages/**"
       - "services/karryam-admin/**"
+      - "services/cfmeet-admin/**"
       - "services/product-integration-core/**"
       - "services/central-admin-api/src/modules/product-gateway/**"
       - "services/central-admin-api/tests/product-gateway*.test.js"
@@ -25,6 +26,7 @@ on:
       - "services/central-admin-api/scripts/social-operations/secret-scan.js"
       - "packages/**"
       - "services/karryam-admin/**"
+      - "services/cfmeet-admin/**"
       - "services/product-integration-core/**"
       - "services/central-admin-api/src/modules/product-gateway/**"
       - "services/central-admin-api/tests/product-gateway*.test.js"
@@ -172,6 +174,120 @@ jobs:
             echo "::warning title=KarryGo bridge contract drift::KarryGo staging no longer matches the pinned contract in src/bridge/contracts/karrygo-backoffice-v1.json. Review the change before re-pinning."
           fi
 
+  cfmeet-admin:
+    name: CF Meet Admin (independent service)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: services/cfmeet-admin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run check
+      - name: Resolve the CF Meet bridge contract source (DRAFT -> HQ draft, PINNED -> public cfmeet at source_commit)
+        id: cfmeet-pin
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          meta=services/cfmeet-admin/src/bridge/contracts/cfmeet-backoffice-v1.json
+          status="$(node -p "require('./$meta').contract_status")"
+          sha="$(node -p "require('./$meta').source_commit")"
+          case "$status" in
+            DRAFT)
+              [[ "$sha" == DRAFT-UNPINNED ]] || { echo "::error::a DRAFT contract must carry source_commit DRAFT-UNPINNED (got $sha)"; exit 1; }
+              { echo "pinned=false"; echo "sha="; echo "checkout=$GITHUB_WORKSPACE/services/cfmeet-admin/contract-draft"; } >> "$GITHUB_OUTPUT" ;;
+            PINNED)
+              [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::a PINNED contract needs a full 40-hex source_commit (got $sha)"; exit 1; }
+              { echo "pinned=true"; echo "sha=$sha"; echo "checkout=$GITHUB_WORKSPACE/_cfmeet-pinned"; } >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::contract_status must be DRAFT or PINNED (got $status)"; exit 1 ;;
+          esac
+          echo "CF Meet bridge contract: $status ${sha}"
+      # CF Meet is public; only the bridge contract artifacts are read (no code is run).
+      - name: Check out CF Meet at the pinned commit
+        if: steps.cfmeet-pin.outputs.pinned == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicforgeHealthnet/cfmeet
+          ref: ${{ steps.cfmeet-pin.outputs.sha }}
+          path: _cfmeet-pinned
+          persist-credentials: false
+      - name: Committed registry, schemas, adapters and metadata match the contract source (no drift)
+        env:
+          CFMEET_CHECKOUT: ${{ steps.cfmeet-pin.outputs.checkout }}
+        run: node scripts/pin-bridge-contract.js
+      - name: PostgreSQL client tools for the backup/restore drill
+        run: pg_dump --version && pg_restore --version
+      - name: Pinned registry, connector security, modules, operations, reports, Stage A/B pipeline, Section 9 database governance and backup/restore drill
+        env:
+          CFMEET_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          CFMEET_CHECKOUT: ${{ steps.cfmeet-pin.outputs.checkout }}
+          CFMEET_REQUIRE_CHECKOUT: "1"
+          PG_TOOLS_REQUIRED: "1"
+          RESTORE_DRILL_REPORT_DIR: ${{ github.workspace }}/_restore-drill-evidence
+        run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=../../infrastructure/scripts/node-test-jsonl-reporter.mjs --test-reporter-destination="$RUNNER_TEMP/cfmeet-admin.jsonl" tests/*.test.js
+      - name: No required security/database suite was skipped or missing
+        if: always()
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/_evidence"
+          node ../../infrastructure/scripts/product-admin-no-required-skips.mjs --results "$RUNNER_TEMP/cfmeet-admin.jsonl" --tests-dir tests --report "$GITHUB_WORKSPACE/_evidence/cfmeet-admin-required-suites.json"
+      - name: Contract audit (CF Meet bridge contract, protocol v1.1, schemas, API catalog, HQ gateway routes)
+        env:
+          CFMEET_CHECKOUT: ${{ steps.cfmeet-pin.outputs.checkout }}
+        run: |
+          npm --prefix ../product-integration-core ci
+          node ../../infrastructure/scripts/product-admin-contract-audit.mjs --product cfmeet --require-checkout --out "$GITHUB_WORKSPACE/_evidence"
+      - name: Upload contract audit and required-suite evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfmeet-admin-contract-audit
+          path: ${{ github.workspace }}/_evidence
+          if-no-files-found: warn
+      - name: Upload backup/restore drill evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfmeet-admin-restore-drill
+          path: ${{ github.workspace }}/_restore-drill-evidence
+          if-no-files-found: warn
+      - name: Check out CF Meet default-branch HEAD for drift detection (PINNED only)
+        if: steps.cfmeet-pin.outputs.pinned == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicforgeHealthnet/cfmeet
+          path: _cfmeet-head
+          persist-credentials: false
+      - name: Report CF Meet bridge contract drift (warning only; re-pin after review)
+        if: steps.cfmeet-pin.outputs.pinned == 'true'
+        env:
+          CFMEET_CHECKOUT: ${{ github.workspace }}/_cfmeet-head
+          CFMEET_REQUIRE_CHECKOUT: "1"
+        run: |
+          if node --test --test-name-pattern="pinned CF Meet" tests/boundaries.test.js; then
+            echo "CF Meet HEAD matches the pinned bridge contract."
+          else
+            echo "::warning title=CF Meet bridge contract drift::CF Meet HEAD no longer matches the pinned contract in src/bridge/contracts/cfmeet-backoffice-v1.json. Review the change before re-pinning."
+          fi
+
   product-integration-core:
     name: Product Integration Core (registry, onboarding, sync, conformance)
     runs-on: ubuntu-latest
@@ -268,6 +384,7 @@ jobs:
         run: |
           set -euo pipefail
           npm --prefix services/karryam-admin ci
+          npm --prefix services/cfmeet-admin ci
           npm --prefix services/product-integration-core ci
           for pkg in admin-contracts event-contracts identity-and-permissions service-clients; do if [ -f "packages/$pkg/package-lock.json" ]; then npm --prefix "packages/$pkg" ci; fi; done
       - name: Read the pinned KarryGo bridge contract commit
@@ -282,6 +399,33 @@ jobs:
           sparse-checkout: |
             services/admin-backoffice-service/docs/openapi
             shared/go/adminevents
+      - name: Resolve the CF Meet bridge contract source (DRAFT -> HQ draft, PINNED -> public cfmeet at source_commit)
+        id: cfmeet-pin
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          meta=services/cfmeet-admin/src/bridge/contracts/cfmeet-backoffice-v1.json
+          status="$(node -p "require('./$meta').contract_status")"
+          sha="$(node -p "require('./$meta').source_commit")"
+          case "$status" in
+            DRAFT)
+              [[ "$sha" == DRAFT-UNPINNED ]] || { echo "::error::a DRAFT contract must carry source_commit DRAFT-UNPINNED (got $sha)"; exit 1; }
+              { echo "pinned=false"; echo "sha="; echo "checkout=$GITHUB_WORKSPACE/services/cfmeet-admin/contract-draft"; } >> "$GITHUB_OUTPUT" ;;
+            PINNED)
+              [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::a PINNED contract needs a full 40-hex source_commit (got $sha)"; exit 1; }
+              { echo "pinned=true"; echo "sha=$sha"; echo "checkout=$GITHUB_WORKSPACE/_cfmeet-pinned"; } >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::contract_status must be DRAFT or PINNED (got $status)"; exit 1 ;;
+          esac
+          echo "CF Meet bridge contract: $status ${sha}"
+      # CF Meet is public; only the bridge contract artifacts are read (no code is run).
+      - name: Check out CF Meet at the pinned commit
+        if: steps.cfmeet-pin.outputs.pinned == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicforgeHealthnet/cfmeet
+          ref: ${{ steps.cfmeet-pin.outputs.sha }}
+          path: _cfmeet-pinned
+          persist-credentials: false
       - name: Signed operator delegation in an isolated root filesystem and disposable PostgreSQL
         env:
           PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
@@ -300,11 +444,14 @@ jobs:
       - name: Coverage gate (all projects, real PostgreSQL)
         env:
           KARRYAM_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          CFMEET_ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
           PIC_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
           PRODUCT_ADMIN_REQUIRE_DATABASE: "1"
           PG_TOOLS_REQUIRED: "1"
           KARRYGO_CHECKOUT: ${{ github.workspace }}/_karrygo-pinned
           KARRYGO_REQUIRE_CHECKOUT: "1"
+          CFMEET_CHECKOUT: ${{ steps.cfmeet-pin.outputs.checkout }}
+          CFMEET_REQUIRE_CHECKOUT: "1"
           COVERAGE_REPORT_DIR: ${{ github.workspace }}/_coverage
           PIC_OPERATOR_COVERAGE_FILE: ${{ runner.temp }}/operator-coverage/operator.lcov.info
         run: node infrastructure/scripts/product-admin-coverage-gate.mjs
@@ -364,9 +511,42 @@ jobs:
           ! docker run --rm --network none cosmicforge-karryam-admin:ci node src/worker/index.js
           ! docker run --rm --network none -e KARRYAM_ADMIN_ENABLED=true cosmicforge-karryam-admin:ci node src/worker/index.js
 
+  cfmeet-admin-container:
+    name: Build and smoke-test the CF Meet Admin image (no push/deploy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build the image from the repository root
+        run: docker build -f services/cfmeet-admin/Dockerfile -t cosmicforge-cfmeet-admin:ci .
+      - name: Disabled-by-default smoke test over a private Unix socket (uid 10003)
+        run: |
+          set -euo pipefail
+          status() { sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$1" "http://local$2"; }
+          dir="$(mktemp -d)"; chmod 0777 "$dir"; sock="$dir/cfmeet-admin.sock"
+          docker run -d --rm --name cfmeet-admin-smoke --network none --read-only --cap-drop ALL --security-opt no-new-privileges -v "$dir:/run/cosmicforge" cosmicforge-cfmeet-admin:ci >/dev/null
+          for i in $(seq 1 30); do [ -S "$sock" ] && break; sleep 1; done
+          test -S "$sock"
+          test "$(docker exec cfmeet-admin-smoke id -u)" = 10003
+          test "$(status "$sock" /health/live)" = 200
+          test "$(status "$sock" /health/ready)" = 503
+          # Protocol endpoints refuse service while disabled; the Bridge base is never served.
+          test "$(status "$sock" /internal/product-admin/v1/manifest)" = 503
+          test "$(status "$sock" /internal/cfmeet-admin/v1/capabilities)" = 404
+          echo "cfmeet-admin-smoke live=200 ready=503 protocol=503 uid=10003"
+          docker stop cfmeet-admin-smoke >/dev/null
+      - name: Enabling without configuration fails closed
+        run: |
+          set -euo pipefail
+          ! docker run --rm --network none -e CFMEET_ADMIN_ENABLED=true cosmicforge-cfmeet-admin:ci
+          # The Stage A worker (same image) refuses to start while disabled.
+          ! docker run --rm --network none cosmicforge-cfmeet-admin:ci node src/worker/index.js
+          ! docker run --rm --network none -e CFMEET_ADMIN_ENABLED=true cosmicforge-cfmeet-admin:ci node src/worker/index.js
+
   staging-gates:
     name: Section 13.3 staging gates (machine-readable and human-readable)
-    needs: [packages, karryam-admin, product-integration-core, security-coverage, containers]
+    needs: [packages, karryam-admin, cfmeet-admin, product-integration-core, security-coverage, containers, cfmeet-admin-container]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -399,7 +579,7 @@ jobs:
             // This workflow: its own required jobs.
             out["Product Admin Platform CI"] = process.argv[1] === "success" ? "success" : "failure";
             require("fs").writeFileSync("ci-status.json", JSON.stringify(out, null, 2));
-            console.log(out);' "${{ needs.karryam-admin.result == 'success' && needs.product-integration-core.result == 'success' && needs.packages.result == 'success' && needs.security-coverage.result == 'success' && needs.containers.result == 'success' && 'success' || 'failure' }}"
+            console.log(out);' "${{ needs.karryam-admin.result == 'success' && needs.cfmeet-admin.result == 'success' && needs.cfmeet-admin-container.result == 'success' && needs.product-integration-core.result == 'success' && needs.packages.result == 'success' && needs.security-coverage.result == 'success' && needs.containers.result == 'success' && 'success' || 'failure' }}"
       - name: Evaluate the fourteen gates
         env:
           BASE: ${{ github.event_name == 'push' && github.event.before || github.event.pull_request.base.sha }}
@@ -419,6 +599,13 @@ jobs:
           node infrastructure/scripts/product-admin-section14-closure.mjs --sha "$GITHUB_SHA" --gates _gates/product-admin-staging-gates.json \
             --report _gates/product-admin-section14-closure.json --markdown _gates/product-admin-section14-closure.md
           cat _gates/product-admin-section14-closure.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Section 14 closure for CF Meet Admin (same gates, CF Meet paths)
+        if: always()
+        run: |
+          set -euo pipefail
+          node infrastructure/scripts/product-admin-section14-closure.mjs --product cfmeet --sha "$GITHUB_SHA" --gates _gates/product-admin-staging-gates.json \
+            --report _gates/cfmeet-admin-section14-closure.json --markdown _gates/cfmeet-admin-section14-closure.md
+          cat _gates/cfmeet-admin-section14-closure.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
