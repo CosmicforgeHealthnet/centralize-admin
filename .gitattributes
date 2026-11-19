@@ -8,4 +8,9 @@ src/generated/admin-client/** -whitespace
 
 # Migration checksums hash the exact file bytes: never convert line endings.
 services/karryam-admin/migrations/*.sql -text
+services/cfmeet-admin/migrations/*.sql -text
 services/product-integration-core/migrations/*.sql -text
+
+# Pinned contract artifacts are hashed byte for byte (contract drift checks).
+services/cfmeet-admin/contract-draft/** -text
+services/cfmeet-admin/src/bridge/contracts/*.json -text

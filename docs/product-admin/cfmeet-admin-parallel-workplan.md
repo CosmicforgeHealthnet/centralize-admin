@@ -35,6 +35,26 @@ Both tracks follow the staging-first rules of their own repo: commit only the ta
 
 These rules mirror the Karryam bridge that HQ already consumes (`services/karryam-admin`), so the same connector code can be reused.
 
+### 3.0 Amendments agreed with Track A (2026-11-19)
+
+Track A and Track B agreed the following before A0. Where they differ from §3.1–§3.6, **these win**. HQ's machine-readable copy is `services/cfmeet-admin/contract-draft/`.
+
+| Topic | Agreed |
+|---|---|
+| Contract folder | `services/admin-bridge/docs/contract/`, not `docs/openapi/`. It also ships `capabilities.v1.json` (the karryam registry shape plus `query_shape`), `bridge-schemas.v1.json`, `event-adapters.v1.json` and `access-policy.v1.json` |
+| Query shapes | No `BASE` shape. Every route uses exactly one of:<br>`SCOPED` = market, organization, zone, tenant, purpose<br>`SCOPED_PAGE` = SCOPED + limit, cursor<br>`SCOPED_WINDOW` = SCOPED_PAGE + start, end<br>`SCOPED_SEARCH` = SCOPED_PAGE + q<br>Limit is 1–100, the window is at most 31 days (`end` at most 60 s in the future), and `q` matches `^[\p{L}\p{N} ._@:-]{1,128}$` |
+| Purposes | Hyphenated, fixed list: support-review, verification-review, abuse-review, billing-review, pricing-change, ops-incident, release-request, privacy-request, admin-ui-capabilities (discovery), metrics-read (datasets, health), event-sync (feed and ACK) |
+| Approval claim | `{approval_id, capability, requester_ref, approver_ref, intent_digest (64 hex), decided_at, expires_at}`. `requester_ref` is the raw HQ `sub`. Single use at the Bridge. Required on every `TWO_PERSON` capability; TWO_PERSON commands stay DISABLED until A3+ |
+| HMAC skew and token lifetime | Bridge allows ±30 s clock skew. Token `exp − iat` ≤ 60 s (HQ sends 20 s) |
+| acr, iss, aud | Staff acr `urn:cosmicforge:acr:mfa`, which is also the default strong set for R3/R4. Worker acr `urn:cosmicforge:acr:workload`, valid only with roles exactly `["cfmeet.source_sync"]`. iss `cosmicforge-hq`, aud `cfmeet-admin-bridge` |
+| Roles | The 11 HQ grant roles in design §6 map 1:1 to Bridge roles, plus the worker role `cfmeet.source_sync`, whose permission ceiling is `bridge.datasets.read`→metrics-read, `hq.events.read`/`hq.events.ack`/`hq.projections.read`→event-sync |
+| Platform capabilities | `bridge.capabilities.read` GET /capabilities (SCOPED)<br>`bridge.health.read` GET /health/aggregate<br>`bridge.datasets.read` GET /datasets/{dataset_id} (SCOPED_WINDOW, `^cfmeet\.[a-z_]{1,48}$`)<br>`hq.events.feed` (permission `hq.events.read`, SCOPED_WINDOW)<br>`hq.events.ack` (SCOPED)<br>`hq.projections.status` (permission `hq.projections.read`, SCOPED) |
+| Discovery result | `{contract_version, openapi_sha256, policy_revision, capabilities:[{id, state, blocker≤256}]}`. HQ caches runtime states only when `openapi_sha256` equals the pinned hash. Runtime state is never higher than the artifact state |
+| Unbuilt capabilities | `BLOCKED_DEPENDENCY` (reads) or `DISABLED` (commands), with a blocker naming the phase. Their result schema is `{"not":{}}` until the phase lands with a contract minor bump. Published schemas are immutable |
+| Datasets (Track A §11) | `cfmeet.engagement_daily`, `meetings_daily`, `messaging_daily`, `partners_daily`, `apps_daily`, `verification_queue`, `trust_safety_queue`, `operations_health`. Result `{dataset_id, coverage COMPLETE/PARTIAL/NONE, window, series[{date, metrics{name: int\|null}}], next_cursor}`. `cfmeet.sync_health` stays HQ-local |
+| Event adapters | One entry per (owner, export type): 13 in total.<br>partner.workspace.changed.v1 and app.review.changed.v1: developer-platform<br>verification.case.changed.v1: developer-platform<br>abuse.report.changed.v1: messaging, calling, communications, meeting-service<br>incident.changed.v1: messaging, calling, notifications, meeting-service, developer-platform<br>pricing.version.changed.v1: developer-platform<br>Fields are empty until A7 |
+| Verification case | Track A adopts §3.6 in A3. An optional `approvals_required` field may be added |
+
 ### 3.1 Contract artifacts (A0)
 
 All files go in **`services/admin-bridge/docs/openapi/`** in the cfmeet repo. HQ's pin script reads this fixed path. If the path must change, follow §5.
@@ -157,7 +177,9 @@ These capability IDs are fixed so that HQ's existing event consumer can be reuse
 | Item | State |
 |---|---|
 | Design and this plan on HQ `staging` | Done |
-| Pinned CF Meet commit | Waiting for A0 |
+| `services/cfmeet-admin` (B1–B3 code against the HQ draft contract) | Done: protocol, connector with approval claim, 17 modules + platform, 15 reports, 8 Bridge datasets + sync health, governed operations with 12 h approvals. 136/137 tests pass on Windows with PostgreSQL; the 1 failure is the Unix-socket test, which fails the same way for karryam-admin on Windows |
+| A0 | Pushed for review as cfmeet PR #121 (`claude/admin-bridge-a0`, 4ae4975f), not merged |
+| Pinned CF Meet commit | Waiting for the A0 merge SHA on cfmeet `main` (`contract_status` stays `DRAFT` until then) |
 
 ## 5. Changing the interface
 

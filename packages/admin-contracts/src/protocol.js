@@ -94,7 +94,10 @@ const ENDPOINTS = Object.freeze({
 
 // Query keys HQ may forward for 1.1 reads (exact allowlist; values are
 // validated again by the Product Admin against its own source contract).
-const RESOURCE_QUERY = Object.freeze(["market", "organization", "zone", "tenant", "purpose", "start", "end", "limit", "continuation"]);
+// `q` (free-text search) and `parent` (the parent resource of a nested
+// collection, e.g. a user's sessions) are optional and additive: a Product
+// Admin whose source contract has no such parameter refuses them.
+const RESOURCE_QUERY = Object.freeze(["market", "organization", "zone", "tenant", "purpose", "start", "end", "limit", "continuation", "q", "parent"]);
 const REPORT_QUERY = Object.freeze(["market", "organization", "zone", "tenant", "purpose", "start", "end", "timezone", "authority", "product_code"]);
 const READ_QUERY_SCHEMAS = Object.freeze({
   market: { type: "string", pattern: PATTERNS.scopeValue },
@@ -106,6 +109,8 @@ const READ_QUERY_SCHEMAS = Object.freeze({
   end: { type: "string", format: "date-time" },
   limit: { type: "integer", minimum: 1, maximum: 100 },
   continuation: { type: "string", pattern: "^[A-Za-z0-9_-]{16,2048}$" },
+  q: { type: "string", pattern: "^[\\p{L}\\p{N} ._@:-]{1,128}$" },
+  parent: { type: "string", pattern: PATTERNS.pathParam },
   timezone: { type: "string", pattern: "^[A-Za-z][A-Za-z0-9_+/-]{0,63}$" },
   authority: { type: "string", pattern: "^[A-Z][A-Z_]{1,31}$" },
   product_code: { type: "string", pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
