@@ -38,7 +38,7 @@ const FORBIDDEN_FIELD = /^(?:nin|bvn|ssn|national_id|passport(?:_number)?|docume
 // body. A lookup by ID becomes a detail read; the finance report is a
 // multi-figure report and is served only through reportGet.
 const POST_READS = Object.freeze({
-  "pricing.simulations.run": { servedBy: "SERVED_BY_PRICING_SIMULATOR" },
+  "pricing.charges.simulate": { servedBy: "SERVED_BY_PRICING_SIMULATOR" },
 });
 const SEARCH = /^[\p{L}\p{N} ._@:-]{1,128}$/u;
 // Purpose a staff read may declare (Bridge fixed list, hyphenated).

@@ -106,8 +106,8 @@ test("pinned registry agrees with the pinned contract metadata and every schema 
     assert.ok(cap.path.startsWith("/") && !cap.path.includes(".."), cap.id);
   }
   // The read-oriented POST contracts keep their source method.
-  assert.equal(R.capability("pricing.simulations.run").method, "POST");
-  assert.equal(R.capability("pricing.simulations.run").kind, "READ");
+  assert.equal(R.capability("pricing.charges.simulate").method, "POST");
+  assert.equal(R.capability("pricing.charges.simulate").kind, "READ");
   assert.equal(R.capability("accounts.exports.download").kind, "RETRIEVAL");
   assert.equal(R.capability("hq.events.ack").kind, "SYNC");
   assert.equal(R.capability("hq.events.feed").kind, "SYNC");

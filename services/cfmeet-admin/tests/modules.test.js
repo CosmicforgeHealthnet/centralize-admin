@@ -147,7 +147,7 @@ for (const module of MODULES.filter((m) => m.read)) {
 
 test("the pricing simulator POST contract is never served as a resource read; search reads carry q", { skip }, async (t) => {
   const h = await startBridgeHarness(t);
-  assert.equal((await protocolGet(h, "/resources/cfmeet.pricing.read/pricing.simulations.run", scopeQuery())).json.error.reason, "SERVED_BY_PRICING_SIMULATOR");
+  assert.equal((await protocolGet(h, "/resources/cfmeet.pricing.read/pricing.charges.simulate", scopeQuery())).json.error.reason, "SERVED_BY_PRICING_SIMULATOR");
   const ok = await protocolGet(h, "/resources/cfmeet.accounts.read/accounts.users.list", scopeQuery({ q: "ada lovelace", limit: 5 }));
   assert.equal(ok.status, 200, JSON.stringify(ok.json));
   assert.ok(h.fake.state.requests.at(-1).url.endsWith("&purpose=support-review&limit=5&q=ada%20lovelace"));

@@ -230,7 +230,7 @@ two("calling.webhook-keys.reseal", "/calling/webhook-keys/{key_id}/reseal");
 
 // communications
 list("communications.profiles.list", "/communications/profiles", { shape: "SCOPED_SEARCH", risk: "R2", privacy: "PERSONAL_MINIMIZED" });
-detail("communications.profiles.read", "/communications/profiles/{profile_id}", { risk: "R2", privacy: "PERSONAL_MINIMIZED" });
+detail("communications.profiles.read", "/communications/profiles/{cfmeet_id}", { risk: "R2", privacy: "PERSONAL_MINIMIZED" });
 list("communications.reports.list", "/communications/reports", { shape: "SCOPED_PAGE", risk: "R2", privacy: "SAFETY_EVIDENCE" });
 list("communications.holds.list", "/communications/holds", { risk: "R2" });
 list("communications.audit.list", "/communications/audit", { shape: "SCOPED_WINDOW", risk: "R2" });
@@ -323,7 +323,7 @@ list("pricing.freezes.list", "/pricing/freezes");
 list("pricing.plans.list", "/pricing/plans");
 list("pricing.plan-assignments.list", "/pricing/plan-assignments", { shape: "SCOPED_SEARCH", risk: "R2" });
 list("pricing.overrides.list", "/pricing/overrides", { risk: "R2", privacy: "FINANCIAL_SENSITIVE" });
-add("pricing.simulations.run", "POST", "/pricing/simulations", { shape: "SCOPED", body: ref("CommandRequest"), result: ref("Summary"), risk: "R1", privacy: "FINANCIAL_SENSITIVE", svr: false, idem: false });
+add("pricing.charges.simulate", "POST", "/pricing/simulations", { shape: "SCOPED", body: ref("CommandRequest"), result: ref("Summary"), risk: "R1", privacy: "FINANCIAL_SENSITIVE", svr: false, idem: false });
 cmd("pricing.versions.draft", "/pricing/versions", { risk: "R2" });
 cmd("pricing.versions.submit", "/pricing/versions/{version_id}/submission", { risk: "R2" });
 two("pricing.versions.approve", "/pricing/versions/{version_id}/approval", "R4");

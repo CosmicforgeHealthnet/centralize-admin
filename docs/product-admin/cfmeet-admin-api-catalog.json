@@ -1240,7 +1240,7 @@
         {
           "bridge_capability_id": "communications.profiles.read",
           "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/communications/profiles/{profile_id}",
+          "bridge_path": "/internal/cfmeet-admin/v1/communications/profiles/{cfmeet_id}",
           "kind": "READ",
           "module": "communications",
           "cfmeet_capability_id": "cfmeet.communications.read",
@@ -1721,7 +1721,7 @@
           ]
         },
         {
-          "bridge_capability_id": "pricing.simulations.run",
+          "bridge_capability_id": "pricing.charges.simulate",
           "method": "POST",
           "bridge_path": "/internal/cfmeet-admin/v1/pricing/simulations",
           "kind": "READ",

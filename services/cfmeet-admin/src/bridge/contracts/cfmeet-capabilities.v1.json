@@ -3,8 +3,8 @@
  "contract_version": "1.0.0",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "source_artifacts": {
-  "openapi_sha256": "43657f7b6e2336dd586e839057ef9f2d3c32ce9ccadfb7e99786b72823d9d40d",
-  "capability_matrix_sha256": "583e3fcde5423e63e5257b339036ecbc9d6c4cbfd22e8cb4f605427556883ff4"
+  "openapi_sha256": "05efddce69b1a82d6dbf534c4b26b66fb8250feb98cca1894c4fe452f06c5634",
+  "capability_matrix_sha256": "204f715b3e6037a78d04f9cc834cd87f7da3b5a76582a5a9b6e6c129bbe907b4"
  },
  "totals": {
   "capabilities": 200,
@@ -3304,11 +3304,11 @@
    "kind": "READ",
    "owner": "communications-service",
    "method": "GET",
-   "path": "/communications/profiles/{profile_id}",
+   "path": "/communications/profiles/{cfmeet_id}",
    "source_endpoint": null,
    "path_params": [
     {
-     "name": "profile_id",
+     "name": "cfmeet_id",
      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$",
      "max_length": 128
     }
@@ -6803,7 +6803,7 @@
    ]
   },
   {
-   "id": "pricing.simulations.run",
+   "id": "pricing.charges.simulate",
    "version": "1.0",
    "module": "pricing",
    "kind": "READ",
@@ -6829,7 +6829,7 @@
     "$ref": "#/components/schemas/Summary"
    },
    "matrix_state": "AVAILABLE",
-   "permission": "pricing.simulations.run",
+   "permission": "pricing.charges.simulate",
    "risk": "R1",
    "privacy": "FINANCIAL_SENSITIVE",
    "scope": "cfmeet + exact market, organization, zone and tenant",

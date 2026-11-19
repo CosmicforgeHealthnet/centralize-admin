@@ -15,11 +15,11 @@
   "Ed25519 staff assertion bound to request_digest; approval claim on TWO_PERSON capabilities"
  ],
  "artifacts": {
-  "services/admin-bridge/docs/contract/openapi.json": "43657f7b6e2336dd586e839057ef9f2d3c32ce9ccadfb7e99786b72823d9d40d",
-  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "583e3fcde5423e63e5257b339036ecbc9d6c4cbfd22e8cb4f605427556883ff4",
+  "services/admin-bridge/docs/contract/openapi.json": "05efddce69b1a82d6dbf534c4b26b66fb8250feb98cca1894c4fe452f06c5634",
+  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "204f715b3e6037a78d04f9cc834cd87f7da3b5a76582a5a9b6e6c129bbe907b4",
   "services/admin-bridge/docs/contract/event-adapters.v1.json": "bb2f0a9f15b99f6af788eaa92ad3738e2c629ceb5d3da1817872dfaab3171c37",
   "services/admin-bridge/docs/contract/signing-profile.md": "29445984748968ab96af202e2da5a11f9146e8724a76886a8109b79eb376d039",
-  "services/admin-bridge/docs/contract/SHA256SUMS": "637fe7832fed96d99972c464384d00dc7f65058a78c5aaf839343048d6fd7169"
+  "services/admin-bridge/docs/contract/SHA256SUMS": "443b547b98fbd53e095ac253b0e9bfd0655ecbbd0d3ea2a839b6fe47f1d0c35f"
  },
  "openapi": {
   "openapi": "3.1.0",

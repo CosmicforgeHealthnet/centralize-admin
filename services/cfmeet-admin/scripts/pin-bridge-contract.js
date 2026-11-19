@@ -45,7 +45,7 @@ const MODULE_BY_PREFIX = Object.freeze({
 //  SYNC       Stage A event pipeline only (never staff-facing)
 //  COMMAND    anything that changes source or Bridge state
 const NON_GET_KIND = Object.freeze({
-  "pricing.simulations.run": "READ",
+  "pricing.charges.simulate": "READ",
   "accounts.exports.download": "RETRIEVAL",
   "hq.events.ack": "SYNC",
 });

@@ -47,8 +47,8 @@ test("Section 10.2: the 6 fixed platform contracts keep their agreed method and 
     assert.equal(R.BRIDGE_BASE + cap.path, "/internal/cfmeet-admin/v1" + suffix, id);
   }
   // A read-oriented capability whose source contract is POST is never converted to GET.
-  assert.equal(R.capability("pricing.simulations.run").method, "POST");
-  assert.equal(R.capability("pricing.simulations.run").kind, "READ");
+  assert.equal(R.capability("pricing.charges.simulate").method, "POST");
+  assert.equal(R.capability("pricing.charges.simulate").kind, "READ");
   // Unknown or hand-invented capabilities cannot be addressed.
   assert.equal(R.capability("hq.finance.report"), null);
   assert.throws(() => R.requireCapability("hq.arbitrary.proxy"));

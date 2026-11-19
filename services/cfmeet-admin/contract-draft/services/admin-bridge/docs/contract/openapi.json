@@ -10429,13 +10429,13 @@
     }
    }
   },
-  "/internal/cfmeet-admin/v1/communications/profiles/{profile_id}": {
+  "/internal/cfmeet-admin/v1/communications/profiles/{cfmeet_id}": {
    "get": {
     "operationId": "communications.profiles.read",
     "summary": "communications.profiles.read",
     "parameters": [
      {
-      "name": "profile_id",
+      "name": "cfmeet_id",
       "in": "path",
       "required": true,
       "schema": {
@@ -21734,8 +21734,8 @@
   },
   "/internal/cfmeet-admin/v1/pricing/simulations": {
    "post": {
-    "operationId": "pricing.simulations.run",
-    "summary": "pricing.simulations.run",
+    "operationId": "pricing.charges.simulate",
+    "summary": "pricing.charges.simulate",
     "parameters": [
      {
       "name": "market",
