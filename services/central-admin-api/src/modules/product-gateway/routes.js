@@ -4,6 +4,7 @@
 // Integration Core (PIC).
 //
 //   /api/products/...                        product reads (navigation, manifest, datasets, metrics, ...)
+//   /api/products/{id}/grants[/{grantId}]    read-only staff grant views (grant managers, recent MFA)
 //   /api/admin/product-integrations/...      registry and onboarding administration
 //   /api/admin/product-integration-grants/... staff product grants
 //
@@ -27,17 +28,26 @@ const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 const DEPT = /^[A-Za-z0-9 _-]{1,64}$/;
 const METRIC_QUERY_KEYS = new Set(["window_start", "window_end", "market", "organization", "zone", "tenant", "limit"]);
 // Protocol 1.1 scoped reads (product-neutral allowlists; PIC and the
-// Product Admin validate every value again).
-const RESOURCE_QUERY_KEYS = new Set(["market", "organization", "zone", "tenant", "purpose", "start", "end", "limit", "continuation"]);
+// Product Admin validate every value again). `q` (free-text search) and
+// `parent` (the parent of a nested list) are list-only; PIC refuses them,
+// like limit/continuation, on detail reads.
+const RESOURCE_QUERY_KEYS = new Set(["market", "organization", "zone", "tenant", "purpose", "start", "end", "limit", "continuation", "q", "parent"]);
 const REPORT_QUERY_KEYS = new Set(["market", "organization", "zone", "tenant", "purpose", "start", "end", "timezone", "authority", "product_code"]);
+// Read-only grant listing: optional staff filter, bounded page, opaque cursor
+// (PIC enforces limit 1..100 and validates the cursor again).
+const GRANT_QUERY_KEYS = new Set(["staff_id", "limit", "cursor"]);
 const QUERY_VALUE = /^[A-Za-z0-9._:+-]{1,64}$/;
-const SPECIAL_VALUES = { continuation: /^[A-Za-z0-9_-]{16,2048}$/, timezone: /^[A-Za-z][A-Za-z0-9_+/-]{0,63}$/ };
+const SPECIAL_VALUES = { continuation: /^[A-Za-z0-9_-]{16,2048}$/, timezone: /^[A-Za-z][A-Za-z0-9_+/-]{0,63}$/, staff_id: /^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$/, cursor: /^[A-Za-z0-9_-]{16,256}$/,
+  // Same patterns as packages/admin-contracts READ_QUERY_SCHEMAS.
+  q: /^[\p{L}\p{N} ._@:-]{1,128}$/u, parent: /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/ };
 const MFA_WINDOW_MS = 5 * 60 * 1000;
 
 const re = (source) => new RegExp("^" + source + "$");
 const TRANSITIONS = "verify-identity|validate-contract|review-policy|certify-staging|approve|reject|suspend|revoke|resume-review|health-check|sync";
 
-// [method, pattern relative to the mount, allowsQuery]
+// [method, pattern relative to the mount, allowsQuery, options]
+// options.recentMfa: the gateway also requires an MFA step-up within
+// MFA_WINDOW_MS before forwarding (same rule as the admin routes).
 const PRODUCT_ROUTES = [
   ["GET", re("/"), false],
   ["GET", re(`/${PRODUCT}/manifest`), false],
@@ -51,6 +61,11 @@ const PRODUCT_ROUTES = [
   ["GET", re(`/${PRODUCT}/operations/${OPAQUE}`), false],
   ["GET", re(`/${PRODUCT}/operations/${OPAQUE}/audit`), false],
   ["POST", re(`/${PRODUCT}/operations`), false],
+  // Read-only grant views. They mirror grant administration: PIC requires
+  // the platform permission integration.grants.manage (the one that creates
+  // and revokes grants) and only ever returns grants of the product in the URL.
+  ["GET", re(`/${PRODUCT}/grants`), GRANT_QUERY_KEYS, { recentMfa: true }],
+  ["GET", re(`/${PRODUCT}/grants/${UUID}`), false, { recentMfa: true }],
 ];
 const INTEGRATION_ROUTES = [
   ["GET", re("/"), false],
@@ -146,7 +161,7 @@ function createForwarder({ config, readKey, transport, now, call }) {
 
 function match(routes, method, relative) {
   const hit = routes.find(([m, pattern]) => m === method && pattern.test(relative));
-  return hit ? { allowsQuery: hit[2] } : null;
+  return hit ? { allowsQuery: hit[2], recentMfa: Boolean(hit[3] && hit[3].recentMfa) } : null;
 }
 
 /**
@@ -164,6 +179,8 @@ function createProductGateway(deps = {}) {
   const readKey = deps.readKey || (config.configured ? createKeyReader(config.keyFile, { now }) : async () => null);
   const forward = createForwarder({ config, readKey, transport, now, call: deps.call || callPic });
 
+  const recentMfa = requireRecentMfa(MFA_WINDOW_MS);
+  const stepUp = (req, res) => new Promise((resolve, reject) => recentMfa(req, res, (err) => (err ? reject(err) : resolve())));
   const productsRouter = express.Router();
   productsRouter.use(authenticate, requireAuthSchema, requireSession);
   productsRouter.use(async (req, res, next) => {
@@ -171,6 +188,7 @@ function createProductGateway(deps = {}) {
       const relative = req.path;
       const hit = match(PRODUCT_ROUTES, req.method, relative);
       if (!hit) throw fail(404, "NOT_FOUND", "Route not found");
+      if (hit.recentMfa) await stepUp(req, res);
       return await forward(req, res, "/products" + (relative === "/" ? "" : relative), hit.allowsQuery);
     } catch (err) {
       return next(err);
@@ -194,4 +212,4 @@ function createProductGateway(deps = {}) {
   return { productsRouter, adminRouter, config };
 }
 
-module.exports = { createProductGateway, PRODUCT_ROUTES, INTEGRATION_ROUTES, GRANT_ROUTES, ADMIN_MOUNTS, PIC_BASE };
+module.exports = { createProductGateway, PRODUCT_ROUTES, INTEGRATION_ROUTES, GRANT_ROUTES, GRANT_QUERY_KEYS, ADMIN_MOUNTS, PIC_BASE };

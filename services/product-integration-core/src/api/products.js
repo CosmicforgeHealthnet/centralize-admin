@@ -42,6 +42,32 @@ class ProductError extends Error {
   }
 }
 
+const validateRead = Object.fromEntries(Object.entries(C.READ_QUERY_SCHEMAS).map(([k, schema]) => [k, C.compile(schema)]));
+
+// Exactly the allowlisted, schema-valid query that is forwarded to the
+// Product Admin (in allowlist order).
+function readQuery(searchParams, keys) {
+  const out = {};
+  for (const [key, raw] of searchParams) {
+    if (!keys.includes(key)) throw new ProductError("INVALID_REQUEST", "UNKNOWN_PARAMETER");
+    if (Object.prototype.hasOwnProperty.call(out, key)) throw new ProductError("INVALID_REQUEST", "DUPLICATE_PARAMETER");
+    const value = key === "limit" ? (/^[0-9]{1,3}$/.test(raw) ? Number(raw) : raw) : raw;
+    if (!validateRead[key](value).valid) throw new ProductError("INVALID_REQUEST", "INVALID_PARAMETER");
+    out[key] = value;
+  }
+  if (!out.market || !out.organization) throw new ProductError("INVALID_REQUEST", "SCOPE_REQUIRED");
+  const ordered = {};
+  for (const k of keys) if (out[k] !== undefined) ordered[k] = out[k];
+  return ordered;
+}
+
+// Lists take paging, search (q) and a parent resource; a detail read names
+// one resource, so it takes none of them.
+const LIST_ONLY_QUERY = Object.freeze(["limit", "continuation", "q", "parent"]);
+function resourceQueryKeys(isDetail) {
+  return isDetail ? C.RESOURCE_QUERY.filter((k) => !LIST_ONLY_QUERY.includes(k)) : C.RESOURCE_QUERY;
+}
+
 function createProducts({ pool, endpoints, environment, trustStore = false, now = Date.now, clientOptions = {} }) {
   // Same gate as the sync engine: a product that may not synchronize is not
   // offered for live reads either, so navigation, reads and runtime state
@@ -87,21 +113,6 @@ function createProducts({ pool, endpoints, environment, trustStore = false, now 
 
   // Strict, allowlisted query for 1.1 reads; values checked against the
   // published protocol schemas. Returns an ordered plain object.
-  const validateRead = Object.fromEntries(Object.entries(C.READ_QUERY_SCHEMAS).map(([k, schema]) => [k, C.compile(schema)]));
-  function readQuery(searchParams, keys) {
-    const out = {};
-    for (const [key, raw] of searchParams) {
-      if (!keys.includes(key)) throw new ProductError("INVALID_REQUEST", "UNKNOWN_PARAMETER");
-      if (Object.prototype.hasOwnProperty.call(out, key)) throw new ProductError("INVALID_REQUEST", "DUPLICATE_PARAMETER");
-      const value = key === "limit" ? (/^[0-9]{1,3}$/.test(raw) ? Number(raw) : raw) : raw;
-      if (!validateRead[key](value).valid) throw new ProductError("INVALID_REQUEST", "INVALID_PARAMETER");
-      out[key] = value;
-    }
-    if (!out.market || !out.organization) throw new ProductError("INVALID_REQUEST", "SCOPE_REQUIRED");
-    const ordered = {};
-    for (const k of keys) if (out[k] !== undefined) ordered[k] = out[k];
-    return ordered;
-  }
 
   async function forwardRead(subject, row, action, endpointId, params, query, ctx) {
     const requestedScope = {};
@@ -299,7 +310,7 @@ function createProducts({ pool, endpoints, environment, trustStore = false, now 
       if (!cap) throw new ProductError("NOT_FOUND", "UNKNOWN_CAPABILITY");
       if (cap.kind !== "READ") throw new ProductError("INVALID_REQUEST", "CAPABILITY_NOT_READ");
       if (!C.USABLE_CAPABILITY_STATES.includes(cap.state)) throw new ProductError("UNAVAILABLE", "CAPABILITY_" + cap.state);
-      const keys = resourceId === null ? C.RESOURCE_QUERY : C.RESOURCE_QUERY.filter((k) => !["limit", "continuation"].includes(k));
+      const keys = resourceQueryKeys(resourceId !== null);
       return forwardRead(subject, row, "resource.read", endpointId, { capabilityId, collectionId, ...(resourceId === null ? {} : { resourceId }) }, readQuery(query, keys), ctx);
     },
 
@@ -371,4 +382,4 @@ function createProducts({ pool, endpoints, environment, trustStore = false, now 
   };
 }
 
-module.exports = { createProducts, ProductError, randomUUID };
+module.exports = { createProducts, ProductError, randomUUID, readQuery, resourceQueryKeys };

@@ -91,6 +91,11 @@ const DEPARTMENT_OWNERSHIP = {
   CUSTOMER_CARE: [own("support", "tickets", "VIEW"), own("support", "chats", "VIEW")],
   FINANCE: [own("finance", "payments", "VIEW"), own("finance", "payment-status")],
   OPERATIONS: [own("operations", "logistics", "VIEW")],
+  // CF Meet operations staff. CF Meet product work is authorised by HQ
+  // product grants (PIC, /api/products/cfmeet/*), never by department
+  // defaults, so this department owns no HQ section yet. Register sections
+  // here only when an HQ-native CF Meet module exists.
+  CF_MEET_OPERATIONS: [],
   RTC: [own("rtc", "sessions", "VIEW")],
   TELEMEDICINE: [own("telemedicine", "consultations", "VIEW")],
   VERIFICATION: [own("verification", "providers", "VIEW")],

@@ -11,6 +11,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { picMetricNames } = require("../src/observability/metrics");
 const { karryamMetricNames } = require("../../karryam-admin/src/observability/metrics");
+const { cfmeetMetricNames } = require("../../cfmeet-admin/src/observability/metrics");
 
 const FILE = path.join(__dirname, "..", "..", "..", "infrastructure", "product-admin", "monitoring", "alerts.yml");
 
@@ -48,13 +49,13 @@ test("alert rules are complete, well-formed and reference only exported metrics"
   assert.equal(names.size, rules.length, "alert names are unique");
   for (const required of REQUIRED) assert.ok(names.has(required), "missing alert " + required);
 
-  const exported = new Set([...karryamMetricNames(), ...picMetricNames()]);
+  const exported = new Set([...karryamMetricNames(), ...cfmeetMetricNames(), ...picMetricNames()]);
   for (const r of rules) {
     assert.ok(r.expr, r.alert + " has an expression");
     assert.ok(r.for, r.alert + " has a for: duration (no alert storms on a single scrape)");
     assert.ok(r.labels.severity, r.alert + " has a severity");
     assert.ok(r.annotations.summary, r.alert + " has a summary");
-    const referenced = r.expr.match(/\b(?:karryam_admin|pic)_[a-z0-9_]+/g) || [];
+    const referenced = r.expr.match(/\b(?:karryam_admin|cfmeet_admin|pic)_[a-z0-9_]+/g) || [];
     assert.ok(referenced.length > 0 || /\bup\{/.test(r.expr), r.alert + " references a service metric");
     for (const name of referenced) {
       const base = name.replace(/_(bucket|sum|count)$/, "");

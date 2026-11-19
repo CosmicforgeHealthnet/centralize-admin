@@ -472,3 +472,171 @@ test("legacy dispatch telemetry logs coarse route data only", () => {
   assert.deepEqual(logged[0].meta, { event: "legacy_direct_db_route", route: "karrygo-dispatch", resource: "providers", method: "POST", correlation_id: "c-1" });
   assert.ok(!JSON.stringify(logged).includes("secret-id"));
 });
+
+// ── Read-only product grant views (/api/products/{id}/grants) ────────────
+const GRANT_ID = "5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b";
+const CURSOR = "WyIyMDI2LTExLTE5VDEwOjAwOjAwLjAwMDAwMFoiLCI1ZTZmN2E4Yi05YzBkLTRlMWYtOGEyYi0zYzRkNWU2ZjdhOGIiXQ";
+
+// Fake PIC with the real grant semantics: the platform permission
+// integration.grants.manage (per staff, never per tier) and only grants of
+// the product in the path; another product's grant id is a 404.
+function grantPic(grantManagers) {
+  return startPicTcp({
+    respond: (req, res, record) => {
+      const send = (status, body) => { res.writeHead(status, { "Content-Type": "application/json" }); res.end(JSON.stringify(body)); };
+      if (record.verifyError) return send(401, { success: false, error: { code: "UNAUTHENTICATED", reason: record.verifyError } });
+      const url = new URL(req.url, "http://pic.local");
+      const m = url.pathname.match(/^\/internal\/pic\/v1\/products\/([a-z][a-z0-9-]{1,31})\/grants(?:\/([0-9a-f-]{36}))?$/);
+      if (!m) return send(404, { success: false, error: { code: "NOT_FOUND", reason: "UNKNOWN_ROUTE" } });
+      if (!grantManagers.has(record.headers["x-test-staff"] || record.claims.sub)) return send(403, { success: false, error: { code: "FORBIDDEN", reason: "MISSING_PLATFORM_GRANT" } });
+      const limit = url.searchParams.has("limit") ? Number(url.searchParams.get("limit")) : 50;
+      if (!(limit >= 1 && limit <= 100)) return send(400, { success: false, error: { code: "INVALID_REQUEST", reason: "LIMIT_INVALID" } });
+      const grants = { cfmeet: [{ grant_id: GRANT_ID, product_id: "cfmeet" }], karryam: [{ grant_id: "6f7a8b9c-0d1e-4f2a-8b3c-4d5e6f7a8b9c", product_id: "karryam" }] }[m[1]] || [];
+      if (m[2]) {
+        const one = grants.find((g) => g.grant_id === m[2]);
+        return one ? send(200, { success: true, data: one }) : send(404, { success: false, error: { code: "NOT_FOUND", reason: "UNKNOWN_GRANT" } });
+      }
+      return send(200, { success: true, data: { product_id: m[1], grants, limit, next_cursor: null } });
+    },
+  });
+}
+
+test("product grant views: session and recent MFA at the gateway, strict query allowlist, nothing else reaches PIC", async () => {
+  const pic = await grantPic(new Set([STAFF_ID]));
+  const dir = tempDir();
+  const { app } = buildApp({ env: enabledEnv({ PRODUCT_INTEGRATION_CORE_URL: pic.url, PRODUCT_INTEGRATION_HQ_DELEGATION_KEY_FILE: writeKey(dir) }) });
+  const server = await listen(app);
+  const base = "http://127.0.0.1:" + server.address().port;
+  const h = { "x-test-user": "EMPLOYEE" };
+  try {
+    assert.equal((await request(base, "GET", "/api/products/cfmeet/grants")).status, 401, "authentication required");
+    const sessionless = await request(base, "GET", "/api/products/cfmeet/grants", { headers: { ...h, "x-test-sessionless": "1" } });
+    assert.equal(sessionless.status, 403);
+    assert.equal(sessionless.json.code, "SESSION_REQUIRED");
+    for (const p of ["/api/products/cfmeet/grants", `/api/products/cfmeet/grants/${GRANT_ID}`]) {
+      const stale = await request(base, "GET", p, { headers: { ...h, "x-test-mfa-age-ms": String(10 * 60 * 1000) } });
+      assert.equal(stale.status, 403, p);
+      assert.equal(stale.json.code, "MFA_STEP_UP_REQUIRED", p);
+    }
+    for (const query of ["?product_id=karryam", "?include=all", "?limit=5&limit=6", "?staff_id=bad%20staff", "?cursor=short", "?grant_kind=PLATFORM"]) {
+      const res = await request(base, "GET", "/api/products/cfmeet/grants" + query, { headers: h });
+      assert.equal(res.status, 400, query);
+      assert.equal(res.json.code, "INVALID_QUERY", query);
+    }
+    for (const [method, p] of [
+      ["GET", "/api/products/cfmeet/grants/not-a-uuid"],
+      ["GET", `/api/products/cfmeet/grants/${GRANT_ID}/history`],
+      ["GET", "/api/products/CFMEET/grants"],
+      ["POST", "/api/products/cfmeet/grants"],
+      ["POST", `/api/products/cfmeet/grants/${GRANT_ID}/revoke`],
+      ["DELETE", `/api/products/cfmeet/grants/${GRANT_ID}`],
+    ]) {
+      const res = await request(base, method, p, { headers: h, body: method === "POST" ? {} : undefined });
+      assert.equal(res.status, 404, method + " " + p);
+    }
+    assert.equal(pic.seen.length, 0, "PIC was never contacted");
+  } finally {
+    await closeServer(server);
+    await closeServer(pic.server);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("product grant views are forwarded with a request-bound delegation; PIC's permission, isolation, bounds and 404s pass through", async () => {
+  const pic = await grantPic(new Set([STAFF_ID]));
+  const dir = tempDir();
+  const keyFile = writeKey(dir);
+  const { app } = buildApp({ env: enabledEnv({ PRODUCT_INTEGRATION_CORE_URL: pic.url, PRODUCT_INTEGRATION_HQ_DELEGATION_KEY_FILE: keyFile }) });
+  const server = await listen(app);
+  const base = "http://127.0.0.1:" + server.address().port;
+  const h = { "x-test-user": "EMPLOYEE", authorization: "Bearer browser-token", "x-request-id": "corr-grants-1" };
+  try {
+    const list = await request(base, "GET", `/api/products/cfmeet/grants?staff_id=${STAFF_ID}&limit=100&cursor=${CURSOR}`, { headers: h });
+    assert.equal(list.status, 200, JSON.stringify(list.json));
+    assert.deepEqual(list.json.data.grants.map((g) => g.product_id), ["cfmeet"]);
+    assert.equal(list.headers.get("cache-control"), "no-store");
+    assert.equal(pic.seen[0].url, `/internal/pic/v1/products/cfmeet/grants?staff_id=${STAFF_ID}&limit=100&cursor=${CURSOR}`);
+    assert.equal(pic.seen[0].verifyError, null);
+    assert.equal(pic.seen[0].method, "GET");
+    assert.equal(pic.seen[0].headers.authorization, undefined, "browser credential is never forwarded");
+
+    const one = await request(base, "GET", `/api/products/cfmeet/grants/${GRANT_ID}`, { headers: h });
+    assert.equal(one.status, 200);
+    assert.equal(one.json.data.grant_id, GRANT_ID);
+    assert.equal(pic.seen[1].url, `/internal/pic/v1/products/cfmeet/grants/${GRANT_ID}`);
+
+    // Cross-product: a karryam grant id under cfmeet is a 404 from PIC.
+    const cross = await request(base, "GET", "/api/products/cfmeet/grants/6f7a8b9c-0d1e-4f2a-8b3c-4d5e6f7a8b9c", { headers: h });
+    assert.equal(cross.status, 404);
+    assert.equal(cross.json.error.reason, "UNKNOWN_GRANT");
+    const unknown = await request(base, "GET", "/api/products/cfmeet/grants/00000000-0000-4000-8000-000000000000", { headers: h });
+    assert.equal(unknown.status, 404);
+    // Page bounds are enforced by PIC and pass through.
+    for (const limit of ["0", "101"]) {
+      const res = await request(base, "GET", "/api/products/cfmeet/grants?limit=" + limit, { headers: h });
+      assert.equal(res.status, 400, limit);
+      assert.equal(res.json.error.reason, "LIMIT_INVALID");
+    }
+  } finally {
+    await closeServer(server);
+    await closeServer(pic.server);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("product grant views: no tier bypass; staff without the grant-management permission are refused for every product", async () => {
+  const pic = await grantPic(new Set());
+  const dir = tempDir();
+  const { app } = buildApp({ env: enabledEnv({ PRODUCT_INTEGRATION_CORE_URL: pic.url, PRODUCT_INTEGRATION_HQ_DELEGATION_KEY_FILE: writeKey(dir) }) });
+  const server = await listen(app);
+  const base = "http://127.0.0.1:" + server.address().port;
+  try {
+    for (const tier of ["SUPER", "EXECUTIVE", "ADMIN", "EMPLOYEE"]) {
+      for (const product of ["cfmeet", "karryam"]) {
+        const res = await request(base, "GET", `/api/products/${product}/grants`, { headers: { "x-test-user": tier } });
+        assert.equal(res.status, 403, tier + " " + product);
+        assert.equal(res.json.error.reason, "MISSING_PLATFORM_GRANT");
+      }
+    }
+    assert.ok(pic.seen.every((r) => r.verifyError === null && r.claims.sub === STAFF_ID));
+  } finally {
+    await closeServer(server);
+    await closeServer(pic.server);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("resource lists forward the optional q (search) and parent keys; malformed values never reach PIC", async () => {
+  const pic = await startPicTcp();
+  const dir = tempDir();
+  const { app } = buildApp({ env: enabledEnv({ PRODUCT_INTEGRATION_CORE_URL: pic.url, PRODUCT_INTEGRATION_HQ_DELEGATION_KEY_FILE: writeKey(dir) }) });
+  const server = await listen(app);
+  const base = "http://127.0.0.1:" + server.address().port;
+  const h = { "x-test-user": "EMPLOYEE" };
+  const list = "/api/products/cfmeet/resources/cfmeet.accounts.read/users";
+  const scope = "market=GLOBAL&organization=cfmeet&purpose=support";
+  try {
+    for (const query of ["&q=", "&q=" + "a".repeat(129), "&q=a%26b", "&q=%3Cscript%3E", "&q=a%2Fb", "&q=a%0Ab", "&q=50%25", "&q=a&q=b", "&parent=", "&parent=-lead", "&parent=a%2Fb", "&parent=a%20b", "&parent=" + "p".repeat(129), "&search=ada"]) {
+      const res = await request(base, "GET", list + "?" + scope + query, { headers: h });
+      assert.equal(res.status, 400, query);
+      assert.equal(res.json.code, "INVALID_QUERY", query);
+    }
+    assert.equal(pic.seen.length, 0, "nothing malformed reached PIC");
+
+    const search = await request(base, "GET", list + "?" + scope + "&q=" + encodeURIComponent("Zoë Ada") + "&limit=20", { headers: h });
+    assert.equal(search.status, 200);
+    const nested = await request(base, "GET", "/api/products/cfmeet/resources/cfmeet.accounts.read/sessions?" + scope + "&parent=user_123.a:b-c", { headers: h });
+    assert.equal(nested.status, 200);
+    assert.equal(pic.seen.length, 2);
+    const forwarded = new URL(pic.seen[0].url, "http://pic.local");
+    assert.equal(forwarded.pathname, "/internal/pic/v1/products/cfmeet/resources/cfmeet.accounts.read/users");
+    assert.equal(forwarded.searchParams.get("q"), "Zoë Ada");
+    assert.equal(forwarded.searchParams.get("limit"), "20");
+    assert.equal(new URL(pic.seen[1].url, "http://pic.local").searchParams.get("parent"), "user_123.a:b-c");
+    assert.ok(pic.seen.every((r) => r.verifyError === null), "the delegation is bound to the re-encoded query");
+  } finally {
+    await closeServer(server);
+    await closeServer(pic.server);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

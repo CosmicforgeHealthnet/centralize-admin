@@ -74,3 +74,31 @@ test("root sandbox: native certification, activation and approval use current ca
  await assert.rejects(workflow.activateContract(subject,id,newId,{expected_revision:3},ctx),/CONTRACT_NOT_CERTIFIED/);
  f.trust.keys["catalog-test-key"].revoked=true;fs.writeFileSync(trustFile,JSON.stringify(f.trust));await assert.rejects(workflow.get(subject,id,ctx),/OPERATOR_NOT_AUTHORIZED/);
 });
+
+// Per-product catalog delegation: a CF Meet readiness activation is pinned to
+// a CF Meet root authority, CF Meet dataset IDs and the CF Meet scope.
+const cfScope={market:["GLOBAL"],organization:["cfmeet"],zone:["production"],tenant:["cfmeet-tenant-1"]};
+function cfmeetCatalogs(){
+  const ids=["cfmeet.meetings_daily","cfmeet.verification_queue"];
+  const datasets=ids.map(id=>require("../../../packages/admin-contracts/src/testing").sampleDataset({dataset_id:id,schema_id:id,authorized_departments:["cfmeet-operations"],scope_dimensions:Object.keys(cfScope),readiness:"NOT_CERTIFIED",blockers:[{code:"STAGING_CERTIFICATION_PENDING",detail:"Pending source evidence"}]}));
+  const base={product_id:"cfmeet",protocol:{major:1,minor:0},capabilities:[],datasets,event_families:ids.map(id=>C.standardMetricObservationFamily({family:id+".metric_observation",datasetId:id,status:"NOT_CERTIFIED"}))};
+  const target=JSON.parse(JSON.stringify(base));
+  target.datasets.forEach(d=>{d.readiness="CERTIFIED_BY_PRODUCT";d.blockers=[];});target.event_families.forEach(f=>{f.status="ACTIVE";});
+  return {base,target,pin:{base_digest:C.catalogDigest(base),target_digest:C.catalogDigest(target),dataset_ids:ids}};
+}
+test("cfmeet readiness activation needs a CF Meet-pinned authority, CF Meet datasets and the CF Meet scope",()=>{
+ const {base,target,pin}=cfmeetCatalogs(),f=signedFixture(pin,{product_id:"cfmeet",allowed_scope:cfScope});const opts={environment:"staging",operator:f.document.operator,now:f.now};
+ const d=O.parseSignedDecision(JSON.stringify(f.envelope),f.trust,opts);
+ assert.equal(d.product_id,"cfmeet");
+ assert.equal(O.assertReadonlyCatalogChange(d,base,target),true);
+ // The same signed CF Meet decision is refused when the root entry is pinned to Karryam or another scope.
+ const karryamPinned=JSON.parse(JSON.stringify(f.trust));karryamPinned.keys["catalog-test-key"].product_id="karryam";karryamPinned.keys["catalog-test-key"].allowed_scope=scope;
+ assert.throws(()=>O.parseSignedDecision(JSON.stringify(f.envelope),karryamPinned,opts),/CATALOG_SCOPE_DENIED|DECISION_INVALID/);
+ const otherTenant=JSON.parse(JSON.stringify(f.trust));otherTenant.keys["catalog-test-key"].allowed_scope={...cfScope,tenant:["cfmeet-tenant-2"]};
+ assert.throws(()=>O.parseSignedDecision(JSON.stringify(f.envelope),otherTenant,opts),/DECISION_INVALID/);
+ // Karryam dataset IDs can never ride on a CF Meet delegation, and a Karryam catalog never matches a CF Meet pin.
+ const k=catalogs();
+ const cross=signedFixture({...pin,dataset_ids:["karryam.verification_pipeline"]},{product_id:"cfmeet",allowed_scope:cfScope});
+ assert.throws(()=>O.parseSignedDecision(JSON.stringify(cross.envelope),cross.trust,{environment:"staging",operator:cross.document.operator,now:cross.now}),/CATALOG_SCOPE_DENIED/);
+ assert.throws(()=>O.assertReadonlyCatalogChange(d,k.base,k.target),/CATALOG_SCOPE_DENIED/);
+});

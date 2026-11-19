@@ -42,6 +42,62 @@ function validScope(scope, { allowedDims = DIMS, required = [] } = {}) {
   return required.every((dim) => Array.isArray(scope[dim]));
 }
 
+// Read-only grant listing (HQ grants screen). Bounded pages with an opaque
+// keyset cursor over (created_at, id); the cursor only positions a page
+// inside the already-authorized product and carries no authority.
+const GRANT_PAGE_DEFAULT = 50;
+const GRANT_PAGE_MAX = 100;
+const GRANT_QUERY_KEYS = new Set(["staff_id", "limit", "cursor"]);
+const GRANT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const GRANT_STAFF_ID = /^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$/;
+const GRANT_CURSOR = /^[A-Za-z0-9_-]{16,256}$/;
+const GRANT_CURSOR_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
+const PRODUCT_ID = new RegExp(C.PATTERNS.productId);
+const GRANT_COLUMNS = `id, grant_kind, product_id, staff_id, role, effect, actions, datasets, scope, not_before, expires_at, granted_by, created_at, revoked_at, revoked_by, revocation_reason, to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time`;
+
+function parseGrantQuery(query) {
+  const params = query instanceof URLSearchParams ? query : new URLSearchParams();
+  const seen = new Set();
+  for (const [key] of params) {
+    if (!GRANT_QUERY_KEYS.has(key) || seen.has(key)) throw new OnboardingError("QUERY_INVALID", 400);
+    seen.add(key);
+  }
+  let limit = GRANT_PAGE_DEFAULT;
+  if (params.has("limit")) {
+    const raw = params.get("limit");
+    if (!/^[0-9]{1,3}$/.test(raw) || Number(raw) < 1 || Number(raw) > GRANT_PAGE_MAX) throw new OnboardingError("LIMIT_INVALID", 400);
+    limit = Number(raw);
+  }
+  const staffId = params.has("staff_id") ? params.get("staff_id") : null;
+  if (staffId !== null && !GRANT_STAFF_ID.test(staffId)) throw new OnboardingError("STAFF_INVALID", 400);
+  let cursor = null;
+  if (params.has("cursor")) {
+    const raw = params.get("cursor");
+    let decoded = null;
+    try { decoded = GRANT_CURSOR.test(raw) ? JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) : null; } catch { decoded = null; }
+    if (!Array.isArray(decoded) || decoded.length !== 2 || !GRANT_CURSOR_TIME.test(String(decoded[0])) || !GRANT_ID.test(String(decoded[1]))) throw new OnboardingError("CURSOR_INVALID", 400);
+    cursor = { time: decoded[0], id: decoded[1] };
+  }
+  return { limit, staffId, cursor };
+}
+
+function grantCursor(row) {
+  return Buffer.from(JSON.stringify([row.cursor_time, row.id]), "utf8").toString("base64url");
+}
+
+// Everything a grants screen needs; the grants table holds no secrets.
+function grantView(row, nowMs) {
+  const at = (value) => (value ? new Date(value).toISOString() : null);
+  const status = row.revoked_at ? "REVOKED"
+    : row.expires_at && new Date(row.expires_at).getTime() <= nowMs ? "EXPIRED"
+      : row.not_before && new Date(row.not_before).getTime() > nowMs ? "NOT_YET_VALID" : "ACTIVE";
+  return {
+    grant_id: row.id, grant_kind: row.grant_kind, product_id: row.product_id, staff_id: row.staff_id, role: row.role, effect: row.effect,
+    actions: row.actions, datasets: row.datasets, scope: row.scope, not_before: at(row.not_before), expires_at: at(row.expires_at),
+    granted_by: row.granted_by, created_at: at(row.created_at), revoked_at: at(row.revoked_at), revoked_by: row.revoked_by, revocation_reason: row.revocation_reason, status,
+  };
+}
+
 function subsetScope(inner, outer) {
   for (const [dim, values] of Object.entries(inner)) {
     if (outer[dim] && values.some((v) => !outer[dim].includes(v))) return false;
@@ -89,6 +145,14 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
 
   async function audit(client, subject, row, action, ctx, metadata = {}, outcome = "RECORDED", reasonCode = null) {
     await recordAudit(client, { correlationId: ctx.correlationId, actorType: operatorMode() ? "OPERATOR" : "STAFF", actorId: subject.staffId, productId: row ? row.product_id : null, productAdminId: row ? row.id : null, action, outcome, reasonCode: operatorMode() ? "OWNER_DELEGATED_STAGING_SETUP" : reasonCode, metadata: operatorMode() ? { ...metadata, decision_ref: operatorPermit.decision.decision_id, independence_exception: true } : metadata });
+  }
+
+  async function readAudit(subject, productId, action, ctx, metadata) {
+    try {
+      await recordAudit(pool, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId, action, outcome: "ALLOWED", metadata: { ...metadata, session_ref: subject.sessionId } });
+    } catch {
+      throw new OnboardingError("AUDIT_UNAVAILABLE", 503);
+    }
   }
 
   async function transition(client, row, to, subject, opts, ctx) {
@@ -631,6 +695,37 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         await recordAudit(client, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId: rows[0].product_id, action: "integration.grant.revoke", outcome: "RECORDED", metadata: { grant_ref: grantId } });
         return { grant_id: grantId, revoked: true };
       });
+    },
+
+    // Read-only views of one product's staff grants. Same platform permission
+    // as creating and revoking them (integration.grants.manage, recent MFA);
+    // only PRODUCT grants bound to the requested product are ever returned,
+    // so a grant of another product is indistinguishable from a missing one.
+    // Every read is audited; if the audit cannot be written nothing is returned.
+    async listGrants(subject, productId, query, ctx) {
+      if (!PRODUCT_ID.test(String(productId))) throw new OnboardingError("NOT_FOUND", 404);
+      await authz(subject, "integration.grants.manage", ctx, { productId });
+      const { limit, staffId, cursor } = parseGrantQuery(query);
+      const values = [productId];
+      let where = "grant_kind = 'PRODUCT' AND product_id = $1";
+      if (staffId !== null) { values.push(staffId); where += ` AND staff_id = $${values.length}`; }
+      if (cursor) { values.push(cursor.time, cursor.id); where += ` AND (created_at, id) < ($${values.length - 1}::timestamptz, $${values.length}::uuid)`; }
+      values.push(limit + 1);
+      const { rows } = await pool.query(`SELECT ${GRANT_COLUMNS} FROM ${T}hq_product_admin_grants WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT $${values.length}`, values);
+      const page = rows.slice(0, limit);
+      await readAudit(subject, productId, "integration.grant.list", ctx, { result_count: page.length, page_limit: limit, staff_ref: staffId, continued: Boolean(cursor) });
+      const at = now();
+      return { product_id: productId, grants: page.map((row) => grantView(row, at)), limit, next_cursor: rows.length > limit ? grantCursor(page[page.length - 1]) : null };
+    },
+
+    async getGrant(subject, productId, grantId, ctx) {
+      if (!PRODUCT_ID.test(String(productId))) throw new OnboardingError("NOT_FOUND", 404);
+      await authz(subject, "integration.grants.manage", ctx, { productId });
+      if (!GRANT_ID.test(String(grantId))) throw new OnboardingError("UNKNOWN_GRANT", 404);
+      const { rows } = await pool.query(`SELECT ${GRANT_COLUMNS} FROM ${T}hq_product_admin_grants WHERE id = $1 AND grant_kind = 'PRODUCT' AND product_id = $2`, [grantId, productId]);
+      await readAudit(subject, productId, "integration.grant.read", ctx, { grant_ref: grantId, found: Boolean(rows[0]) });
+      if (!rows[0]) throw new OnboardingError("UNKNOWN_GRANT", 404);
+      return grantView(rows[0], now());
     },
   };
   if (!operatorPermit) return workflow;

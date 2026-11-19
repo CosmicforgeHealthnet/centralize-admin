@@ -187,6 +187,11 @@
       "order": 37,
       "file": "20261103_mail_final_gap_closure.sql",
       "sha256": "70952bf8a685cfe04e230b522fa103f343cdacd36c97c25b1dba5f04f350d8e6"
+    },
+    {
+      "order": 38,
+      "file": "20261119_hr_department_cf_meet_operations.sql",
+      "sha256": "2406103710de59cac244a093c467bbc9e2e60c6d0dfdda62ceb66ba80da95dc9"
     }
   ]
 }
