@@ -91,6 +91,21 @@ function successSchema(op) {
   return { status: Number(code), media, result: schema.properties.result };
 }
 
+// Naming rules agreed with Track A (also enforced by the Bridge's own contract
+// tests): HQ classifies reads by them, so a violation is never pinned.
+//  - a collection id ends in .list or .search, is a GET READ, and uses
+//    SCOPED_PAGE, SCOPED_WINDOW or SCOPED_SEARCH; nothing else ends that way;
+//  - .search always means SCOPED_SEARCH (it carries q);
+//  - read-type POSTs are exactly the reviewed NON_GET_KIND READ/SYNC entries.
+const COLLECTION_SHAPES = new Set(["SCOPED_PAGE", "SCOPED_WINDOW", "SCOPED_SEARCH"]);
+function namingErrors(capabilities) {
+  for (const c of capabilities) {
+    const collection = /\.(list|search)$/.test(c.id);
+    if (collection && (c.method !== "GET" || c.kind !== "READ" || !COLLECTION_SHAPES.has(c.query_shape))) throw new Error("COLLECTION_NAMING_VIOLATION:" + c.id);
+    if (c.id.endsWith(".search") && c.query_shape !== "SCOPED_SEARCH") throw new Error("SEARCH_WITHOUT_Q:" + c.id);
+  }
+}
+
 function readArtifacts(checkout) {
   const dir = path.join(checkout, CONTRACT_DIR);
   const raw = {};
@@ -150,6 +165,7 @@ function buildPinnedRegistry(checkout) {
       source_tests: cap.tests,
     };
   });
+  namingErrors(capabilities);
   const byState = {};
   for (const c of capabilities) byState[c.matrix_state] = (byState[c.matrix_state] || 0) + 1;
   const registry = {

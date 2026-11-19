@@ -247,7 +247,7 @@ list("organizations.audit.list", "/organizations/organizations/{organization_id}
 list("organizations.members.list", "/organizations/organizations/{organization_id}/members", { shape: "SCOPED_PAGE", risk: "R2", privacy: "PERSONAL_MINIMIZED" });
 list("organizations.teams.list", "/organizations/organizations/{organization_id}/teams", { shape: "SCOPED_PAGE" });
 list("organizations.policies.list", "/organizations/policies");
-list("organizations.bindings.list", "/organizations/organizations/{organization_id}/bindings", { shape: "SCOPED" });
+list("organizations.bindings.list", "/organizations/organizations/{organization_id}/bindings");
 list("organizations.events.list", "/organizations/events", { shape: "SCOPED_WINDOW" });
 cmd("organizations.organizations.create", "/organizations/organizations", { risk: "R2" });
 two("organizations.organizations.suspend", "/organizations/organizations/{organization_id}/suspension");
@@ -361,7 +361,7 @@ two("privacy.requests.complete-service", "/privacy/requests/{request_id}/service
 // operations
 add("operations.health.read", "GET", "/operations/health", { shape: "SCOPED", result: ref("Health"), risk: "R0", privacy: "INTERNAL" });
 list("operations.incidents.list", "/operations/incidents", { shape: "SCOPED_WINDOW" });
-list("operations.switches.list", "/operations/switches", { shape: "SCOPED" });
+list("operations.switches.list", "/operations/switches");
 list("operations.switch-on-requests.list", "/operations/switch-on-requests", { shape: "SCOPED_WINDOW" });
 detail("operations.switch-on-requests.read", "/operations/switch-on-requests/{request_id}", { result: ref("OperationRecord") });
 list("operations.releases.list", "/operations/releases", { shape: "SCOPED_WINDOW" });

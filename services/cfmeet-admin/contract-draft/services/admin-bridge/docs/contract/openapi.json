@@ -12648,6 +12648,25 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 100
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^[A-Za-z0-9._~:@/+=-]{1,4096}$"
+      }
      }
     ],
     "responses": {
@@ -25355,6 +25374,25 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 100
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^[A-Za-z0-9._~:@/+=-]{1,4096}$"
       }
      }
     ],

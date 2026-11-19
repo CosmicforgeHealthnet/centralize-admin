@@ -165,3 +165,27 @@ test("a DRAFT contract can never enable the Bridge in staging or production", ()
     }
   } finally { m.cleanup(); }
 });
+
+test("the pin refuses a contract that breaks the agreed read naming rules (HQ classifies reads by them)", () => {
+  const os = require("node:os");
+  const { buildPinnedRegistry, DRAFT_DIR, CONTRACT_DIR } = require("../scripts/pin-bridge-contract");
+  const variant = (mutate) => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cfm-pin-"));
+    const dst = path.join(tmp, CONTRACT_DIR);
+    fs.mkdirSync(dst, { recursive: true });
+    const src = path.join(DRAFT_DIR, CONTRACT_DIR);
+    for (const f of fs.readdirSync(src)) fs.copyFileSync(path.join(src, f), path.join(dst, f));
+    const file = path.join(dst, "openapi.json");
+    const openapi = JSON.parse(fs.readFileSync(file, "utf8"));
+    mutate(openapi);
+    fs.writeFileSync(file, JSON.stringify(openapi));
+    try { return buildPinnedRegistry(tmp); } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+  };
+  const base = "/internal/cfmeet-admin/v1";
+  // A collection without paging (SCOPED) is refused.
+  assert.throws(() => variant((o) => { const op = o.paths[base + "/operations/switches"].get; op.parameters = op.parameters.filter((p) => !["limit", "cursor"].includes(p.name)); }), /COLLECTION_NAMING_VIOLATION:operations.switches.list/);
+  // .search without q is refused.
+  assert.throws(() => variant((o) => { const op = o.paths[base + "/audit/events"].get; op.parameters = op.parameters.filter((p) => p.name !== "q"); }), /UNKNOWN_QUERY_SHAPE|SEARCH_WITHOUT_Q/);
+  // The unmodified draft pins.
+  assert.ok(variant(() => {}).registry.capabilities.length > 0);
+});

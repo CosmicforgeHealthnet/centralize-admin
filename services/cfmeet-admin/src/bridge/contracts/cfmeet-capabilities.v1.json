@@ -3,7 +3,7 @@
  "contract_version": "1.0.0",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "source_artifacts": {
-  "openapi_sha256": "05efddce69b1a82d6dbf534c4b26b66fb8250feb98cca1894c4fe452f06c5634",
+  "openapi_sha256": "b2cc9219d9c6395a9e9fe93bdd338f0f95bff91a82df42d434d189185dd9d4b8",
   "capability_matrix_sha256": "204f715b3e6037a78d04f9cc834cd87f7da3b5a76582a5a9b6e6c129bbe907b4"
  },
  "totals": {
@@ -3954,13 +3954,14 @@
      "max_length": 128
     }
    ],
-   "query_shape": "SCOPED",
+   "query_shape": "SCOPED_PAGE",
    "query_required": [
     "market",
     "organization",
     "zone",
     "tenant",
-    "purpose"
+    "purpose",
+    "limit"
    ],
    "request_body": null,
    "success_status": 200,
@@ -8076,13 +8077,14 @@
    "path": "/operations/switches",
    "source_endpoint": null,
    "path_params": [],
-   "query_shape": "SCOPED",
+   "query_shape": "SCOPED_PAGE",
    "query_required": [
     "market",
     "organization",
     "zone",
     "tenant",
-    "purpose"
+    "purpose",
+    "limit"
    ],
    "request_body": null,
    "success_status": 200,
