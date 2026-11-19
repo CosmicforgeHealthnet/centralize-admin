@@ -22,6 +22,25 @@ Before any apply, review the exact staging commit and successful applicable CI, 
 
 Run `node scripts/staging-operator-onboarding.js --decision <protected-decision-path> --step request` first. Without `--apply` every step is a plan only and does not access the database. Apply each step separately; inspect the resulting registration revision before the next transition. Mutating lifecycle transitions require `--id` and `--expected-revision`. Review and certification also require a real `--evidence-ref`. Stop on any failed gate; do not change the database directly to move lifecycle state.
 
+**Choosing the product.** `--product karryam|cfmeet` selects one reviewed staging registration. The default is `karryam`, and its behaviour is unchanged.
+
+| | `karryam` (default) | `cfmeet` |
+|---|---|---|
+| Registration | As before | Product `cfmeet`, display name "CF Meet", instance `cfmeet-admin-staging-1`, endpoint ref `cfmeet-staging`, workload identity `cf://staging/product-admin/cfmeet`, signer `cfmeet-staging-manifest-2026-11` |
+| `--zone`, `--tenant` | Refused | Required. `--zone` is `production` or `sandbox` |
+| Approved scope | As before | `{market: GLOBAL, organization: cfmeet, zone, tenant}` |
+| Datasets | Default datasets | None by default. Every `--dataset` must be named in both the signed decision and the root authority, and match `cfmeet.<name>` |
+
+The signed operator permit must name the selected product and exactly that scope, otherwise the step fails with `OPERATOR_SCOPE_DENIED`. A cfmeet decision needs a cfmeet-pinned root authority.
+
+Example (plan only, no database access):
+
+```
+node scripts/staging-operator-onboarding.js --product cfmeet --zone production --tenant <tenant> --decision <protected-decision-path> --step request
+```
+
+The CF Meet lifecycle is in [cfmeet-admin-design.md](cfmeet-admin-design.md) §8.
+
 After the authorized setup, remove the signed decision and revoke or remove the dedicated public trust entry. Preserve protected audit and backup records. If a step fails, revoke first and inspect existing state; do not repeat registration blindly or reset approvals. Revert candidate code through the normal staging release process if required. Restore metadata only through the existing tested recovery process, with a scoped change review; do not overwrite unrelated HQ state.
 
 ## Verification and outstanding work
