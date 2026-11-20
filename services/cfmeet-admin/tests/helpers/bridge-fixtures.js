@@ -109,6 +109,11 @@ function commandResult(operationId, { status = "CONFIRMED", version = 4, now = D
   return { operation_id: operationId, status, source_version: version, reason_code: null, receipt: { recorded_version: version, recorded_at: iso(now) } };
 }
 
+function operationStatus(idempotencyKey, capabilityId, { status = "SUCCEEDED", sourceStatus = null, version = 4, now = Date.now() } = {}) {
+  const settled = status === "SUCCEEDED" || status === "FAILED";
+  return { idempotency_key: idempotencyKey, capability_id: capabilityId, status, source_status: sourceStatus, source_version: settled ? version : null, settled_at: settled ? iso(now) : null };
+}
+
 function operationRecord(operationId, { status = "CONFIRMED", version = 4, now = Date.now() } = {}) {
   return { operation_id: operationId, status, source_version: version, reason_code: null, updated_at: iso(now) };
 }
@@ -145,6 +150,6 @@ function incidentEvent({ sequence, source = "meeting-service", ref = "inc-1", ve
 
 module.exports = {
   resourcePage, resourceDetail, verificationCase, verificationCasePage, verificationCaseDetail, summary, health, capabilityStates, datasetSeries,
-  projectionStatus, commandResult, operationRecord, ownerEvent, abuseEvent, verificationEvent, partnerEvent, incidentEvent,
+  projectionStatus, commandResult, operationRecord, operationStatus, ownerEvent, abuseEvent, verificationEvent, partnerEvent, incidentEvent,
   MEETING_KEYS, FINANCE_KEYS, etag, iso,
 };

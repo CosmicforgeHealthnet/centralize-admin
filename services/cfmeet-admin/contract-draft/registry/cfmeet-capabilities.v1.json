@@ -3,13 +3,13 @@
  "contract_version": "1.0.0",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "source_artifacts": {
-  "openapi_sha256": "94e77467d17849be147e477f585d2d3384d869d2650ced811531762ae933f648",
-  "capability_matrix_sha256": "db83eccfa8a2bd1fc787ed8ce8097caafb9db11b696a9c22ad1f134a0ff37ca1"
+  "openapi_sha256": "6c50350c8f5cecd6f5b6dbe6ab5187063be7ca341e398b96e7f21922d4c4f320",
+  "capability_matrix_sha256": "b049920552cfc095a0af1f42229451f4edf01f8b6729e29818d32146e56d49ec"
  },
  "totals": {
-  "capabilities": 199,
+  "capabilities": 200,
   "by_state": {
-   "READ_ONLY": 114,
+   "READ_ONLY": 115,
    "AVAILABLE": 82,
    "DISABLED": 2,
    "BLOCKED_DEPENDENCY": 1
@@ -214,6 +214,50 @@
    "permission": "hq.events.ack",
    "risk": "R1",
    "privacy": "OPERATIONS_MINIMIZED",
+   "scope": "cfmeet + exact market, organization, zone and tenant",
+   "source_version_required": false,
+   "idempotency_required": false,
+   "approval": "NONE",
+   "feature_flag": "NONE",
+   "blocker": null,
+   "source_tests": [
+    "DRAFT_NOT_IMPLEMENTED"
+   ],
+   "contact_search": false
+  },
+  {
+   "id": "bridge.operations.read",
+   "version": "1.0",
+   "module": "platform",
+   "kind": "SYNC",
+   "owner": "admin-bridge",
+   "method": "GET",
+   "path": "/hq/operations/{idempotency_key}",
+   "source_endpoint": null,
+   "path_params": [
+    {
+     "name": "idempotency_key",
+     "format": "uuid"
+    }
+   ],
+   "query_shape": "SCOPED",
+   "query_required": [
+    "market",
+    "organization",
+    "zone",
+    "tenant",
+    "purpose"
+   ],
+   "request_body": null,
+   "success_status": 200,
+   "success_media": "application/json",
+   "result_schema": {
+    "$ref": "#/components/schemas/OperationStatus"
+   },
+   "matrix_state": "READ_ONLY",
+   "permission": "bridge.operations.read",
+   "risk": "R1",
+   "privacy": "INTERNAL",
    "scope": "cfmeet + exact market, organization, zone and tenant",
    "source_version_required": false,
    "idempotency_required": false,

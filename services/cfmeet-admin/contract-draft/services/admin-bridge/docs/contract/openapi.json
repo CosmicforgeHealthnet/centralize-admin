@@ -660,6 +660,127 @@
     }
    }
   },
+  "/internal/cfmeet-admin/v1/hq/operations/{idempotency_key}": {
+   "get": {
+    "operationId": "bridge.operations.read",
+    "summary": "bridge.operations.read",
+    "parameters": [
+     {
+      "name": "idempotency_key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
+     },
+     {
+      "name": "market",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+       "maxLength": 128
+      }
+     },
+     {
+      "name": "organization",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+       "maxLength": 128
+      }
+     },
+     {
+      "name": "zone",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "enum": [
+        "production",
+        "sandbox"
+       ]
+      }
+     },
+     {
+      "name": "tenant",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+       "maxLength": 128
+      }
+     },
+     {
+      "name": "purpose",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": false,
+         "required": [
+          "contract_version",
+          "product",
+          "correlation_id",
+          "as_of",
+          "freshness",
+          "result"
+         ],
+         "properties": {
+          "contract_version": {
+           "const": "1.0"
+          },
+          "product": {
+           "const": "cfmeet"
+          },
+          "correlation_id": {
+           "type": "string",
+           "format": "uuid"
+          },
+          "as_of": {
+           "type": "string",
+           "format": "date-time"
+          },
+          "freshness": {
+           "enum": [
+            "LIVE",
+            "RECENT",
+            "STALE",
+            "PARTIAL",
+            "UNKNOWN",
+            "UNAVAILABLE"
+           ]
+          },
+          "result": {
+           "$ref": "#/components/schemas/OperationStatus"
+          },
+          "error": {
+           "type": "null"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/internal/cfmeet-admin/v1/hq/projections/status": {
    "get": {
     "operationId": "hq.projections.status",
@@ -28177,6 +28298,58 @@
      },
      "updated_at": {
       "type": "string",
+      "format": "date-time"
+     }
+    }
+   },
+   "OperationStatus": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "idempotency_key",
+     "capability_id",
+     "status",
+     "source_status",
+     "source_version",
+     "settled_at"
+    ],
+    "properties": {
+     "idempotency_key": {
+      "type": "string",
+      "format": "uuid"
+     },
+     "capability_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z0-9-]+)+$"
+     },
+     "status": {
+      "enum": [
+       "PENDING",
+       "SENT",
+       "SUCCEEDED",
+       "FAILED",
+       "UNKNOWN_OUTCOME"
+      ]
+     },
+     "source_status": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "maxLength": 64
+     },
+     "source_version": {
+      "type": [
+       "integer",
+       "null"
+      ],
+      "minimum": 0
+     },
+     "settled_at": {
+      "type": [
+       "string",
+       "null"
+      ],
       "format": "date-time"
      }
     }

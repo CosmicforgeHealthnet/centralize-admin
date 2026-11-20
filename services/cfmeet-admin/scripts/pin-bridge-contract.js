@@ -55,7 +55,9 @@ const NON_GET_KIND = Object.freeze({
   "accounts.exports.download": "RETRIEVAL",
   "hq.events.ack": "SYNC",
 });
-const SYNC_READS = new Set(["hq.events.feed"]);
+// Internal GETs, never staff collections: the HQ event feed, and the operations
+// ledger HQ reads back an unsettled command from (agreed with CF Meet for A3.0).
+const SYNC_READS = new Set(["hq.events.feed", "bridge.operations.read"]);
 
 function kindOf(cap) {
   if (cap.method === "GET") return SYNC_READS.has(cap.id) ? "SYNC" : "READ";

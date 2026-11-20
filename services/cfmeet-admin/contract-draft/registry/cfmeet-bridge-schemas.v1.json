@@ -844,6 +844,58 @@
      }
     }
    },
+   "OperationStatus": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "idempotency_key",
+     "capability_id",
+     "status",
+     "source_status",
+     "source_version",
+     "settled_at"
+    ],
+    "properties": {
+     "idempotency_key": {
+      "type": "string",
+      "format": "uuid"
+     },
+     "capability_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z0-9-]+)+$"
+     },
+     "status": {
+      "enum": [
+       "PENDING",
+       "SENT",
+       "SUCCEEDED",
+       "FAILED",
+       "UNKNOWN_OUTCOME"
+      ]
+     },
+     "source_status": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "maxLength": 64
+     },
+     "source_version": {
+      "type": [
+       "integer",
+       "null"
+      ],
+      "minimum": 0
+     },
+     "settled_at": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "format": "date-time"
+     }
+    }
+   },
    "ExportDownloadRequest": {
     "type": "object",
     "additionalProperties": false,

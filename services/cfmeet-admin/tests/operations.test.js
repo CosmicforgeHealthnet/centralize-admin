@@ -102,13 +102,19 @@ test("uncertain results become UNKNOWN_OUTCOME, are never resubmitted, and settl
   assert.equal((await submit(h, cmd)).json.result.status, "UNKNOWN_OUTCOME");
   assert.equal(h.fake.state.requests.filter((r) => r.capability === "accounts.review-requests.submit").length, 1);
 
-  let readbackStatus = "PENDING";
-  h.fake.state.handlers["accounts.review-requests.read"] = ({ params }) => ({ result: X.operationRecord(params.request_id, { status: readbackStatus }) });
+  // Readback goes through the Bridge's operations ledger (bridge.operations.read),
+  // keyed by the Idempotency-Key HQ sent: the command id.
+  let readbackStatus = "SENT";
+  h.fake.state.handlers["bridge.operations.read"] = ({ params }) => ({ result: X.operationStatus(params.idempotency_key, "accounts.review-requests.submit", { status: readbackStatus }) });
+  assert.equal(h.fake.state.requests.find((r) => r.capability === "accounts.review-requests.submit").idempotencyKey, cmd.command_id, "Idempotency-Key = command id");
   const still = await read(h, cmd.command_id);
   assert.equal(still.json.result.status, "UNKNOWN_OUTCOME");
   assert.equal(still.json.result.readback.state, "STILL_UNKNOWN");
-  assert.ok(h.fake.state.requests.at(-1).url.includes("/accounts/review-requests/" + cmd.command_id + "?"), "readback of the ORIGINAL operation");
-  readbackStatus = "CONFIRMED";
+  const rb = h.fake.state.requests.at(-1);
+  assert.equal(rb.capability, "bridge.operations.read");
+  assert.ok(rb.url.includes("/hq/operations/" + cmd.command_id + "?"), "readback of the ORIGINAL operation");
+  assert.ok(rb.url.includes("purpose=support-review"), "with the original command's purpose");
+  readbackStatus = "SUCCEEDED";
   const settled = await read(h, cmd.command_id);
   assert.equal(settled.json.result.status, "SUCCEEDED");
   assert.equal(settled.json.result.readback.state, "SETTLED_BY_READBACK");
@@ -185,4 +191,21 @@ test("two-person approval foundation: independent, MFA-fresh, digest/scope bound
     clock += 120000;
     await assert.rejects(timed.decide({ id: p.approval_id, decidedBy: "b", approve: true }), (e) => e.reason === "APPROVAL_EXPIRED");
   });
+});
+
+test("readback: bridge.operations.read when the contract serves it, else the command's own GET; ledger states settle only when final", () => {
+  const { readbackMap, settle, OPERATIONS_READ } = require("../src/operations/service");
+  const cmd = { id: "x.items.change", kind: "COMMAND", method: "POST", path: "/x/items", path_params: [] };
+  const own = { id: "x.items.read", kind: "READ", method: "GET", path: "/x/items/{operation_id}", path_params: [{ name: "operation_id" }] };
+  const ops = { id: OPERATIONS_READ, kind: "READ", method: "GET", path: "/hq/operations/{idempotency_key}", path_params: [{ name: "idempotency_key", format: "uuid" }] };
+  const registry = (caps) => ({ CAPABILITIES: caps, capability: (id) => caps.find((c) => c.id === id) || null });
+  const legacy = readbackMap(registry([cmd, own])).get(cmd.id);
+  assert.deepEqual([legacy.capability.id, legacy.field, legacy.operationLevel], ["x.items.read", "operation_id", false]);
+  const ledger = readbackMap(registry([cmd, own, ops])).get(cmd.id);
+  assert.deepEqual([ledger.capability.id, ledger.field, ledger.operationLevel], [OPERATIONS_READ, "idempotency_key", true]);
+  // Ledger states: only SUCCEEDED/FAILED settle; owner evidence is kept.
+  assert.deepEqual(settle({ status: "SUCCEEDED", source_status: "APPLIED" }), { status: "SUCCEEDED", sourceStatus: "APPLIED" });
+  assert.deepEqual(settle({ status: "FAILED", source_status: "NOT_RECEIVED" }), { status: "FAILED", sourceStatus: "NOT_RECEIVED" });
+  assert.deepEqual(settle({ status: "FAILED", source_status: null }), { status: "FAILED", sourceStatus: "FAILED" });
+  for (const status of ["PENDING", "SENT", "UNKNOWN_OUTCOME"]) assert.equal(settle({ status, source_status: null }).status, "UNKNOWN_OUTCOME", status);
 });

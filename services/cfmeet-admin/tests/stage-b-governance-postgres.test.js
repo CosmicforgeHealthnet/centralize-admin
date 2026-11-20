@@ -121,12 +121,12 @@ test("Stage B, governed operations and discovery over PostgreSQL stores", { skip
     h.fake.state.handlers["accounts.review-requests.submit"] = () => ({ destroy: true });
     const unsure = reviewCommand();
     assert.equal((await submit(unsure)).json.result.status, "UNKNOWN_OUTCOME");
-    h.fake.state.handlers["accounts.review-requests.read"] = ({ params }) => ({ result: X.operationRecord(params.request_id, { status: "PENDING" }) });
+    h.fake.state.handlers["bridge.operations.read"] = ({ params }) => ({ result: X.operationStatus(params.idempotency_key, "accounts.review-requests.submit", { status: "SENT" }) });
     const read = (id) => h.client.getOperation(id, { delegation: delegateTo(F.contracts.BASE_PATH + "/operations/" + id, "operation.read") });
     assert.equal((await read(unsure.command_id)).json.result.readback.state, "STILL_UNKNOWN");
     const [row] = (await pool.query("SELECT readback_count FROM cfmeet_admin.operation_requests WHERE id = $1", [unsure.command_id])).rows;
     assert.ok(Number(row.readback_count) >= 1, "readback recorded");
-    h.fake.state.handlers["accounts.review-requests.read"] = ({ params }) => ({ result: X.operationRecord(params.request_id, { status: "CONFIRMED" }) });
+    h.fake.state.handlers["bridge.operations.read"] = ({ params }) => ({ result: X.operationStatus(params.idempotency_key, "accounts.review-requests.submit", { status: "SUCCEEDED" }) });
     assert.equal((await read(unsure.command_id)).json.result.status, "SUCCEEDED");
     const audit = await h.client.getAudit(unsure.command_id, { delegation: delegateTo(F.contracts.BASE_PATH + "/audit/" + unsure.command_id, "operation.read") });
     assert.equal(audit.status, 200, JSON.stringify(audit.json));

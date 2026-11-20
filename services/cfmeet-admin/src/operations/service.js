@@ -79,16 +79,29 @@ const LOCAL = Object.freeze({
 });
 const validateLocal = Object.fromEntries(Object.entries(LOCAL).map(([id, l]) => [id, contracts.compile(l.schema)]));
 
-// Readback: GET <command path>/{x} where body[x] names the original operation.
-const READBACK = (() => {
-  const gets = R.CAPABILITIES.filter((c) => c.method === "GET");
+// Readback of an unsettled operation, by operation identity only:
+//  - when the contract serves bridge.operations.read (agreed with CF Meet for
+//    A3.0), every command reads back through it, keyed by the Idempotency-Key
+//    HQ sent (the command id), with the original command's purpose;
+//  - otherwise GET <command path>/{x}, where body[x] names the operation.
+const OPERATIONS_READ = "bridge.operations.read";
+function readbackMap(registry) {
+  const caps = registry.CAPABILITIES;
+  const commands = caps.filter((x) => x.kind === "COMMAND" || x.kind === "RETRIEVAL");
   const out = new Map();
-  for (const c of R.CAPABILITIES.filter((x) => x.kind === "COMMAND" || x.kind === "RETRIEVAL")) {
+  const ops = registry.capability(OPERATIONS_READ);
+  if (ops && ops.method === "GET" && ops.path_params.length === 1) {
+    for (const c of commands) out.set(c.id, { capability: ops, field: ops.path_params[0].name, operationLevel: true });
+    return out;
+  }
+  const gets = caps.filter((c) => c.method === "GET");
+  for (const c of commands) {
     const rb = gets.find((g) => g.path_params.length === 1 && g.path.startsWith(c.path + "/{") && g.path.split("/").length === c.path.split("/").length + 1);
-    if (rb) out.set(c.id, { capability: rb, field: rb.path_params[0].name });
+    if (rb) out.set(c.id, { capability: rb, field: rb.path_params[0].name, operationLevel: false });
   }
   return out;
-})();
+}
+const READBACK = readbackMap(R);
 
 function localCapabilities() {
   return Object.entries(LOCAL).map(([id, l]) => ({
@@ -111,6 +124,12 @@ function settle(result) {
   if (status === undefined) return { status: "SUCCEEDED", sourceStatus: "ACCEPTED_RECORD_RETURNED" };
   if (["CONFIRMED", "APPROVED", "CONSUMED", "COMPLETED"].includes(status)) return { status: "SUCCEEDED", sourceStatus: status };
   if (["REJECTED", "FAILED_TERMINAL", "EXPIRED", "CANCELLED_WHEN_SAFE"].includes(status)) return { status: "FAILED", sourceStatus: status };
+  // bridge.operations.read: the Bridge's own settled ledger states, with the
+  // owner's evidence in source_status (FAILED/NOT_RECEIVED: the owner proved it
+  // never applied the command). PENDING, SENT and UNKNOWN_OUTCOME stay unknown.
+  const evidence = typeof result.source_status === "string" && result.source_status ? result.source_status : status;
+  if (status === "SUCCEEDED") return { status: "SUCCEEDED", sourceStatus: evidence };
+  if (status === "FAILED") return { status: "FAILED", sourceStatus: evidence };
   return { status: "UNKNOWN_OUTCOME", sourceStatus: status };
 }
 
@@ -171,7 +190,7 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
   function bindingErrors(body, command, nowMs, sourceId) {
     const readback = READBACK.get(sourceId);
     const idField = ["operation_id", "request_id"].find((f) => Object.prototype.hasOwnProperty.call(body, f)) ||
-      (readback && Object.prototype.hasOwnProperty.call(body, readback.field) ? readback.field : null);
+      (readback && !readback.operationLevel && Object.prototype.hasOwnProperty.call(body, readback.field) ? readback.field : null);
     if (idField && body[idField] !== command.command_id) return "BODY_FIELD_NOT_BOUND:" + idField;
     const checks = {
       idempotency_key: command.idempotency_key,
@@ -356,7 +375,9 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
     try { staff = bridgeStaffContext(ctx.delegation, config.bridge, Math.floor(now() / 1000), R.needsZoneTenant(rb.capability) ? { zone: scope.zone, tenant: scope.tenant } : {}); }
     catch (err) { return { operation: current, readback: { state: "READBACK_REQUIRES_STAFF_CONTEXT", reason: err.reason || "STAFF_CONTEXT_INVALID" } }; }
     const shape = R.SHAPE_PARAMS[rb.capability.query_shape];
-    const query = { market: scope.market, organization: scope.organization, zone: scope.zone, tenant: scope.tenant, purpose: commandPurpose(rb.capability) };
+    // bridge.operations.read answers only for the original command's purpose.
+    const purposeOf = rb.operationLevel ? R.capability(current.bridge_capability_id) || rb.capability : rb.capability;
+    const query = { market: scope.market, organization: scope.organization, zone: scope.zone, tenant: scope.tenant, purpose: commandPurpose(purposeOf) };
     if (shape.includes("limit")) query.limit = 1;
     if (shape.includes("start")) { query.start = new Date(now() - 30 * 86400000).toISOString(); query.end = new Date(now()).toISOString(); }
     let res;
@@ -376,4 +397,4 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
   return { submit, readback, view, localCapabilities };
 }
 
-module.exports = { createOperations, localCapabilities, withinScope, settle, READBACK, LOCAL };
+module.exports = { createOperations, localCapabilities, withinScope, settle, READBACK, readbackMap, OPERATIONS_READ, LOCAL };

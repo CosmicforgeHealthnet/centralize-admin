@@ -101,6 +101,12 @@ const SCHEMAS = {
   OperationRecord: { type: "object", additionalProperties: false, required: ["operation_id", "status", "source_version", "updated_at"],
     properties: { operation_id: { type: "string", format: "uuid" }, status: { enum: ["ACCEPTED", "PENDING", "CONFIRMED", "COMPLETED", "REJECTED", "FAILED_TERMINAL"] },
       source_version: { type: ["integer", "null"], minimum: 0 }, reason_code: { type: ["string", "null"], maxLength: 64 }, updated_at: time } },
+  // bridge.operations.read (agreed with CF Meet for A3.0): the Bridge's ledger
+  // row for one Idempotency-Key, within the calling principal.
+  OperationStatus: { type: "object", additionalProperties: false, required: ["idempotency_key", "capability_id", "status", "source_status", "source_version", "settled_at"],
+    properties: { idempotency_key: { type: "string", format: "uuid" }, capability_id: { type: "string", pattern: "^[a-z][a-z0-9-]*(\\.[a-z0-9-]+)+$" },
+      status: { enum: ["PENDING", "SENT", "SUCCEEDED", "FAILED", "UNKNOWN_OUTCOME"] }, source_status: { type: ["string", "null"], maxLength: 64 },
+      source_version: { type: ["integer", "null"], minimum: 0 }, settled_at: { type: ["string", "null"], format: "date-time" } } },
   ExportDownloadRequest: { type: "object", additionalProperties: false, required: ["grant_id"], properties: { grant_id: { type: "string", format: "uuid" } } },
   HQEventAck: { type: "object", additionalProperties: false, required: ["consumer", "sequence"], properties: { consumer: opaque, sequence: { type: "integer", minimum: 0 } } },
   HQEventAckResult: { type: "object", additionalProperties: false, required: ["consumer", "acknowledged_sequence"], properties: { consumer: opaque, acknowledged_sequence: { type: "integer", minimum: 0 } } },
@@ -123,7 +129,7 @@ const SCHEMAS = {
 // ---------------------------------------------------------------- capabilities
 const CAPS = [];
 const pp = (name, kind = "opaque") => (kind === "uuid" ? { name, schema: { type: "string", format: "uuid" } } : kind === "dataset" ? { name, schema: { type: "string", pattern: "^cfmeet\\.[a-z_]{1,48}$", maxLength: 56 } } : { name, schema: { type: "string", pattern: SEGMENT, maxLength: 128 } });
-function params(p) { return [...p.matchAll(/\{([a-z_]+)\}/g)].map((m) => pp(m[1], m[1] === "dataset_id" ? "dataset" : m[1].endsWith("case_id") || m[1] === "operation_id" || m[1] === "request_id" ? "uuid" : "opaque")); }
+function params(p) { return [...p.matchAll(/\{([a-z_]+)\}/g)].map((m) => pp(m[1], m[1] === "dataset_id" ? "dataset" : m[1].endsWith("case_id") || m[1] === "operation_id" || m[1] === "request_id" || m[1] === "idempotency_key" ? "uuid" : "opaque")); }
 const owner = (id) => id.split(".")[0] + "-service";
 
 function add(id, method, p, o) {
@@ -147,6 +153,7 @@ add("bridge.health.read", "GET", "/health/aggregate", { shape: "SCOPED", result:
 add("bridge.datasets.read", "GET", "/datasets/{dataset_id}", { shape: "SCOPED_WINDOW", result: ref("DatasetSeries"), risk: "R1", privacy: "INTERNAL", owner: "admin-bridge" });
 add("hq.events.feed", "GET", "/hq/events", { shape: "SCOPED_WINDOW", result: ref("HQEventFeed"), risk: "R1", owner: "admin-bridge", permission: "hq.events.read" });
 add("hq.events.ack", "POST", "/hq/event-acknowledgements", { shape: "SCOPED", body: ref("HQEventAck"), result: ref("HQEventAckResult"), risk: "R1", owner: "admin-bridge", svr: false, idem: false });
+add("bridge.operations.read", "GET", "/hq/operations/{idempotency_key}", { shape: "SCOPED", result: ref("OperationStatus"), risk: "R1", privacy: "INTERNAL", owner: "admin-bridge" });
 add("hq.projections.status", "GET", "/hq/projections/status", { shape: "SCOPED", result: ref("HQProjectionStatus"), risk: "R0", privacy: "INTERNAL", owner: "admin-bridge", permission: "hq.projections.read" });
 
 // accounts

@@ -105,6 +105,27 @@
   ]
  },
  {
+  "id": "bridge.operations.read",
+  "version": "1.0",
+  "owner": "admin-bridge",
+  "method": "GET",
+  "bridge_endpoint": "/hq/operations/{idempotency_key}",
+  "source_endpoint": null,
+  "state": "READ_ONLY",
+  "permission": "bridge.operations.read",
+  "risk": "R1",
+  "privacy": "INTERNAL",
+  "scope": "cfmeet + exact market, organization, zone and tenant",
+  "source_version_required": false,
+  "idempotency_required": false,
+  "approval": "NONE",
+  "feature_flag": "NONE",
+  "blocker": null,
+  "tests": [
+   "DRAFT_NOT_IMPLEMENTED"
+  ]
+ },
+ {
   "id": "hq.projections.status",
   "version": "1.0",
   "owner": "admin-bridge",
