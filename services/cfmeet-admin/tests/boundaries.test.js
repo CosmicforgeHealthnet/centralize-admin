@@ -249,3 +249,13 @@ test("no pinned Bridge schema uses a key HQ's read path treats as personal data"
   for (const c of R.CAPABILITIES) { walk(c.result_schema, c.id); walk(c.request_body, c.id + "(body)"); }
   assert.deepEqual(hits, [], "a published field would be refused by HQ's read path (SENSITIVE_FIELD_SUPPRESSED)");
 });
+
+test("contact-search capabilities (x-contact-search) are search reads; HQ clients send their q in a POST body", () => {
+  const R = require("../src/bridge/contracts/registry");
+  const flagged = R.CAPABILITIES.filter((c) => c.contact_search);
+  for (const c of flagged) {
+    assert.equal(c.kind, "READ", c.id);
+    assert.ok(R.SHAPE_PARAMS[c.query_shape].includes("q"), c.id + " is flagged as a contact search but takes no q");
+  }
+  assert.ok(R.CAPABILITIES.every((c) => typeof c.contact_search === "boolean"));
+});

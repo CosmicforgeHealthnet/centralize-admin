@@ -81,7 +81,7 @@ function buildCatalog() {
   const entry = (id) => {
     const e = map.get(id);
     if (!e) throw new Error("UNKNOWN_BRIDGE_CAPABILITY:" + id);
-    return { bridge_capability_id: id, method: e.method, bridge_path: e.bridge_path, kind: e.kind, module: e.module, cfmeet_capability_id: e.cfmeet_capability_id, risk: e.risk, privacy: e.privacy, source_state: e.source_state, exposure_state: e.exposure_state, blocker_codes: e.blocker_codes };
+    return { bridge_capability_id: id, method: e.method, bridge_path: e.bridge_path, kind: e.kind, module: e.module, cfmeet_capability_id: e.cfmeet_capability_id, risk: e.risk, privacy: e.privacy, source_state: e.source_state, exposure_state: e.exposure_state, blocker_codes: e.blocker_codes, ...(R.capability(id).contact_search ? { contact_search: true } : {}) };
   };
   const endpoint = (id) => {
     const ep = contracts.ENDPOINTS[id];

@@ -169,6 +169,9 @@ function buildPinnedRegistry(checkout) {
       feature_flag: cap.feature_flag,
       blocker: cap.blocker || null,
       source_tests: cap.tests,
+      // OpenAPI extension agreed with Track A: q may carry an email address or
+      // phone number, so HQ clients must use the POST .../search route.
+      contact_search: found.op["x-contact-search"] === true,
     };
   });
   namingErrors(capabilities);

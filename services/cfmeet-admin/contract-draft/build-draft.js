@@ -383,6 +383,9 @@ function envelope(result) {
       freshness: { enum: ["LIVE", "RECENT", "STALE", "PARTIAL", "UNKNOWN", "UNAVAILABLE"] }, result, error: { type: "null" } } };
 }
 
+// Capabilities whose q may carry an email address or phone number (Track A).
+const CONTACT_SEARCH = new Set(["accounts.users.list", "partners.users.list", "notifications.suppressions.list", "identity.records.list"]);
+
 function openapi() {
   const paths = {};
   for (const c of CAPS) {
@@ -393,6 +396,7 @@ function openapi() {
     ];
     const content = c.media === "application/json" ? { "application/json": { schema: envelope(c.result) } } : { [c.media]: { schema: c.result } };
     const op = { operationId: c.id, summary: c.id, parameters, responses: { [String(c.status)]: { description: "OK", content } } };
+    if (CONTACT_SEARCH.has(c.id)) op["x-contact-search"] = true;
     if (c.body) op.requestBody = { required: true, content: { "application/json": { schema: c.body } } };
     paths[full] = paths[full] || {};
     paths[full][c.method.toLowerCase()] = op;
