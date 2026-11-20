@@ -118,8 +118,16 @@ function withinScope(requested, delegated) {
   return Object.entries(requested).every(([dim, values]) => Array.isArray(values) && values.length > 0 && Array.isArray(delegated[dim]) && values.every((v) => delegated[dim].includes(v)));
 }
 
+// A command answer may wrap its outcome: {operation: <ledger row>, resource}
+// (CF Meet A3 VerificationCommandResult). The outcome is the operation row.
+function outcomeOf(result) {
+  if (result && typeof result === "object" && result.operation && typeof result.operation === "object" && !Array.isArray(result.operation) && "status" in result.operation) return result.operation;
+  return result;
+}
+
 // Source result -> settled status. Only explicit owner evidence settles.
-function settle(result) {
+function settle(answer) {
+  const result = outcomeOf(answer);
   const status = result && typeof result === "object" ? result.status : undefined;
   if (status === undefined) return { status: "SUCCEEDED", sourceStatus: "ACCEPTED_RECORD_RETURNED" };
   if (["CONFIRMED", "APPROVED", "CONSUMED", "COMPLETED"].includes(status)) return { status: "SUCCEEDED", sourceStatus: status };
@@ -134,7 +142,8 @@ function settle(result) {
 }
 
 function evidenceOf(res, sourceStatus) {
-  const r = res.result && typeof res.result === "object" ? res.result : {};
+  const outcome = outcomeOf(res.result);
+  const r = outcome && typeof outcome === "object" ? outcome : {};
   const version = Number.isSafeInteger(r.source_version) ? r.source_version : Number.isSafeInteger(r.receipt && r.receipt.recorded_version) ? r.receipt.recorded_version : null;
   return { source_status: sourceStatus, source_version: version, observed_at: res.asOf, bridge_correlation_id: res.bridgeCorrelationId, bridge_capability_id: res.capability.id };
 }
@@ -397,4 +406,4 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
   return { submit, readback, view, localCapabilities };
 }
 
-module.exports = { createOperations, localCapabilities, withinScope, settle, READBACK, readbackMap, OPERATIONS_READ, LOCAL };
+module.exports = { createOperations, localCapabilities, withinScope, settle, outcomeOf, READBACK, readbackMap, OPERATIONS_READ, LOCAL };

@@ -209,3 +209,16 @@ test("readback: bridge.operations.read when the contract serves it, else the com
   assert.deepEqual(settle({ status: "FAILED", source_status: null }), { status: "FAILED", sourceStatus: "FAILED" });
   for (const status of ["PENDING", "SENT", "UNKNOWN_OUTCOME"]) assert.equal(settle({ status, source_status: null }).status, "UNKNOWN_OUTCOME", status);
 });
+
+test("a wrapped command answer {operation, resource} settles from its operation row, never from the wrapper", () => {
+  const { settle, outcomeOf } = require("../src/operations/service");
+  const row = (status, sourceStatus, version) => ({ idempotency_key: "6f1d2c3b-4a5e-4f60-8a71-92b3c4d5e6f7", capability_id: "verification.case.claim", status, source_status: sourceStatus, source_version: version, settled_at: "2026-11-20T12:00:00Z" });
+  const answer = (op) => ({ operation: op, resource: { case_id: "cfmeet:APP_REVIEW:x", version: 7 } });
+  assert.deepEqual(settle(answer(row("SUCCEEDED", "CLAIMED", 7))), { status: "SUCCEEDED", sourceStatus: "CLAIMED" });
+  assert.deepEqual(settle(answer(row("FAILED", "NOT_RECEIVED", null))), { status: "FAILED", sourceStatus: "NOT_RECEIVED" });
+  assert.equal(settle(answer(row("SENT", null, null))).status, "UNKNOWN_OUTCOME", "a 2xx wrapper whose operation is not final stays unknown");
+  assert.equal(outcomeOf(answer(row("SUCCEEDED", "CLAIMED", 7))).source_version, 7, "evidence version comes from the operation row");
+  // Unwrapped answers are unchanged.
+  assert.deepEqual(settle({ operation_id: "x", status: "CONFIRMED", source_version: 3 }), { status: "SUCCEEDED", sourceStatus: "CONFIRMED" });
+  assert.equal(outcomeOf({ operation: "not-an-object", status: "CONFIRMED" }).status, "CONFIRMED");
+});
