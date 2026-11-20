@@ -23,6 +23,7 @@ import {
   Verified,
   Mail,
   Video,
+  ClipboardCheck,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
@@ -59,6 +60,8 @@ const navItems: NavItem[] = [
   { label: "Analytics", icon: BarChart2, href: "/dashboard/analytics", access: "privileged" },
   { label: "Profile", icon: User, href: "/dashboard/profile", access: "all" },
   { label: "Verification", icon: Verified, href: "/dashboard/verification", access: { module: "verification" } },
+  // Two-person approvals across Product Admins; the server decides what each person may see and decide.
+  { label: "Approvals", icon: ClipboardCheck, href: "/dashboard/approvals", access: "all" },
   { label: "Settings", icon: Settings, href: "/dashboard/settings", access: "all" },
 ];
 
