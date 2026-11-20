@@ -383,7 +383,7 @@
     },
     {
       "family": "10.1.4 Operations",
-      "notes": "Typed commands only; durable intent and audit before one dispatch; UNKNOWN_OUTCOME settled only by owner readback; TWO_PERSON and R3/R4 need an independent approval (12 h maximum) carried to the Bridge as the approval claim.",
+      "notes": "Typed commands only; durable intent and audit before one dispatch; UNKNOWN_OUTCOME settled only by owner readback; TWO_PERSON and R3/R4 need an independent approval (12 h maximum) carried to the Bridge as the approval claim. The approvals inbox (cfmeet.governance.read) lists the local approval records: waiting for the caller (only what the caller may decide now) and the caller's own requests; read only, no source call.",
       "endpoints": [
         {
           "protocol_endpoint": "operationSubmit",
@@ -408,12 +408,50 @@
           "auth": "service+delegation",
           "hq_gateway": "GET /api/products/{product}/operations/{operationId}/audit",
           "pic": "GET /internal/pic/v1/products/{product}/operations/{operationId}/audit"
+        },
+        {
+          "protocol_endpoint": "resourceList",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}"
+        },
+        {
+          "protocol_endpoint": "resourceGet",
+          "method": "GET",
+          "product_admin_path": "/internal/product-admin/v1/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "auth": "service+delegation",
+          "hq_gateway": "GET /api/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}",
+          "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}"
         }
       ],
       "local_governance_commands": [
         "cfmeet.governance.approval.propose",
         "cfmeet.governance.approval.decide",
         "cfmeet.governance.approval.revoke"
+      ],
+      "local_governance_reads": [
+        {
+          "capability_id": "cfmeet.governance.read",
+          "collections": [
+            {
+              "collection_id": "approvals-pending",
+              "kind": "LIST",
+              "meaning": "Waiting for me: approvals you can decide now"
+            },
+            {
+              "collection_id": "approvals-mine",
+              "kind": "LIST",
+              "meaning": "My requests: approvals you proposed, any status"
+            },
+            {
+              "collection_id": "approvals",
+              "kind": "DETAIL",
+              "meaning": "One approval, for its requester or an eligible approver"
+            }
+          ]
+        }
       ],
       "bridge_capability_count": 114,
       "exposure_states_unenrolled": {

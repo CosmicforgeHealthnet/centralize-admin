@@ -508,6 +508,13 @@
       "branches": 77
     },
     {
+      "path": "services/cfmeet-admin/src/modules/approvals-inbox.js",
+      "category": "approval",
+      "purpose": "Approvals inbox reads: second-person visibility, delegated scope, sealed paging, audit before data",
+      "lines": 100,
+      "branches": 99
+    },
+    {
       "path": "services/cfmeet-admin/src/db/certifications.js",
       "category": "approval",
       "purpose": "High-risk certification in force",

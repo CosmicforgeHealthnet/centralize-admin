@@ -19,6 +19,7 @@ const { PINNED_BRIDGE_CONTRACT } = require("../src/bridge/contracts");
 const { MODULES, capabilityMap } = require("../src/modules/catalog");
 const { REPORTS } = require("../src/modules/reports");
 const { LOCAL } = require("../src/operations/service");
+const { GOVERNANCE_READ, COLLECTIONS: INBOX_COLLECTIONS } = require("../src/modules/approvals-inbox");
 
 const OUT = path.join(__dirname, "..", "..", "..", "docs", "product-admin", "cfmeet-admin-api-catalog.json");
 const DEFAULT_ENV = Object.freeze({ bridge: { enabled: false }, enabledCommands: [], highRiskCertified: [] });
@@ -51,8 +52,8 @@ const FAMILIES = [
     notes: "Reports with source, grain, units, scope, coverage and freshness, and the 8 Bridge datasets as daily metric observations; unavailable sources answer explicit blockers, never invented values." },
   { family: "10.1.3 Resources", endpoints: ["resourceList", "resourceGet"], modules: MODULES.filter((m) => m.read).map((m) => m.read), bridgeKinds: ["READ"],
     notes: "Bounded, zone- and tenant-scoped reads of exact pinned collections with opaque continuation tokens bound to staff/scope/filters; every read audited." },
-  { family: "10.1.4 Operations", endpoints: ["operationSubmit", "operationGet", "auditGet"], local: Object.keys(LOCAL), bridgeKinds: ["COMMAND", "RETRIEVAL"],
-    notes: "Typed commands only; durable intent and audit before one dispatch; UNKNOWN_OUTCOME settled only by owner readback; TWO_PERSON and R3/R4 need an independent approval (12 h maximum) carried to the Bridge as the approval claim." },
+  { family: "10.1.4 Operations", endpoints: ["operationSubmit", "operationGet", "auditGet", "resourceList", "resourceGet"], local: Object.keys(LOCAL), localReads: true, bridgeKinds: ["COMMAND", "RETRIEVAL"],
+    notes: "Typed commands only; durable intent and audit before one dispatch; UNKNOWN_OUTCOME settled only by owner readback; TWO_PERSON and R3/R4 need an independent approval (12 h maximum) carried to the Bridge as the approval claim. The approvals inbox (cfmeet.governance.read) lists the local approval records: waiting for the caller (only what the caller may decide now) and the caller's own requests; read only, no source call." },
   { family: "10.1.5 Events", endpoints: ["events", "eventsAck", "datasetSnapshots", "syncStatus"], bridge: ["hq.events.feed", "hq.events.ack", "hq.projections.status", "bridge.datasets.read"],
     notes: "Stage A Bridge feed/ACK and dataset pulls (worker) and Stage B derived HQ outbox, ACKs, snapshots and partition/quarantine/gap status." },
   { family: "10.1.6 Finance reports", endpoints: ["reportGet"], reports: ["cfmeet.report.finance_usage", "cfmeet.report.estimated_charges", "cfmeet.report.plan_spread"], bridge: byPattern(/^finance\./),
@@ -101,6 +102,7 @@ function buildCatalog() {
       ...(f.reports ? { reports: f.reports } : {}),
       ...(f.modules ? { module_read_capabilities: f.modules } : {}),
       ...(f.local ? { local_governance_commands: f.local } : {}),
+      ...(f.localReads ? { local_governance_reads: [{ capability_id: GOVERNANCE_READ, collections: Object.entries(INBOX_COLLECTIONS).map(([id, c]) => ({ collection_id: id, kind: c.kind, meaning: c.title })) }] } : {}),
       bridge_capability_count: all.length,
       exposure_states_unenrolled: states,
       ...(f.bridge ? { bridge_capabilities: bridge } : {}),

@@ -242,4 +242,4 @@ function createReads({ config, bridgeClient, continuation, audit, accessLog, now
   return { list: (ctx) => read(ctx, { list: true }), get: (ctx) => read(ctx, { list: false }) };
 }
 
-module.exports = { createReads, parseReadQuery, scanForbidden, isNestedList, FORBIDDEN_FIELD };
+module.exports = { createReads, parseReadQuery, scanForbidden, isNestedList, FORBIDDEN_FIELD, READ_PURPOSES };

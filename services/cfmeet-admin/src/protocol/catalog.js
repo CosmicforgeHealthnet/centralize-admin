@@ -10,13 +10,15 @@
 //   - one READ capability per Section 11 report;
 //   - one COMMAND per pinned Bridge command/retrieval capability (DISABLED
 //     unless operator-enabled; R3/R4 always DISABLED pending certification);
-//   - two local governance approval commands;
+//   - the local governance approval commands and the approvals inbox read
+//     (cfmeet.governance.read; local records, no source call);
 //   - Stage B datasets and their metric-observation event families.
 
 const { bridgeCapabilityState } = require("../bridge/capabilities");
 const { manifestCapabilities } = require("../modules/catalog");
 const { reportCapabilities } = require("../modules/reports");
 const { localCapabilities } = require("../operations/service");
+const { governanceReadCapability } = require("../modules/approvals-inbox");
 const D = require("../sync/datasets");
 
 const BRIDGE_TRUST = { code: "BRIDGE_TRUST_NOT_ENROLLED", detail: "Bridge mTLS identity, HMAC key and staff signing key are not enrolled for this environment" };
@@ -32,6 +34,7 @@ function buildCatalog(config) {
     ...reportCapabilities(config),
     ...commands,
     ...localCapabilities(),
+    governanceReadCapability(),
   ];
   const certified = config.certifiedDatasets || [];
   return { capabilities, datasets: D.manifestDatasets(certified), event_families: D.manifestFamilies(certified) };

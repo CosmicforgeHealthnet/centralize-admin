@@ -69,3 +69,42 @@ test("CF Meet Admin onboards through the generic registry and serves scoped read
   assert.ok([401, 403].includes(noMfa.status), JSON.stringify(noMfa.json));
   assert.equal(fake.state.requests.length, calls + 1, "refusals never reach the Bridge");
 });
+
+test("the CF Meet approvals inbox (cfmeet.governance.read) is served through HQ with no product-specific HQ code", { skip, timeout: 240000 }, async (t) => {
+  const { pgApprovals } = require("../../cfmeet-admin/src/db/approvals");
+  const { pgAudit } = require("../../cfmeet-admin/src/audit");
+  const { pgOperations } = require("../../cfmeet-admin/src/db/operations");
+  const { randomUUID } = require("node:crypto");
+  let approvals;
+  const { h, fake } = await startCfmeetThroughHq(t, { cfmeetDeps: (pool) => {
+    approvals = pgApprovals(pool);
+    const audit = pgAudit(pool);
+    return { approvals, audit, operations: pgOperations(pool) };
+  } });
+  const g = await h.call("staff-requester", "POST", "/admin/product-integration-grants", { grant_kind: "PRODUCT", product_id: "cfmeet", staff_id: "staff-support", role: "cfmeet.ops.viewer", actions: ["product.view", "resource.read"], scope: ALLOWED });
+  assert.equal(g.status, 201, JSON.stringify(g.json));
+  const digest = "sha256:" + "a".repeat(64);
+  const propose = (requestedBy, scope = ALLOWED) => approvals.propose({ id: randomUUID(), capabilityId: "cfmeet.accounts.review-requests.submit", intentDigest: digest, scope, requestedBy, ttlSeconds: 600, risk: "R2",
+    summary: { targetType: "user", targetId: "user-1", reasonCode: "CUSTOMER_REQUEST", caseReference: "case-9" } });
+  const theirs = await propose("staff-other");
+  const mine = await propose("staff-support");
+  const base = "/products/cfmeet/resources/cfmeet.governance.read/";
+  const calls = fake.state.requests.length;
+
+  const pending = await h.call("staff-support", "GET", base + "approvals-pending?" + query({ limit: "10" }));
+  assert.equal(pending.status, 200, JSON.stringify(pending.json));
+  const result = pending.json.result;
+  assert.deepEqual(result.data.items.map((i) => i.approval_id), [theirs.approval_id], "only what the caller may decide");
+  assert.deepEqual(result.data.items[0].intent_summary.target, { type: "user", id: "user-1" });
+  const own = await h.call("staff-support", "GET", base + "approvals-mine?" + query({ limit: "10" }));
+  assert.deepEqual(own.json.result.data.items.map((i) => i.approval_id), [mine.approval_id]);
+  const one = await h.call("staff-support", "GET", base + "approvals/" + theirs.approval_id + "?" + query());
+  assert.equal(one.status, 200, JSON.stringify(one.json));
+  // HQ refuses list-only keys on a detail, an out-of-scope tenant and a read without MFA.
+  assert.equal((await h.call("staff-support", "GET", base + "approvals/" + theirs.approval_id + "?" + query({ limit: "5" }))).status, 400);
+  const foreign = await h.call("staff-support", "GET", base + "approvals-pending?" + query({ tenant: "tenant-b" }));
+  assert.ok([403, 404].includes(foreign.status), JSON.stringify(foreign.json));
+  const noMfa = await h.call("staff-support", "GET", base + "approvals-pending?" + query(), undefined, { mfa: false });
+  assert.ok([401, 403].includes(noMfa.status), JSON.stringify(noMfa.json));
+  assert.equal(fake.state.requests.length, calls, "the inbox never calls the CF Meet Bridge");
+});

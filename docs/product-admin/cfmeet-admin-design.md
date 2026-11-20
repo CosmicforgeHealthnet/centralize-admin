@@ -215,6 +215,12 @@ Evidence goes in `docs/product-admin/evidence/cfmeet-*.json`, in the same form a
 2. **Product grants manager.** It uses the new list route from §7.
 3. **Product integration admin.** Registry, datasets, subscriptions, operations on and off, contracts.
 4. **Approvals inbox.** Tabs for "waiting for me" and "my requests", with a decide action. It reuses the card style of the existing advertising "Approval Centre".
+   - Data: the local read capability `cfmeet.governance.read` through the generic resource routes, with `market`, `organization` and `purpose` (optional `zone`, `tenant`; lists also `limit` 1-100 and `continuation`):
+     - `/api/products/cfmeet/resources/cfmeet.governance.read/approvals-pending`: PROPOSED, unexpired approvals the caller could decide now (not their own; whole scope held; approved Bridge role for R3/R4);
+     - `/api/products/cfmeet/resources/cfmeet.governance.read/approvals-mine`: the caller's own requests, any status;
+     - `/api/products/cfmeet/resources/cfmeet.governance.read/approvals/{approval_id}`: one approval, for its requester or an eligible approver only.
+   - Items carry no request body: approval and requester/approver refs, status, risk, an intent summary (capability, target, expected version, reason code, case reference, scope), the intent digest and times. Newest first.
+   - The decide action stays `cfmeet.governance.approval.decide` through `POST /operations`.
 5. **Operation status and audit drawer.**
 
 **CF Meet section.** The sidebar entry is shown based on `/api/products`, not on staff tier.

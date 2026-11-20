@@ -12,6 +12,7 @@ require("./helpers/target-contract");
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { rejects } = assert;
 const { randomUUID, randomBytes } = require("node:crypto");
 const { ADMIN_URL, createDisposable } = require("./helpers/pgdb");
 const { migrate } = require("../scripts/migrate");
@@ -144,6 +145,123 @@ test("Stage B, governed operations and discovery over PostgreSQL stores", { skip
     const broken = await startBridgeHarness(t, { deps: { governance: { recordCapabilityDiscovery: async () => { throw Object.assign(new Error("down"), { reason: "SNAPSHOT_STORE_UNAVAILABLE" }); } } } });
     const res = await broken.client.getCapabilities({ delegation: broken.delegate(uri, { action: "product.capabilities.read" }) });
     assert.deepEqual(res.json.result.bridge_live.runtime_snapshot, { state: "NOT_RECORDED", reason: "SNAPSHOT_STORE_UNAVAILABLE" });
+  });
+});
+
+test("approvals inbox over PostgreSQL: list queries, keyset paging at full precision, immutable summary, indexes", { timeout: 120000 }, async (t) => {
+  if (!ADMIN_URL) { t.skip("CFMEET_ADMIN_TEST_DATABASE_URL not set"); return; }
+  const d = await createDisposable("cfm_ib");
+  t.after(() => d.drop());
+  await migrate({ connectionString: d.migrationUrl, runtimeRole: d.runtime });
+  const pool = d.pool();
+  const approvals = pgApprovals(pool);
+  const digest = "sha256:" + "a".repeat(64);
+  const base = { capabilityId: CAP, intentDigest: digest, ttlSeconds: 600, risk: "R2" };
+
+  await t.test("store: filters, order, keyset and the summary recorded at proposal", async () => {
+    const a = await approvals.propose({ ...base, id: randomUUID(), scope: scopeArrays, requestedBy: "staff-17", expectedVersion: 3,
+      summary: { targetType: "user", targetId: "user-1", reasonCode: "CUSTOMER_REQUEST", caseReference: "case-9" } });
+    assert.deepEqual([a.target_type, a.target_id, a.request_reason_code, a.case_reference], ["user", "user-1", "CUSTOMER_REQUEST", "case-9"]);
+    const b = await approvals.propose({ ...base, id: randomUUID(), scope: { ...scopeArrays, zone: ["ikeja"] }, requestedBy: "staff-99" });
+    assert.deepEqual([b.target_type, b.case_reference], [null, null], "no summary recorded means NULL, never invented");
+    const c = await approvals.propose({ ...base, id: randomUUID(), scope: { ...scopeArrays, tenant: ["tenant-b"] }, requestedBy: "staff-99" });
+    const filter = { market: SCOPE.market, organization: SCOPE.organization, limit: 10 };
+    const ids = async (f) => (await approvals.list({ ...filter, ...f })).map((r) => r.approval.approval_id);
+    assert.deepEqual(await ids({}), [c.approval_id, b.approval_id, a.approval_id], "newest first");
+    assert.deepEqual(await ids({ zone: "ikeja" }), [b.approval_id]);
+    assert.deepEqual(await ids({ tenant: "tenant-b" }), [c.approval_id]);
+    assert.deepEqual(await ids({ requestedBy: "staff-17" }), [a.approval_id]);
+    assert.deepEqual(await ids({ notRequestedBy: "staff-99", openAt: Date.now() }), [a.approval_id]);
+    assert.deepEqual(await ids({ market: "GH-ACCRA" }), []);
+    await approvals.decide({ id: a.approval_id, decidedBy: "staff-99", approve: true, mfaAt: Math.floor(Date.now() / 1000) });
+    assert.deepEqual(await ids({ openAt: Date.now() }), [c.approval_id, b.approval_id], "decided approvals are no longer open");
+    assert.deepEqual(await ids({ openAt: Date.now() + 3600 * 1000 }), [], "expired approvals are no longer open");
+    const [first] = await approvals.list({ ...filter, limit: 1 });
+    assert.deepEqual(await ids({ after: first.key }), [b.approval_id, a.approval_id]);
+    // The summary is bound at proposal like the rest of the approval.
+    // (An otherwise allowed decision that also rewrites the summary is refused.)
+    const decideAnd = (set) => pool.query(`UPDATE cfmeet_admin.approval_references SET status = 'REJECTED', decided_by = 'staff-5', decided_at = now(), decided_mfa_at = now(), ${set} WHERE id = $1`, [b.approval_id]);
+    await rejects(decideAnd("target_id = 'user-2'"), /summary is immutable/);
+    await rejects(decideAnd("case_reference = 'case-10'"), /summary is immutable/);
+    await rejects(decideAnd("request_reason_code = 'OTHER_CODE'"), /summary is immutable/);
+    await rejects(decideAnd("target_type = 'meeting'"), /summary is immutable/);
+    await rejects(approvals.propose({ ...base, id: randomUUID(), scope: scopeArrays, requestedBy: "staff-17", summary: { targetType: "User Account" } }), /target_type/);
+  });
+
+  await t.test("store: rows within one millisecond page without gaps or repeats", async () => {
+    const scope = { ...scopeArrays, tenant: ["tenant-us"] };
+    const times = ["2026-11-20 10:00:00.123900+00", "2026-11-20 10:00:00.123456+00", "2026-11-20 10:00:00.123100+00", "2026-11-20 10:00:00.123100+00"];
+    const inserted = [];
+    for (const at of times) {
+      const id = randomUUID();
+      await pool.query(`INSERT INTO cfmeet_admin.approval_references (id, capability_id, intent_digest, scope, requested_by, requested_at, status, expires_at, risk)
+        VALUES ($1, $2, $3, $4, 'staff-17', $5::timestamptz, 'PROPOSED', now() + interval '10 minutes', 'R2')`, [id, CAP, digest, JSON.stringify(scope), at]);
+      inserted.push(id);
+    }
+    const seen = [];
+    let after = null;
+    for (let i = 0; i < 6; i += 1) {
+      const [row] = await approvals.list({ market: SCOPE.market, organization: SCOPE.organization, tenant: "tenant-us", after, limit: 1 });
+      if (!row) break;
+      seen.push(row.approval.approval_id);
+      after = row.key;
+    }
+    const tied = inserted.slice(2).sort().reverse();
+    assert.deepEqual(seen, [inserted[0], inserted[1], ...tied], "microsecond order, ties by id, each row exactly once");
+  });
+
+  await t.test("indexes back both inbox queries", async () => {
+    const { rows } = await pool.query("SELECT indexname FROM pg_indexes WHERE schemaname = 'cfmeet_admin' AND tablename = 'approval_references' ORDER BY 1");
+    const names = rows.map((r) => r.indexname);
+    for (const n of ["approval_references_proposed_idx", "approval_references_requester_idx"]) assert.ok(names.includes(n), n);
+  });
+
+  await t.test("protocol: waiting for me, my requests, detail and sealed paging on the PostgreSQL stores", async () => {
+    const m = F.material();
+    t.after(m.cleanup);
+    const audit = pgAudit(pool);
+    const config = Object.freeze({ ...F.loadConfig(F.enabledEnv(m)), cursorKey: randomBytes(32) });
+    const app = await F.startApp(config, { audit, operations: pgOperations(pool), approvals, accessLog: require("../src/db/access-log").pgAccessLog(pool) });
+    t.after(app.close);
+    const client = F.hqClient(app.target, m.hqKey);
+    const service = F.clients.createServiceClient({ target: app.target, auth: { serviceId: F.SERVICE_ID, keyId: "pic-k1", key: m.hqKey } });
+    const delegate = (uri, claims) => F.delegation(m, { uri, scope: scopeArrays, role: "cfmeet.capabilities.viewer", ...claims });
+    const get = (path, query, claims = {}) => {
+      const qs = new URLSearchParams(query).toString();
+      return service.request({ method: "GET", path: F.contracts.BASE_PATH + "/resources/cfmeet.governance.read/" + path, query, delegation: delegate(F.contracts.BASE_PATH + "/resources/cfmeet.governance.read/" + path + "?" + qs, { action: "resource.read", ...claims }) });
+    };
+    const q = (extra = {}) => ({ market: SCOPE.market, organization: SCOPE.organization, purpose: "support-review", ...extra });
+    // Proposed through the governed pipeline: the summary comes from the command.
+    const cmd = { command_id: randomUUID(), idempotency_key: "idem-" + randomUUID(), capability_id: "cfmeet.governance.approval.propose", target: { type: "user", id: "user-7", expected_version: 2 },
+      params: { capability_id: CAP, intent_digest: digest, ttl_seconds: 600, expected_version: 2 }, reason_code: "CUSTOMER_REQUEST", case_reference: "case-77", scope: scopeArrays };
+    const proposed = await client.submitOperation(cmd, { delegation: delegate(F.contracts.BASE_PATH + "/operations", { method: "POST", body: cmd, action: "operation.submit" }) });
+    assert.equal(proposed.status, 200, JSON.stringify(proposed.json));
+    const id = proposed.json.result.approval.approval_id;
+
+    const waiting = await get("approvals-pending", q({ limit: "100" }), { sub: "staff-55" });
+    assert.equal(waiting.status, 200, JSON.stringify(waiting.json));
+    const item = waiting.json.result.data.items.find((i) => i.approval_id === id);
+    assert.deepEqual(item.intent_summary, { capability: CAP, target: { type: "user", id: "user-7" }, expected_version: 2, reason_code: "CUSTOMER_REQUEST", case_reference: "case-77", scope: scopeArrays });
+    assert.equal(item.requester_ref, "staff-17");
+    assert.equal((await get("approvals/" + id, q(), { sub: "staff-55" })).json.result.data.approval_id, id);
+    assert.equal((await get("approvals/" + id, q(), { sub: "staff-55", scope: { ...scopeArrays, zone: ["ikeja"] } })).json.error.reason, "APPROVAL_NOT_FOUND");
+
+    const all = [];
+    let page = await get("approvals-mine", q({ limit: "2" }));
+    for (;;) {
+      assert.equal(page.status, 200, JSON.stringify(page.json));
+      all.push(...page.json.result.data.items.map((i) => i.approval_id));
+      if (!page.json.result.continuation) break;
+      page = await get("approvals-mine", q({ limit: "2", continuation: page.json.result.continuation }));
+    }
+    assert.equal(new Set(all).size, all.length, "no repeats across pages");
+    assert.equal(all[0], id, "newest first");
+    const { rows: [{ n }] } = await pool.query("SELECT count(*)::int AS n FROM cfmeet_admin.approval_references WHERE requested_by = 'staff-17' AND scope->'tenant' ? 'tenant-a' AND scope->'zone' ? 'lagos-island'");
+    assert.equal(all.length, n);
+    const { rows: logged } = await pool.query("SELECT capability_id, outcome FROM cfmeet_admin.sensitive_access_log WHERE capability_id LIKE 'cfmeet.governance.read:%'");
+    assert.ok(logged.some((r) => r.capability_id === "cfmeet.governance.read:approvals-mine" && r.outcome === "READ_AUTHORIZED"));
+    const { rows: audited } = await pool.query("SELECT count(*)::int AS n FROM cfmeet_admin.integration_audit WHERE action = 'resource.read' AND outcome = 'READ_AUTHORIZED' AND metadata->>'module' = 'governance'");
+    assert.ok(audited[0].n >= 3);
   });
 });
 

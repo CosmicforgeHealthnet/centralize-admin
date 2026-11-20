@@ -63,6 +63,7 @@ Before every pin, read "Deviations from HQ interface v1" in `cfmeet/docs/admin/c
   - It is built from the consumed approval and checked locally with the same rules as the Bridge, before any network call.
   - TWO_PERSON or R3/R4 means `requires_independent_approval`.
 - **12-hour approvals.** `cfmeet.governance.approval.propose` allows `ttl_seconds` from 60 to 43,200. The default is 43,200.
+- **Approvals inbox.** `cfmeet.governance.read` (READ_ONLY, local records, no Bridge call) serves `approvals-pending`, `approvals-mine` and `approvals/{id}` through the resource routes (`src/modules/approvals-inbox.js`). "Waiting for me" uses the decide path's own second-person rule; reads are scoped, MFA-fresh, audited and sealed-paged like module reads. Proposals record the proposing command's target, reason code and case reference for display (migration 005).
 - **Modules.** 17 modules plus platform metadata, from accounts to telecom (design §4). Each has one `cfmeet.<module>.read` capability; commands are `cfmeet.<bridge capability id>`. See `src/modules/catalog.js`.
 - **Reports.** 15 reports (`src/modules/reports.js`):
   - Bridge summaries: meeting activity, communications metrics, partner usage, finance usage, estimated charges (withheld under partial coverage), plan spread, and service health.

@@ -28,6 +28,7 @@ function rowTo(row) {
     consumed_by: row.consumed_by || null, risk: row.risk || null,
     expected_version: row.expected_version === null || row.expected_version === undefined ? null : Number(row.expected_version),
     source_policy_revision: row.source_policy_revision || null, certification_id: row.certification_id || null,
+    target_type: row.target_type || null, target_id: row.target_id || null, request_reason_code: row.request_reason_code || null, case_reference: row.case_reference || null,
   };
 }
 
@@ -68,11 +69,13 @@ function pgApprovals(pool, { now = Date.now } = {}) {
   }
 
   return {
-    async propose({ id, capabilityId, intentDigest, scope, requestedBy, ttlSeconds, risk = null, expectedVersion = null, sourcePolicyRevision = null, certificationId = null }) {
+    async propose({ id, capabilityId, intentDigest, scope, requestedBy, ttlSeconds, risk = null, expectedVersion = null, sourcePolicyRevision = null, certificationId = null, summary = {} }) {
       const { rows } = await pool.query(
-        `INSERT INTO cfmeet_admin.approval_references (id, capability_id, intent_digest, scope, requested_by, status, expires_at, risk, expected_version, source_policy_revision, certification_id)
-         VALUES ($1,$2,$3,$4,$5,'PROPOSED', to_timestamp($6::double precision / 1000), $7, $8, $9, $10) ON CONFLICT (id) DO NOTHING RETURNING *`,
-        [id, capabilityId, intentDigest, JSON.stringify(scope), requestedBy, now() + ttlSeconds * 1000, risk, expectedVersion, sourcePolicyRevision, certificationId]);
+        `INSERT INTO cfmeet_admin.approval_references (id, capability_id, intent_digest, scope, requested_by, status, expires_at, risk, expected_version, source_policy_revision, certification_id,
+           target_type, target_id, request_reason_code, case_reference)
+         VALUES ($1,$2,$3,$4,$5,'PROPOSED', to_timestamp($6::double precision / 1000), $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (id) DO NOTHING RETURNING *`,
+        [id, capabilityId, intentDigest, JSON.stringify(scope), requestedBy, now() + ttlSeconds * 1000, risk, expectedVersion, sourcePolicyRevision, certificationId,
+          summary.targetType || null, summary.targetId || null, summary.reasonCode || null, summary.caseReference || null]);
       if (!rows[0]) throw new ApprovalError("APPROVAL_ID_REUSED");
       return rowTo(rows[0]);
     },
@@ -112,6 +115,30 @@ function pgApprovals(pool, { now = Date.now } = {}) {
       const { rows } = await pool.query("SELECT * FROM cfmeet_admin.approval_references WHERE id = $1", [id]);
       return rows[0] ? rowTo(rows[0]) : null;
     },
+    // Approvals inbox page (read only), newest first. The keyset carries
+    // requested_at at full database precision (microseconds, UTC, ISO 8601
+    // whatever the session DateStyle), so no row is skipped or repeated
+    // between pages.
+    async list(filter) {
+      const params = [];
+      const where = [];
+      const add = (sql, ...values) => {
+        const at = params.length;
+        params.push(...values);
+        where.push(sql.replace(/\$(\d)/g, (_, n) => "$" + (at + Number(n))));
+      };
+      add("scope->'market' ? $1 AND scope->'organization' ? $2", filter.market, filter.organization);
+      if (filter.zone) add("scope->'zone' ? $1", filter.zone);
+      if (filter.tenant) add("scope->'tenant' ? $1", filter.tenant);
+      if (filter.requestedBy) add("requested_by = $1", filter.requestedBy);
+      if (filter.notRequestedBy) add("requested_by <> $1", filter.notRequestedBy);
+      if (filter.openAt !== undefined) add("status = 'PROPOSED' AND expires_at > to_timestamp($1::double precision / 1000)", filter.openAt);
+      if (filter.after) add("(requested_at, id) < ($1::timestamptz, $2::uuid)", filter.after.at, filter.after.id);
+      params.push(filter.limit);
+      const { rows } = await pool.query(
+        `SELECT *, to_char(requested_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS keyset_at FROM cfmeet_admin.approval_references WHERE ${where.join(" AND ")} ORDER BY requested_at DESC, id DESC LIMIT $${params.length}`, params);
+      return rows.map((row) => ({ approval: rowTo(row), key: { at: row.keyset_at, id: row.id } }));
+    },
   };
 }
 
@@ -120,10 +147,11 @@ function memoryApprovals({ now = Date.now } = {}) {
   const get = (id) => rows.get(id);
   return {
     rows,
-    async propose({ id, capabilityId, intentDigest, scope, requestedBy, ttlSeconds, risk = null, expectedVersion = null, sourcePolicyRevision = null, certificationId = null }) {
+    async propose({ id, capabilityId, intentDigest, scope, requestedBy, ttlSeconds, risk = null, expectedVersion = null, sourcePolicyRevision = null, certificationId = null, summary = {} }) {
       if (rows.has(id)) throw new ApprovalError("APPROVAL_ID_REUSED");
       const row = { id, capability_id: capabilityId, intent_digest: intentDigest, scope, requested_by: requestedBy, requested_at: new Date(now()), status: "PROPOSED", decided_by: null, decided_at: null,
-        expires_at: new Date(now() + ttlSeconds * 1000), consumed_by: null, risk, expected_version: expectedVersion, source_policy_revision: sourcePolicyRevision, certification_id: certificationId };
+        expires_at: new Date(now() + ttlSeconds * 1000), consumed_by: null, risk, expected_version: expectedVersion, source_policy_revision: sourcePolicyRevision, certification_id: certificationId,
+        target_type: summary.targetType, target_id: summary.targetId, request_reason_code: summary.reasonCode, case_reference: summary.caseReference };
       rows.set(id, row);
       return rowTo(row);
     },
@@ -153,6 +181,24 @@ function memoryApprovals({ now = Date.now } = {}) {
       return true;
     },
     async get(id) { return rows.has(id) ? rowTo(rows.get(id)) : null; },
+    // Same filter and order as the PostgreSQL store (requested_at DESC, id DESC).
+    async list(filter) {
+      const has = (row, dim, value) => Array.isArray(row.scope[dim]) && row.scope[dim].includes(value);
+      const before = (row) => {
+        const at = row.requested_at.getTime();
+        const after = Date.parse(filter.after.at);
+        return at < after || (at === after && row.id < filter.after.id);
+      };
+      return [...rows.values()]
+        .filter((row) => has(row, "market", filter.market) && has(row, "organization", filter.organization)
+          && (!filter.zone || has(row, "zone", filter.zone)) && (!filter.tenant || has(row, "tenant", filter.tenant))
+          && (!filter.requestedBy || row.requested_by === filter.requestedBy) && (!filter.notRequestedBy || row.requested_by !== filter.notRequestedBy)
+          && (filter.openAt === undefined || (row.status === "PROPOSED" && row.expires_at.getTime() > filter.openAt))
+          && (!filter.after || before(row)))
+        .sort((a, b) => b.requested_at - a.requested_at || (a.id < b.id ? 1 : -1))
+        .slice(0, filter.limit)
+        .map((row) => ({ approval: rowTo(row), key: { at: row.requested_at.toISOString(), id: row.id } }));
+    },
   };
 }
 

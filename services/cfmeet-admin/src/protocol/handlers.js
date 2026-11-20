@@ -16,7 +16,8 @@ const R = require("../bridge/contracts/registry");
 const { bridgeStaffContext, enrolledScopeFor, StaffContextError } = require("../bridge/capabilities");
 const { capabilityMap, MODULES, collectionsOf, readExposure } = require("../modules/catalog");
 const { REPORTS } = require("../modules/reports");
-const { withinScope } = require("../operations/service");
+const { withinScope, LOCAL } = require("../operations/service");
+const { governanceModuleSummary } = require("../modules/approvals-inbox");
 const { contractRevision } = require("../sync/bridge-consumer");
 
 const P = contracts.ProtocolError;
@@ -37,7 +38,7 @@ const SNAPSHOT_QUERY = {
   cursor: { type: "cursor", max: 512 },
 };
 
-function createHandlers({ config, catalog, manifest, bridgeClient, operations, operationsService, reads, reports, pipeline, audit, governance = null, dbReady, readinessDetail = null, logger = () => {}, now = Date.now }) {
+function createHandlers({ config, catalog, manifest, bridgeClient, operations, operationsService, reads, reports, approvalsInbox, pipeline, audit, governance = null, dbReady, readinessDetail = null, logger = () => {}, now = Date.now }) {
   const productId = config.productId;
   const ok = (ctx, result, extra = {}) => ({ body: contracts.okEnvelope({ productId, correlationId: ctx.correlationId, result, ...extra }, now()) });
   const datasetIds = new Set(catalog.datasets.map((d) => d.dataset_id));
@@ -93,7 +94,7 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, o
   }
 
   function modulesSummary() {
-    return MODULES.map((m) => {
+    return [...MODULES.map((m) => {
       const collections = collectionsOf(m);
       const exposures = collections.map((c) => readExposure(c, config).state);
       const inventory = R.capabilitiesFor(m.id);
@@ -103,7 +104,7 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, o
         collections: collections.map((c, i) => ({ collection_id: c.id, detail: c.path_params.length > 0, exposure_state: exposures[i], privacy: c.privacy, risk: c.risk })),
         commands: inventory.filter((c) => c.kind === "COMMAND" || c.kind === "RETRIEVAL").map((c) => "cfmeet." + c.id),
       };
-    });
+    }), governanceModuleSummary(Object.keys(LOCAL))];
   }
 
   return {
@@ -231,8 +232,10 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, o
       return ok(ctx, { operation_id: operation.operation_id, records: rows });
     },
 
-    resourceList: (ctx) => reads.list(ctx),
-    resourceGet: (ctx) => reads.get(ctx),
+    // The local approvals inbox (cfmeet.governance.read) is served here;
+    // every other capability is a Bridge-backed module read.
+    resourceList: (ctx) => (approvalsInbox.serves(ctx.params.capabilityId) ? approvalsInbox.list(ctx) : reads.list(ctx)),
+    resourceGet: (ctx) => (approvalsInbox.serves(ctx.params.capabilityId) ? approvalsInbox.get(ctx) : reads.get(ctx)),
     reportGet: (ctx) => reports.get(ctx),
   };
 }

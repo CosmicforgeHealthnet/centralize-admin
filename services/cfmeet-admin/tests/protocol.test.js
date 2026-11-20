@@ -80,8 +80,11 @@ test("manifest is signed, verifies for product 'cfmeet' and advertises honest st
   assert.equal(verified.manifest.display_name, "CF Meet");
   const usable = verified.manifest.capabilities.filter((c) => contracts.USABLE_CAPABILITY_STATES.includes(c.state));
   // Without Bridge enrollment only local, source-free capabilities are usable:
-  // the connector-health report and the two local approval records.
-  assert.deepEqual(usable.map((c) => c.id).sort(), ["cfmeet.governance.approval.decide", "cfmeet.governance.approval.propose", "cfmeet.governance.approval.revoke", "cfmeet.report.connector_health"]);
+  // the connector-health report, the local approval records and the
+  // approvals inbox read over them.
+  assert.deepEqual(usable.map((c) => c.id).sort(), ["cfmeet.governance.approval.decide", "cfmeet.governance.approval.propose", "cfmeet.governance.approval.revoke", "cfmeet.governance.read", "cfmeet.report.connector_health"]);
+  assert.deepEqual(verified.manifest.capabilities.find((c) => c.id === "cfmeet.governance.read"), { id: "cfmeet.governance.read", version: "1.0.0", kind: "READ", state: "READ_ONLY", risk: "R1",
+    description: "Two-person approvals inbox: approvals waiting for the caller and the caller's own requests (local records; no source call)", datasets: [], blockers: [], requires_recent_mfa: true, requires_independent_approval: false, request_schema: null });
   const sourceCommands = verified.manifest.capabilities.filter((c) => c.kind === "COMMAND" && !c.id.startsWith("cfmeet.governance."));
   const R = require("../src/bridge/contracts/registry");
   assert.equal(sourceCommands.length, R.CAPABILITIES.filter((c) => c.kind === "COMMAND" || c.kind === "RETRIEVAL").length);

@@ -15,6 +15,7 @@ const { createBridgeClient } = require("../bridge/client");
 const { createContinuation } = require("../modules/continuation");
 const { createReads } = require("../modules/reads");
 const { createReports } = require("../modules/reports");
+const { createApprovalsInbox } = require("../modules/approvals-inbox");
 const { createOperations } = require("../operations/service");
 const { memoryAccessLog } = require("../db/access-log");
 const { memoryApprovals } = require("../db/approvals");
@@ -84,10 +85,11 @@ function createApp(config, deps) {
   const accessLog = deps.accessLog || memoryAccessLog();
   const approvals = deps.approvals || memoryApprovals({ now });
   const reads = createReads({ config, bridgeClient, continuation, audit: deps.audit, accessLog, now, logger: deps.logger });
+  const approvalsInbox = createApprovalsInbox({ config, approvals, continuation, audit: deps.audit, accessLog, now });
   const reports = createReports({ config, bridgeClient, store: deps.pipeline || null, audit: deps.audit, bridgeMetrics, now });
   const operationsService = createOperations({ config, catalog, operations: deps.operations, approvals, bridgeClient, certifications: deps.certifications || null, governance: deps.governance || null, now, logger: deps.logger, signal: observability.signal });
   const syncStatus = createSyncStatus({ config, store: deps.pipeline || null, lastBridgeOutcome: observability.lastBridgeOutcome, now });
-  const handlers = createHandlers({ config, catalog, manifest, bridgeClient, operations: deps.operations, operationsService, reads, reports, pipeline: deps.pipeline || null, audit: deps.audit, governance: deps.governance || null, dbReady: deps.dbReady, readinessDetail: syncStatus.readiness, logger: deps.logger, now });
+  const handlers = createHandlers({ config, catalog, manifest, bridgeClient, operations: deps.operations, operationsService, reads, reports, approvalsInbox, pipeline: deps.pipeline || null, audit: deps.audit, governance: deps.governance || null, dbReady: deps.dbReady, readinessDetail: syncStatus.readiness, logger: deps.logger, now });
   return withObservability(clients.createProductAdminHandler({
     productId: config.productId,
     serviceInstanceId: config.serviceInstanceId,

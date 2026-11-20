@@ -118,6 +118,31 @@ function withinScope(requested, delegated) {
   return Object.entries(requested).every(([dim, values]) => Array.isArray(values) && values.length > 0 && Array.isArray(delegated[dim]) && values.every((v) => delegated[dim].includes(v)));
 }
 
+const HIGH = (risk) => risk === "R3" || risk === "R4";
+
+// The second-person rule for acting on an approval. The approver (or
+// revoker) must hold the approval's whole scope; for a decision on a
+// high-risk target the approver's role must also be an approved Bridge role.
+// Staff tier never counts. Shared by the decide/revoke path and the
+// approvals inbox, so the inbox never offers what the decide path refuses.
+// Returns null when eligible, else the refusal reason.
+function approverIneligibility(record, delegation, { config, nowS, decide = true }) {
+  if (!withinScope(record.scope, delegation.scope)) return "APPROVER_SCOPE_INSUFFICIENT";
+  if (decide && HIGH(record.risk)) {
+    if (!config.bridge.enabled) return "APPROVER_ROLE_NOT_VERIFIABLE";
+    try { bridgeStaffContext(delegation, config.bridge, nowS); } catch (err) { return "APPROVER_" + (err instanceof StaffContextError ? err.reason : "STAFF_CONTEXT_INVALID"); }
+  }
+  return null;
+}
+
+// True when this staff member could decide the approval now: it is still
+// PROPOSED and unexpired, they did not propose it (the store enforces the
+// same three rules on decide) and they pass the second-person rule.
+function decidableBy(record, delegation, { config, nowMs }) {
+  return record.status === "PROPOSED" && Date.parse(record.expires_at) > nowMs && record.requested_by !== delegation.sub &&
+    approverIneligibility(record, delegation, { config, nowS: Math.floor(nowMs / 1000) }) === null;
+}
+
 // A command answer may wrap its outcome: {operation: <ledger row>, resource}
 // (CF Meet A3 VerificationCommandResult). The outcome is the operation row.
 function outcomeOf(result) {
@@ -152,7 +177,6 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
   // signal(kind, value): bounded command signals for metrics (dispatch outcome, readback state).
   const emit = (kind, value) => { try { signal(kind, value); } catch { /* metrics never break a command */ } };
   const findCapability = (id) => catalog.capabilities.find((c) => c.id === id) || null;
-  const HIGH = (risk) => risk === "R3" || risk === "R4";
   const revision = contractRevision();
 
   // Certification in force for a high-risk capability, or null (fail closed
@@ -240,18 +264,14 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
         }
         result = await approvals.propose({ id: command.command_id, capabilityId: target.id, intentDigest: command.params.intent_digest, scope: command.scope, requestedBy: ctx.delegation.sub, ttlSeconds: command.params.ttl_seconds === undefined ? APPROVAL_TTL_DEFAULT_SECONDS : command.params.ttl_seconds,
           risk: target.risk, expectedVersion: Number.isInteger(command.params.expected_version) ? command.params.expected_version : null,
-          sourcePolicyRevision: cert ? cert.source_policy_revision : null, certificationId: cert ? cert.certification_id : null });
+          sourcePolicyRevision: cert ? cert.source_policy_revision : null, certificationId: cert ? cert.certification_id : null,
+          // Safe, body-free description for the approvals inbox.
+          summary: { targetType: command.target.type, targetId: command.target.id, reasonCode: command.reason_code, caseReference: command.case_reference } });
       } else {
-        // The approver (or revoker) must hold the approval's whole scope; for
-        // high-risk targets the approver's role must also be an approved
-        // Bridge role. Staff tier never counts.
         const pending = await approvals.get(command.params.approval_id);
         if (!pending) throw new ApprovalError("APPROVAL_NOT_FOUND");
-        if (!withinScope(pending.scope, ctx.delegation.scope)) throw new ApprovalError("APPROVER_SCOPE_INSUFFICIENT");
-        if (cap.id === "cfmeet.governance.approval.decide" && HIGH(pending.risk)) {
-          if (!config.bridge.enabled) throw new ApprovalError("APPROVER_ROLE_NOT_VERIFIABLE");
-          try { bridgeStaffContext(ctx.delegation, config.bridge, Math.floor(now() / 1000)); } catch (err) { throw new ApprovalError("APPROVER_" + (err instanceof StaffContextError ? err.reason : "STAFF_CONTEXT_INVALID")); }
-        }
+        const ineligible = approverIneligibility(pending, ctx.delegation, { config, nowS: Math.floor(now() / 1000), decide: cap.id === "cfmeet.governance.approval.decide" });
+        if (ineligible) throw new ApprovalError(ineligible);
         result = cap.id === "cfmeet.governance.approval.decide"
           ? await approvals.decide({ id: command.params.approval_id, decidedBy: ctx.delegation.sub, approve: command.params.decision === "APPROVE", mfaAt })
           : await approvals.revoke({ id: command.params.approval_id, revokedBy: ctx.delegation.sub, reasonCode: command.params.reason_code });
@@ -406,4 +426,4 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
   return { submit, readback, view, localCapabilities };
 }
 
-module.exports = { createOperations, localCapabilities, withinScope, settle, outcomeOf, READBACK, readbackMap, OPERATIONS_READ, LOCAL };
+module.exports = { createOperations, localCapabilities, withinScope, approverIneligibility, decidableBy, settle, outcomeOf, READBACK, readbackMap, OPERATIONS_READ, LOCAL };
