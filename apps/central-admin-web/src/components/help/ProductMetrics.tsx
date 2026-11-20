@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import api from "@/lib/api";
+import { listProducts } from "@/lib/products.service";
 
 type Scope = Record<string, string[]>;
 type Product = { product_id: string; display_name: string; available: boolean; effective_scope: Scope; datasets: { dataset_id: string; granted: boolean }[] };
@@ -21,8 +22,8 @@ export default function ProductMetrics() {
   const load = useCallback(async (signal: AbortSignal) => {
     setLoading(true);
     try {
-      const { data } = await api.get<{ products: Product[] }>("/api/products", { signal });
-      const products = (data.products || []).filter(p => p.available && p.datasets.some(d => d.granted));
+      // PIC answers {success, data: {products}}; listProducts reads that shape.
+      const products = ((await listProducts({ signal })) as unknown as Product[]).filter(p => p.available && p.datasets.some(d => d.granted));
       const next = await Promise.all(products.map(async product => {
         const { data: catalog } = await api.get<Envelope<{ datasets: Dataset[] }>>(`/api/products/${encodeURIComponent(product.product_id)}/datasets`, { signal });
         if (!catalog.result || catalog.error) throw new Error("Product data unavailable");

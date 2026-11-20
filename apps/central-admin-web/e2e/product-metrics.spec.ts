@@ -3,7 +3,7 @@ const product={product_id:"karryam",display_name:"Karryam",available:true,effect
 const metric={metric_id:"karryam.support.cases_open",definition:"Open source-backed support cases"};
 test("product metrics show source, freshness and real zero/missing distinctions",async({page,api})=>{
  await signIn(page,SUPER_USER);defaultMocks(api,SUPER_USER);
- api.on("GET","/api/products",{body:{products:[product]}});
+ api.on("GET","/api/products",{body:{success:true,data:{products:[product]}}});
  api.on("GET","/api/products/karryam/datasets",{body:{error:null,result:{datasets:[{dataset_id:"karryam.support_operations",metrics:[metric]}]}}});
  let observed=true;
  api.on("GET","/api/products/karryam/metrics/karryam.support.cases_open",()=>({body:{error:null,result:{observations:[{value:observed?2:null,value_state:observed?"OBSERVED":"UNAVAILABLE",source_observed_at:"2026-11-06T03:54:00Z",freshness:"FRESH",coverage:observed?"COMPLETE":"UNKNOWN"}]}}}));
@@ -16,7 +16,7 @@ test("product metrics show source, freshness and real zero/missing distinctions"
  await expect(panel.locator("dd")).toHaveText("?");await expect(panel.getByText("Unavailable",{exact:true})).toBeVisible();
 });
 test("staff without product grants see no product panel",async({page,api})=>{
- await signIn(page,SUPER_USER);defaultMocks(api,SUPER_USER);api.on("GET","/api/products",{body:{products:[]}});
+ await signIn(page,SUPER_USER);defaultMocks(api,SUPER_USER);api.on("GET","/api/products",{body:{success:true,data:{products:[]}}});
  await gotoWithEntitlements(page,"/dashboard/help");await expect.poll(()=>api.callsTo("GET","/api/products").length).toBeGreaterThan(0);
  await expect(page.getByRole("region",{name:"Product activity"})).toHaveCount(0);
 });
