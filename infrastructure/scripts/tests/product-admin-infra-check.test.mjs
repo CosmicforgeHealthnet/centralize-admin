@@ -208,6 +208,60 @@ test("firewall check requires the CF Meet subnets", () => {
   assert.ok(failing(checkFirewall(text.replaceAll("PA_SUBNET_CMDB", "PA_SUBNET_XX"), policy)).includes("firewall-covers-subnet"));
 });
 
+// CF Meet Bridge over a private tunnel: cf-staging-cfmeet-bridge is the only
+// non-internal network, allowed solely with a single-destination egress
+// allowlist that the firewall implements.
+const FIREWALL_TEXT = () => fs.readFileSync(path.join(ROOT, "infrastructure/product-admin/firewall/docker-user-rules.sh"), "utf8");
+const POLICY_MUTATIONS = [
+  ["non-internal without an allowlist", "policy-network-internal", (p) => { p.networks["karryam-bridge"].internal = false; }],
+  ["non-internal without an allowlist (CF Meet)", "policy-network-internal", (p) => { delete p.networks["cfmeet-bridge"].egress_allowlist; }],
+  ["allowlist with two destinations", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist.push({ address_env: "PA_OTHER_ADDRESS", port: 443, protocol: "tcp" }); }],
+  ["wildcard literal address", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].address = "0.0.0.0/0"; }],
+  ["wildcard port", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].port = "*"; }],
+  ["port range", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].ports = [8460, 8461]; }],
+  ["udp", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].protocol = "udp"; }],
+  ["address not from an operator variable", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].address_env = "*"; }],
+  ["empty allowlist", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist = []; }],
+  ["bridge container member on cfmeet-bridge", "policy-remote-bridge-not-member", (p) => { p.networks["cfmeet-bridge"].permitted_members.push("cfmeet-admin-bridge"); }],
+  ["bridge container member on cfmeet-bridge (members)", "policy-egress-network-members", (p) => { p.networks["cfmeet-bridge"].permitted_members.push("cfmeet-admin-bridge"); }],
+  ["database behind the allowlist", "policy-egress-network-members", (p) => { p.networks["cfmeet-bridge"].permitted_members.push("cfmeet-admin-db"); }],
+  ["internal network declaring an allowlist", "policy-internal-has-no-allowlist", (p) => { p.networks["cfmeet-admin-db"].egress_allowlist = structuredClone(p.networks["cfmeet-bridge"].egress_allowlist); }],
+  ["cfmeet-bridge made internal again (Karryam-style local Bridge)", "policy-remote-bridge-not-member", (p) => { p.networks["cfmeet-bridge"].internal = true; delete p.networks["cfmeet-bridge"].egress_allowlist; }],
+];
+for (const [name, check, mutate] of POLICY_MUTATIONS) {
+  test(`egress policy fails closed: ${name}`, () => {
+    const p = structuredClone(policy);
+    mutate(p);
+    assert.ok(failing(checkPolicy(p)).includes(check), `expected ${check}; failures: ${failing(checkPolicy(p)).join(", ") || "none"}`);
+  });
+}
+
+const FIREWALL_MUTATIONS = [
+  ["allow rule missing", "firewall-implements-egress-allowlist", (t) => t.replace(/^.*--dport \$PA_CM_BRIDGE_PORT.*-j RETURN"$/m, "")],
+  ["allow rule for any destination", "firewall-implements-egress-allowlist", (t) => t.replace("-d $PA_CM_BRIDGE_ADDRESS/32 -p tcp --dport", "-p tcp --dport")],
+  ["default egress drop missing", "firewall-implements-egress-allowlist", (t) => t.replace('echo "DOCKER-USER -s $PA_SUBNET_CMBRIDGE -m comment --comment $TAG -j DROP"', "")],
+  ["host (INPUT) drop missing", "firewall-implements-egress-allowlist", (t) => t.replace('echo "INPUT -s $PA_SUBNET_CMBRIDGE -m comment --comment $TAG -j DROP"', "")],
+  ["other sources to the bridge not dropped", "firewall-implements-egress-allowlist", (t) => t.replace('echo "DOCKER-USER -d $PA_CM_BRIDGE_ADDRESS/32 -m conntrack --ctstate NEW -m comment --comment $TAG -j DROP"', "")],
+  ["8460 not refused on the HQ host", "firewall-protects-db-and-bridge-ports", (t) => t.replace("PORTS=(5432 8110 8460)", "PORTS=(5432 8110)")],
+  ["address not validated", "firewall-validates-egress-address", (t) => t.replaceAll("RFC 1918", "private")],
+  ["verify without the exact-set check", "firewall-verifies-exact-set", (t) => t.replaceAll("UNEXPECTED", "EXTRA")],
+];
+for (const [name, check, mutate] of FIREWALL_MUTATIONS) {
+  test(`egress firewall fails closed: ${name}`, () => {
+    const text = mutate(FIREWALL_TEXT());
+    assert.notEqual(text, FIREWALL_TEXT(), "mutation applied");
+    assert.ok(failing(checkFirewall(text, policy)).includes(check), `expected ${check}`);
+  });
+}
+
+test("a non-internal network the firewall does not know is refused", () => {
+  const p = structuredClone(policy);
+  p.networks["karryam-admin-db"].internal = false;
+  p.networks["karryam-admin-db"].egress_allowlist = [{ address_env: "PA_KADB_EGRESS", port: 443, protocol: "tcp" }];
+  p.networks["karryam-admin-db"].permitted_members = ["karryam-admin", "karryam-admin-worker"];
+  assert.ok(failing(checkFirewall(FIREWALL_TEXT(), p)).includes("firewall-implements-egress-allowlist"));
+});
+
 test("nginx check refuses a weakened snippet", () => {
   const text = fs.readFileSync(path.join(ROOT, "infrastructure/product-admin/nginx/internal-deny.conf"), "utf8");
   const failed = (t) => failing(checkNginx(t, policy));

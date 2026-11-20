@@ -164,8 +164,9 @@ jobs:
       PA_API_CONTAINER: rehearsal-api
       PA_BRIDGE_CONTAINER: rehearsal-bridge
       PA_BRIDGE_ADDRESS: 10.231.12.10
-      PA_CM_BRIDGE_CONTAINER: rehearsal-cfmeet-bridge
-      PA_CM_BRIDGE_ADDRESS: 10.231.14.10
+      # Stand-in for the private tunnel to CF Meet's host: CF Meet side 10.250.0.1 (the bridge address), HQ side 10.250.0.2.
+      PA_CM_BRIDGE_ADDRESS: 10.250.0.1
+      PA_CM_BRIDGE_PORT: "8460"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -192,7 +193,7 @@ jobs:
           op="$1"; shift
           sudo env PA_REHEARSAL=1 PA_HOST_ROOT="$PA_HOST_ROOT" PA_CONFIG_ROOT="$PA_CONFIG_ROOT" PA_HQ_DB_CONTAINER="$PA_HQ_DB_CONTAINER" \
             PA_API_CONTAINER="$PA_API_CONTAINER" PA_BRIDGE_CONTAINER="$PA_BRIDGE_CONTAINER" PA_BRIDGE_ADDRESS="$PA_BRIDGE_ADDRESS" \
-            PA_CM_BRIDGE_CONTAINER="$PA_CM_BRIDGE_CONTAINER" PA_CM_BRIDGE_ADDRESS="$PA_CM_BRIDGE_ADDRESS" \
+            PA_CM_BRIDGE_ADDRESS="${PA_CM_BRIDGE_ADDRESS:-}" PA_CM_BRIDGE_PORT="${PA_CM_BRIDGE_PORT:-8460}" \
             PA_PIC_IMAGE="${PA_PIC_IMAGE:-}" PA_KA_IMAGE="${PA_KA_IMAGE:-}" PA_CM_IMAGE="${PA_CM_IMAGE:-}" PA_RELEASE_SHA="${PA_RELEASE_SHA:-}" PA_RUN_ID="${GITHUB_RUN_ID}-${op}-$RANDOM" "$@" \
             bash "$GITHUB_WORKSPACE/infrastructure/product-admin/release/pa-staging-ops.sh" "$op" 2>&1 | tee -a "$PA_LOGS/$op.log"
           SH
@@ -235,12 +236,56 @@ jobs:
           grep -q 'cf-product-admin' "$PA_LOGS/docker-user.txt"
           # Idempotent.
           ops prepare-host >/dev/null
-          for n in cf-staging-hq-private cf-staging-admin-private cf-staging-karryam-bridge cf-staging-karryam-admin-db cf-staging-cfmeet-bridge cf-staging-cfmeet-admin-db; do test "$(docker network inspect -f '{{.Internal}}' "$n")" = true; done
+          for n in cf-staging-hq-private cf-staging-admin-private cf-staging-karryam-bridge cf-staging-karryam-admin-db cf-staging-cfmeet-admin-db; do test "$(docker network inspect -f '{{.Internal}}' "$n")" = true; done
+          # The CF Meet Bridge network is the one non-internal network, behind the exact egress allowlist.
+          test "$(docker network inspect -f '{{.Internal}}' cf-staging-cfmeet-bridge)" = false
+          grep -Eq -- '-A DOCKER-USER -s 10.231.14.0/28 -d 10.250.0.1/32 -p tcp( -m tcp)? --dport 8460 ' "$PA_LOGS/docker-user.txt"
+          grep -q -- '-A DOCKER-USER -s 10.231.14.0/28 -m comment --comment cf-product-admin -j DROP' "$PA_LOGS/docker-user.txt"
+          sudo iptables -S INPUT | grep -q -- '-A INPUT -s 10.231.14.0/28 -m comment --comment cf-product-admin -j DROP'
+          grep -q 'present: exact rule set already in place' "$PA_LOGS/prepare-host.log"
           test "$(stat -c '%a %u %g' "$PA_HOST_ROOT/run/cfmeet-admin")" = "750 10003 10003"
-          # The source-owned Bridges (stand-ins) join their private networks with fixed addresses; the API stand-in mounts the PIC socket read-only.
+          # Invalid tunnel endpoints are refused before anything changes: CGNAT 100.64/10, public, inside a cf-staging subnet.
+          for bad in 100.64.0.1 1.1.1.1 10.231.14.10; do
+            if PA_CM_BRIDGE_ADDRESS="$bad" ops prepare-host; then echo "::error::prepare-host accepted PA_CM_BRIDGE_ADDRESS=$bad"; exit 1; fi
+          done
+          # Re-pointing the tunnel address replaces the allowlist exactly (no stale rule survives), then back.
+          PA_CM_BRIDGE_ADDRESS=10.250.0.5 ops prepare-host >/dev/null
+          if sudo iptables -S DOCKER-USER | grep -q -- '-d 10.250.0.1/32'; then echo "::error::stale allowlist rule for the old bridge address"; exit 1; fi
+          sudo iptables -S DOCKER-USER | grep -Eq -- '-d 10.250.0.5/32 -p tcp( -m tcp)? --dport 8460'
+          ops prepare-host >/dev/null
+          if sudo iptables -S DOCKER-USER | grep -q -- '10.250.0.5/32'; then echo "::error::stale allowlist rule after restoring the bridge address"; exit 1; fi
+          # Karryam's source-owned Bridge (stand-in) joins its private network with a fixed address; the API stand-in mounts the PIC socket read-only.
           docker run -d --name rehearsal-bridge --network cf-staging-karryam-bridge --ip 10.231.12.10 node:22-alpine node -e "require('net').createServer(s=>s.end()).listen(8110)" >/dev/null
-          docker run -d --name rehearsal-cfmeet-bridge --network cf-staging-cfmeet-bridge --ip 10.231.14.10 node:22-alpine node -e "require('net').createServer(s=>s.end()).listen(8110)" >/dev/null
           docker run -d --name rehearsal-api -v "$PA_HOST_ROOT/run/pic:/run/cosmicforge/pic:ro" node:22-alpine node -e "setInterval(()=>{},1<<30)" >/dev/null
+      - name: CF Meet Bridge tunnel stand-in (network namespace peer behind a veth, like a WireGuard peer behind wg0)
+        run: |
+          set -euo pipefail
+          # The real Bridge is on CF Meet's host behind a WireGuard tunnel: a routed L3 interface with one peer.
+          # A docker network cannot stand in for it (Docker's inter-network isolation would block the flow for
+          # the wrong reason), so the peer is a network namespace behind a veth pair: traffic from
+          # cf-staging-cfmeet-bridge is forwarded out of a non-Docker interface and masqueraded to the HQ
+          # tunnel address, exactly as with wg0. The peer listens on 8460 (bridge) and 8461 (any other port).
+          sudo ip netns add cm-peer
+          sudo ip link add cm-tun0 type veth peer name cm-tun1
+          sudo ip link set cm-tun1 netns cm-peer
+          sudo ip addr add 10.250.0.2/30 dev cm-tun0
+          sudo ip link set cm-tun0 up
+          sudo ip netns exec cm-peer ip addr add 10.250.0.1/30 dev cm-tun1
+          sudo ip netns exec cm-peer ip link set cm-tun1 up
+          sudo ip netns exec cm-peer ip link set lo up
+          sudo ip netns exec cm-peer nohup python3 -c '
+          import socket, threading
+          def serve(port):
+              s = socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(("10.250.0.1", port)); s.listen(16)
+              while True:
+                  c, _ = s.accept(); c.close()
+          for p in (8460, 8461): threading.Thread(target=serve, args=(p,)).start()
+          ' >/dev/null 2>&1 &
+          # The peer really listens on both ports (from the host, which is outside the container allowlist).
+          for i in $(seq 1 20); do timeout 2 bash -c '</dev/tcp/10.250.0.1/8460' 2>/dev/null && timeout 2 bash -c '</dev/tcp/10.250.0.1/8461' 2>/dev/null && break; sleep 1; done
+          timeout 2 bash -c '</dev/tcp/10.250.0.1/8460'
+          timeout 2 bash -c '</dev/tcp/10.250.0.1/8461'
+
       - name: Deploy disabled-by-default (release 1)
         run: |
           set -euo pipefail
@@ -265,8 +310,18 @@ jobs:
           grep -q 'PA_CM_IMAGE is set but .*cfmeet-admin.env is missing' "$PA_LOGS/deploy.log"
           test -z "$(docker ps -a --filter label=com.docker.compose.project=cf-product-admin-staging --filter name=cfmeet --format '{{.Names}}')"
           : > "$PA_LOGS/deploy.log"
-          # (c) Full release with CF Meet Admin.
           sudo mv "$RUNNER_TEMP/cfmeet-admin.env.hold" "$PA_CONFIG_ROOT/cfmeet-admin.env"
+          # (b2) The CF Meet Bridge tunnel endpoint is required and must be RFC 1918, outside every cf-staging subnet.
+          for bad in "" 100.64.0.1 10.231.14.10; do
+            if PA_CM_BRIDGE_ADDRESS="$bad" PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_CM_IMAGE="$CM1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy; then echo "::error::deploy accepted PA_CM_BRIDGE_ADDRESS='$bad'"; exit 1; fi
+          done
+          grep -q 'PA_CM_BRIDGE_ADDRESS (RFC 1918 tunnel address of the CF Meet host' "$PA_LOGS/deploy.log"
+          # A tunnel address the firewall was not prepared for is refused too.
+          if PA_CM_BRIDGE_ADDRESS=10.250.0.9 PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_CM_IMAGE="$CM1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy; then echo "::error::deploy accepted a bridge address without its egress allowlist"; exit 1; fi
+          grep -q 'egress allowlist for 10.250.0.9:8460 is not in place' "$PA_LOGS/deploy.log"
+          test -z "$(docker ps -a --filter label=com.docker.compose.project=cf-product-admin-staging --filter name=cfmeet --format '{{.Names}}')"
+          : > "$PA_LOGS/deploy.log"
+          # (c) Full release with CF Meet Admin.
           ops preflight
           PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_CM_IMAGE="$CM1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy
           grep -q 'CF Meet Admin is part of this release' "$PA_LOGS/deploy.log"
@@ -274,6 +329,21 @@ jobs:
           for c in images_match_tested_digests containers_running_non_root no_published_ports network_membership_matches_policy socket_permissions health_live health_ready_expected unauthenticated_refused pic_to_karryam_socket pic_to_cfmeet_socket product_admin_sockets_isolated hq_gateway_socket_reachable network_flows bridge_network_reachable_only_from_karryam bridge_network_reachable_only_from_cfmeet; do has "$c" PASS; done
           grep -q 'ready PIC 503 (expected 503), Karryam Admin 503 (expected 503), CF Meet Admin 503' "$PA_LOGS/deploy.log"
           test "$(docker exec cf-product-admin-staging-cfmeet-admin-1 id -u)" = 10003
+          grep -q 'PA_CHECK {"id":"bridge_network_reachable_only_from_cfmeet","status":"PASS","detail":"CF Meet Admin reaches 10.250.0.1:8460 over the tunnel' "$PA_LOGS/deploy.log"
+          sudo grep -qx 'PA_CM_BRIDGE_ADDRESS=10.250.0.1' "$PA_HOST_ROOT/release/images.env"
+          # Independent probes of the egress allowlist (not via the host script).
+          probe() { docker exec "$1" node -e 'const s=require("net").connect({host:process.argv[1],port:Number(process.argv[2]),timeout:3000});s.on("connect",()=>{console.log("OPEN");process.exit(0)});s.on("timeout",()=>{console.log("TIMEOUT");process.exit(0)});s.on("error",(e)=>{console.log(e.code||"ERROR");process.exit(0)})' "$2" "$3" 2>/dev/null || echo ERROR; }
+          expect() { local got; got="$(probe "$1" "$2" "$3")"; if [[ "$4" == open ]]; then [[ "$got" == OPEN ]] || { echo "::error::$1 -> $2:$3 expected open, got $got"; exit 1; }; else [[ "$got" != OPEN ]] || { echo "::error::$1 -> $2:$3 expected closed"; exit 1; }; fi; echo "$1 -> $2:$3 $got"; }
+          CM=cf-product-admin-staging-cfmeet-admin-1
+          expect "$CM" 10.250.0.1 8460 open
+          expect "$CM" 10.250.0.1 8461 closed
+          expect "$CM" 10.250.0.2 22 closed
+          expect "$CM" 1.1.1.1 443 closed
+          expect "$CM" 1.1.1.1 53 closed
+          expect "$CM" 10.231.14.1 22 closed
+          expect cf-product-admin-staging-karryam-admin-1 10.250.0.1 8460 closed
+          expect cf-product-admin-staging-product-integration-core-1 10.250.0.1 8460 closed
+          expect rehearsal-api 10.250.0.1 8460 closed
           if docker ps --filter label=com.docker.compose.project=cf-product-admin-staging --format '{{.Ports}}' | grep -q -- '->'; then echo "::error::a host port is published"; exit 1; fi
       - name: Database roles, audit, preview, verified backup and migrations
         run: |

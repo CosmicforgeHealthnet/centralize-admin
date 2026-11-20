@@ -31,7 +31,10 @@ const DIGEST_REF = /^[a-z0-9.-]+(?::[0-9]+)?\/[a-z0-9._/-]+@sha256:[0-9a-f]{64}$
 // database network, socket and uid; none may reach another's.
 export const PRODUCTS = Object.freeze([
   { id: "karryam", admin: "karryam-admin", worker: "karryam-admin-worker", db: "karryam-admin-db", bridge: "karryam-backoffice-bridge", bridgeNet: "karryam-bridge", dbNet: "karryam-admin-db" },
-  { id: "cfmeet", optional: true, admin: "cfmeet-admin", worker: "cfmeet-admin-worker", db: "cfmeet-admin-db", bridge: "cfmeet-admin-bridge", bridgeNet: "cfmeet-bridge", dbNet: "cfmeet-admin-db" },
+  // CF Meet's Bridge runs on CF Meet's own host behind a private tunnel: its
+  // network is the one non-internal network, with a single-destination egress
+  // allowlist, and no Bridge container may join it.
+  { id: "cfmeet", optional: true, remoteBridge: true, admin: "cfmeet-admin", worker: "cfmeet-admin-worker", db: "cfmeet-admin-db", bridge: "cfmeet-admin-bridge", bridgeNet: "cfmeet-bridge", dbNet: "cfmeet-admin-db" },
 ]);
 const PRIVATE_SERVICES = new Set(["product-integration-core", ...PRODUCTS.flatMap((p) => [p.admin, p.worker, p.db])]);
 const MAX_MEM_BYTES = 1024 * 1024 * 1024;
@@ -143,12 +146,43 @@ export function checkCompose(model, policy, { requireDigests = false, requirePro
   return out;
 }
 
+const EGRESS_KEYS = new Set(["address_env", "port", "port_env", "protocol", "purpose"]);
+const ENV_NAME = /^PA_[A-Z0-9_]+$/;
+
+/** A valid allowlist names exactly ONE destination: an address taken from an
+ * operator variable (never a literal, range or wildcard), one TCP port. */
+export function egressAllowlistProblems(n) {
+  const list = n.egress_allowlist;
+  if (!Array.isArray(list) || list.length === 0) return ["no egress_allowlist"];
+  if (list.length !== 1) return [`${list.length} destinations (exactly one allowed)`];
+  const e = list[0] || {};
+  const problems = [];
+  for (const k of Object.keys(e)) if (!EGRESS_KEYS.has(k)) problems.push(`unexpected key ${k} (no literal address, range or port list)`);
+  if (typeof e.address_env !== "string" || !ENV_NAME.test(e.address_env)) problems.push("address_env must name one PA_* variable");
+  if (!Number.isInteger(e.port) || e.port < 1 || e.port > 65535) problems.push(`port ${JSON.stringify(e.port)} is not a single TCP port`);
+  if (e.port_env !== undefined && (typeof e.port_env !== "string" || !ENV_NAME.test(e.port_env))) problems.push("port_env must name one PA_* variable");
+  if (e.protocol !== "tcp") problems.push(`protocol ${JSON.stringify(e.protocol)} (tcp only)`);
+  return problems;
+}
+
 export function checkPolicy(policy) {
   const out = [];
   const add = (check, ok, detail) => out.push({ check, ok: Boolean(ok), detail });
   const subnets = new Set();
+  const productServices = new Set(PRODUCTS.flatMap((p) => [p.admin, p.worker]));
   for (const [key, n] of Object.entries(policy.networks)) {
-    add("policy-network-internal", n.internal === true, key);
+    // Every network is internal, except one that declares a single-destination
+    // egress allowlist (implemented by the firewall; see checkFirewall).
+    if (n.internal === true) {
+      add("policy-network-internal", true, key);
+      add("policy-internal-has-no-allowlist", n.egress_allowlist === undefined, `${key}: an internal network declares no egress allowlist`);
+    } else {
+      const problems = egressAllowlistProblems(n);
+      add("policy-network-internal", n.internal === false && n.egress_allowlist !== undefined, `${key}: internal=${n.internal}; non-internal only with an egress allowlist`);
+      add("policy-egress-single-destination", problems.length === 0, `${key}: ${problems.join("; ") || "one destination"}`);
+      // Only Product Admin server/worker containers sit behind an egress allowlist: no Bridge, DB or HQ member.
+      add("policy-egress-network-members", n.permitted_members.length > 0 && n.permitted_members.every((m) => productServices.has(m)), `${key}: ${n.permitted_members.join(",")}`);
+    }
     add("policy-network-subnet", /^10\.[0-9]{1,3}\.[0-9]{1,3}\.0\/2[4-8]$/.test(n.default_subnet), `${key}=${n.default_subnet}`);
     add("policy-subnet-unique", !subnets.has(n.default_subnet), n.default_subnet);
     subnets.add(n.default_subnet);
@@ -163,6 +197,7 @@ export function checkPolicy(policy) {
     // No HQ component may share a network with the Bridge.
     const bridge = policy.networks[p.bridgeNet];
     add("policy-bridge-network-excludes-hq", bridge && !bridge.permitted_members.some((m) => ["central-admin-api", "product-integration-core", "hq-database"].includes(m)), `${p.bridgeNet} members`);
+    if (p.remoteBridge) add("policy-remote-bridge-not-member", bridge && !bridge.permitted_members.includes(p.bridge) && bridge.internal === false, `${p.bridgeNet}: ${p.bridge} is remote (tunnel), never a member; network is the egress-allowlisted one`);
     const db = policy.networks[p.dbNet];
     add("policy-db-b-excludes-hq", db && !db.permitted_members.some((m) => ["central-admin-api", "product-integration-core"].includes(m)), `${p.dbNet} members`);
     // Product Admins are isolated from each other: no other product's service
@@ -202,7 +237,27 @@ export function checkFirewall(text, policy) {
   add("firewall-uses-docker-user", /DOCKER-USER/.test(text), "rules live in DOCKER-USER (UFW alone does not filter published Docker ports)");
   add("firewall-has-verify", /verify\)/.test(text), "verify mode");
   for (const [key, n] of Object.entries(policy.networks)) add("firewall-covers-subnet", text.includes(n.subnet_env), `${key} via ${n.subnet_env}`);
-  add("firewall-protects-db-and-bridge-ports", /5432/.test(text) && /8110/.test(text), "5432 and 8110");
+  add("firewall-protects-db-and-bridge-ports", /\bPORTS=\([^)]*\b5432\b[^)]*\b8110\b[^)]*\b8460\b[^)]*\)/.test(text), "PORTS covers 5432, 8110 and 8460 (the CF Meet Bridge port must not be published on the HQ host either)");
+  // Each non-internal network: the firewall implements its single allowed destination and drops everything else.
+  const esc = (v) => v.replace(/[$]/g, "\\$");
+  for (const [key, n] of Object.entries(policy.networks)) {
+    if (n.internal === true) continue;
+    const e = (n.egress_allowlist || [])[0];
+    if (!e || egressAllowlistProblems(n).length) { add("firewall-implements-egress-allowlist", false, `${key}: no valid allowlist to implement`); continue; }
+    const sub = esc("$" + n.subnet_env), addr = esc("$" + e.address_env), port = e.port_env ? esc("$" + e.port_env) : String(e.port);
+    const rules = {
+      allow: new RegExp(`DOCKER-USER -s ${sub} -d ${addr}/32 -p tcp --dport ${port} -m conntrack --ctstate NEW,ESTABLISHED -m comment --comment \\$TAG -j RETURN`),
+      replies: new RegExp(`DOCKER-USER -s ${addr}/32 -d ${sub} -p tcp --sport ${port} -m conntrack --ctstate ESTABLISHED,RELATED -m comment --comment \\$TAG -j RETURN`),
+      "no-other-source-or-port": new RegExp(`DOCKER-USER -d ${addr}/32 -m conntrack --ctstate NEW -m comment --comment \\$TAG -j DROP`),
+      "drop-other-egress": new RegExp(`DOCKER-USER -s ${sub} -m comment --comment \\$TAG -j DROP`),
+      "drop-other-ingress": new RegExp(`DOCKER-USER -d ${sub} -m comment --comment \\$TAG -j DROP`),
+      "drop-to-host": new RegExp(`INPUT -s ${sub} -m comment --comment \\$TAG -j DROP`),
+    };
+    for (const [name, re] of Object.entries(rules)) add("firewall-implements-egress-allowlist", re.test(text), `${key}: ${name}`);
+    if (e.port_env) add("firewall-implements-egress-allowlist", text.includes(`${e.port_env}="\${${e.port_env}:-${e.port}}"`), `${key}: ${e.port_env} defaults to ${e.port}`);
+    add("firewall-validates-egress-address", /RFC 1918/.test(text) && /in_cidr "\$PA_CM_BRIDGE_ADDRESS" "\$s"/.test(text) && text.includes(e.address_env), `${key}: ${e.address_env} validated (RFC 1918, outside every Product Admin subnet)`);
+    add("firewall-verifies-exact-set", /UNEXPECTED/.test(text) && /iptables -C "\$chain"/.test(text), `${key}: verify checks every rule and no extra tagged rule`);
+  }
   return out;
 }
 

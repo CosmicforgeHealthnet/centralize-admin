@@ -27,6 +27,14 @@
 # (CFMEET_ADMIN_IMAGE present or absent); every later operation derives it
 # from there. Without CF Meet Admin the release is PIC + Karryam Admin exactly
 # as before, and checks that need CF Meet running report SKIPPED_NOT_DEPLOYED.
+#
+# The CF Meet Admin Bridge runs on CF Meet's OWN host. HQ reaches it over an
+# operator-managed private tunnel (WireGuard or equivalent; privileged S1/S2
+# step) at PA_CM_BRIDGE_ADDRESS (RFC 1918, e.g. 10.250.0.1; never 100.64/10)
+# port PA_CM_BRIDGE_PORT (default 8460). cf-staging-cfmeet-bridge is the only
+# non-internal network; the DOCKER-USER egress allowlist (firewall script)
+# permits exactly that address:port from it. A release with CF Meet Admin
+# records both values in images.env.
 set -euo pipefail
 umask 077
 
@@ -49,8 +57,8 @@ PA_API_CONTAINER="${PA_API_CONTAINER:-admin-server-staging-app-1}"
 PA_API_DIR="${PA_API_DIR:-/var/www/admin-server-staging}"
 PA_BRIDGE_CONTAINER="${PA_BRIDGE_CONTAINER:-}"
 PA_BRIDGE_ADDRESS="${PA_BRIDGE_ADDRESS:-}"
-PA_CM_BRIDGE_CONTAINER="${PA_CM_BRIDGE_CONTAINER:-}"
 PA_CM_BRIDGE_ADDRESS="${PA_CM_BRIDGE_ADDRESS:-}"
+PA_CM_BRIDGE_PORT="${PA_CM_BRIDGE_PORT:-8460}"
 PA_DB_IMAGE="${PA_DB_IMAGE:-postgres:16-alpine}"
 PA_SUBNET_HQ="${PA_SUBNET_HQ:-10.231.10.0/28}"
 PA_SUBNET_ADMIN="${PA_SUBNET_ADMIN:-10.231.11.0/28}"
@@ -98,6 +106,18 @@ compose_with() {
 }
 compose() { compose_with "$RELEASE_DIR/images.env" "$@"; }
 skipped() { check "$1" SKIPPED_NOT_DEPLOYED "CF Meet Admin is not part of this release"; }
+# CF Meet Bridge tunnel endpoint: recorded in a CF Meet release's images.env, else from the environment.
+cm_bridge_env() {
+  local addr="$PA_CM_BRIDGE_ADDRESS" port="$PA_CM_BRIDGE_PORT"
+  if release_cm_on; then
+    addr="$(grep '^PA_CM_BRIDGE_ADDRESS=' "$RELEASE_DIR/images.env" | cut -d= -f2)"
+    port="$(grep '^PA_CM_BRIDGE_PORT=' "$RELEASE_DIR/images.env" | cut -d= -f2)"
+  fi
+  CM_ADDR="$addr"; CM_PORT="${port:-8460}"
+}
+firewall() { PA_CM_BRIDGE_ADDRESS="$CM_ADDR" PA_CM_BRIDGE_PORT="$CM_PORT" bash "$FIREWALL" "$@"; }
+# Expected Docker "internal" flag: every Product Admin network is internal except the egress-allowlisted CF Meet Bridge network.
+want_internal() { [[ "$1" == cf-staging-cfmeet-bridge ]] && echo false || echo true; }
 # Stop CF Meet containers left from an earlier release (data volumes are kept).
 stop_cfmeet() { local c; for c in "$@"; do if running "$c"; then docker stop "$c" >/dev/null; echo "stopped $c (CF Meet Admin is not part of this release; data kept)"; fi; done; }
 enabled_in() { [[ -f "$1" ]] && grep -Eq "^$2=true\s*$" "$1"; }
@@ -127,7 +147,6 @@ role_of() {
     "$PA_HQ_DB_CONTAINER") echo hq-database ;;
     "$PA_API_CONTAINER") echo central-admin-api ;;
     *) if [[ -n "$PA_BRIDGE_CONTAINER" && "$n" == "$PA_BRIDGE_CONTAINER" ]]; then echo karryam-backoffice-bridge
-       elif [[ -n "$PA_CM_BRIDGE_CONTAINER" && "$n" == "$PA_CM_BRIDGE_CONTAINER" ]]; then echo cfmeet-admin-bridge
        else echo "unknown:$n"; fi ;;
   esac
 }
@@ -150,14 +169,14 @@ audit_networks() {
       if [[ "$name" == cf-staging-cfmeet-* ]] && ! release_cm_on; then cmnote+="$name not created; "; continue; fi
       ok=0; bad+="$name missing; "; continue
     fi
-    [[ "$(docker network inspect -f '{{.Internal}}' "$name")" == true ]] || { ok=0; bad+="$name not internal; "; }
+    [[ "$(docker network inspect -f '{{.Internal}}' "$name")" == "$(want_internal "$name")" ]] || { ok=0; bad+="$name internal flag is not $(want_internal "$name"); "; }
     [[ "$(docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}' "$name")" == "$subnet" ]] || { ok=0; bad+="$name subnet differs; "; }
     local c
     for c in $(docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' "$name"); do
       permitted "$name" "$(role_of "$c")" || { ok=0; bad+="$c not permitted on $name; "; }
     done
   done
-  if (( ok )); then check networks_internal_and_isolated PASS "4 internal networks, fixed subnets, policy membership only${cmnote:+; CF Meet Admin (optional): $cmnote}"; else check networks_internal_and_isolated FAIL "$bad"; fi
+  if (( ok )); then check networks_internal_and_isolated PASS "4 internal networks, fixed subnets, policy membership only${cmnote:+; CF Meet Admin (optional): $cmnote}; cf-staging-cfmeet-bridge non-internal behind the egress allowlist"; else check networks_internal_and_isolated FAIL "$bad"; fi
 }
 
 mode_of() { stat -c '%a %u %g' "$1" 2>/dev/null || echo "missing"; }
@@ -232,13 +251,18 @@ audit_config_files() {
 
 audit_firewall() {
   if [[ "$(id -u)" != 0 ]]; then check firewall_docker_user NOT_RUN "needs root"; return; fi
-  if out="$(bash "$FIREWALL" verify 2>&1)"; then check firewall_docker_user PASS "DOCKER-USER rules present; no wildcard 5432/8110 listener"
-  else check firewall_docker_user FAIL "$(printf '%s' "$out" | grep -E 'MISSING|EXPOSED|BLOCKED' | head -3 | tr '\n' ' ')"; fi
+  cm_bridge_env
+  if out="$(firewall verify 2>&1)"; then check firewall_docker_user PASS "DOCKER-USER rules present (exact set; CF Meet Bridge egress ${CM_ADDR:-closed}${CM_ADDR:+:$CM_PORT}); no wildcard 5432/8110/8460 listener"
+  else check firewall_docker_user FAIL "$(printf '%s' "$out" | grep -E 'MISSING|UNEXPECTED|EXPOSED|BLOCKED' | head -3 | tr '\n' ' ')"; fi
 }
 
 # ---------------------------------------------------------------------------
 prepare_host() {
   require_root
+  # The CF Meet Bridge tunnel endpoint is validated before anything changes (RFC 1918, outside every cf-staging subnet).
+  CM_ADDR="$PA_CM_BRIDGE_ADDRESS"; CM_PORT="$PA_CM_BRIDGE_PORT"
+  firewall validate || die "invalid CF Meet Bridge tunnel endpoint (PA_CM_BRIDGE_ADDRESS/PA_CM_BRIDGE_PORT); nothing was changed"
+  [[ -n "$CM_ADDR" ]] || echo "PA_CM_BRIDGE_ADDRESS not set: cf-staging-cfmeet-bridge gets no egress at all until prepare-host runs with the tunnel address."
   echo "Preparing host directories under $PA_HOST_ROOT and $PA_CONFIG_ROOT"
   install -d -m 0755 -o 0 -g 0 "$PA_HOST_ROOT" "$PA_HOST_ROOT/run"
   install -d -m 0750 -o 10002 -g 10002 "$PA_HOST_ROOT/run/pic"
@@ -256,12 +280,15 @@ prepare_host() {
   for entry in "${NETWORKS[@]}" "${CM_NETWORKS[@]}"; do
     name="${entry%%:*}"; subnet="${entry#*:}"
     if docker network inspect "$name" >/dev/null 2>&1; then
-      [[ "$(docker network inspect -f '{{.Internal}}' "$name")" == true ]] || die "$name exists but is not internal; remove it after review"
+      [[ "$(docker network inspect -f '{{.Internal}}' "$name")" == "$(want_internal "$name")" ]] || die "$name exists with internal=$(docker network inspect -f '{{.Internal}}' "$name") (expected $(want_internal "$name")); remove it after review"
       [[ "$(docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}' "$name")" == "$subnet" ]] || die "$name exists with another subnet"
-      echo "network present: $name ($subnet, internal)"
+      echo "network present: $name ($subnet, internal=$(want_internal "$name"))"
     else
-      docker network create --driver bridge --internal --subnet "$subnet" --label com.cosmicforge.product-admin.policy=v1 "$name" >/dev/null
-      echo "network created: $name ($subnet, internal)"
+      # cf-staging-cfmeet-bridge is created WITHOUT --internal: its only egress is the
+      # CF Meet Bridge tunnel address, enforced by the DOCKER-USER allowlist below.
+      local internal=(--internal); [[ "$(want_internal "$name")" == false ]] && internal=()
+      docker network create --driver bridge "${internal[@]}" --subnet "$subnet" --label com.cosmicforge.product-admin.policy=v1 "$name" >/dev/null
+      echo "network created: $name ($subnet, internal=$(want_internal "$name"))"
     fi
   done
   # DB-A joins the HQ private network under the alias hq-db. Connecting a
@@ -272,7 +299,7 @@ prepare_host() {
   else
     echo "WARNING: $PA_HQ_DB_CONTAINER not found; DB-A attachment pending."
   fi
-  if [[ "${PA_SKIP_FIREWALL:-0}" == 1 ]]; then echo "Firewall step skipped by request (PA_SKIP_FIREWALL=1)."; else bash "$FIREWALL" apply; fi
+  if [[ "${PA_SKIP_FIREWALL:-0}" == 1 ]]; then echo "Firewall step skipped by request (PA_SKIP_FIREWALL=1). A release with CF Meet Admin will be refused until the egress allowlist is applied."; else firewall apply; fi
   preflight
 }
 
@@ -322,6 +349,20 @@ deploy() {
     [[ -d "$PA_HOST_ROOT/run/cfmeet-admin" ]] || die "PA_CM_IMAGE is set but $PA_HOST_ROOT/run/cfmeet-admin is missing: run prepare-host; nothing was changed"
     [[ -f "$PA_CONFIG_ROOT/secrets/cfmeet-admin-db/postgres-password" ]] || die "PA_CM_IMAGE is set but the CF Meet Admin database superuser password file is missing; nothing was changed"
     for entry in "${CM_NETWORKS[@]}"; do docker network inspect "${entry%%:*}" >/dev/null 2>&1 || die "PA_CM_IMAGE is set but ${entry%%:*} is missing: run prepare-host; nothing was changed"; done
+    # The CF Meet Bridge tunnel endpoint: required, valid, and enforced by the firewall before anything changes.
+    CM_ADDR="$PA_CM_BRIDGE_ADDRESS"; CM_PORT="$PA_CM_BRIDGE_PORT"
+    [[ -n "$CM_ADDR" ]] || die "PA_CM_IMAGE is set but PA_CM_BRIDGE_ADDRESS (RFC 1918 tunnel address of the CF Meet host, e.g. 10.250.0.1) is not; nothing was changed"
+    firewall validate >/dev/null || die "PA_CM_BRIDGE_ADDRESS=$CM_ADDR / PA_CM_BRIDGE_PORT=$CM_PORT is not a valid tunnel endpoint (RFC 1918, never 100.64/10, outside every cf-staging subnet); nothing was changed"
+    [[ "$(docker network inspect -f '{{.Internal}}' cf-staging-cfmeet-bridge)" == false ]] || die "cf-staging-cfmeet-bridge is internal (old local-Bridge model): remove it after review and re-run prepare-host; nothing was changed"
+    firewall verify >/dev/null 2>&1 || die "the DOCKER-USER egress allowlist for $CM_ADDR:$CM_PORT is not in place (exact rule set): run prepare-host with PA_CM_BRIDGE_ADDRESS=$CM_ADDR; nothing was changed"
+    # cfmeet-admin.env must agree with the tunnel endpoint where it names it.
+    local envaddr envorigin
+    envaddr="$(grep -E '^CFMEET_BRIDGE_ADDRESS=' "$PA_CONFIG_ROOT/cfmeet-admin.env" | tail -n 1 | cut -d= -f2- | tr -d '[:space:]' || true)"
+    [[ -z "$envaddr" || "$envaddr" == "$CM_ADDR" ]] || die "CFMEET_BRIDGE_ADDRESS in cfmeet-admin.env ($envaddr) differs from PA_CM_BRIDGE_ADDRESS ($CM_ADDR); nothing was changed"
+    envorigin="$(grep -E '^CFMEET_BRIDGE_ORIGIN=' "$PA_CONFIG_ROOT/cfmeet-admin.env" | tail -n 1 | cut -d= -f2- | tr -d '[:space:]' || true)"
+    if [[ -n "$envorigin" ]]; then
+      [[ "$envorigin" =~ :([0-9]+)/?$ && "${BASH_REMATCH[1]}" == "$CM_PORT" ]] || die "CFMEET_BRIDGE_ORIGIN in cfmeet-admin.env must name port $CM_PORT (PA_CM_BRIDGE_PORT); nothing was changed"
+    fi
     cm_on=1
     echo "CF Meet Admin is part of this release ($cm)."
   elif [[ -f "$PA_CONFIG_ROOT/cfmeet-admin.env" ]]; then
@@ -368,7 +409,7 @@ deploy() {
   [[ -f "$RELEASE_DIR/images.env" ]] && cp "$RELEASE_DIR/images.env" "$RELEASE_DIR/previous-images.env"
   printf 'PIC_IMAGE=%s\nKARRYAM_ADMIN_IMAGE=%s\nKARRYAM_ADMIN_DB_IMAGE=%s\nPA_HOST_ROOT=%s\nPA_CONFIG_ROOT=%s\nPA_RELEASE_SHA=%s\n' "$pic" "$ka" "$db" "$PA_HOST_ROOT" "$PA_CONFIG_ROOT" "$sha" > "$RUN_DIR/images.env"
   # Recording CFMEET_ADMIN_IMAGE is THE decision that CF Meet Admin is in this release (same PostgreSQL digest as DB-B).
-  if (( cm_on )); then printf 'CFMEET_ADMIN_IMAGE=%s\nCFMEET_ADMIN_DB_IMAGE=%s\n' "$cm" "$db" >> "$RUN_DIR/images.env"; fi
+  if (( cm_on )); then printf 'CFMEET_ADMIN_IMAGE=%s\nCFMEET_ADMIN_DB_IMAGE=%s\nPA_CM_BRIDGE_ADDRESS=%s\nPA_CM_BRIDGE_PORT=%s\n' "$cm" "$db" "$CM_ADDR" "$CM_PORT" >> "$RUN_DIR/images.env"; fi
 
   # Static policy check of the exact resolved model, with the release image's own node.
   local req=(); if (( cm_on )); then req=(--require-product cfmeet); fi
@@ -565,17 +606,31 @@ network_probe() {
   else
     check bridge_network_reachable_only_from_karryam PENDING_EXTERNAL "Bridge not attached to cf-staging-karryam-bridge yet"
   fi
+  # CF Meet Admin Bridge over the private tunnel (CF Meet's own host).
+  cm_bridge_env
   if (( ! cm_on )); then
     skipped bridge_network_reachable_only_from_cfmeet
-  elif [[ -n "$PA_CM_BRIDGE_ADDRESS" ]]; then
-    local before_cm="$bad"
-    expect_open "$CTR_CM" "$PA_CM_BRIDGE_ADDRESS" 8110
-    expect_closed "$CTR_PIC" "$PA_CM_BRIDGE_ADDRESS" 8110
-    expect_closed "$CTR_KA" "$PA_CM_BRIDGE_ADDRESS" 8110
-    docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1 && expect_closed "$PA_API_CONTAINER" "$PA_CM_BRIDGE_ADDRESS" 8110
-    check bridge_network_reachable_only_from_cfmeet "$([[ "$bad" == "$before_cm" ]] && echo PASS || echo FAIL)" "CF Meet Bridge $PA_CM_BRIDGE_ADDRESS:8110"
+    # Absence holds anyway: nothing on the HQ side may open the tunnel address.
+    if [[ -n "$CM_ADDR" ]]; then
+      expect_closed "$CTR_PIC" "$CM_ADDR" "$CM_PORT"
+      expect_closed "$CTR_KA" "$CM_ADDR" "$CM_PORT"
+      docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1 && expect_closed "$PA_API_CONTAINER" "$CM_ADDR" "$CM_PORT"
+    fi
   else
-    check bridge_network_reachable_only_from_cfmeet PENDING_EXTERNAL "CF Meet Bridge not attached to cf-staging-cfmeet-bridge yet"
+    local before_cm="$bad" gw="${PA_SUBNET_CMBRIDGE%.0/*}.1" t
+    # CF Meet Admin: no other destination behind the allowlist (internet, DNS, the host, other ports on the bridge host).
+    expect_closed "$CTR_CM" 1.1.1.1 53
+    expect_closed "$CTR_CM" "$gw" 22
+    expect_closed "$CTR_CM" "$CM_ADDR" "$((CM_PORT + 1))"
+    # Nothing else on the HQ side reaches the bridge.
+    expect_closed "$CTR_PIC" "$CM_ADDR" "$CM_PORT"
+    expect_closed "$CTR_KA" "$CM_ADDR" "$CM_PORT"
+    docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1 && expect_closed "$PA_API_CONTAINER" "$CM_ADDR" "$CM_PORT"
+    # The one allowed flow. A tunnel that is not up yet is PENDING_EXTERNAL, never a pass.
+    t="$(tcp_from "$CTR_CM" "$CM_ADDR" "$CM_PORT")"
+    if [[ "$bad" != "$before_cm" ]]; then check bridge_network_reachable_only_from_cfmeet FAIL "CF Meet Bridge $CM_ADDR:$CM_PORT: ${bad#"$before_cm"}"
+    elif [[ "$t" == OPEN ]]; then check bridge_network_reachable_only_from_cfmeet PASS "CF Meet Admin reaches $CM_ADDR:$CM_PORT over the tunnel; every other destination closed; PIC, Karryam Admin and the API cannot reach it"
+    else check bridge_network_reachable_only_from_cfmeet PENDING_EXTERNAL "tunnel or CF Meet Bridge not reachable yet ($CM_ADDR:$CM_PORT $t); isolation verified"; fi
   fi
   if docker inspect "$PA_API_CONTAINER" >/dev/null 2>&1; then expect_closed "$PA_API_CONTAINER" karryam-admin-db 5432; expect_closed "$PA_API_CONTAINER" cfmeet-admin-db 5432; fi
   if [[ -z "$bad" ]]; then check network_flows PASS "$good"; else check network_flows FAIL "$bad"; fi

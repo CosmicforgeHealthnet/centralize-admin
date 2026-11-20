@@ -98,7 +98,7 @@ export function evaluate(inp) {
   // 4. Headquarters boundary
   stagingGate(4, "Headquarters boundary", ["S1", "S2"], ok(inp.boundaryStatic), ["static:network-policy", "ci:static-boundaries", "rehearsal:network-probe"], "S1 db_no_cross_credentials and S2 network probe on the real host");
   // 5. Private Bridge
-  stagingGate(5, "Private Bridge", ["S3"], ok(inp.boundaryStatic), ["rehearsal:bridge-network-probe", "ci:connector-security (TLS 1.3 mTLS, pinned fingerprints)"], "Karryam Backoffice enrollment and attachment to cf-staging-karryam-bridge (S3); CF Meet Admin Bridge enrollment and attachment to cf-staging-cfmeet-bridge (S3)");
+  stagingGate(5, "Private Bridge", ["S3"], ok(inp.boundaryStatic), ["rehearsal:bridge-network-probe", "ci:connector-security (TLS 1.3 mTLS, pinned fingerprints)"], "Karryam Backoffice enrollment and attachment to cf-staging-karryam-bridge (S3); CF Meet Admin Bridge enrollment from cf-staging-cfmeet-bridge over the operator-managed private tunnel to CF Meet's host (PA_CM_BRIDGE_ADDRESS:8460, RFC 1918; S1/S2 privileged step) (S3)");
   // 6. Capability discovery
   const audit = art.contract_audit;
   // Every product audit that was produced must pass (Karryam: 435 capabilities; CF Meet: its pinned or DRAFT total).
@@ -191,7 +191,9 @@ export function collect({ sha, base, artifactsDir, ciStatusFile, stagingStateFil
   const picTemplate = fs.readFileSync(path.join(ROOT, "infrastructure/product-admin/staging/product-integration-core.env.template"), "utf8");
   // Every present Product Admin must have its Bridge network in the policy, and no HQ component may be permitted on it.
   const boundaryStatic = Boolean(policy) && !/KARRYAM_BRIDGE_|CFMEET_BRIDGE_|ADMIN_BACKOFFICE_/.test(picTemplate) &&
-    products.every((p) => Boolean(policy.networks?.[p.bridgeNetwork]) && ["central-admin-api", "product-integration-core"].every((m) => !policy.networks[p.bridgeNetwork].permitted_members.includes(m)));
+    products.every((p) => Boolean(policy.networks?.[p.bridgeNetwork]) && ["central-admin-api", "product-integration-core"].every((m) => !policy.networks[p.bridgeNetwork].permitted_members.includes(m)) &&
+      // A non-internal Bridge network (CF Meet, remote Bridge over a tunnel) must carry a single-destination egress allowlist.
+      (policy.networks[p.bridgeNetwork].internal === true || (Array.isArray(policy.networks[p.bridgeNetwork].egress_allowlist) && policy.networks[p.bridgeNetwork].egress_allowlist.length === 1)));
   const ci = ciStatusFile ? readJson(ciStatusFile) || {} : {};
   const staging = stagingStateFile ? readJson(stagingStateFile) : null;
   // The rehearsal runs in Infrastructure Security CI; without its artifact, that workflow's result for this commit is the evidence.
