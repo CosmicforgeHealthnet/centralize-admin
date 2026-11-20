@@ -232,3 +232,20 @@ test("HQ's definite-refusal codes equal the pinned contract's published 'Command
   assert.deepEqual(hq, published, "a command answered with one of these is FAILED (nothing was done); anything else 5xx is UNKNOWN_OUTCOME");
   for (const c of ["UNKNOWN_OUTCOME", "INTERNAL", "OWNER_UNAVAILABLE"]) assert.ok(!DEFINITE_REFUSALS.has(c), c);
 });
+
+test("no pinned Bridge schema uses a key HQ's read path treats as personal data", () => {
+  const { FORBIDDEN_FIELD } = require("../src/modules/reads");
+  const components = require("../src/bridge/contracts/cfmeet-bridge-schemas.v1.json").components.schemas;
+  const R = require("../src/bridge/contracts/registry");
+  const hits = [];
+  const walk = (schema, at, seen = new Set()) => {
+    if (!schema || typeof schema !== "object" || seen.has(schema)) return;
+    seen.add(schema);
+    for (const [k, v] of Object.entries(schema.properties || {})) { if (FORBIDDEN_FIELD.test(k)) hits.push(at + "." + k); walk(v, at + "." + k, seen); }
+    for (const key of ["items", "additionalProperties", "not", "if", "then", "else", "contains", "propertyNames"]) if (schema[key] && typeof schema[key] === "object") walk(schema[key], at, seen);
+    for (const key of ["allOf", "anyOf", "oneOf"]) (schema[key] || []).forEach((s) => walk(s, at, seen));
+  };
+  for (const [name, schema] of Object.entries(components)) walk(schema, name);
+  for (const c of R.CAPABILITIES) { walk(c.result_schema, c.id); walk(c.request_body, c.id + "(body)"); }
+  assert.deepEqual(hits, [], "a published field would be refused by HQ's read path (SENSITIVE_FIELD_SUPPRESSED)");
+});
