@@ -72,6 +72,11 @@ const CATEGORY_BY_CODE = Object.freeze({
   CAPABILITY_DISABLED: "CAPABILITY_DISABLED",
   IDEMPOTENCY_KEY_REQUIRED: "INVALID_REQUEST",
   IDEMPOTENCY_CONFLICT: "IDEMPOTENCY_CONFLICT",
+  // A3.0 (4xx, nothing was done): another operation holds the target's expected
+  // version (read back, use the current version); or the body is not exactly the
+  // request schema / operation_id differs from the Idempotency-Key.
+  VERSION_CONFLICT: "VERSION_CONFLICT",
+  COMMAND_BODY_INVALID: "INVALID_REQUEST",
   RATE_LIMITED: "RATE_LIMITED",
   AUDIT_UNAVAILABLE: "BRIDGE_UNAVAILABLE",
   DATASET_NOT_FOUND: "NOT_FOUND",

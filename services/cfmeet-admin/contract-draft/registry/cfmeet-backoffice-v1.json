@@ -18,8 +18,8 @@
   "services/admin-bridge/docs/contract/openapi.json": "6c50350c8f5cecd6f5b6dbe6ab5187063be7ca341e398b96e7f21922d4c4f320",
   "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "b049920552cfc095a0af1f42229451f4edf01f8b6729e29818d32146e56d49ec",
   "services/admin-bridge/docs/contract/event-adapters.v1.json": "bb2f0a9f15b99f6af788eaa92ad3738e2c629ceb5d3da1817872dfaab3171c37",
-  "services/admin-bridge/docs/contract/signing-profile.md": "6402b584a6369c73f409920d2e411fdffec496c41e154591e02539148766d41f",
-  "services/admin-bridge/docs/contract/SHA256SUMS": "6c9f8e09f10615956a7ad55eb1ce5cf21b742590a52362beea7906a286c733e4"
+  "services/admin-bridge/docs/contract/signing-profile.md": "9db384ee756aae071bd7bfc684af549fea555f8ff204c18b90d0f483f2084491",
+  "services/admin-bridge/docs/contract/SHA256SUMS": "5dd16b1245f794f0d8773306de0fef0fd0f81082ce8d7195e5c21104fcb6d3b6"
  },
  "openapi": {
   "openapi": "3.1.0",

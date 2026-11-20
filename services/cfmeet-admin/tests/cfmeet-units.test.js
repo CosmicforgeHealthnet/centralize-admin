@@ -250,3 +250,15 @@ test("Bridge error codes: definite refusals fail a command, ambiguous 5xx after 
   assert.equal(reason(read(403, "SCOPE_DENIED")), "SOURCE_FORBIDDEN");
   assert.equal(reason(read(429, "RATE_LIMITED")), "SOURCE_RATE_LIMITED");
 });
+
+test("A3.0 error codes: VERSION_CONFLICT and COMMAND_BODY_INVALID are definite refusals (4xx: nothing was done)", () => {
+  const { fromResponse, CATEGORY_BY_CODE, DEFINITE_REFUSALS } = require("../src/bridge/errors");
+  assert.equal(CATEGORY_BY_CODE.VERSION_CONFLICT, "VERSION_CONFLICT");
+  assert.equal(CATEGORY_BY_CODE.COMMAND_BODY_INVALID, "INVALID_REQUEST");
+  for (const [status, code, category] of [[409, "VERSION_CONFLICT", "VERSION_CONFLICT"], [400, "COMMAND_BODY_INVALID", "INVALID_REQUEST"]]) {
+    const err = fromResponse(status, code, { mutating: true });
+    assert.equal(err.category, category, code);
+    assert.ok(!err.unknownOutcome, code + " after a command is never an unknown outcome");
+    assert.ok(!DEFINITE_REFUSALS.has(code), "the 5xx definite-refusal set is unchanged");
+  }
+});

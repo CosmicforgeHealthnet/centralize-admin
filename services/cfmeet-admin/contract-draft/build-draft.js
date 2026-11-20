@@ -495,6 +495,8 @@ function signingProfile() {
     "| `CAPABILITY_DISABLED` | 503 |",
     "| `IDEMPOTENCY_KEY_REQUIRED` | 400 |",
     "| `IDEMPOTENCY_CONFLICT` | 409 |",
+    "| `VERSION_CONFLICT` | 409 |",
+    "| `COMMAND_BODY_INVALID` | 400 |",
     "| `RATE_LIMITED` | 429 |",
     "| `AUDIT_UNAVAILABLE` | 503 |",
     "| `DATASET_NOT_FOUND` | 404 |",
