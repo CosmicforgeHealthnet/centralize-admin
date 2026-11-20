@@ -69,7 +69,8 @@ test("inspection opens a read-only database session and changes nothing", { skip
   assert.equal(report.database.connect, "OK", output);
   assert.equal(report.database.sessionReadOnly, true);
   assert.equal(report.database.isAdminDatabase, true);
-  assert.equal(report.database.ledger.manifestMigrations, 37);
+  // Every migration in the committed manifest (grows as migrations are added).
+  assert.equal(report.database.ledger.manifestMigrations, require("../prisma/manual-migrations/manifest.json").migrations.length);
   assert.ok(report.database.mailSchema.core);
 });
 
