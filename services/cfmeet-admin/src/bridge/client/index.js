@@ -19,6 +19,7 @@ const MAX_BINARY_BYTES = 4 * 1024 * 1024;
 const TIMEOUT_MS = 4000;
 const BINARY_TYPES = /^(?:image\/(?:jpeg|png|webp)|application\/pdf|text\/csv)$/i;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const IDEMPOTENCY_KEY = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HEX64 = /^[0-9a-f]{64}$/;
 const UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z$/;
 const MAX_APPROVAL_SECONDS = 43200;
@@ -51,12 +52,13 @@ function createBridgeClient(bridge, { now = () => Math.floor(Date.now() / 1000),
   const hostHeader = bridge.port === 443 ? bridge.hostname : bridge.hostname + ":" + bridge.port;
   const count = (name) => { if (metrics) metrics[name] = (metrics[name] || 0) + 1; };
 
-  function send({ method, uri, body, staff, permissions, approval, mutating, binary }) {
+  function send({ method, uri, body, staff, permissions, approval, mutating, binary, idempotencyKey }) {
     const headers = S.bridgeHeaders({
       serviceKey: bridge.serviceKey, serviceKid: bridge.serviceKid, privateKey: bridge.staffPrivateKey,
       staffKid: bridge.staffKid, issuer: bridge.issuer, audience: bridge.audience, staff, method, uri, body, permissions, approval, now: now(),
     });
     headers.Host = hostHeader;
+    if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
     if (binary) headers.Accept = "application/json, image/jpeg, image/png, image/webp, application/pdf, text/csv";
     return new Promise((resolve, reject) => {
       let done = false;
@@ -133,7 +135,7 @@ function createBridgeClient(bridge, { now = () => Math.floor(Date.now() / 1000),
     return null;
   }
 
-  async function callOnce(capabilityId, { staff, query = {}, pathParams = {}, body, approval } = {}) {
+  async function callOnce(capabilityId, { staff, query = {}, pathParams = {}, body, approval, idempotencyKey } = {}) {
     let cap;
     let uri;
     let bytes = Buffer.alloc(0);
@@ -155,12 +157,15 @@ function createBridgeClient(bridge, { now = () => Math.floor(Date.now() / 1000),
     if (R.needsZoneTenant(cap) && (staff.zone !== query.zone || staff.tenant !== query.tenant || staff.market !== query.market || staff.organization !== query.organization)) {
       throw new BridgeError("REQUEST_REFUSED", { reason: "STAFF_SCOPE_MUST_EQUAL_REQUEST_SCOPE" });
     }
+    // The Bridge requires an Idempotency-Key (UUID) on every capability whose
+    // contract says idempotency_required; it keys its operations ledger on it.
+    if (cap.idempotency_required && !IDEMPOTENCY_KEY.test(String(idempotencyKey || ""))) throw new BridgeError("REQUEST_REFUSED", { reason: "IDEMPOTENCY_KEY_REQUIRED" });
     const mutating = cap.kind === "COMMAND" || cap.kind === "RETRIEVAL" || cap.kind === "SYNC" && cap.method !== "GET";
     const binary = cap.success_media && cap.success_media !== "application/json";
     count("requests_total");
     let res;
     try {
-      res = await send({ method: cap.method, uri, body: bytes, staff, permissions: R.permissionsFor(cap), approval, mutating, binary });
+      res = await send({ method: cap.method, uri, body: bytes, staff, permissions: R.permissionsFor(cap), approval, mutating, binary, idempotencyKey: cap.idempotency_required ? idempotencyKey : undefined });
     } catch (err) {
       count(err.category === "UNKNOWN_OUTCOME" ? "unknown_outcomes_total" : "failures_total");
       throw err;

@@ -1799,6 +1799,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -2052,6 +2061,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -2183,6 +2201,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -2316,6 +2343,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -2447,6 +2483,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -2580,6 +2625,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -2712,6 +2766,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -2833,6 +2896,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -3046,6 +3118,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -4440,6 +4521,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -4571,6 +4661,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -4704,6 +4803,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -4836,6 +4944,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -4967,6 +5084,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -5368,6 +5494,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -5750,6 +5885,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -6000,6 +6144,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -6842,6 +6995,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -6972,6 +7134,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -7105,6 +7276,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -7236,6 +7416,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -8721,6 +8910,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -9282,6 +9480,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -9413,6 +9620,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -9546,6 +9762,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -9677,6 +9902,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -9810,6 +10044,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -9942,6 +10185,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -10073,6 +10325,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -10991,6 +11252,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -11122,6 +11392,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -11255,6 +11534,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -11376,6 +11664,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -11636,6 +11933,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -12753,6 +13059,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -12884,6 +13199,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -13017,6 +13341,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -13138,6 +13471,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -13271,6 +13613,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -13402,6 +13753,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -13535,6 +13895,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -13667,6 +14036,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -13788,6 +14166,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -15758,6 +16145,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -16039,6 +16435,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -16170,6 +16575,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -16303,6 +16717,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -16435,6 +16858,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -16566,6 +16998,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -17954,6 +18395,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -18085,6 +18535,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -18218,6 +18677,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -18349,6 +18817,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -19026,6 +19503,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -19157,6 +19643,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -19681,6 +20176,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -19811,6 +20315,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -19943,6 +20456,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -20074,6 +20596,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -20204,6 +20735,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -20869,6 +21409,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -21260,6 +21809,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -21511,6 +22069,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -21755,6 +22322,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -21886,6 +22462,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -22019,6 +22604,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -22150,6 +22744,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -22283,6 +22886,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -22415,6 +23027,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -22546,6 +23167,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -23827,6 +24457,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -23958,6 +24597,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -24091,6 +24739,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -24222,6 +24879,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -24473,6 +25139,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -24856,6 +25531,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -25518,6 +26202,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -25920,6 +26613,15 @@
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
       }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
      }
     ],
     "responses": {
@@ -26051,6 +26753,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],
@@ -26435,6 +27146,15 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
       }
      }
     ],

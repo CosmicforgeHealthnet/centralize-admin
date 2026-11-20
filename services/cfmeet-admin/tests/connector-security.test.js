@@ -186,7 +186,13 @@ test("commands: definite refusals vs UNKNOWN_OUTCOME after a possible submission
   const env = await setup(t);
   const id = "6f1d2c3b-4a5e-4f60-8a71-92b3c4d5e6f7";
   const body = { operation_id: id, idempotency_key: "idem-0001-review-request", reason_code: "CUSTOMER_REQUEST", case_ref: "case-9", expected_version: 0, requested_at: new Date().toISOString(), params: { user_ref: "user-1", change: "EMAIL" } };
-  const submit = () => env.client.call("accounts.review-requests.submit", { staff: staff(), query: scopedQuery(), body });
+  const submit = () => env.client.call("accounts.review-requests.submit", { staff: staff(), query: scopedQuery(), body, idempotencyKey: id });
+  // The Idempotency-Key is required (UUID) and checked before anything is sent.
+  const sentBefore = env.fake.state.requests.length;
+  for (const key of [undefined, "idem-0001-review-request"]) {
+    await assert.rejects(env.client.call("accounts.review-requests.submit", { staff: staff(), query: scopedQuery(), body, idempotencyKey: key }), (e) => e.category === "REQUEST_REFUSED" && e.reason === "IDEMPOTENCY_KEY_REQUIRED", String(key));
+  }
+  assert.equal(env.fake.state.requests.length, sentBefore, "nothing reaches the Bridge without a valid key");
   env.fake.state.handlers["accounts.review-requests.submit"] = () => ({ status: 503, error: "capability_blocked" });
   await assert.rejects(submit(), (e) => e.category === "CAPABILITY_DISABLED" && !e.unknownOutcome, "explicit refusal is definite");
   env.fake.state.handlers["accounts.review-requests.submit"] = () => ({ status: 503, error: "owner_unavailable" });
@@ -195,8 +201,9 @@ test("commands: definite refusals vs UNKNOWN_OUTCOME after a possible submission
   await assert.rejects(submit(), (e) => e.unknownOutcome);
   env.fake.state.handlers["accounts.review-requests.submit"] = () => new Promise(() => {});
   const slow = createBridgeClient(env.bridge, { commandTimeoutMs: 300 });
-  await assert.rejects(slow.call("accounts.review-requests.submit", { staff: staff(), query: scopedQuery(), body }), (e) => e.unknownOutcome, "timeout after send");
-  await assert.rejects(env.client.call("accounts.review-requests.submit", { staff: staff(), query: scopedQuery(), body: { ...body, performed_by: "x" } }), (e) => e.category === "REQUEST_REFUSED", "arbitrary fields never reach the Bridge");
+  await assert.rejects(slow.call("accounts.review-requests.submit", { staff: staff(), query: scopedQuery(), body, idempotencyKey: id }), (e) => e.unknownOutcome, "timeout after send");
+  assert.equal(env.fake.state.requests.at(-1).idempotencyKey, id, "the Idempotency-Key header reaches the Bridge");
+  await assert.rejects(env.client.call("accounts.review-requests.submit", { staff: staff(), query: scopedQuery(), body: { ...body, performed_by: "x" }, idempotencyKey: id }), (e) => e.category === "REQUEST_REFUSED", "arbitrary fields never reach the Bridge");
 });
 
 test("configuration: client certificate URI/expiry/revocation, command allowlist and feed scopes fail closed", { skip }, (t) => {

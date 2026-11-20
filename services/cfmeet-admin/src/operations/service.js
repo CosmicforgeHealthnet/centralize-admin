@@ -319,7 +319,9 @@ function createOperations({ config, catalog, operations, approvals, bridgeClient
       const query = { market: scope.market, organization: scope.organization, zone: scope.zone, tenant: scope.tenant, purpose: commandPurpose(source) };
       if (R.SHAPE_PARAMS[source.query_shape].includes("limit")) query.limit = 1;
       if (R.SHAPE_PARAMS[source.query_shape].includes("start")) { query.start = new Date(now() - 3600000).toISOString(); query.end = new Date(now()).toISOString(); }
-      const res = await bridgeClient.call(source.id, { staff, query, pathParams, body: params.body, approval });
+      // Idempotency-Key = the command id: a UUID, one per HQ idempotency key (HQ's own key is
+      // free-form, the Bridge requires a UUID), and the same value as the body's operation_id.
+      const res = await bridgeClient.call(source.id, { staff, query, pathParams, body: params.body, approval, idempotencyKey: command.command_id });
       const s = settle(res.result);
       next = { status: s.status, fields: { sourceStatus: s.sourceStatus, sourceVersion: evidenceOf(res, s.sourceStatus).source_version, evidence: evidenceOf(res, s.sourceStatus), reasonCode: s.status === "SUCCEEDED" ? "SOURCE_CONFIRMED" : s.status === "FAILED" ? "SOURCE_REJECTED" : "AWAITING_OWNER_EVIDENCE" } };
     } catch (err) {

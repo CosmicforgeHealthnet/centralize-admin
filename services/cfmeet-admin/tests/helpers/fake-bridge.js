@@ -183,7 +183,10 @@ async function startFakeBridge({ pki, workloadUri, staffPublicKey, hmacKeys, iss
       let parsed;
       if (body.length) { try { parsed = JSON.parse(body.toString("utf8")); } catch { return deny(res, 400, "invalid_command", "BODY"); } }
       if (cap.request_body && !R.validateBody(cap, parsed).valid) return deny(res, 400, "invalid_command", "BODY_SCHEMA");
-      state.requests.push({ capability: cap.id, method: req.method, url: req.url, claims: auth.claims, body: parsed });
+      // Like the CF Meet Bridge: idempotency_required capabilities need an Idempotency-Key UUID.
+      const idempotencyKey = req.headers["idempotency-key"];
+      if (cap.idempotency_required && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(idempotencyKey || ""))) return deny(res, 400, "invalid_command", "IDEMPOTENCY_KEY_REQUIRED");
+      state.requests.push({ capability: cap.id, method: req.method, url: req.url, claims: auth.claims, body: parsed, idempotencyKey });
       if (state.paused) { req.socket.destroy(); return undefined; }
       if (state.enabled && !state.enabled.has(cap.id)) return reply(res, 503, null, "capability_blocked");
       if (state.blockedPolicy.has(cap.id)) return reply(res, 503, null, "blocked_policy");

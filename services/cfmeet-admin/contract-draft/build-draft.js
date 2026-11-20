@@ -146,7 +146,7 @@ add("bridge.capabilities.read", "GET", "/capabilities", { shape: "SCOPED", resul
 add("bridge.health.read", "GET", "/health/aggregate", { shape: "SCOPED", result: ref("Health"), risk: "R0", privacy: "INTERNAL", owner: "admin-bridge" });
 add("bridge.datasets.read", "GET", "/datasets/{dataset_id}", { shape: "SCOPED_WINDOW", result: ref("DatasetSeries"), risk: "R1", privacy: "INTERNAL", owner: "admin-bridge" });
 add("hq.events.feed", "GET", "/hq/events", { shape: "SCOPED_WINDOW", result: ref("HQEventFeed"), risk: "R1", owner: "admin-bridge", permission: "hq.events.read" });
-add("hq.events.ack", "POST", "/hq/event-acknowledgements", { shape: "SCOPED", body: ref("HQEventAck"), result: ref("HQEventAckResult"), risk: "R1", owner: "admin-bridge", svr: false, idem: true });
+add("hq.events.ack", "POST", "/hq/event-acknowledgements", { shape: "SCOPED", body: ref("HQEventAck"), result: ref("HQEventAckResult"), risk: "R1", owner: "admin-bridge", svr: false, idem: false });
 add("hq.projections.status", "GET", "/hq/projections/status", { shape: "SCOPED", result: ref("HQProjectionStatus"), risk: "R0", privacy: "INTERNAL", owner: "admin-bridge", permission: "hq.projections.read" });
 
 // accounts
@@ -398,6 +398,7 @@ function openapi() {
     const op = { operationId: c.id, summary: c.id, parameters, responses: { [String(c.status)]: { description: "OK", content } } };
     if (CONTACT_SEARCH.has(c.id)) op["x-contact-search"] = true;
     if (c.body) op.requestBody = { required: true, content: { "application/json": { schema: c.body } } };
+    if (c.idem) parameters.push({ name: "Idempotency-Key", in: "header", required: true, schema: { type: "string", format: "uuid" } });
     paths[full] = paths[full] || {};
     paths[full][c.method.toLowerCase()] = op;
   }

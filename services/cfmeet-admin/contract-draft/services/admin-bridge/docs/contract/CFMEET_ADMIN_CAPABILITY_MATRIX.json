@@ -96,7 +96,7 @@
   "privacy": "OPERATIONS_MINIMIZED",
   "scope": "cfmeet + exact market, organization, zone and tenant",
   "source_version_required": false,
-  "idempotency_required": true,
+  "idempotency_required": false,
   "approval": "NONE",
   "feature_flag": "NONE",
   "blocker": null,
