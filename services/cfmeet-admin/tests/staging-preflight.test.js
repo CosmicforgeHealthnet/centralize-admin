@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 12.3 staging preflight (scripts/check-config.js): production
 // endpoints and superuser runtime identities are refused for staging; the
 // denylist being absent is reported, never treated as a pass.

@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Unit coverage for the CF Meet-specific pieces: the strict schema compiler,
 // the Bridge dataset-series -> HQ observation mapping, multi-owner event
 // verification, and the bridge client's local approval-claim checks.

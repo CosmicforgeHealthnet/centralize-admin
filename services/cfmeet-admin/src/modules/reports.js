@@ -26,12 +26,12 @@ const blocked = (code, detail) => ({ code, detail });
 const ABUSE_OWNERS = Object.freeze(["messaging", "calling", "communications", "meeting-service"]);
 const INCIDENT_OWNERS = Object.freeze(["messaging", "calling", "notifications", "meeting-service", "developer-platform"]);
 const REPORTS = Object.freeze([
-  { id: "meeting_activity", title: "Meeting activity", kind: "BRIDGE", capability: "meetings.activity.summary", grain: "WINDOW", units: ["count"], definition: "Source-released meeting activity cells for the requested scope and window; small cells are suppressed by the source" },
-  { id: "communications_metrics", title: "Communications profile metrics", kind: "BRIDGE", capability: "communications.metrics.summary", grain: "WINDOW", units: ["count"], definition: "Source-released communications profile and report cells for the requested scope and window" },
-  { id: "partner_usage", title: "Partner usage", kind: "BRIDGE", capability: "partners.usage.summary", grain: "WINDOW", units: ["count"], definition: "Source-released partner usage cells per workspace tier for the requested scope and window" },
-  { id: "finance_usage", title: "Usage by plan and currency", kind: "BRIDGE", capability: "finance.usage.summary", grain: "WINDOW", units: ["count", "minor_currency"], definition: "Source-released usage cells; money in minor units per currency, never combined across currencies" },
-  { id: "estimated_charges", title: "Estimated charges", kind: "BRIDGE", capability: "finance.charges.estimate", grain: "WINDOW", units: ["minor_currency"], definition: "Source-estimated charges in minor units per currency; estimates, not invoices or recognized revenue", requireComplete: true },
-  { id: "plan_spread", title: "Plan spread (Free / Pro / Business)", kind: "BRIDGE", capability: "finance.plan-spread.summary", grain: "SNAPSHOT", units: ["count"], definition: "Current plan assignments per plan as released by the source" },
+  { id: "meeting_activity", title: "Meeting activity", kind: "BLOCKED", grain: "WINDOW", units: ["count"], definition: "No source-released meeting activity aggregate exists in the CF Meet Admin Bridge contract", blocker: blocked("NO_SOURCE_AGGREGATE", "The Bridge releases no meeting activity aggregate; counts would have to be invented from resource pages, which is not allowed. Daily meeting counts are in the cfmeet.meetings_daily dataset") },
+  { id: "communications_metrics", title: "Communications profile metrics", kind: "BRIDGE", capability: "communications.metrics.read", grain: "SNAPSHOT", units: ["count"], definition: "Source-released communications profile and report cells for the requested scope" },
+  { id: "partner_usage", title: "Partner usage", kind: "BLOCKED", grain: "WINDOW", units: ["count"], definition: "Partner usage is released per workspace only (partners.usage.read through the partners module)", blocker: blocked("SOURCE_RELEASES_PER_WORKSPACE_ONLY", "The Bridge releases partner usage per workspace only; read it through cfmeet.partners.read, never as a summed cross-workspace figure") },
+  { id: "finance_usage", title: "Usage by plan and currency", kind: "BRIDGE", capability: "finance.usage.report", grain: "WINDOW", units: ["count", "minor_currency"], definition: "Source-released usage cells; money in minor units per currency, never combined across currencies" },
+  { id: "estimated_charges", title: "Estimated charges", kind: "BRIDGE", capability: "finance.estimated-charges.report", grain: "WINDOW", units: ["minor_currency"], definition: "Source-estimated charges in minor units per currency; estimates, not invoices or recognized revenue", requireComplete: true },
+  { id: "plan_spread", title: "Plan spread (Free / Pro / Business)", kind: "BRIDGE", capability: "finance.plan-spread.report", grain: "WINDOW", units: ["count"], definition: "Current plan assignments per plan as released by the source" },
   { id: "operations_health", title: "CF Meet service health", kind: "BRIDGE", capability: "operations.health.read", grain: "SNAPSHOT", units: ["count"], definition: "Aggregate owner-service health as reported by the CF Meet Admin Bridge" },
   { id: "telecom_numbers", title: "Telecom number summaries", kind: "BLOCKED", grain: "SNAPSHOT", units: ["count"], definition: "Telecom administration is not released for HQ", blocker: blocked("SOURCE_NOT_RELEASED", "Telecom summaries are DISABLED at the source; nothing is estimated in their place") },
   { id: "verification_queue", title: "Verification case queue", kind: "LOCAL", sources: [{ source_service: "developer-platform", entity_type: "verification_case" }], fields: ["kind", "state"], grain: "SNAPSHOT", units: ["count"], definition: "Current verification case projections by kind and state (automated recommendations are not decisions)" },
@@ -44,11 +44,18 @@ const REPORTS = Object.freeze([
 ]);
 const BY_ID = new Map(REPORTS.map((r) => [r.id, r]));
 
+// The pinned contract decides whether a Bridge report can be served at all.
+const MISSING = (r) => blocked("SOURCE_CONTRACT_MISSING", "The pinned CF Meet Admin Bridge contract has no " + r.capability + " capability");
+const unusable = (cap) => cap.matrix_state === "BLOCKED_DEPENDENCY" || cap.matrix_state === "DISABLED";
+const sourceState = (cap) => blocked("SOURCE_" + cap.matrix_state, cap.blocker || "Source capability is " + cap.matrix_state);
+
 function reportCapabilities(config) {
   return REPORTS.map((r) => {
     let state = "READ_ONLY";
     let blockers = [];
     if (r.kind === "BLOCKED") { state = "BLOCKED_DEPENDENCY"; blockers = [r.blocker]; }
+    else if (r.kind === "BRIDGE" && !R.capability(r.capability)) { state = "BLOCKED_DEPENDENCY"; blockers = [MISSING(r)]; }
+    else if (r.kind === "BRIDGE" && unusable(R.capability(r.capability))) { state = "BLOCKED_DEPENDENCY"; blockers = [sourceState(R.capability(r.capability))]; }
     else if (r.kind === "BRIDGE" && !config.bridge.enabled) { state = "BLOCKED_DEPENDENCY"; blockers = [blocked("BRIDGE_TRUST_NOT_ENROLLED", "Bridge mTLS identity, HMAC key and staff signing key are not enrolled for this environment")]; }
     else if (r.kind === "LOCAL" && !config.feed.enabled && r.id !== "connector_health") { state = "BLOCKED_DEPENDENCY"; blockers = [blocked("BRIDGE_FEED_NOT_ENABLED", "The Stage A Bridge event consumer is not enabled for this environment")]; }
     return { id: "cfmeet.report." + r.id, version: "1.0.0", kind: "READ", state, risk: r.capability && R.capability(r.capability) && ["R2", "R3", "R4"].includes(R.capability(r.capability).risk) ? "R2" : "R1", description: r.title.slice(0, 240), datasets: [], blockers, requires_recent_mfa: true, requires_independent_approval: false, request_schema: null };
@@ -201,6 +208,8 @@ function createReports({ config, bridgeClient, store, audit, bridgeMetrics = {},
     if (q.zone && !(d.zone || []).includes(q.zone)) throw new P("FORBIDDEN", "ZONE_NOT_GRANTED");
     if (q.tenant && !(d.tenant || []).includes(q.tenant)) throw new P("FORBIDDEN", "TENANT_NOT_GRANTED");
     if (report.kind === "BLOCKED") throw new P("UNAVAILABLE", report.blocker.code, { retryable: false });
+    if (report.kind === "BRIDGE" && !R.capability(report.capability)) throw new P("UNAVAILABLE", "SOURCE_CONTRACT_MISSING", { retryable: false });
+    if (report.kind === "BRIDGE" && unusable(R.capability(report.capability))) throw new P("UNAVAILABLE", sourceState(R.capability(report.capability)).code, { retryable: false });
     if (report.kind === "LOCAL" && !config.feed.enabled && report.id !== "connector_health") throw new P("UNAVAILABLE", "BRIDGE_FEED_NOT_ENABLED", { retryable: false });
     const out = report.kind === "BRIDGE" ? await bridgeReport(ctx, report, q) : await localReport(ctx, report, q);
     try {

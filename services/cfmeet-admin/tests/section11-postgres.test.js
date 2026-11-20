@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 11.3 database guarantees on disposable PostgreSQL: high-risk
 // certifications are operator-only, two-reviewer, time-bounded and revoked
 // once; approvals bound to a certification and policy revision are consumed

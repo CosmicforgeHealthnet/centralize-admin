@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Reports backed by live CF Meet Bridge releases (Summary cells and
 // aggregate health). Local (projection and pipeline) reports are covered by
 // the PostgreSQL pipeline tests.
@@ -29,34 +33,39 @@ test("all CF Meet reports are cataloged with source, grain, units and definition
 
 test("summary reports: one row per source cell, scope and window passed exactly, never summed", { skip }, async (t) => {
   const h = await startBridgeHarness(t);
-  const res = await report(h, "meeting_activity", q());
+  const res = await report(h, "finance_usage", q({ purpose: "billing-review" }));
   assert.equal(res.status, 200, JSON.stringify(res.json));
   const r = res.json.result;
-  assert.deepEqual(r.rows.map((row) => row.key), X.MEETING_KEYS);
+  assert.deepEqual(r.rows.map((row) => row.key), X.FINANCE_KEYS);
   assert.equal("total" in r, false);
-  assert.equal(r.source.bridge_capability_id, "meetings.activity.summary");
+  assert.equal(r.source.bridge_capability_id, "finance.usage.report");
   const url = new URL(h.fake.state.requests.at(-1).url, "https://b");
   assert.deepEqual([...url.searchParams.keys()], ["market", "organization", "zone", "tenant", "purpose", "limit", "start", "end"]);
-  assert.equal(url.searchParams.get("purpose"), "metrics-read");
+  assert.equal(url.searchParams.get("purpose"), "billing-review");
   assert.equal(res.json.coverage, "COMPLETE");
   // Required scope, delegated scope, allowed purposes, delegation action.
-  assert.equal((await report(h, "meeting_activity", q({ zone: undefined }))).json.error.reason, "SCOPE_ZONE_AND_TENANT_REQUIRED");
-  assert.equal((await report(h, "meeting_activity", q({ zone: "elsewhere" }))).json.error.reason, "ZONE_NOT_GRANTED");
-  assert.equal((await report(h, "meeting_activity", q({ purpose: "event-sync" }))).json.error.reason, "PURPOSE_NOT_ALLOWED");
-  assert.equal((await report(h, "meeting_activity", q({ product_code: "x" }))).json.error.reason, "UNKNOWN_OR_UNSUPPORTED_PARAMETER");
-  assert.equal((await report(h, "meeting_activity", q(), { action: "resource.read" })).json.error.reason, "DELEGATION_ACTION_MISMATCH");
+  assert.equal((await report(h, "finance_usage", q({ zone: undefined }))).json.error.reason, "SCOPE_ZONE_AND_TENANT_REQUIRED");
+  assert.equal((await report(h, "finance_usage", q({ zone: "elsewhere" }))).json.error.reason, "ZONE_NOT_GRANTED");
+  assert.equal((await report(h, "finance_usage", q({ purpose: "event-sync" }))).json.error.reason, "PURPOSE_NOT_ALLOWED");
+  assert.equal((await report(h, "finance_usage", q({ product_code: "x" }))).json.error.reason, "UNKNOWN_OR_UNSUPPORTED_PARAMETER");
+  assert.equal((await report(h, "finance_usage", q(), { action: "resource.read" })).json.error.reason, "DELEGATION_ACTION_MISMATCH");
+  // Reports without a source aggregate are explicit blocked dependencies, never estimates.
+  const activity = await report(h, "meeting_activity", q());
+  assert.equal(activity.status, 503);
+  assert.equal(activity.json.error.reason, "NO_SOURCE_AGGREGATE");
+  assert.equal((await report(h, "partner_usage", q())).json.error.reason, "SOURCE_RELEASES_PER_WORKSPACE_ONLY");
   assert.equal((await report(h, "made_up", q())).json.error.reason, "UNKNOWN_REPORT");
   // A snapshot summary (SCOPED) takes no window.
-  const spread = await report(h, "plan_spread", q());
+  const spread = await report(h, "communications_metrics", q());
   assert.equal(spread.status, 200, JSON.stringify(spread.json));
   assert.deepEqual([...new URL(h.fake.state.requests.at(-1).url, "https://b").searchParams.keys()], ["market", "organization", "zone", "tenant", "purpose"]);
-  assert.equal((await report(h, "plan_spread", q({ start: new Date(Date.now() - 3600000).toISOString() }))).json.error.reason, "UNKNOWN_OR_UNSUPPORTED_PARAMETER");
+  assert.equal((await report(h, "communications_metrics", q({ start: new Date(Date.now() - 3600000).toISOString() }))).json.error.reason, "UNKNOWN_OR_UNSUPPORTED_PARAMETER");
 });
 
 test("small cells stay suppressed; estimated charges are withheld without complete coverage", { skip }, async (t) => {
   const h = await startBridgeHarness(t);
-  h.fake.state.handlers["meetings.activity.summary"] = ({ query }) => ({ result: X.summary(query, X.MEETING_KEYS, { values: { participants: null } }) });
-  const meetings = await report(h, "meeting_activity", q());
+  h.fake.state.handlers["communications.metrics.read"] = ({ query }) => ({ result: X.summary(query, X.MEETING_KEYS, { values: { participants: null }, windowed: false }) });
+  const meetings = await report(h, "communications_metrics", q());
   assert.deepEqual(meetings.json.result.rows.find((c) => c.key === "participants"), { key: "participants", unit: "count", currency: null, value: null, suppression: "SMALL_CELL" });
   h.fake.state.summaryCoverage = "PARTIAL";
   const partial = await report(h, "estimated_charges", q({ purpose: "billing-review" }));
@@ -77,7 +86,7 @@ test("finance: per-currency minor units, never combined across currencies", { sk
   assert.deepEqual(money.map((r) => [r.key, r.currency]), [["charges_ngn", "NGN"], ["charges_usd", "USD"]]);
   assert.ok(res.json.result.rows.filter((r) => r.unit === "count").every((r) => r.currency === null));
   assert.equal(res.json.result.rows.some((r) => r.key === "total" || r.currency === "MIXED"), false);
-  const cap = require("../src/bridge/contracts/registry").capability("finance.usage.summary");
+  const cap = require("../src/bridge/contracts/registry").capability("finance.usage.report");
   assert.ok(["R2", "R3", "R4"].includes(cap.risk));
 });
 
@@ -100,7 +109,7 @@ test("telecom is an explicit blocked dependency, local reports need the feed, he
 
 test("summary and verification collections read through the same pinned contract", { skip }, async (t) => {
   const h = await startBridgeHarness(t);
-  const usage = await protocolGet(h, "/resources/cfmeet.partners.read/partners.usage.summary", q({ limit: 1 }));
+  const usage = await protocolGet(h, "/resources/cfmeet.partners.read/partners.usage.read/ws-1", q());
   assert.equal(usage.status, 200, JSON.stringify(usage.json));
   assert.ok(Array.isArray(usage.json.result.data.cells));
   const cases = await protocolGet(h, "/resources/cfmeet.verification.read/verification.cases.list", q({ purpose: "verification-review", limit: 10 }));

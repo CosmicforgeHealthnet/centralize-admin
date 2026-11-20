@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 11.3 high-risk (R3) workflow against the disposable secure Bridge
 // (real TLS 1.3 mTLS, HMAC v2, Ed25519): certification, runtime Bridge
 // availability, independent approval bound to the exact intent, single use,

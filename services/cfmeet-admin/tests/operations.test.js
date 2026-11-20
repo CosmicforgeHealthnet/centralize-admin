@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Governed action pipeline (spec 4.3-4.5) against the disposable secure
 // Bridge. Uses the only kind of command this delivery allows an operator to
 // enable (R1/R2) and proves: intent + audit before dispatch, exact

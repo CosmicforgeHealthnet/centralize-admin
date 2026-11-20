@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 12.5 recovery on disposable PostgreSQL with the disposable secure
 // Bridge (TLS 1.3 mTLS, HMAC v2, Ed25519). Complements pipeline-postgres:
 // that suite already covers crash before/after commit, ACK retry, lease

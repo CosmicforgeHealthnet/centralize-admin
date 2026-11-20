@@ -3,13 +3,13 @@
  "contract_version": "1.0.0",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "source_artifacts": {
-  "openapi_sha256": "b2cc9219d9c6395a9e9fe93bdd338f0f95bff91a82df42d434d189185dd9d4b8",
-  "capability_matrix_sha256": "204f715b3e6037a78d04f9cc834cd87f7da3b5a76582a5a9b6e6c129bbe907b4"
+  "openapi_sha256": "43e25beb54af37bcfa8c2110e1e64aad5e3ed5f6b8c68b4bfc0ec31e77b5c065",
+  "capability_matrix_sha256": "5d00b1d816f7ae1945608418d189a8ba976c479e7f6c2ed8934bbafbc7dc7a8c"
  },
  "totals": {
-  "capabilities": 200,
+  "capabilities": 199,
   "by_state": {
-   "READ_ONLY": 115,
+   "READ_ONLY": 114,
    "AVAILABLE": 82,
    "DISABLED": 2,
    "BLOCKED_DEPENDENCY": 1
@@ -1397,47 +1397,6 @@
    "permission": "meetings.reports.list",
    "risk": "R2",
    "privacy": "SAFETY_EVIDENCE",
-   "scope": "cfmeet + exact market, organization, zone and tenant",
-   "source_version_required": false,
-   "idempotency_required": false,
-   "approval": "NONE",
-   "feature_flag": "NONE",
-   "blocker": null,
-   "source_tests": [
-    "DRAFT_NOT_IMPLEMENTED"
-   ]
-  },
-  {
-   "id": "meetings.activity.summary",
-   "version": "1.0",
-   "module": "meetings",
-   "kind": "READ",
-   "owner": "meetings-service",
-   "method": "GET",
-   "path": "/meetings/activity/summary",
-   "source_endpoint": null,
-   "path_params": [],
-   "query_shape": "SCOPED_WINDOW",
-   "query_required": [
-    "market",
-    "organization",
-    "zone",
-    "tenant",
-    "purpose",
-    "limit",
-    "start",
-    "end"
-   ],
-   "request_body": null,
-   "success_status": 200,
-   "success_media": "application/json",
-   "result_schema": {
-    "$ref": "#/components/schemas/Summary"
-   },
-   "matrix_state": "READ_ONLY",
-   "permission": "meetings.activity.summary",
-   "risk": "R1",
-   "privacy": "SUPPRESSED_COUNT_METADATA",
    "scope": "cfmeet + exact market, organization, zone and tenant",
    "source_version_required": false,
    "idempotency_required": false,
@@ -3461,7 +3420,7 @@
    ]
   },
   {
-   "id": "communications.metrics.summary",
+   "id": "communications.metrics.read",
    "version": "1.0",
    "module": "communications",
    "kind": "READ",
@@ -3470,16 +3429,13 @@
    "path": "/communications/metrics",
    "source_endpoint": null,
    "path_params": [],
-   "query_shape": "SCOPED_WINDOW",
+   "query_shape": "SCOPED",
    "query_required": [
     "market",
     "organization",
     "zone",
     "tenant",
-    "purpose",
-    "limit",
-    "start",
-    "end"
+    "purpose"
    ],
    "request_body": null,
    "success_status": 200,
@@ -3488,7 +3444,7 @@
     "$ref": "#/components/schemas/Summary"
    },
    "matrix_state": "READ_ONLY",
-   "permission": "communications.metrics.summary",
+   "permission": "communications.metrics.read",
    "risk": "R1",
    "privacy": "SUPPRESSED_COUNT_METADATA",
    "scope": "cfmeet + exact market, organization, zone and tenant",
@@ -4955,15 +4911,21 @@
    ]
   },
   {
-   "id": "partners.usage.summary",
+   "id": "partners.usage.read",
    "version": "1.0",
    "module": "partners",
    "kind": "READ",
    "owner": "partners-service",
    "method": "GET",
-   "path": "/partners/usage",
+   "path": "/partners/workspaces/{workspace_id}/usage",
    "source_endpoint": null,
-   "path_params": [],
+   "path_params": [
+    {
+     "name": "workspace_id",
+     "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$",
+     "max_length": 128
+    }
+   ],
    "query_shape": "SCOPED_WINDOW",
    "query_required": [
     "market",
@@ -4982,7 +4944,7 @@
     "$ref": "#/components/schemas/Summary"
    },
    "matrix_state": "READ_ONLY",
-   "permission": "partners.usage.summary",
+   "permission": "partners.usage.read",
    "risk": "R1",
    "privacy": "SUPPRESSED_COUNT_METADATA",
    "scope": "cfmeet + exact market, organization, zone and tenant",
@@ -7280,7 +7242,7 @@
    ]
   },
   {
-   "id": "finance.usage.summary",
+   "id": "finance.usage.report",
    "version": "1.0",
    "module": "finance",
    "kind": "READ",
@@ -7307,7 +7269,7 @@
     "$ref": "#/components/schemas/Summary"
    },
    "matrix_state": "READ_ONLY",
-   "permission": "finance.usage.summary",
+   "permission": "finance.usage.report",
    "risk": "R2",
    "privacy": "FINANCIAL_SENSITIVE",
    "scope": "cfmeet + exact market, organization, zone and tenant",
@@ -7321,7 +7283,7 @@
    ]
   },
   {
-   "id": "finance.charges.estimate",
+   "id": "finance.estimated-charges.report",
    "version": "1.0",
    "module": "finance",
    "kind": "READ",
@@ -7348,7 +7310,7 @@
     "$ref": "#/components/schemas/Summary"
    },
    "matrix_state": "READ_ONLY",
-   "permission": "finance.charges.estimate",
+   "permission": "finance.estimated-charges.report",
    "risk": "R2",
    "privacy": "FINANCIAL_SENSITIVE",
    "scope": "cfmeet + exact market, organization, zone and tenant",
@@ -7362,7 +7324,7 @@
    ]
   },
   {
-   "id": "finance.plan-spread.summary",
+   "id": "finance.plan-spread.report",
    "version": "1.0",
    "module": "finance",
    "kind": "READ",
@@ -7371,13 +7333,16 @@
    "path": "/finance/plan-spread",
    "source_endpoint": null,
    "path_params": [],
-   "query_shape": "SCOPED",
+   "query_shape": "SCOPED_WINDOW",
    "query_required": [
     "market",
     "organization",
     "zone",
     "tenant",
-    "purpose"
+    "purpose",
+    "limit",
+    "start",
+    "end"
    ],
    "request_body": null,
    "success_status": 200,
@@ -7386,7 +7351,7 @@
     "$ref": "#/components/schemas/Summary"
    },
    "matrix_state": "READ_ONLY",
-   "permission": "finance.plan-spread.summary",
+   "permission": "finance.plan-spread.report",
    "risk": "R1",
    "privacy": "SUPPRESSED_COUNT_METADATA",
    "scope": "cfmeet + exact market, organization, zone and tenant",

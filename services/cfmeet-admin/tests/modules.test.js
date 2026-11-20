@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 6 module reads, end to end through Protocol 1.1 against the
 // disposable secure Bridge (real TLS 1.3 mTLS, HMAC v2, Ed25519). For every
 // module: valid list/detail, staff/grant/scope denials, filter and

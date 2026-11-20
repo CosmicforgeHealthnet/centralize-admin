@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 13.1 unit coverage for security-critical helpers whose failure
 // branches were previously exercised only indirectly: sealed continuation
 // tokens, log redaction, durable replay claims and sensitive-access records.

@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 12.5: private metrics, sync status, readiness detail and log
 // redaction. No database here (see recovery-postgres.test.js for the
 // scrape-time database gauges).

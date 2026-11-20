@@ -47,7 +47,7 @@ const byPattern = (re) => R.CAPABILITIES.filter((c) => re.test(c.id)).map((c) =>
 const FAMILIES = [
   { family: "10.1.1 Integration", endpoints: ["manifest", "capabilities", "datasets", "syncStatus", "healthLive", "healthReady"], bridge: ["bridge.capabilities.read", "bridge.health.read"],
     notes: "Signed manifest, capability states with the pinned contract revision and live Bridge discovery (cached as runtime snapshots only when the running Bridge's openapi_sha256 equals the pin), datasets, sync status, liveness/readiness." },
-  { family: "10.1.2 Overview and metrics", endpoints: ["reportGet"], reports: REPORTS.map((r) => "cfmeet.report." + r.id), metrics: true, bridge: byPattern(/\.(summary|estimate)$/).concat(["operations.health.read", "hq.projections.status", "bridge.datasets.read"]),
+  { family: "10.1.2 Overview and metrics", endpoints: ["reportGet"], reports: REPORTS.map((r) => "cfmeet.report." + r.id), metrics: true, bridge: byPattern(/\.(summary|report)$/).concat(["communications.metrics.read", "operations.health.read", "hq.projections.status", "bridge.datasets.read"]),
     notes: "Reports with source, grain, units, scope, coverage and freshness, and the 8 Bridge datasets as daily metric observations; unavailable sources answer explicit blockers, never invented values." },
   { family: "10.1.3 Resources", endpoints: ["resourceList", "resourceGet"], modules: MODULES.filter((m) => m.read).map((m) => m.read), bridgeKinds: ["READ"],
     notes: "Bounded, zone- and tenant-scoped reads of exact pinned collections with opaque continuation tokens bound to staff/scope/filters; every read audited." },

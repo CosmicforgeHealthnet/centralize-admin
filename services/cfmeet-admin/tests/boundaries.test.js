@@ -189,3 +189,24 @@ test("the pin refuses a contract that breaks the agreed read naming rules (HQ cl
   // The unmodified draft pins.
   assert.ok(variant(() => {}).registry.capabilities.length > 0);
 });
+
+test("the functional suites' target registry regenerates from contract-draft and matches the pin on every shared capability", () => {
+  const { targetOutputs, TARGET_DIR } = require("../scripts/pin-bridge-contract");
+  const committed = (file) => fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+  for (const [file, text] of targetOutputs()) assert.equal(committed(file), text, path.basename(file) + " drifted: run node scripts/pin-bridge-contract.js --target --write");
+  const target = JSON.parse(fs.readFileSync(path.join(TARGET_DIR, "cfmeet-capabilities.v1.json"), "utf8")).capabilities;
+  assert.equal(JSON.parse(fs.readFileSync(path.join(TARGET_DIR, "cfmeet-backoffice-v1.json"), "utf8")).contract_status, "DRAFT", "the target model is never a pinned contract");
+  const R = require("../src/bridge/contracts/registry");
+  let shared = 0;
+  for (const t of target) {
+    const p = R.capability(t.id);
+    if (!p) continue;
+    shared += 1;
+    for (const k of ["method", "path", "query_shape", "approval", "kind", "module"]) assert.deepEqual(t[k], p[k], t.id + " differs from the pinned contract on " + k + ": update contract-draft to the pinned contract");
+  }
+  assert.ok(shared >= 6, "at least the platform capabilities are shared");
+  // The six fixed platform capabilities are in both.
+  for (const id of ["bridge.capabilities.read", "bridge.health.read", "bridge.datasets.read", "hq.events.feed", "hq.events.ack", "hq.projections.status"]) {
+    assert.ok(R.capability(id) && target.some((t) => t.id === id), id);
+  }
+});

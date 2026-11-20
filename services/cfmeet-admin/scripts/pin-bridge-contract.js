@@ -24,6 +24,12 @@ const SCHEMAS_FILE = path.join(OUT_DIR, "cfmeet-bridge-schemas.v1.json");
 const ADAPTERS_FILE = path.join(OUT_DIR, "cfmeet-event-adapters.v1.json");
 const METADATA_FILE = path.join(OUT_DIR, "cfmeet-backoffice-v1.json");
 const DRAFT_DIR = path.join(__dirname, "..", "contract-draft");
+// HQ's interface-v1 TARGET registry (generated from contract-draft). The
+// functional test suites run against it (tests/helpers/target-contract.js)
+// so HQ behaviour stays exercised while Track A's real contract still has
+// most capabilities BLOCKED_DEPENDENCY/DISABLED. Production always uses the
+// pinned files in src/bridge/contracts/.
+const TARGET_DIR = path.join(DRAFT_DIR, "registry");
 const DRAFT_COMMIT = "DRAFT-UNPINNED";
 const ARTIFACTS = ["openapi.json", "CFMEET_ADMIN_CAPABILITY_MATRIX.json", "event-adapters.v1.json", "signing-profile.md", "SHA256SUMS"];
 
@@ -216,14 +222,19 @@ function buildMetadata(built, { commit, reviewedAt }) {
 
 const serialize = (value) => JSON.stringify(value, null, 1) + "\n";
 
-function outputs(checkout, opts) {
+function outputs(checkout, opts, dir = OUT_DIR) {
   const built = buildPinnedRegistry(checkout);
   return [
-    [REGISTRY_FILE, serialize(built.registry)],
-    [SCHEMAS_FILE, serialize(built.schemas)],
-    [ADAPTERS_FILE, serialize(built.adapters)],
-    [METADATA_FILE, serialize(buildMetadata(built, opts))],
+    [path.join(dir, path.basename(REGISTRY_FILE)), serialize(built.registry)],
+    [path.join(dir, path.basename(SCHEMAS_FILE)), serialize(built.schemas)],
+    [path.join(dir, path.basename(ADAPTERS_FILE)), serialize(built.adapters)],
+    [path.join(dir, path.basename(METADATA_FILE)), serialize(buildMetadata(built, opts))],
   ];
+}
+
+// The target registry: always from the HQ draft, always DRAFT metadata.
+function targetOutputs() {
+  return outputs(DRAFT_DIR, { commit: DRAFT_COMMIT, reviewedAt: "target" }, TARGET_DIR);
 }
 
 function arg(name) {
@@ -238,7 +249,10 @@ if (require.main === module) {
   const commit = arg("--commit") || (write ? undefined : prior.source_commit);
   if (commit && commit !== DRAFT_COMMIT && !/^[0-9a-f]{40}$/.test(commit)) { console.error("--commit must be a full 40-hex commit SHA"); process.exit(2); }
   const reviewedAt = arg("--reviewed-at") || (write ? new Date().toISOString().slice(0, 10) : prior.reviewed_at);
-  const files = outputs(checkout, { commit, reviewedAt });
+  const target = process.argv.includes("--target");
+  if (target && process.env.CFMEET_CHECKOUT) { console.error("--target always builds from contract-draft; unset CFMEET_CHECKOUT"); process.exit(2); }
+  if (target && write) fs.mkdirSync(TARGET_DIR, { recursive: true });
+  const files = target ? targetOutputs() : outputs(checkout, { commit, reviewedAt });
   const totals = JSON.parse(files[0][1]).totals;
   if (write) {
     for (const [file, text] of files) fs.writeFileSync(file, text);
@@ -250,4 +264,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { buildPinnedRegistry, buildMetadata, outputs, serialize, MODULE_BY_PREFIX, QUERY_SHAPES, REGISTRY_FILE, SCHEMAS_FILE, ADAPTERS_FILE, METADATA_FILE, DRAFT_DIR, DRAFT_COMMIT, CONTRACT_DIR, kindOf };
+module.exports = { buildPinnedRegistry, buildMetadata, outputs, targetOutputs, TARGET_DIR, serialize, MODULE_BY_PREFIX, QUERY_SHAPES, REGISTRY_FILE, SCHEMAS_FILE, ADAPTERS_FILE, METADATA_FILE, DRAFT_DIR, DRAFT_COMMIT, CONTRACT_DIR, kindOf };

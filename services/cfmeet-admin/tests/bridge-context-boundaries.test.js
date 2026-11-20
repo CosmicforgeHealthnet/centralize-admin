@@ -1,4 +1,8 @@
 "use strict";
+
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
 const test=require("node:test"),assert=require("node:assert/strict");
 const {bridgeStaffContext,bridgeCapabilityState}=require("../src/bridge/capabilities");
 test("Bridge staff context enforces every MFA, role and scope boundary",()=>{

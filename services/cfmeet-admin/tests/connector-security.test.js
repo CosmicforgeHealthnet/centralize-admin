@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 7 connector security (spec 14.2) against the disposable secure
 // Bridge with real TLS 1.3 mutual TLS, HMAC v2 and Ed25519 assertions.
 

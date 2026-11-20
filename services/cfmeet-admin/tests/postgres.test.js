@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Runs only when CFMEET_ADMIN_TEST_DATABASE_URL points at a disposable
 // PostgreSQL superuser connection. Creates and drops its own uniquely named
 // database and roles (prefix cfm_test_). Never point this at staging/prod.

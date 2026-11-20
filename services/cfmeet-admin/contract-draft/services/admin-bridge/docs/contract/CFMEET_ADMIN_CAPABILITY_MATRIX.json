@@ -693,27 +693,6 @@
   ]
  },
  {
-  "id": "meetings.activity.summary",
-  "version": "1.0",
-  "owner": "meetings-service",
-  "method": "GET",
-  "bridge_endpoint": "/meetings/activity/summary",
-  "source_endpoint": null,
-  "state": "READ_ONLY",
-  "permission": "meetings.activity.summary",
-  "risk": "R1",
-  "privacy": "SUPPRESSED_COUNT_METADATA",
-  "scope": "cfmeet + exact market, organization, zone and tenant",
-  "source_version_required": false,
-  "idempotency_required": false,
-  "approval": "NONE",
-  "feature_flag": "NONE",
-  "blocker": null,
-  "tests": [
-   "DRAFT_NOT_IMPLEMENTED"
-  ]
- },
- {
   "id": "meetings.meetings.end",
   "version": "1.0",
   "owner": "meetings-service",
@@ -1722,14 +1701,14 @@
   ]
  },
  {
-  "id": "communications.metrics.summary",
+  "id": "communications.metrics.read",
   "version": "1.0",
   "owner": "communications-service",
   "method": "GET",
   "bridge_endpoint": "/communications/metrics",
   "source_endpoint": null,
   "state": "READ_ONLY",
-  "permission": "communications.metrics.summary",
+  "permission": "communications.metrics.read",
   "risk": "R1",
   "privacy": "SUPPRESSED_COUNT_METADATA",
   "scope": "cfmeet + exact market, organization, zone and tenant",
@@ -2436,14 +2415,14 @@
   ]
  },
  {
-  "id": "partners.usage.summary",
+  "id": "partners.usage.read",
   "version": "1.0",
   "owner": "partners-service",
   "method": "GET",
-  "bridge_endpoint": "/partners/usage",
+  "bridge_endpoint": "/partners/workspaces/{workspace_id}/usage",
   "source_endpoint": null,
   "state": "READ_ONLY",
-  "permission": "partners.usage.summary",
+  "permission": "partners.usage.read",
   "risk": "R1",
   "privacy": "SUPPRESSED_COUNT_METADATA",
   "scope": "cfmeet + exact market, organization, zone and tenant",
@@ -3570,14 +3549,14 @@
   ]
  },
  {
-  "id": "finance.usage.summary",
+  "id": "finance.usage.report",
   "version": "1.0",
   "owner": "finance-service",
   "method": "GET",
   "bridge_endpoint": "/finance/usage",
   "source_endpoint": null,
   "state": "READ_ONLY",
-  "permission": "finance.usage.summary",
+  "permission": "finance.usage.report",
   "risk": "R2",
   "privacy": "FINANCIAL_SENSITIVE",
   "scope": "cfmeet + exact market, organization, zone and tenant",
@@ -3591,14 +3570,14 @@
   ]
  },
  {
-  "id": "finance.charges.estimate",
+  "id": "finance.estimated-charges.report",
   "version": "1.0",
   "owner": "finance-service",
   "method": "GET",
   "bridge_endpoint": "/finance/estimated-charges",
   "source_endpoint": null,
   "state": "READ_ONLY",
-  "permission": "finance.charges.estimate",
+  "permission": "finance.estimated-charges.report",
   "risk": "R2",
   "privacy": "FINANCIAL_SENSITIVE",
   "scope": "cfmeet + exact market, organization, zone and tenant",
@@ -3612,14 +3591,14 @@
   ]
  },
  {
-  "id": "finance.plan-spread.summary",
+  "id": "finance.plan-spread.report",
   "version": "1.0",
   "owner": "finance-service",
   "method": "GET",
   "bridge_endpoint": "/finance/plan-spread",
   "source_endpoint": null,
   "state": "READ_ONLY",
-  "permission": "finance.plan-spread.summary",
+  "permission": "finance.plan-spread.report",
   "risk": "R1",
   "privacy": "SUPPRESSED_COUNT_METADATA",
   "scope": "cfmeet + exact market, organization, zone and tenant",

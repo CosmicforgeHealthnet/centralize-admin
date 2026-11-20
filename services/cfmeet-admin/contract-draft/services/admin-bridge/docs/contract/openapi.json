@@ -4374,155 +4374,6 @@
     }
    }
   },
-  "/internal/cfmeet-admin/v1/meetings/activity/summary": {
-   "get": {
-    "operationId": "meetings.activity.summary",
-    "summary": "meetings.activity.summary",
-    "parameters": [
-     {
-      "name": "market",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
-       "maxLength": 128
-      }
-     },
-     {
-      "name": "organization",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
-       "maxLength": 128
-      }
-     },
-     {
-      "name": "zone",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "enum": [
-        "production",
-        "sandbox"
-       ]
-      }
-     },
-     {
-      "name": "tenant",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
-       "maxLength": 128
-      }
-     },
-     {
-      "name": "purpose",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "pattern": "^[a-z][a-z-]{2,63}$"
-      }
-     },
-     {
-      "name": "limit",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "integer",
-       "minimum": 1,
-       "maximum": 100
-      }
-     },
-     {
-      "name": "cursor",
-      "in": "query",
-      "required": false,
-      "schema": {
-       "type": "string",
-       "pattern": "^[A-Za-z0-9._~:@/+=-]{1,4096}$"
-      }
-     },
-     {
-      "name": "start",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "format": "date-time"
-      }
-     },
-     {
-      "name": "end",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "format": "date-time"
-      }
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": "OK",
-      "content": {
-       "application/json": {
-        "schema": {
-         "type": "object",
-         "additionalProperties": false,
-         "required": [
-          "contract_version",
-          "product",
-          "correlation_id",
-          "as_of",
-          "freshness",
-          "result"
-         ],
-         "properties": {
-          "contract_version": {
-           "const": "1.0"
-          },
-          "product": {
-           "const": "cfmeet"
-          },
-          "correlation_id": {
-           "type": "string",
-           "format": "uuid"
-          },
-          "as_of": {
-           "type": "string",
-           "format": "date-time"
-          },
-          "freshness": {
-           "enum": [
-            "LIVE",
-            "RECENT",
-            "STALE",
-            "PARTIAL",
-            "UNKNOWN",
-            "UNAVAILABLE"
-           ]
-          },
-          "result": {
-           "$ref": "#/components/schemas/Summary"
-          },
-          "error": {
-           "type": "null"
-          }
-         }
-        }
-       }
-      }
-     }
-    }
-   }
-  },
   "/internal/cfmeet-admin/v1/meetings/meetings/{meeting_id}/end": {
    "post": {
     "operationId": "meetings.meetings.end",
@@ -10964,8 +10815,8 @@
   },
   "/internal/cfmeet-admin/v1/communications/metrics": {
    "get": {
-    "operationId": "communications.metrics.summary",
-    "summary": "communications.metrics.summary",
+    "operationId": "communications.metrics.read",
+    "summary": "communications.metrics.read",
     "parameters": [
      {
       "name": "market",
@@ -11016,43 +10867,6 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
-      }
-     },
-     {
-      "name": "limit",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "integer",
-       "minimum": 1,
-       "maximum": 100
-      }
-     },
-     {
-      "name": "cursor",
-      "in": "query",
-      "required": false,
-      "schema": {
-       "type": "string",
-       "pattern": "^[A-Za-z0-9._~:@/+=-]{1,4096}$"
-      }
-     },
-     {
-      "name": "start",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "format": "date-time"
-      }
-     },
-     {
-      "name": "end",
-      "in": "query",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "format": "date-time"
       }
      }
     ],
@@ -15581,11 +15395,21 @@
     }
    }
   },
-  "/internal/cfmeet-admin/v1/partners/usage": {
+  "/internal/cfmeet-admin/v1/partners/workspaces/{workspace_id}/usage": {
    "get": {
-    "operationId": "partners.usage.summary",
-    "summary": "partners.usage.summary",
+    "operationId": "partners.usage.read",
+    "summary": "partners.usage.read",
     "parameters": [
+     {
+      "name": "workspace_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$",
+       "maxLength": 128
+      }
+     },
      {
       "name": "market",
       "in": "query",
@@ -22789,8 +22613,8 @@
   },
   "/internal/cfmeet-admin/v1/finance/usage": {
    "get": {
-    "operationId": "finance.usage.summary",
-    "summary": "finance.usage.summary",
+    "operationId": "finance.usage.report",
+    "summary": "finance.usage.report",
     "parameters": [
      {
       "name": "market",
@@ -22938,8 +22762,8 @@
   },
   "/internal/cfmeet-admin/v1/finance/estimated-charges": {
    "get": {
-    "operationId": "finance.charges.estimate",
-    "summary": "finance.charges.estimate",
+    "operationId": "finance.estimated-charges.report",
+    "summary": "finance.estimated-charges.report",
     "parameters": [
      {
       "name": "market",
@@ -23087,8 +22911,8 @@
   },
   "/internal/cfmeet-admin/v1/finance/plan-spread": {
    "get": {
-    "operationId": "finance.plan-spread.summary",
-    "summary": "finance.plan-spread.summary",
+    "operationId": "finance.plan-spread.report",
+    "summary": "finance.plan-spread.report",
     "parameters": [
      {
       "name": "market",
@@ -23139,6 +22963,43 @@
       "schema": {
        "type": "string",
        "pattern": "^[a-z][a-z-]{2,63}$"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 100
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^[A-Za-z0-9._~:@/+=-]{1,4096}$"
+      }
+     },
+     {
+      "name": "start",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     {
+      "name": "end",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "date-time"
       }
      }
     ],

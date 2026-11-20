@@ -11,7 +11,7 @@
     "version": "1.0.0",
     "source_commit": "DRAFT-UNPINNED",
     "base_path": "/internal/cfmeet-admin/v1",
-    "capabilities": 200
+    "capabilities": 199
   },
   "exposure_environment": "unenrolled default (no Bridge enrollment, no enabled commands, no high-risk certification)",
   "http_status_policy": {
@@ -163,59 +163,14 @@
         "cfmeet.report.sync_lag",
         "cfmeet.report.quarantine_reconciliation"
       ],
-      "bridge_capability_count": 11,
+      "bridge_capability_count": 9,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 10,
+        "BLOCKED_DEPENDENCY": 8,
         "DISABLED": 1
       },
       "bridge_capabilities": [
         {
-          "bridge_capability_id": "meetings.activity.summary",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/meetings/activity/summary",
-          "kind": "READ",
-          "module": "meetings",
-          "cfmeet_capability_id": "cfmeet.meetings.read",
-          "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "communications.metrics.summary",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/communications/metrics",
-          "kind": "READ",
-          "module": "communications",
-          "cfmeet_capability_id": "cfmeet.communications.read",
-          "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "partners.usage.summary",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/partners/usage",
-          "kind": "READ",
-          "module": "partners",
-          "cfmeet_capability_id": "cfmeet.partners.read",
-          "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "finance.usage.summary",
+          "bridge_capability_id": "finance.usage.report",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/finance/usage",
           "kind": "READ",
@@ -230,7 +185,7 @@
           ]
         },
         {
-          "bridge_capability_id": "finance.charges.estimate",
+          "bridge_capability_id": "finance.estimated-charges.report",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/finance/estimated-charges",
           "kind": "READ",
@@ -245,7 +200,7 @@
           ]
         },
         {
-          "bridge_capability_id": "finance.plan-spread.summary",
+          "bridge_capability_id": "finance.plan-spread.report",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/finance/plan-spread",
           "kind": "READ",
@@ -287,6 +242,21 @@
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
             "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "communications.metrics.read",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/communications/metrics",
+          "kind": "READ",
+          "module": "communications",
+          "cfmeet_capability_id": "cfmeet.communications.read",
+          "risk": "R1",
+          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "source_state": "READ_ONLY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "BRIDGE_TRUST_NOT_ENROLLED"
           ]
         },
         {
@@ -377,9 +347,9 @@
         "cfmeet.telecom.read",
         "cfmeet.platform.read"
       ],
-      "bridge_capability_count": 117,
+      "bridge_capability_count": 116,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 116,
+        "BLOCKED_DEPENDENCY": 115,
         "DISABLED": 1
       }
     },
@@ -547,7 +517,7 @@
       },
       "bridge_capabilities": [
         {
-          "bridge_capability_id": "finance.usage.summary",
+          "bridge_capability_id": "finance.usage.report",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/finance/usage",
           "kind": "READ",
@@ -562,7 +532,7 @@
           ]
         },
         {
-          "bridge_capability_id": "finance.charges.estimate",
+          "bridge_capability_id": "finance.estimated-charges.report",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/finance/estimated-charges",
           "kind": "READ",
@@ -577,7 +547,7 @@
           ]
         },
         {
-          "bridge_capability_id": "finance.plan-spread.summary",
+          "bridge_capability_id": "finance.plan-spread.report",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/finance/plan-spread",
           "kind": "READ",
@@ -1298,7 +1268,7 @@
           ]
         },
         {
-          "bridge_capability_id": "communications.metrics.summary",
+          "bridge_capability_id": "communications.metrics.read",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/communications/metrics",
           "kind": "READ",

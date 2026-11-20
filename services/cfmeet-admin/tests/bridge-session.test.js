@@ -1,4 +1,8 @@
 "use strict";
+
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { createBridgeConsumer } = require("../src/sync/bridge-consumer");

@@ -179,7 +179,6 @@ list("meetings.recordings.list", "/meetings/recordings", { shape: "SCOPED_WINDOW
 list("meetings.webinars.list", "/meetings/webinars", { shape: "SCOPED_WINDOW" });
 list("meetings.audit.list", "/meetings/audit", { shape: "SCOPED_WINDOW", risk: "R2" });
 list("meetings.reports.list", "/meetings/reports", { shape: "SCOPED_PAGE", risk: "R2", privacy: "SAFETY_EVIDENCE" });
-summary("meetings.activity.summary", "/meetings/activity/summary");
 two("meetings.meetings.end", "/meetings/meetings/{meeting_id}/end");
 two("meetings.spaces.archive", "/meetings/spaces/{space_id}/archive");
 two("meetings.spaces.transfer", "/meetings/spaces/{space_id}/transfer");
@@ -234,7 +233,7 @@ detail("communications.profiles.read", "/communications/profiles/{cfmeet_id}", {
 list("communications.reports.list", "/communications/reports", { shape: "SCOPED_PAGE", risk: "R2", privacy: "SAFETY_EVIDENCE" });
 list("communications.holds.list", "/communications/holds", { risk: "R2" });
 list("communications.audit.list", "/communications/audit", { shape: "SCOPED_WINDOW", risk: "R2" });
-summary("communications.metrics.summary", "/communications/metrics");
+summary("communications.metrics.read", "/communications/metrics", { shape: "SCOPED" });
 two("communications.profiles.suspend", "/communications/profiles/{profile_id}/suspension");
 two("communications.profiles.restore", "/communications/profiles/{profile_id}/restoration");
 two("communications.reports.review", "/communications/reports/{report_id}/review");
@@ -272,7 +271,7 @@ list("partners.websites.list", "/partners/workspaces/{workspace_id}/websites");
 list("partners.push-keys.list", "/partners/workspaces/{workspace_id}/push-keys");
 list("partners.users.list", "/partners/workspaces/{workspace_id}/users", { shape: "SCOPED_SEARCH", risk: "R2", privacy: "PERSONAL_MINIMIZED" });
 list("partners.webhooks.list", "/partners/workspaces/{workspace_id}/webhooks", { shape: "SCOPED_PAGE" });
-summary("partners.usage.summary", "/partners/usage");
+summary("partners.usage.read", "/partners/workspaces/{workspace_id}/usage");
 list("partners.incidents.list", "/partners/incidents", { shape: "SCOPED_WINDOW" });
 list("partners.activity.list", "/partners/activity", { shape: "SCOPED_WINDOW" });
 two("partners.workspaces.state.update", "/partners/workspaces/{workspace_id}/state");
@@ -336,9 +335,9 @@ two("pricing.plan-assignments.assign", "/pricing/plan-assignments");
 two("pricing.overrides.set", "/pricing/overrides");
 
 // finance (read only)
-summary("finance.usage.summary", "/finance/usage", { risk: "R2", privacy: "FINANCIAL_SENSITIVE" });
-summary("finance.charges.estimate", "/finance/estimated-charges", { risk: "R2", privacy: "FINANCIAL_SENSITIVE" });
-summary("finance.plan-spread.summary", "/finance/plan-spread", { shape: "SCOPED" });
+summary("finance.usage.report", "/finance/usage", { risk: "R2", privacy: "FINANCIAL_SENSITIVE" });
+summary("finance.estimated-charges.report", "/finance/estimated-charges", { risk: "R2", privacy: "FINANCIAL_SENSITIVE" });
+summary("finance.plan-spread.report", "/finance/plan-spread");
 
 // notifications
 list("notifications.deliveries.list", "/notifications/deliveries", { shape: "SCOPED_WINDOW" });

@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 8 Stage A (Bridge -> CF Meet Admin) and the Stage B derived outbox
 // on disposable PostgreSQL with the disposable secure Bridge (real TLS 1.3
 // mTLS, HMAC v2, Ed25519). Runs only with CFMEET_ADMIN_TEST_DATABASE_URL.

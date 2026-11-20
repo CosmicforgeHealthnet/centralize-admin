@@ -4,7 +4,7 @@
  "contract_status": "DRAFT",
  "source_repository": "CosmicforgeHealthnet/centralize-admin (services/cfmeet-admin/contract-draft)",
  "source_commit": "DRAFT-UNPINNED",
- "reviewed_at": "2026-11-19",
+ "reviewed_at": "2026-11-20",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "hq_principal": "cosmicforge-hq-cfmeet-admin",
  "product": "cfmeet",
@@ -15,21 +15,21 @@
   "Ed25519 staff assertion bound to request_digest; approval claim on TWO_PERSON capabilities"
  ],
  "artifacts": {
-  "services/admin-bridge/docs/contract/openapi.json": "b2cc9219d9c6395a9e9fe93bdd338f0f95bff91a82df42d434d189185dd9d4b8",
-  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "204f715b3e6037a78d04f9cc834cd87f7da3b5a76582a5a9b6e6c129bbe907b4",
+  "services/admin-bridge/docs/contract/openapi.json": "43e25beb54af37bcfa8c2110e1e64aad5e3ed5f6b8c68b4bfc0ec31e77b5c065",
+  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "5d00b1d816f7ae1945608418d189a8ba976c479e7f6c2ed8934bbafbc7dc7a8c",
   "services/admin-bridge/docs/contract/event-adapters.v1.json": "bb2f0a9f15b99f6af788eaa92ad3738e2c629ceb5d3da1817872dfaab3171c37",
   "services/admin-bridge/docs/contract/signing-profile.md": "29445984748968ab96af202e2da5a11f9146e8724a76886a8109b79eb376d039",
-  "services/admin-bridge/docs/contract/SHA256SUMS": "35f81a10bd39b84b2972138ad6299ca0b78372f0c2b2ed5ba9d8dd2e8d028125"
+  "services/admin-bridge/docs/contract/SHA256SUMS": "004f81913c9ce681b00950c3c7069f3ed1988368a7c919540856deff7d3296c6"
  },
  "openapi": {
   "openapi": "3.1.0",
   "info_version": "1.0.0",
-  "path_count": 188
+  "path_count": 187
  },
  "capability_matrix": {
-  "total": 200,
+  "total": 199,
   "by_state": {
-   "READ_ONLY": 115,
+   "READ_ONLY": 114,
    "AVAILABLE": 82,
    "DISABLED": 2,
    "BLOCKED_DEPENDENCY": 1

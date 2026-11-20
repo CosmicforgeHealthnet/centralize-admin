@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 9.5.4 backup/restore certification of the CF Meet Admin database
 // on disposable PostgreSQL: release 002 with data -> pg_dump -> 003 ->
 // restore into a fresh database -> equivalence -> re-run -> idempotent.

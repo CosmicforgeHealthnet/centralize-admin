@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // Section 9 database certification for CF Meet Admin on disposable
 // PostgreSQL (CFMEET_ADMIN_TEST_DATABASE_URL, superuser on a throwaway
 // server). Covers the 001/002 -> 003 upgrade with existing data, migration

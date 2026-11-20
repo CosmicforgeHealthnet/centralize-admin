@@ -1,5 +1,9 @@
 "use strict";
 
+// Functional suite: runs against HQ's interface-v1 target registry (see helpers/target-contract.js).
+require("./helpers/target-contract");
+
+
 // The Stage A worker refuses to start unless explicitly enabled with an
 // enrolled Bridge and feed configuration.
 

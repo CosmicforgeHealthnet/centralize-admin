@@ -1,5 +1,8 @@
 "use strict";
 
+// CF Meet Admin runs against HQ's interface-v1 target registry (cfmeet-admin/tests/helpers/target-contract.js).
+require("../../cfmeet-admin/tests/helpers/target-contract");
+
 // "cfmeet through HQ" (design §11): CF Meet Admin onboards through the
 // generic HQ registry and serves scoped reads end to end:
 //
