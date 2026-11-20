@@ -360,4 +360,6 @@ function describeConfig(config) {
   };
 }
 
-module.exports = { loadConfig, describeConfig, bridgeOrigin, ConfigError, PRODUCT_ID };
+// The Bridge trust checks are also used, unchanged, by scripts/bridge-enrollment.js
+// to check the material CF Meet returns before the Bridge is enabled.
+module.exports = { loadConfig, describeConfig, bridgeOrigin, ConfigError, PRODUCT_ID, checkClientCertificate, checkCaBundle, checkKeyPair, WORKLOAD_URI };

@@ -81,6 +81,27 @@ runbook.
 Write them under `/etc/cosmicforge/staging/secrets/cfmeet-admin/` (dir 0750
 root:10003, files 0440).
 
+Use the helper `services/cfmeet-admin/scripts/bridge-enrollment.js`
+(`node scripts/bridge-enrollment.js --help`). `prepare` needs Node 22 and the
+openssl CLI (1.1.1 or newer). The cfmeet-admin image does not install the
+openssl CLI, so run `prepare` from a checkout of this repository on the host:
+
+```sh
+cd <checkout>/services/cfmeet-admin
+node scripts/bridge-enrollment.js prepare --dir /etc/cosmicforge/staging/secrets/cfmeet-admin --environment staging
+chown root:10003 /etc/cosmicforge/staging/secrets/cfmeet-admin /etc/cosmicforge/staging/secrets/cfmeet-admin/*
+```
+
+`prepare` writes `bridge-client.key` (EC P-256, 0440), `bridge-client.csr`
+(SHA-256, CN `cosmicforge-hq-cfmeet-admin`, EKU clientAuth, exactly one URI SAN
+`cf://staging/product-admin/cfmeet`) and `bridge-staff-ed25519.pem` (0440). It
+refuses to run if any of them already exists, and checks its own CSR before
+writing it. It prints only public material: the CSR path and sha256, the staff
+public key as 64 hex characters, and the kids (`--staff-kid` defaults to
+`hq-cfmeet-staff-2026-11`).
+
+**Fallback without the helper** (the same material by hand):
+
 ```sh
 cd /etc/cosmicforge/staging/secrets/cfmeet-admin
 # mTLS client key and CSR: EC P-256 / SHA-256, EKU clientAuth, exactly one URI SAN
@@ -110,6 +131,36 @@ still travel through the operator channel so they cannot be swapped in transit.
   **It is the identical file on both sides.** HQ reads it as `bridge-hmac-key`;
   the bridge reads it as `ADMIN_BRIDGE_HMAC_KEY_DIR/hq-cfmeet-hmac-2026-11.key`.
   Both decode it, and the bridge refuses a raw binary file.
+
+**HQ checks the returned material** as soon as it is in the secrets directory
+(files 0440 root:10003), before the Bridge is enabled. `verify` needs no
+openssl, so it also runs in the deployed cfmeet-admin image:
+
+```sh
+node scripts/bridge-enrollment.js verify --dir /etc/cosmicforge/staging/secrets/cfmeet-admin --environment staging
+# or, in the image (read-only mount, no network):
+docker run --rm --network none -v /etc/cosmicforge/staging/secrets/cfmeet-admin:/secrets:ro \
+  --entrypoint node "$CFMEET_ADMIN_IMAGE" scripts/bridge-enrollment.js verify --dir /secrets
+```
+
+It uses cfmeet-admin's own startup checks and prints PASS/FAIL for each check:
+
+- `bridge-client.pem` matches `bridge-client.key`;
+- it has exactly the URI SAN `cf://staging/product-admin/cfmeet` and EKU clientAuth;
+- it stays valid for at least `--min-days` (default 2);
+- it chains to `bridge-ca.pem`, which must hold CA certificates;
+- `bridge-hmac-key` decodes from base64url to at least 32 bytes. The tool prints
+  the sha256 of the decoded key, never the key, so it can be compared with CF
+  Meet's enrolment;
+- the staff key loads.
+
+It also prints the client certificate's sha256 fingerprint and expiry. It exits
+1 if any check fails. Do not continue until it prints `RESULT: PASS`.
+
+Fallback without the helper: `openssl x509 -in bridge-client.pem -noout -ext subjectAltName,extendedKeyUsage -enddate -fingerprint -sha256`,
+`openssl verify -CAfile bridge-ca.pem bridge-client.pem`, and compare
+`openssl x509 -in bridge-client.pem -noout -pubkey` with
+`openssl pkey -in bridge-client.key -pubout`.
 
 **CF Meet enrols HQ** with `admin-bridge-admin`: `enroll-cert`,
 `enroll-hmac --kid hq-cfmeet-hmac-2026-11`,

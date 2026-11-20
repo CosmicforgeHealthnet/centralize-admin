@@ -113,4 +113,5 @@ See `.env.example`.
 - HQ ↔ CF Meet Admin service and delegation keys, and the manifest signer `cfmeet-staging-manifest-2026-11` enrolled in PIC's trust store.
 - Database `cfmeet_admin`, with roles `cfmeet_admin_migrator` and `cfmeet_admin_runtime`, on the staging host.
 - Bridge enrollment at CF Meet (S3): HQ client certificate fingerprint, HMAC key, staff-token key, and a signed read-only access policy.
+  On the HQ host, `node scripts/bridge-enrollment.js prepare --dir <secrets dir>` generates the client key, CSR and staff key (the keys never leave the host; needs the openssl CLI). Once CF Meet returns the certificate, CA bundle and HMAC key, `node scripts/bridge-enrollment.js verify --dir <secrets dir>` runs the startup trust checks on them before the Bridge is enabled. See `--help` and step 4 of `docs/product-admin/cfmeet-admin-go-live.md`.
 - Privileged S1/S2 host steps run by an authorized operator, as for Karryam (`BLOCKED_PRIVILEGED_HOST_OPERATION` from GitHub Actions).
