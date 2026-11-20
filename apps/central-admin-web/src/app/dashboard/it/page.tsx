@@ -22,6 +22,11 @@ import FeatureFlagsTable from "@/components/it/FeatureFlagsTable";
 import HealthHistoryTable from "@/components/it/HealthHistoryTable";
 import EnvConfigsTable from "@/components/it/EnvConfigsTable";
 import MailAdministration from "@/components/it/MailAdministration";
+import ProductIntegrationsAdmin from "@/components/product-admin/ProductIntegrationsAdmin";
+import ProductGrantsManager from "@/components/product-admin/ProductGrantsManager";
+
+// Sections that links may open directly with ?section=<value>.
+const LINKABLE_SECTIONS: readonly ITSection[] = ["mail-admin", "product-integrations", "product-grants"];
 
 export default function ITPage() {
   const [activeSection, setActiveSection] = useState<ITSection>("overview");
@@ -29,10 +34,11 @@ export default function ITPage() {
   // Mail onboarding links must open the real Administration tab, rather than
   // leaving administrators at the default IT overview.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("section") !== "mail-admin") return;
+    const requested = new URLSearchParams(window.location.search).get("section") as ITSection | null;
+    if (!requested || !LINKABLE_SECTIONS.includes(requested)) return;
     // Defer the URL-driven navigation until after hydration rather than
     // synchronously updating React state inside an effect.
-    const frame = window.requestAnimationFrame(() => setActiveSection("mail-admin"));
+    const frame = window.requestAnimationFrame(() => setActiveSection(requested));
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
@@ -78,6 +84,8 @@ export default function ITPage() {
         {activeSection === "health" && <HealthHistoryTable />}
         {activeSection === "env-configs" && <EnvConfigsTable />}
         {activeSection === "mail-admin" && <MailAdministration />}
+        {activeSection === "product-integrations" && <ProductIntegrationsAdmin />}
+        {activeSection === "product-grants" && <ProductGrantsManager />}
       </div>
     </div>
   );

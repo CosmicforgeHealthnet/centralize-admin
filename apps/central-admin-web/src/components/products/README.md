@@ -281,3 +281,21 @@ state with an explanation, timestamps, approval reference, and the audit trail.
 The refresh button reads back again ("Read back now" while unsettled); while
 open and unsettled it re-reads every `pollUnsettledMs`. There is no resend
 action by design.
+
+## Integration admin and grants manager (built on this foundation)
+
+- `src/lib/product-integrations.service.ts` / `.queries.ts` and
+  `src/types/product-integrations.types.ts`: typed client and hooks for
+  `/api/admin/product-integrations/*` and `/api/admin/product-integration-grants/*`
+  (PIC `{ success, data }` bodies). Every admin route needs a recent MFA, so reads
+  step up by default; writes use `useAdminMutation` (one request, one resend only
+  after an MFA refusal, `AdminApiError` with `reason`, `detail`, `outcomeUnknown`).
+- `src/components/product-admin/*`: `ProductIntegrationsAdmin` (registry, lifecycle,
+  monitoring, datasets, subscriptions, operations switch, contracts, history) and
+  `ProductGrantsManager` (per-product grants: list, detail, create, revoke). Shown as
+  IT > Infrastructure > "Product Integrations" / "Product Grants"
+  (`/dashboard/it?section=product-integrations|product-grants`).
+- HQ cannot list a staff member's PLATFORM grants (PIC holds them). Controls are
+  offered from the lifecycle and two-person rules, a refused list read blocks the
+  whole section, and a write refused for a missing permission disables that control
+  with the server's reason.
