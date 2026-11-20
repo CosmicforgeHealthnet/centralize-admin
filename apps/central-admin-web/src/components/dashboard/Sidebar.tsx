@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Verified,
   Mail,
+  Video,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
@@ -29,6 +30,7 @@ import api from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
 import { useProfileStore } from "@/stores/profile.store";
 import { useEntitlements } from "@/components/mail/hooks";
+import { useProducts } from "@/lib/products.queries";
 
 // Who sees what. ADMIN/EXECUTIVE/SUPER keep the full navigation. Everyone
 // else sees personal pages, Mail (when entitled) and only the sections they
@@ -65,6 +67,25 @@ const productSuites: NavItem[] = [
   { label: "Events Management", icon: Gift, href: "/dashboard/events", access: "privileged" },
   { label: "Trading Bot", icon: TrendingUp, href: "/dashboard/trading", access: "privileged" },
 ];
+
+// Product Admin pages that exist in this app, by product id. A product gets a
+// sidebar entry only when GET /api/products lists it as available with a
+// navigation entry (product grants decide, never staff tier) AND a page
+// exists for it here.
+const PRODUCT_PAGES: Record<string, { href: string; icon: LucideIcon }> = {
+  cfmeet: { href: "/dashboard/cfmeet", icon: Video },
+};
+
+/** Sidebar entries for available products (from /api/products). */
+function useProductNavItems(): NavItem[] {
+  const user = useAuthStore((state) => state.user);
+  const products = useProducts({ enabled: !!user, staleTime: 60_000 });
+  return (products.data ?? []).flatMap((p) => {
+    const page = PRODUCT_PAGES[p.product_id];
+    if (!p.available || !p.navigation || !page) return [];
+    return [{ label: p.navigation.label || p.display_name || p.product_id, icon: page.icon, href: page.href, access: "all" as const }];
+  });
+}
 
 // Mail-backed pages outside /dashboard/mail that Mail entitlements open.
 const MAIL_SUPPORT_PATH = "/dashboard/help/email";
@@ -173,7 +194,8 @@ export default function Sidebar({
   const visibleNavItems = perms.showMail
     ? [allowedNavItems[0], MAIL_NAV_ITEM, ...allowedNavItems.slice(1)]
     : allowedNavItems;
-  const visibleSuites = visibleItems(productSuites, perms);
+  const productNavItems = useProductNavItems();
+  const visibleSuites = [...visibleItems(productSuites, perms), ...productNavItems];
 
   const handleLogout = async () => {
     await logout();
