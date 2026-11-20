@@ -162,7 +162,7 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, o
         scope: { market: p.market, organization: p.organization, zone: p.zone, tenant: p.tenant },
         payload: {
           metric_id: r.metric_id, definition_version: "1.0.0", window_start: r.window_start.toISOString(), window_end: r.window_end.toISOString(),
-          value: r.value === null ? null : Number(r.value), value_state: r.value_state, unit: "count", currency: null, coverage: r.coverage,
+          value: r.value === null ? null : Number(r.value), value_state: r.value_state, unit: r.unit || "count", currency: r.currency || null, coverage: r.coverage,
           observed_at: r.observed_at ? r.observed_at.toISOString() : null,
         },
       }));

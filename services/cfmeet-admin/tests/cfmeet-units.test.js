@@ -195,3 +195,33 @@ test("bridge client: the approval claim is checked locally before anything is se
   await assert.rejects(client.call("accounts.users.list", { staff, query: { ...scope, purpose: "support-review", limit: 5 }, body: {} }), (e) => e.reason === "REQUEST_BODY_NOT_ALLOWED");
   await assert.rejects(client.call("accounts.review-requests.submit", { staff, query: { ...scope, purpose: "support-review" }, body: { ...body, extra: 1 } }), (e) => e.reason === "REQUEST_BODY_INVALID");
 });
+
+test("approval consumption refuses every unsafe binding (shared rule for the PostgreSQL and memory stores)", () => {
+  const { consumeErrors } = require("../src/db/approvals");
+  const now = Date.now();
+  const row = { status: "APPROVED", expires_at: new Date(now + 60000).toISOString(), capability_id: "cfmeet.x", intent_digest: "sha256:" + "a".repeat(64), scope: { market: ["M"], organization: ["O"] },
+    requested_by: "staff-1", decided_by: "staff-2", expected_version: 3, certification_id: "cert-1", source_policy_revision: "p-1" };
+  const binding = { capabilityId: "cfmeet.x", intentDigest: row.intent_digest, scope: { organization: ["O"], market: ["M"] }, requestedBy: "staff-1", expectedVersion: 3, certificationId: "cert-1", sourcePolicyRevision: "p-1" };
+  assert.equal(consumeErrors(row, binding, now), null, "scope key order does not matter");
+  const cases = [
+    [null, {}, "APPROVAL_NOT_FOUND"],
+    [{ status: "CONSUMED" }, {}, "APPROVAL_ALREADY_CONSUMED"],
+    [{ status: "REVOKED" }, {}, "APPROVAL_REVOKED"],
+    [{ status: "PROPOSED" }, {}, "APPROVAL_NOT_APPROVED"],
+    [{ expires_at: new Date(now - 1).toISOString() }, {}, "APPROVAL_EXPIRED"],
+    [{}, { capabilityId: "cfmeet.y" }, "APPROVAL_BINDING_MISMATCH"],
+    [{}, { intentDigest: "sha256:" + "b".repeat(64) }, "APPROVAL_BINDING_MISMATCH"],
+    [{}, { scope: { market: ["M"], organization: ["O2"] } }, "APPROVAL_BINDING_MISMATCH"],
+    [{}, { requestedBy: "staff-9" }, "APPROVAL_REQUESTER_MISMATCH"],
+    [{ decided_by: "staff-1" }, {}, "APPROVAL_REQUESTER_MISMATCH"],
+    [{}, { expectedVersion: 4 }, "APPROVAL_SOURCE_VERSION_CHANGED"],
+    [{}, { certificationId: "cert-2" }, "APPROVAL_CERTIFICATION_CHANGED"],
+    [{}, { sourcePolicyRevision: "p-2" }, "APPROVAL_POLICY_CHANGED"],
+    [{ certification_id: null, source_policy_revision: null }, { certificationId: undefined, sourcePolicyRevision: undefined }, null],
+    [{ expected_version: null }, { expectedVersion: 99 }, null],
+  ];
+  for (const [rowOver, bindOver, reason] of cases) {
+    const r = rowOver === null ? null : { ...row, ...rowOver };
+    assert.equal(consumeErrors(r, { ...binding, ...bindOver }, now), reason, JSON.stringify([rowOver, bindOver]));
+  }
+});
