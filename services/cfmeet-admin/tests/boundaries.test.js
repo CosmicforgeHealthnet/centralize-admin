@@ -210,3 +210,14 @@ test("the functional suites' target registry regenerates from contract-draft and
     assert.ok(R.capability(id) && target.some((t) => t.id === id), id);
   }
 });
+
+test("every error code the pinned Bridge contract publishes is mapped by HQ", () => {
+  const { CATEGORY_BY_CODE } = require("../src/bridge/errors");
+  const profile = fs.readFileSync(path.join(CHECKOUT, "services/admin-bridge/docs/contract/signing-profile.md"), "utf8").replace(/\r\n/g, "\n");
+  const section = profile.split(/^## Error codes\s*$/m)[1];
+  assert.ok(section, "the signing profile publishes an Error codes table");
+  const codes = [...section.split(/^## /m)[0].matchAll(/^\| `([A-Z][A-Z0-9_]+)` \|/gm)].map((m) => m[1]);
+  assert.ok(codes.length >= 30, "error table parsed: " + codes.length);
+  const unmapped = codes.filter((c) => !Object.prototype.hasOwnProperty.call(CATEGORY_BY_CODE, c));
+  assert.deepEqual(unmapped, [], "map these Bridge error codes in src/bridge/errors.js");
+});

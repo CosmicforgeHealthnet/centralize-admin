@@ -225,3 +225,28 @@ test("approval consumption refuses every unsafe binding (shared rule for the Pos
     assert.equal(consumeErrors(r, { ...binding, ...bindOver }, now), reason, JSON.stringify([rowOver, bindOver]));
   }
 });
+
+test("Bridge error codes: definite refusals fail a command, ambiguous 5xx after sending is UNKNOWN_OUTCOME", () => {
+  const { fromResponse, protocolMapping } = require("../src/bridge/errors");
+  const cmd = (status, code) => fromResponse(status, code, { mutating: true });
+  const read = (status, code) => fromResponse(status, code, { mutating: false });
+  // Nothing was done: FAILED, never UNKNOWN_OUTCOME.
+  for (const code of ["BRIDGE_DISABLED", "BRIDGE_UNAVAILABLE", "CAPABILITY_DISABLED", "POLICY_UNAVAILABLE", "AUDIT_UNAVAILABLE"]) {
+    assert.equal(cmd(503, code).unknownOutcome, false, code);
+  }
+  // Sent, no clear answer: settle by readback only.
+  for (const [status, code] of [[502, "UNKNOWN_OUTCOME"], [500, "INTERNAL"], [503, "OWNER_UNAVAILABLE"], [503, "SOMETHING_NEW"]]) assert.equal(cmd(status, code).unknownOutcome, true, code);
+  const reason = (e) => protocolMapping(e).reason;
+  assert.equal(reason(cmd(422, "OWNER_REFUSED")), "OWNER_REFUSED");
+  assert.equal(reason(cmd(409, "APPROVAL_REUSED")), "SOURCE_APPROVAL_UNUSABLE");
+  assert.equal(reason(cmd(409, "IDEMPOTENCY_CONFLICT")), "SOURCE_IDEMPOTENCY_CONFLICT");
+  assert.equal(reason(cmd(409, "REPLAY")), "BRIDGE_REPLAY_REJECTED");
+  assert.equal(reason(read(404, "RESOURCE_NOT_FOUND")), "SOURCE_NOT_FOUND");
+  assert.equal(reason(read(404, "CAPABILITY_NOT_FOUND")), "BRIDGE_CONTRACT_MISMATCH");
+  assert.equal(reason(read(503, "OWNER_UNAVAILABLE")), "SOURCE_UNAVAILABLE");
+  assert.equal(reason(read(503, "POLICY_UNAVAILABLE")), "SOURCE_POLICY_UNAVAILABLE");
+  assert.equal(reason(read(400, "QUERY_INVALID")), "SOURCE_REJECTED_SCOPE_OR_QUERY");
+  assert.equal(reason(read(401, "STAFF_ASSERTION_INVALID")), "BRIDGE_AUTHENTICATION_REJECTED");
+  assert.equal(reason(read(403, "SCOPE_DENIED")), "SOURCE_FORBIDDEN");
+  assert.equal(reason(read(429, "RATE_LIMITED")), "SOURCE_RATE_LIMITED");
+});

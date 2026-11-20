@@ -41,10 +41,53 @@ const CATEGORY_BY_CODE = Object.freeze({
   authentication_unavailable: "BRIDGE_UNAVAILABLE",
   authorization_unavailable: "BRIDGE_UNAVAILABLE",
   bridge_unavailable: "BRIDGE_UNAVAILABLE",
+  // CF Meet Admin Bridge error codes (cfmeet signing-profile.md "Error codes";
+  // boundaries.test.js requires every published code to be mapped here).
+  BRIDGE_DISABLED: "BRIDGE_UNAVAILABLE",
+  BRIDGE_UNAVAILABLE: "BRIDGE_UNAVAILABLE",
+  REQUEST_SHAPE_INVALID: "INVALID_REQUEST",
+  BODY_TOO_LARGE: "INVALID_REQUEST",
+  CLIENT_CERTIFICATE_REFUSED: "UNAUTHORIZED",
+  HQ_KEY_UNKNOWN: "UNAUTHORIZED",
+  SIGNATURE_INVALID: "UNAUTHORIZED",
+  TIMESTAMP_SKEW: "UNAUTHORIZED",
+  STAFF_ASSERTION_INVALID: "UNAUTHORIZED",
+  STAFF_ASSERTION_EXPIRED: "UNAUTHORIZED",
+  REQUEST_DIGEST_MISMATCH: "UNAUTHORIZED",
+  REVOKED: "UNAUTHORIZED",
+  REPLAY: "REPLAY_REJECTED",
+  // HQ only sends pinned routes: an unknown route means contract drift.
+  CAPABILITY_NOT_FOUND: "CONTRACT_MISMATCH",
+  QUERY_INVALID: "INVALID_SCOPE_OR_QUERY",
+  POLICY_UNAVAILABLE: "POLICY_UNAVAILABLE",
+  PURPOSE_NOT_ALLOWED: "FORBIDDEN",
+  PERMISSION_DENIED: "FORBIDDEN",
+  SCOPE_DENIED: "FORBIDDEN",
+  RECENT_MFA_REQUIRED: "FORBIDDEN",
+  STRONG_AUTH_REQUIRED: "FORBIDDEN",
+  APPROVAL_REQUIRED: "APPROVAL_UNUSABLE",
+  APPROVAL_INVALID: "APPROVAL_UNUSABLE",
+  APPROVAL_EXPIRED: "APPROVAL_UNUSABLE",
+  APPROVAL_REUSED: "APPROVAL_UNUSABLE",
+  CAPABILITY_DISABLED: "CAPABILITY_DISABLED",
+  IDEMPOTENCY_KEY_REQUIRED: "INVALID_REQUEST",
+  IDEMPOTENCY_CONFLICT: "IDEMPOTENCY_CONFLICT",
+  RATE_LIMITED: "RATE_LIMITED",
+  AUDIT_UNAVAILABLE: "BRIDGE_UNAVAILABLE",
+  DATASET_NOT_FOUND: "NOT_FOUND",
+  RESOURCE_NOT_FOUND: "NOT_FOUND",
+  OWNER_UNAVAILABLE: "SOURCE_UNAVAILABLE",
+  OWNER_REFUSED: "OWNER_REFUSED",
+  UNKNOWN_OUTCOME: "UNKNOWN_OUTCOME",
+  INTERNAL: "BRIDGE_UNAVAILABLE",
 });
 
 // Refusals that prove nothing was executed even on a 503.
-const DEFINITE_REFUSALS = new Set(["capability_blocked", "remote_disabled", "remote_writes_disabled", "blocked_policy"]);
+// 5xx codes that guarantee nothing was done (a command answered with one of
+// these is FAILED, never UNKNOWN_OUTCOME). Any other 5xx after a command was
+// sent is UNKNOWN_OUTCOME and is settled only by readback.
+const DEFINITE_REFUSALS = new Set(["capability_blocked", "remote_disabled", "remote_writes_disabled", "blocked_policy",
+  "BRIDGE_DISABLED", "BRIDGE_UNAVAILABLE", "CAPABILITY_DISABLED", "POLICY_UNAVAILABLE", "AUDIT_UNAVAILABLE"]);
 
 // Protocol v1 error code, HTTP-retryability and sanitized reason per category.
 const PROTOCOL = Object.freeze({
