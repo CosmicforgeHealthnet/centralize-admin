@@ -7,7 +7,10 @@
 // scope, applies verified events durably, ACKs the Bridge after commit,
 // pulls certified Bridge datasets every CFMEET_BRIDGE_DATASET_PULL_SECONDS,
 // reconciles on start and then every CFMEET_BRIDGE_RECONCILE_INTERVAL_SECONDS,
-// and clears expired inbox payloads daily. It never calls Headquarters.
+// and clears expired inbox payloads daily. While the pinned contract does not
+// serve the event feed (hq.events.feed/ack DISABLED or BLOCKED_DEPENDENCY), it
+// never calls the feed and only pulls datasets: calling a capability the Bridge
+// refuses would only produce failures and false stall alerts. It never calls Headquarters.
 // Disabled unless CFMEET_BRIDGE_FEED_ENABLED=true with a fully enrolled
 // Bridge; any configuration problem exits non-zero with a sanitized reason.
 
@@ -19,6 +22,17 @@ const { createPipelineStore } = require("../sync/store");
 const { createBridgeConsumer } = require("../sync/bridge-consumer");
 const { createDatasetPuller } = require("../sync/dataset-puller");
 const { createGovernanceStore } = require("../db/governance");
+const R = require("../bridge/contracts/registry");
+
+const NOT_SERVED = new Set(["DISABLED", "BLOCKED_DEPENDENCY"]);
+
+// True when the pinned contract serves both the HQ event feed and its ACK.
+function eventFeedServed(registry = R) {
+  return ["hq.events.feed", "hq.events.ack"].every((id) => {
+    const cap = registry.capability(id);
+    return Boolean(cap) && !NOT_SERVED.has(cap.matrix_state);
+  });
+}
 
 const DAY_MS = 86400000;
 
@@ -36,6 +50,8 @@ async function startWorker(env = process.env, { logger = createLogger(), now = D
   const bridgeClient = deps.bridgeClient || createBridgeClient(config.bridge, { metrics: {} });
   const consumer = createBridgeConsumer({ feed: config.feed, store, bridgeClient, now, logger });
   await consumer.init();
+  const events = deps.eventFeedServed === undefined ? eventFeedServed() : deps.eventFeedServed;
+  if (!events) logger({ event: "bridge_event_feed_not_served", contract_version: R.summary().contract_version || null });
   const puller = createDatasetPuller({ feed: config.feed, store, bridgeClient, certifiedDatasets: config.certifiedDatasets, days: config.feed.datasetDays, now, logger });
 
   let stopping = false;
@@ -47,12 +63,12 @@ async function startWorker(env = process.env, { logger = createLogger(), now = D
   let wake = null;
 
   async function cycle() {
-    if (now() - lastReconcile >= config.feed.reconcileSeconds * 1000) {
+    if (events && now() - lastReconcile >= config.feed.reconcileSeconds * 1000) {
       const results = await consumer.reconcile({ trigger: "SCHEDULED" });
       lastReconcile = now();
       logger({ event: "bridge_reconcile", results: results.map((r) => ({ partition_key: r.partitionKey, status: r.status, reason: r.reason })) });
     }
-    const results = await consumer.tick();
+    const results = events ? await consumer.tick() : [];
     if (puller.datasets.length && now() - lastPull >= config.feed.datasetPullSeconds * 1000) {
       const pulled = await puller.pull();
       lastPull = now();
@@ -116,4 +132,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { startWorker };
+module.exports = { startWorker, eventFeedServed };
