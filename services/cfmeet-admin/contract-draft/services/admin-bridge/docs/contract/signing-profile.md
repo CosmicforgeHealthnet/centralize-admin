@@ -52,3 +52,15 @@ Same codes as the CF Meet Admin Bridge signing profile (agreed with Track A).
 | `OWNER_REFUSED` | 422 |
 | `UNKNOWN_OUTCOME` | 502 |
 | `INTERNAL` | 500 |
+
+## Command outcomes
+
+For a command, these codes guarantee the owning service was never called (nothing was done): every 4xx code, and these 5xx codes, which the bridge raises before any owner call:
+
+- `BRIDGE_DISABLED`
+- `BRIDGE_UNAVAILABLE`
+- `POLICY_UNAVAILABLE`
+- `CAPABILITY_DISABLED`
+- `AUDIT_UNAVAILABLE`
+
+Any other 5xx after a command was sent (`UNKNOWN_OUTCOME`, `INTERNAL`, `OWNER_UNAVAILABLE`) is an unknown outcome: settle it by reading back, never resend.

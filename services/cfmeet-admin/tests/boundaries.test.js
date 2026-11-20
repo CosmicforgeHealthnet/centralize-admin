@@ -221,3 +221,14 @@ test("every error code the pinned Bridge contract publishes is mapped by HQ", ()
   const unmapped = codes.filter((c) => !Object.prototype.hasOwnProperty.call(CATEGORY_BY_CODE, c));
   assert.deepEqual(unmapped, [], "map these Bridge error codes in src/bridge/errors.js");
 });
+
+test("HQ's definite-refusal codes equal the pinned contract's published 'Command outcomes' set", () => {
+  const { DEFINITE_REFUSALS } = require("../src/bridge/errors");
+  const profile = fs.readFileSync(path.join(CHECKOUT, "services/admin-bridge/docs/contract/signing-profile.md"), "utf8").replace(/\r\n/g, "\n");
+  const section = profile.split(/^## Command outcomes\s*$/m)[1];
+  assert.ok(section, "the signing profile publishes a Command outcomes section");
+  const published = [...section.split(/^## /m)[0].matchAll(/^- `([A-Z][A-Z0-9_]+)`\s*$/gm)].map((m) => m[1]).sort();
+  const hq = [...DEFINITE_REFUSALS].filter((c) => /^[A-Z]/.test(c)).sort();
+  assert.deepEqual(hq, published, "a command answered with one of these is FAILED (nothing was done); anything else 5xx is UNKNOWN_OUTCOME");
+  for (const c of ["UNKNOWN_OUTCOME", "INTERNAL", "OWNER_UNAVAILABLE"]) assert.ok(!DEFINITE_REFUSALS.has(c), c);
+});
