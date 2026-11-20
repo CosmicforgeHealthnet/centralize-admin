@@ -121,7 +121,11 @@ jobs:
       - name: PostgreSQL 16 client tools (same major as the postgres:16 service) for backup/restore drills
         # pg_dump/pg_restore 17+ emit settings (e.g. transaction_timeout) that a 16 server rejects.
         run: |
+          # The runner image has no PGDG repository: add it with the official
+          # postgresql-common helper, then install the matching 16 client.
           sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y -q --no-install-recommends postgresql-client-16
           echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
           echo "PG_BIN=/usr/lib/postgresql/16/bin" >> "$GITHUB_ENV"
@@ -243,7 +247,11 @@ jobs:
       - name: PostgreSQL 16 client tools (same major as the postgres:16 service) for backup/restore drills
         # pg_dump/pg_restore 17+ emit settings (e.g. transaction_timeout) that a 16 server rejects.
         run: |
+          # The runner image has no PGDG repository: add it with the official
+          # postgresql-common helper, then install the matching 16 client.
           sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y -q --no-install-recommends postgresql-client-16
           echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
           echo "PG_BIN=/usr/lib/postgresql/16/bin" >> "$GITHUB_ENV"
@@ -342,7 +350,11 @@ jobs:
       - name: PostgreSQL 16 client tools (same major as the postgres:16 service) for backup/restore drills
         # pg_dump/pg_restore 17+ emit settings (e.g. transaction_timeout) that a 16 server rejects.
         run: |
+          # The runner image has no PGDG repository: add it with the official
+          # postgresql-common helper, then install the matching 16 client.
           sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y -q --no-install-recommends postgresql-client-16
           echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
           echo "PG_BIN=/usr/lib/postgresql/16/bin" >> "$GITHUB_ENV"
@@ -404,7 +416,11 @@ jobs:
       - name: PostgreSQL 16 client tools (same major as the postgres:16 service) for backup/restore drills
         # pg_dump/pg_restore 17+ emit settings (e.g. transaction_timeout) that a 16 server rejects.
         run: |
+          # The runner image has no PGDG repository: add it with the official
+          # postgresql-common helper, then install the matching 16 client.
           sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y -q --no-install-recommends postgresql-client-16
           echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
           echo "PG_BIN=/usr/lib/postgresql/16/bin" >> "$GITHUB_ENV"
