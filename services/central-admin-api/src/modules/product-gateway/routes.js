@@ -66,6 +66,11 @@ const PRODUCT_ROUTES = [
   // and revokes grants) and only ever returns grants of the product in the URL.
   ["GET", re(`/${PRODUCT}/grants`), GRANT_QUERY_KEYS, { recentMfa: true }],
   ["GET", re(`/${PRODUCT}/grants/${UUID}`), false, { recentMfa: true }],
+  // Sensitive search (an email address or other contact identifier as q):
+  // the query travels in the JSON body, so it never appears in a URL that the
+  // edge proxy's access or error log records. Forwarded to PIC as the same
+  // validated GET read (PIC logs paths only).
+  ["POST", re(`/${PRODUCT}/resources/${OPAQUE}/${OPAQUE}/search`), false, { searchBody: true }],
 ];
 const INTEGRATION_ROUTES = [
   ["GET", re("/"), false],
@@ -100,19 +105,38 @@ function rawQuery(req) {
   return index === -1 ? "" : url.slice(index + 1);
 }
 
+// A search term that looks like an email address must never be in a URL
+// (edge proxy logs record request lines): use the POST .../search route.
+const CONTACT_LIKE = /@/;
+
 // Exact allowlisted keys per route, no duplicates, bounded values.
-function metricQuery(req, keys = METRIC_QUERY_KEYS) {
-  const params = new URLSearchParams(rawQuery(req));
+function checkedQuery(entries, keys) {
   const seen = new Set();
   const out = new URLSearchParams();
-  for (const [key, value] of params) {
+  for (const [key, value] of entries) {
     if (!keys.has(key) || seen.has(key)) throw fail(400, "INVALID_QUERY", "Invalid product query");
-    if (!(SPECIAL_VALUES[key] || QUERY_VALUE).test(value)) throw fail(400, "INVALID_QUERY", "Invalid product query");
+    if (typeof value !== "string" || !(SPECIAL_VALUES[key] || QUERY_VALUE).test(value)) throw fail(400, "INVALID_QUERY", "Invalid product query");
     seen.add(key);
     out.append(key, value);
   }
   const qs = out.toString();
   return qs ? "?" + qs : "";
+}
+
+function metricQuery(req, keys = METRIC_QUERY_KEYS) {
+  const entries = [...new URLSearchParams(rawQuery(req))];
+  if (keys === RESOURCE_QUERY_KEYS && entries.some(([k, v]) => k === "q" && CONTACT_LIKE.test(v))) {
+    throw fail(400, "SENSITIVE_SEARCH_REQUIRES_POST", "Search by contact identifier with POST .../search; it must not appear in a URL");
+  }
+  return checkedQuery(entries, keys);
+}
+
+// POST .../search body -> the same allowlisted resource query (q required).
+function searchBodyQuery(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw fail(400, "INVALID_QUERY", "Invalid product query");
+  const entries = Object.entries(body).map(([k, v]) => [k, Number.isInteger(v) && k === "limit" ? String(v) : v]);
+  if (!entries.some(([k]) => k === "q")) throw fail(400, "INVALID_QUERY", "Invalid product query");
+  return checkedQuery(entries, RESOURCE_QUERY_KEYS);
 }
 
 function requireSession(req, _res, next) {
@@ -140,20 +164,22 @@ function claimsFor(req, now) {
 }
 
 function createForwarder({ config, readKey, transport, now, call }) {
-  return async function forward(req, res, picPath, allowsQuery) {
+  // override: { method, query } forwards a POST .../search as the equivalent GET read.
+  return async function forward(req, res, picPath, allowsQuery, override = null) {
     if (!config.enabled) throw fail(503, "PRODUCT_INTEGRATION_DISABLED", "Product integration is disabled");
     if (!config.configured || !transport) throw fail(503, "PRODUCT_INTEGRATION_NOT_CONFIGURED", "Product integration is not configured");
-    const query = allowsQuery ? metricQuery(req, allowsQuery instanceof Set ? allowsQuery : METRIC_QUERY_KEYS) : "";
+    const query = override ? override.query : allowsQuery ? metricQuery(req, allowsQuery instanceof Set ? allowsQuery : METRIC_QUERY_KEYS) : "";
     const key = await readKey();
     if (!key) throw fail(503, "PRODUCT_INTEGRATION_NOT_CONFIGURED", "Product integration is not configured");
     const target = PIC_BASE + picPath + query;
-    const body = req.method === "POST" ? Buffer.from(JSON.stringify(req.body && typeof req.body === "object" ? req.body : {})) : Buffer.alloc(0);
+    const method = override ? override.method : req.method;
+    const body = method === "POST" ? Buffer.from(JSON.stringify(req.body && typeof req.body === "object" ? req.body : {})) : Buffer.alloc(0);
     const timestamp = now();
-    const token = signHqDelegation({ claims: { ...claimsFor(req, timestamp), bnd: requestBinding(req.method, target, body) }, key, kid: config.kid, now: timestamp });
+    const token = signHqDelegation({ claims: { ...claimsFor(req, timestamp), bnd: requestBinding(method, target, body) }, key, kid: config.kid, now: timestamp });
     const headers = { Accept: "application/json", "X-CF-HQ-Delegation": token };
     if (req.correlationId) headers["X-Correlation-Id"] = req.correlationId;
     if (body.length) headers["Content-Type"] = "application/json";
-    const result = await call(transport, { method: req.method, path: target, body, headers });
+    const result = await call(transport, { method, path: target, body, headers });
     res.set("Cache-Control", "no-store");
     return res.status(result.status).json(result.json);
   };
@@ -161,7 +187,7 @@ function createForwarder({ config, readKey, transport, now, call }) {
 
 function match(routes, method, relative) {
   const hit = routes.find(([m, pattern]) => m === method && pattern.test(relative));
-  return hit ? { allowsQuery: hit[2], recentMfa: Boolean(hit[3] && hit[3].recentMfa) } : null;
+  return hit ? { allowsQuery: hit[2], recentMfa: Boolean(hit[3] && hit[3].recentMfa), searchBody: Boolean(hit[3] && hit[3].searchBody) } : null;
 }
 
 /**
@@ -189,6 +215,7 @@ function createProductGateway(deps = {}) {
       const hit = match(PRODUCT_ROUTES, req.method, relative);
       if (!hit) throw fail(404, "NOT_FOUND", "Route not found");
       if (hit.recentMfa) await stepUp(req, res);
+      if (hit.searchBody) return await forward(req, res, "/products" + relative.replace(/\/search$/, ""), false, { method: "GET", query: searchBodyQuery(req.body) });
       return await forward(req, res, "/products" + (relative === "/" ? "" : relative), hit.allowsQuery);
     } catch (err) {
       return next(err);

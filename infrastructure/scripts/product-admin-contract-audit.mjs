@@ -251,8 +251,14 @@ async function gatewayCheck(productId = "karryam") {
     ["[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", "sample.id-1"],
   ];
   const cases = [];
-  for (const [method, pattern] of PRODUCT_ROUTES) {
-    for (const rel of samplePaths(pattern.source, fragments)) cases.push({ method, gateway: "/api/products" + (rel === "/" ? "" : rel), pic: PIC_BASE + "/products" + (rel === "/" ? "" : rel) });
+  for (const [method, pattern, , options] of PRODUCT_ROUTES) {
+    // A search-body route (POST .../search) forwards as the GET read of the
+    // same collection, so it must map to that PIC route.
+    const search = Boolean(options && options.searchBody);
+    for (const rel of samplePaths(pattern.source, fragments)) {
+      const picRel = search ? rel.replace(/\/search$/, "") : rel;
+      cases.push({ method: search ? "GET" : method, gatewayMethod: method, gateway: "/api/products" + (rel === "/" ? "" : rel), pic: PIC_BASE + "/products" + (picRel === "/" ? "" : picRel) });
+    }
   }
   for (const [mount, { prefix, routes }] of Object.entries(ADMIN_MOUNTS)) {
     for (const [method, pattern] of routes) {
@@ -279,11 +285,11 @@ async function gatewayCheck(productId = "karryam") {
       // 401 DELEGATION_REQUIRED proves the PIC route exists for this method;
       // 404/405 means the gateway would forward to nothing.
       c.pic_status = r.status;
-      if (!(r.status === 401 && r.reason === "DELEGATION_REQUIRED")) unmapped.push(`${c.method} ${c.gateway} -> ${c.pic} (${r.status} ${r.reason})`);
+      if (!(r.status === 401 && r.reason === "DELEGATION_REQUIRED")) unmapped.push(`${c.gatewayMethod || c.method} ${c.gateway} -> ${c.method} ${c.pic} (${r.status} ${r.reason})`);
     }
   } finally { await new Promise((resolve) => server.close(resolve)); }
   if (unmapped.length) return { id, status: "FAIL", reason: "gateway routes without a PIC route: " + unmapped.join("; ") };
-  return { id, status: "PASS", detail: { routes_checked: cases.length, product_routes: PRODUCT_ROUTES.length, admin_mounts: Object.keys(ADMIN_MOUNTS), mapping: cases.map((c) => `${c.method} ${c.gateway} -> ${c.pic}`) } };
+  return { id, status: "PASS", detail: { routes_checked: cases.length, product_routes: PRODUCT_ROUTES.length, admin_mounts: Object.keys(ADMIN_MOUNTS), mapping: cases.map((c) => `${c.gatewayMethod || c.method} ${c.gateway} -> ${c.method} ${c.pic}`) } };
 }
 
 function gitSha() {

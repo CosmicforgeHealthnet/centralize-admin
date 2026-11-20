@@ -640,3 +640,45 @@ test("resource lists forward the optional q (search) and parent keys; malformed 
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("sensitive search: an email-like q is refused in a URL; POST .../search forwards it to PIC as the same validated GET read", async () => {
+  const pic = await startPicTcp();
+  const dir = tempDir();
+  const { app } = buildApp({ env: enabledEnv({ PRODUCT_INTEGRATION_CORE_URL: pic.url, PRODUCT_INTEGRATION_HQ_DELEGATION_KEY_FILE: writeKey(dir) }) });
+  const server = await listen(app);
+  const base = "http://127.0.0.1:" + server.address().port;
+  const h = { "x-test-user": "EMPLOYEE" };
+  const list = "/api/products/cfmeet/resources/cfmeet.notifications.read/notifications.suppressions.list";
+  const scope = { market: "GLOBAL", organization: "cfmeet", zone: "production", tenant: "t1", purpose: "support-review" };
+  try {
+    // An email address never travels in a URL (edge proxy logs record request lines).
+    const inUrl = await request(base, "GET", list + "?" + new URLSearchParams({ ...scope, q: "ada@example.com" }).toString(), { headers: h });
+    assert.equal(inUrl.status, 400);
+    assert.equal(inUrl.json.code, "SENSITIVE_SEARCH_REQUIRES_POST");
+    assert.equal(pic.seen.length, 0);
+    // The same search in a POST body reaches PIC as the GET read, bound to the exact query.
+    const ok = await request(base, "POST", list + "/search", { headers: h, body: { ...scope, q: "ada@example.com", limit: 10 } });
+    assert.equal(ok.status, 200, JSON.stringify(ok.json));
+    assert.equal(pic.seen.length, 1);
+    assert.equal(pic.seen[0].method, "GET");
+    const forwarded = new URL(pic.seen[0].url, "http://pic.local");
+    assert.equal(forwarded.pathname, "/internal/pic/v1/products/cfmeet/resources/cfmeet.notifications.read/notifications.suppressions.list");
+    assert.equal(forwarded.searchParams.get("q"), "ada@example.com");
+    assert.equal(forwarded.searchParams.get("limit"), "10");
+    assert.equal(pic.seen[0].verifyError, null, "the delegation is bound to GET and the forwarded query");
+    // Only allowlisted, valid keys; q is required; nothing else reaches PIC.
+    for (const body of [{ ...scope }, { ...scope, q: "ada@example.com", sort: "x" }, { ...scope, q: "a+b@example.com" }, { ...scope, q: "" }, { ...scope, q: 5 }, []]) {
+      const bad = await request(base, "POST", list + "/search", { headers: h, body });
+      assert.equal(bad.status, 400, JSON.stringify(body));
+      assert.equal(bad.json.code, "INVALID_QUERY", JSON.stringify(body));
+    }
+    assert.equal(pic.seen.length, 1);
+    // Searches without contact identifiers still work in the URL.
+    const name = await request(base, "GET", "/api/products/cfmeet/resources/cfmeet.accounts.read/accounts.users.list?" + new URLSearchParams({ ...scope, q: "Ada Lovelace" }).toString(), { headers: h });
+    assert.equal(name.status, 200);
+  } finally {
+    await closeServer(server);
+    await closeServer(pic.server);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
