@@ -8,8 +8,8 @@
   },
   "bridge_contract": {
     "contract": "cfmeet-admin-bridge",
-    "version": "1.1.0",
-    "source_commit": "df610aca769970bafb8b3a48ef928235d9a168e9",
+    "version": "1.2.0",
+    "source_commit": "568328cca32749e207a1fe0be7f664da6380202c",
     "base_path": "/internal/cfmeet-admin/v1",
     "capabilities": 246
   },

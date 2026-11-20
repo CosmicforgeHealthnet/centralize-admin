@@ -1,9 +1,9 @@
 {
  "contract": "cfmeet-admin-bridge",
- "contract_version": "1.1.0",
+ "contract_version": "1.2.0",
  "contract_status": "PINNED",
  "source_repository": "CosmicforgeHealthnet/cfmeet",
- "source_commit": "df610aca769970bafb8b3a48ef928235d9a168e9",
+ "source_commit": "568328cca32749e207a1fe0be7f664da6380202c",
  "reviewed_at": "2026-11-20",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "hq_principal": "cosmicforge-hq-cfmeet-admin",
@@ -15,22 +15,22 @@
   "Ed25519 staff assertion bound to request_digest; approval claim on TWO_PERSON capabilities"
  ],
  "artifacts": {
-  "services/admin-bridge/docs/contract/openapi.json": "ce3a76aefd0f99d92b5c36c1586375ece915de394f6e7c531555983f4073a6e1",
-  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "d2f710790007096f3ad620fcf1cea49a3fa0b4bf8fad87540aeac6fe95d0c609",
+  "services/admin-bridge/docs/contract/openapi.json": "7c50f191093e09bedaa82d5d0d230d424e74836e7453d150793e7f616e0207c3",
+  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "3e7734e0e459a9eb2a17cdaec4e755b24e7df7ea60954db21c93c3f799e4ee63",
   "services/admin-bridge/docs/contract/event-adapters.v1.json": "d3098ab3c4213f6b95d59099a8725b7821a9c282316c4b1931d2388e0c6622ff",
-  "services/admin-bridge/docs/contract/signing-profile.md": "27975f047202fd71d9e7f701ed260e4067e929e38e384d7eb9f48865c3f2c7f2",
-  "services/admin-bridge/docs/contract/SHA256SUMS": "30f9ad177f8204c1c56eaada7a73c7b5d6e53c16d4405e7ba43faa66e6607c61"
+  "services/admin-bridge/docs/contract/signing-profile.md": "3162a4f3d4abb6fb3b3e2de1e6484b032f3d8e266ce47c89966f51c0ca442d92",
+  "services/admin-bridge/docs/contract/SHA256SUMS": "d92bdcece8a300061cd0fbc58923d44836d211765b5915d2f993b2b1a0a0321d"
  },
  "openapi": {
   "openapi": "3.1.0",
-  "info_version": "1.1.0",
+  "info_version": "1.2.0",
   "path_count": 223
  },
  "capability_matrix": {
   "total": 246,
   "by_state": {
-   "READ_ONLY": 4,
-   "BLOCKED_DEPENDENCY": 128,
+   "READ_ONLY": 12,
+   "BLOCKED_DEPENDENCY": 120,
    "DISABLED": 114
   }
  },
