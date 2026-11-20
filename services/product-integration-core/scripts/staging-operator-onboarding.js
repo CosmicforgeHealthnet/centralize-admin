@@ -23,7 +23,9 @@ const PRODUCTS = Object.freeze({
     approvedScope: () => ({ market: ["NG-LAG"], organization: ["karryam-staging"], zone: ["NG-LAG-MAIN"], tenant: ["karryam-staging-operations"] }),
   }),
   // docs/product-admin/cfmeet-admin-design.md sections 2 and 8. The operator
-  // names the zone and CF Meet tenant; both must equal the signed scope.
+  // names the zone and CF Meet tenant; both must equal the signed scope. The
+  // tenant is the Platform Access tenant UUID (canonical lowercase), never a
+  // slug: the CF Meet Bridge passes it to owners as tenantId.
   // No dataset is approved by default: each must be pinned in the signed
   // decision and the root-owned authority entry.
   cfmeet: Object.freeze({
@@ -32,6 +34,7 @@ const PRODUCTS = Object.freeze({
     defaultDatasets: Object.freeze([]),
     scopeInput: true,
     zones: Object.freeze(["production", "sandbox"]),
+    tenant: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     approvedScope: (args) => ({ market: ["GLOBAL"], organization: ["cfmeet"], zone: [args["--zone"]], tenant: [args["--tenant"]] }),
   }),
 });
@@ -50,7 +53,7 @@ function options(argv) {
   const product = Object.hasOwn(PRODUCTS, out["--product"] || "karryam") ? PRODUCTS[out["--product"] || "karryam"] : null;
   if (!product) throw new Error("PRODUCT_NOT_SUPPORTED");
   if (!product.scopeInput && (Object.hasOwn(out, "--zone") || Object.hasOwn(out, "--tenant"))) throw new Error("INVALID_ARGUMENTS");
-  if (product.scopeInput && (!product.zones.includes(out["--zone"]) || !SCOPE_VALUE.test(out["--tenant"] || ""))) throw new Error("PRODUCT_SCOPE_REQUIRED");
+  if (product.scopeInput && (!product.zones.includes(out["--zone"]) || !SCOPE_VALUE.test(out["--tenant"] || "") || (product.tenant && !product.tenant.test(out["--tenant"])))) throw new Error("PRODUCT_SCOPE_REQUIRED");
   if (!["request"].includes(out["--step"]) && !/^[0-9a-f-]{36}$/.test(out["--id"] || "")) throw new Error("REGISTRATION_ID_REQUIRED");
   if (["verify-identity", "validate-contract", "review-policy", "certify-staging", "approve", "activate-contract"].includes(out["--step"]) && (!/^[1-9][0-9]{0,8}$/.test(out["--expected-revision"] || ""))) throw new Error("EXPECTED_REVISION_REQUIRED");
   if (["review-policy", "certify-staging", "certify-contract"].includes(out["--step"]) && !/^[A-Za-z0-9][A-Za-z0-9._:/#-]{2,255}$/.test(out["--evidence-ref"] || "")) throw new Error("EVIDENCE_REF_REQUIRED");

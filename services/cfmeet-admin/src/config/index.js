@@ -68,6 +68,12 @@ function fingerprintList(value, name) {
 }
 
 // Approved zone/tenant enrollment for zone- and tenant-scoped Bridge routes.
+// CF Meet identifies a tenant by its Platform Access tenant UUID (the Bridge
+// passes the tenant scope to owners such as Calling as tenantId; anything else
+// is RESOURCE_NOT_FOUND). Scopes compare as exact strings, so staging and
+// production enrol only the canonical lowercase form.
+const PLATFORM_ACCESS_TENANT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
 function scopeList(value, name) {
   if (value === undefined || value.trim() === "") return [];
   const list = value.split(",").map((v) => v.trim()).filter(Boolean);
@@ -147,6 +153,8 @@ function loadBridgeConfig(env, now = Date.now(), environment = null) {
   checkCaBundle(serverCa, now);
   const clientKey = K.readSecretFile(required(env, "CFMEET_BRIDGE_CLIENT_KEY_FILE"), "CFMEET_BRIDGE_CLIENT_KEY_FILE");
   checkKeyPair(clientCert, clientKey);
+  const tenants = scopeList(env.CFMEET_ADMIN_TENANTS, "CFMEET_ADMIN_TENANTS");
+  if (["staging", "production"].includes(environment) && tenants.some((t) => !PLATFORM_ACCESS_TENANT.test(t))) throw new ConfigError("CFMEET_ADMIN_TENANTS_NOT_PLATFORM_ACCESS_UUID");
   return Object.freeze({
     enabled: true,
     origin: origin.href,
@@ -155,7 +163,7 @@ function loadBridgeConfig(env, now = Date.now(), environment = null) {
     address,
     market, organization, acr, serviceKid, staffKid, issuer, audience,
     zones: Object.freeze(scopeList(env.CFMEET_ADMIN_ZONES, "CFMEET_ADMIN_ZONES")),
-    tenants: Object.freeze(scopeList(env.CFMEET_ADMIN_TENANTS, "CFMEET_ADMIN_TENANTS")),
+    tenants: Object.freeze(tenants),
     mfaMaxAgeSeconds: intInRange(env.CFMEET_ADMIN_BRIDGE_MFA_MAX_AGE_SECONDS, "CFMEET_ADMIN_BRIDGE_MFA_MAX_AGE_SECONDS", 30, 300, 300),
     serverFingerprints: Object.freeze(fingerprintList(env.CFMEET_BRIDGE_SERVER_FINGERPRINTS, "CFMEET_BRIDGE_SERVER_FINGERPRINTS")),
     revokedServerFingerprints: Object.freeze(revokedServerFingerprints),

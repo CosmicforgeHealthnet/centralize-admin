@@ -190,31 +190,33 @@ test("root sandbox: protected permits, revocation and real PostgreSQL operator a
 
 // ── Per-product onboarding (--product karryam|cfmeet) ─────────────────────
 const cli = require("../scripts/staging-operator-onboarding");
-const cfScope = { market: ["GLOBAL"], organization: ["cfmeet"], zone: ["sandbox"], tenant: ["cfmeet-tenant-1"] };
-const cfArgs = (extra = []) => ["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "cfmeet-tenant-1", ...extra];
+const cfScope = { market: ["GLOBAL"], organization: ["cfmeet"], zone: ["sandbox"], tenant: ["3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f"] };
+const cfArgs = (extra = []) => ["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f", ...extra];
 const permitOf = (d) => ({ decision: d });
 
 test("CLI: product defaults to karryam; cfmeet needs an explicit zone and tenant; unknown products are refused", () => {
   assert.equal(cli.options(["--decision", "/d", "--step", "request"])["--product"], undefined, "default stays karryam");
   assert.equal(cli.options(["--decision", "/d", "--step", "request", "--product", "karryam"])["--product"], "karryam");
-  assert.equal(cli.options(cfArgs())["--tenant"], "cfmeet-tenant-1");
-  assert.equal(cli.options(["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "production", "--tenant", "t1"])["--zone"], "production");
+  assert.equal(cli.options(cfArgs())["--tenant"], "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f");
+  assert.equal(cli.options(["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "production", "--tenant", "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f"])["--zone"], "production");
   for (const [args, reason] of [
     [["--decision", "/d", "--step", "request", "--product", "healthnet"], /PRODUCT_NOT_SUPPORTED/],
     [["--decision", "/d", "--step", "request", "--product", "__proto__"], /PRODUCT_NOT_SUPPORTED/],
     [["--decision", "/d", "--step", "request", "--product", "cfmeet"], /PRODUCT_SCOPE_REQUIRED/],
-    [["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "staging", "--tenant", "t1"], /PRODUCT_SCOPE_REQUIRED/],
+    [["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "staging", "--tenant", "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f"], /PRODUCT_SCOPE_REQUIRED/],
     [["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "*"], /PRODUCT_SCOPE_REQUIRED/],
+    // The CF Meet tenant is the Platform Access tenant UUID (lowercase), never a slug.
+    ...["cfmeet-tenant-1", "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f".toUpperCase(), "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f".replace(/-/g, "")].map((t) => [["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "sandbox", "--tenant", t], /PRODUCT_SCOPE_REQUIRED/]),
     [["--decision", "/d", "--step", "request", "--product", "cfmeet", "--zone", "sandbox"], /PRODUCT_SCOPE_REQUIRED/],
     [["--decision", "/d", "--step", "request", "--zone", "sandbox"], /INVALID_ARGUMENTS/],
     [["--decision", "/d", "--step", "request", "--product", "karryam", "--tenant", "x"], /INVALID_ARGUMENTS/],
     [[...cfArgs(), "--product", "cfmeet"], /INVALID_ARGUMENTS/],
     [cfArgs(["--step", "approve"]), /INVALID_ARGUMENTS/],
-    [["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "karryam.sync_health", "--version", "1.0.0", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "t1"], /DATASET_NOT_ALLOWED/],
+    [["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "karryam.sync_health", "--version", "1.0.0", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f"], /DATASET_NOT_ALLOWED/],
     [["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "cfmeet.meetings_daily", "--version", "1.0.0"], /DATASET_NOT_ALLOWED/],
-    [["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "cfmeet.meetings_daily", "--version", "2.0.0", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "t1"], /DATASET_NOT_ALLOWED/],
+    [["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "cfmeet.meetings_daily", "--version", "2.0.0", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f"], /DATASET_NOT_ALLOWED/],
   ]) assert.throws(() => cli.options(args), reason, JSON.stringify(args));
-  assert.equal(cli.options(["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "cfmeet.meetings_daily", "--version", "1.0.0", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "t1"])["--dataset"], "cfmeet.meetings_daily");
+  assert.equal(cli.options(["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", "cfmeet.meetings_daily", "--version", "1.0.0", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f"])["--dataset"], "cfmeet.meetings_daily");
 });
 
 test("karryam onboarding plan is unchanged by the product parameter", () => {
@@ -238,11 +240,11 @@ test("cfmeet onboarding plan: reviewed CF Meet registration, signed product and 
   assert.throws(() => cli.planFor(cli.options(cfArgs()), permitOf(decision())), /OPERATOR_SCOPE_DENIED/);
   assert.throws(() => cli.planFor(cli.options(["--decision", "/d", "--step", "request"]), permitOf(cfDecision())), /OPERATOR_SCOPE_DENIED/);
   // The operator-named zone and tenant must equal the signed scope exactly.
-  for (const signed of [{ ...cfScope, tenant: ["cfmeet-tenant-2"] }, { ...cfScope, zone: ["production"] }, { ...cfScope, market: ["NG"] }, { ...cfScope, organization: ["karryam-staging"] }, { ...cfScope, tenant: ["cfmeet-tenant-1", "cfmeet-tenant-2"] }, { market: ["GLOBAL"], organization: ["cfmeet"], zone: ["sandbox"] }]) {
+  for (const signed of [{ ...cfScope, tenant: ["7a1c2e3f-4b5d-4c6e-9f80-a1b2c3d4e5f6"] }, { ...cfScope, zone: ["production"] }, { ...cfScope, market: ["NG"] }, { ...cfScope, organization: ["karryam-staging"] }, { ...cfScope, tenant: ["3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f", "7a1c2e3f-4b5d-4c6e-9f80-a1b2c3d4e5f6"] }, { market: ["GLOBAL"], organization: ["cfmeet"], zone: ["sandbox"] }]) {
     assert.throws(() => cli.planFor(cli.options(cfArgs()), permitOf(cfDecision({ allowed_scope: signed }))), /OPERATOR_SCOPE_DENIED/, JSON.stringify(signed));
   }
   // No default datasets: each must be pinned by the signed decision.
-  const ds = (id) => cli.options(["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", id, "--version", "1.0.0", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "cfmeet-tenant-1"]);
+  const ds = (id) => cli.options(["--decision", "/d", "--step", "approve-dataset", "--id", "a".repeat(36), "--dataset", id, "--version", "1.0.0", "--product", "cfmeet", "--zone", "sandbox", "--tenant", "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f"]);
   assert.throws(() => cli.planFor(ds("cfmeet.sync_health"), permitOf(cfDecision())), /OPERATOR_DATASET_SCOPE_DENIED/);
   const pinned = cfDecision({ allow_scoped_readonly_subscriptions: true, readonly_subscription_datasets: ["cfmeet.sync_health"], readonly_subscription_department: "cfmeet-operations" });
   assert.ok(cli.planFor(ds("cfmeet.sync_health"), permitOf(pinned)));
@@ -256,7 +258,7 @@ test("signed operator authority applies per product: a CF Meet decision needs a 
   assert.equal(validate(envelope(cf), cfTrust).product_id, "cfmeet");
   // The same key pinned to Karryam (or to another CF Meet scope) cannot authorize it.
   assert.throws(() => validate(envelope(cf), trust()), /OPERATOR_DECISION_INVALID/);
-  assert.throws(() => validate(envelope(cf), trust({ product_id: "cfmeet", allowed_scope: { ...cfScope, tenant: ["cfmeet-tenant-2"] } })), /OPERATOR_DECISION_INVALID/);
+  assert.throws(() => validate(envelope(cf), trust({ product_id: "cfmeet", allowed_scope: { ...cfScope, tenant: ["7a1c2e3f-4b5d-4c6e-9f80-a1b2c3d4e5f6"] } })), /OPERATOR_DECISION_INVALID/);
   assert.throws(() => validate(envelope(decision()), cfTrust), /OPERATOR_DECISION_INVALID/, "a Karryam decision against a CF Meet authority");
   // Read-only subscription pins must belong to the authority's product.
   const sub = { allow_scoped_readonly_subscriptions: true, readonly_subscription_datasets: ["cfmeet.sync_health"], readonly_subscription_department: "cfmeet-operations" };

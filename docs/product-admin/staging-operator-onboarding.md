@@ -27,7 +27,7 @@ Run `node scripts/staging-operator-onboarding.js --decision <protected-decision-
 | | `karryam` (default) | `cfmeet` |
 |---|---|---|
 | Registration | As before | Product `cfmeet`, display name "CF Meet", instance `cfmeet-admin-staging-1`, endpoint ref `cfmeet-staging`, workload identity `cf://staging/product-admin/cfmeet`, signer `cfmeet-staging-manifest-2026-11` |
-| `--zone`, `--tenant` | Refused | Required. `--zone` is `production` or `sandbox` |
+| `--zone`, `--tenant` | Refused | Required. `--zone` is `production` or `sandbox`; `--tenant` is the Platform Access tenant UUID (lowercase), never a slug |
 | Approved scope | As before | `{market: GLOBAL, organization: cfmeet, zone, tenant}` |
 | Datasets | Default datasets | None by default. Every `--dataset` must be named in both the signed decision and the root authority, and match `cfmeet.<name>` |
 
@@ -36,7 +36,7 @@ The signed operator permit must name the selected product and exactly that scope
 Example (plan only, no database access):
 
 ```
-node scripts/staging-operator-onboarding.js --product cfmeet --zone production --tenant <tenant> --decision <protected-decision-path> --step request
+node scripts/staging-operator-onboarding.js --product cfmeet --zone production --tenant <platform-access-tenant-uuid> --decision <protected-decision-path> --step request
 ```
 
 The CF Meet lifecycle is in [cfmeet-admin-design.md](cfmeet-admin-design.md) §8.

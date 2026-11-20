@@ -77,7 +77,7 @@ test("root sandbox: native certification, activation and approval use current ca
 
 // Per-product catalog delegation: a CF Meet readiness activation is pinned to
 // a CF Meet root authority, CF Meet dataset IDs and the CF Meet scope.
-const cfScope={market:["GLOBAL"],organization:["cfmeet"],zone:["production"],tenant:["cfmeet-tenant-1"]};
+const cfScope={market:["GLOBAL"],organization:["cfmeet"],zone:["production"],tenant:["3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f"]};
 function cfmeetCatalogs(){
   const ids=["cfmeet.meetings_daily","cfmeet.verification_queue"];
   const datasets=ids.map(id=>require("../../../packages/admin-contracts/src/testing").sampleDataset({dataset_id:id,schema_id:id,authorized_departments:["cfmeet-operations"],scope_dimensions:Object.keys(cfScope),readiness:"NOT_CERTIFIED",blockers:[{code:"STAGING_CERTIFICATION_PENDING",detail:"Pending source evidence"}]}));
@@ -94,7 +94,7 @@ test("cfmeet readiness activation needs a CF Meet-pinned authority, CF Meet data
  // The same signed CF Meet decision is refused when the root entry is pinned to Karryam or another scope.
  const karryamPinned=JSON.parse(JSON.stringify(f.trust));karryamPinned.keys["catalog-test-key"].product_id="karryam";karryamPinned.keys["catalog-test-key"].allowed_scope=scope;
  assert.throws(()=>O.parseSignedDecision(JSON.stringify(f.envelope),karryamPinned,opts),/CATALOG_SCOPE_DENIED|DECISION_INVALID/);
- const otherTenant=JSON.parse(JSON.stringify(f.trust));otherTenant.keys["catalog-test-key"].allowed_scope={...cfScope,tenant:["cfmeet-tenant-2"]};
+ const otherTenant=JSON.parse(JSON.stringify(f.trust));otherTenant.keys["catalog-test-key"].allowed_scope={...cfScope,tenant:["7a1c2e3f-4b5d-4c6e-9f80-a1b2c3d4e5f6"]};
  assert.throws(()=>O.parseSignedDecision(JSON.stringify(f.envelope),otherTenant,opts),/DECISION_INVALID/);
  // Karryam dataset IDs can never ride on a CF Meet delegation, and a Karryam catalog never matches a CF Meet pin.
  const k=catalogs();

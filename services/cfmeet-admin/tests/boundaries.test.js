@@ -171,6 +171,36 @@ test("a DRAFT contract can never enable the Bridge in staging or production", ()
   } finally { m.cleanup(); }
 });
 
+test("staging and production enrol CF Meet tenants only by Platform Access tenant UUID (canonical lowercase)", (t) => {
+  const { generateKeyPairSync, randomBytes } = require("node:crypto");
+  const { generatePki } = require("../../../packages/service-clients/tests/helpers/pki");
+  const F = require("./helpers/fixtures");
+  if (PINNED_BRIDGE_CONTRACT.contract_status !== "PINNED") { t.skip("only a PINNED contract can enable the Bridge in staging"); return; }
+  let pki;
+  try { pki = generatePki({ serverName: "bridge.cfmeet.internal" }); } catch { t.skip("openssl unavailable"); return; }
+  const m = F.material();
+  t.after(() => { pki.cleanup(); m.cleanup(); });
+  const env = (environment, tenants) => F.enabledEnv(m, {
+    CFMEET_ADMIN_ENVIRONMENT: environment,
+    CFMEET_BRIDGE_ENABLED: "true", CFMEET_BRIDGE_ORIGIN: "https://bridge.cfmeet.internal:8443", CFMEET_BRIDGE_ADDRESS: "10.20.0.9",
+    CFMEET_ADMIN_MARKET: "NG-LAGOS", CFMEET_ADMIN_ORGANIZATION: "cfmeet-ng", CFMEET_ADMIN_ACR: "mfa", CFMEET_BRIDGE_SERVICE_KID: "svc-1", CFMEET_BRIDGE_STAFF_KID: "staff-1",
+    CFMEET_BRIDGE_ISSUER: "hq", CFMEET_BRIDGE_AUDIENCE: "cfmeet-bridge", CFMEET_ADMIN_ROLE_MAP: JSON.stringify({ "cfmeet.ops.viewer": "hq.cfmeet.read" }),
+    CFMEET_BRIDGE_CA_FILE: m.write("ca.pem", pki.ca), CFMEET_BRIDGE_CLIENT_CERT_FILE: m.write("client.pem", pki.clientCert), CFMEET_BRIDGE_CLIENT_KEY_FILE: m.write("client.key", pki.clientKey),
+    CFMEET_BRIDGE_HMAC_KEY_FILE: m.write("hmac", randomBytes(32).toString("base64url")), CFMEET_BRIDGE_STAFF_PRIVATE_KEY_FILE: m.write("staff.pem", generateKeyPairSync("ed25519").privateKey.export({ type: "pkcs8", format: "pem" })),
+    CFMEET_BRIDGE_CLIENT_URI: "cf://test/hq/product-integration-core", CFMEET_ADMIN_CURSOR_KEY_FILE: m.write("cursor", randomBytes(32).toString("base64url")),
+    CFMEET_ADMIN_ZONES: "lagos-island", CFMEET_ADMIN_TENANTS: tenants,
+  });
+  const uuid = "3f2b8c1e-9d4a-4e7b-8c2d-1a2b3c4d5e6f";
+  for (const environment of ["staging", "production"]) {
+    assert.deepEqual(F.loadConfig(env(environment, uuid)).bridge.tenants, [uuid], environment);
+    for (const bad of ["cfmeet", "tenant-a", uuid.toUpperCase(), uuid.replace(/-/g, ""), `${uuid},cfmeet`]) {
+      assert.throws(() => F.loadConfig(env(environment, bad)), (e) => e.reason === "CFMEET_ADMIN_TENANTS_NOT_PLATFORM_ACCESS_UUID", environment + " " + bad);
+    }
+  }
+  // Local and test environments keep readable fixture tenants.
+  assert.deepEqual(F.loadConfig(env("test", "tenant-a")).bridge.tenants, ["tenant-a"]);
+});
+
 test("the pin refuses a contract that breaks the agreed read naming rules (HQ classifies reads by them)", () => {
   const os = require("node:os");
   const { buildPinnedRegistry, DRAFT_DIR, CONTRACT_DIR } = require("../scripts/pin-bridge-contract");
