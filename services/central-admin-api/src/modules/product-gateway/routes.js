@@ -105,9 +105,10 @@ function rawQuery(req) {
   return index === -1 ? "" : url.slice(index + 1);
 }
 
-// A search term that looks like an email address must never be in a URL
+// A search term that looks like a contact identifier (an email address, or a
+// phone number: 7+ digits once separators are removed) must never be in a URL
 // (edge proxy logs record request lines): use the POST .../search route.
-const CONTACT_LIKE = /@/;
+const isContactLike = (v) => v.includes("@") || v.replace(/[\s._:-]/g, "").replace(/[^0-9]/g, "").length >= 7;
 
 // Exact allowlisted keys per route, no duplicates, bounded values.
 function checkedQuery(entries, keys) {
@@ -125,7 +126,7 @@ function checkedQuery(entries, keys) {
 
 function metricQuery(req, keys = METRIC_QUERY_KEYS) {
   const entries = [...new URLSearchParams(rawQuery(req))];
-  if (keys === RESOURCE_QUERY_KEYS && entries.some(([k, v]) => k === "q" && CONTACT_LIKE.test(v))) {
+  if (keys === RESOURCE_QUERY_KEYS && entries.some(([k, v]) => k === "q" && isContactLike(v))) {
     throw fail(400, "SENSITIVE_SEARCH_REQUIRES_POST", "Search by contact identifier with POST .../search; it must not appear in a URL");
   }
   return checkedQuery(entries, keys);

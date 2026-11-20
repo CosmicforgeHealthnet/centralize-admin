@@ -655,6 +655,11 @@ test("sensitive search: an email-like q is refused in a URL; POST .../search for
     const inUrl = await request(base, "GET", list + "?" + new URLSearchParams({ ...scope, q: "ada@example.com" }).toString(), { headers: h });
     assert.equal(inUrl.status, 400);
     assert.equal(inUrl.json.code, "SENSITIVE_SEARCH_REQUIRES_POST");
+    // Phone numbers too: 7+ digits once spaces, dots and dashes are removed.
+    for (const q of ["2348012345678", "234 801 234 5678", "0801-234-5678", "080.1234.567"]) {
+      const phone = await request(base, "GET", list + "?" + new URLSearchParams({ ...scope, q }).toString(), { headers: h });
+      assert.equal(phone.json && phone.json.code, "SENSITIVE_SEARCH_REQUIRES_POST", q);
+    }
     assert.equal(pic.seen.length, 0);
     // The same search in a POST body reaches PIC as the GET read, bound to the exact query.
     const ok = await request(base, "POST", list + "/search", { headers: h, body: { ...scope, q: "ada@example.com", limit: 10 } });
@@ -673,7 +678,12 @@ test("sensitive search: an email-like q is refused in a URL; POST .../search for
       assert.equal(bad.json.code, "INVALID_QUERY", JSON.stringify(body));
     }
     assert.equal(pic.seen.length, 1);
-    // Searches without contact identifiers still work in the URL.
+    const phoneByPost = await request(base, "POST", list + "/search", { headers: h, body: { ...scope, q: "234 801 234 5678" } });
+    assert.equal(phoneByPost.status, 200, JSON.stringify(phoneByPost.json));
+    assert.equal(new URL(pic.seen.at(-1).url, "http://pic.local").searchParams.get("q"), "234 801 234 5678");
+    // Searches without contact identifiers still work in the URL (short numbers included).
+    const shortNumber = await request(base, "GET", "/api/products/cfmeet/resources/cfmeet.accounts.read/accounts.users.list?" + new URLSearchParams({ ...scope, q: "room 12345" }).toString(), { headers: h });
+    assert.equal(shortNumber.status, 200, JSON.stringify(shortNumber.json));
     const name = await request(base, "GET", "/api/products/cfmeet/resources/cfmeet.accounts.read/accounts.users.list?" + new URLSearchParams({ ...scope, q: "Ada Lovelace" }).toString(), { headers: h });
     assert.equal(name.status, 200);
   } finally {
