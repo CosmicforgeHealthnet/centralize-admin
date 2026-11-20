@@ -1,9 +1,9 @@
 {
  "contract": "cfmeet-admin-bridge",
- "contract_version": "1.0.0",
+ "contract_version": "1.1.0",
  "contract_status": "PINNED",
  "source_repository": "CosmicforgeHealthnet/cfmeet",
- "source_commit": "7325f30447891ed91ac0b421c8eb363a9c356609",
+ "source_commit": "df610aca769970bafb8b3a48ef928235d9a168e9",
  "reviewed_at": "2026-11-20",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "hq_principal": "cosmicforge-hq-cfmeet-admin",
@@ -15,21 +15,22 @@
   "Ed25519 staff assertion bound to request_digest; approval claim on TWO_PERSON capabilities"
  ],
  "artifacts": {
-  "services/admin-bridge/docs/contract/openapi.json": "a537059765e3b3d06e9432d00a8aa319ea26275d947b5adff1ac5c9eb5eb8056",
-  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "ae8ac8b3ff37186c0b20fae9ac7455eb41aa2e6712941d846deeb6a304295d0d",
+  "services/admin-bridge/docs/contract/openapi.json": "ce3a76aefd0f99d92b5c36c1586375ece915de394f6e7c531555983f4073a6e1",
+  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "d2f710790007096f3ad620fcf1cea49a3fa0b4bf8fad87540aeac6fe95d0c609",
   "services/admin-bridge/docs/contract/event-adapters.v1.json": "d3098ab3c4213f6b95d59099a8725b7821a9c282316c4b1931d2388e0c6622ff",
-  "services/admin-bridge/docs/contract/signing-profile.md": "898a38045e20bec4510e6080b26c6b725aa149aff281620c08148e9e3eae31ae",
-  "services/admin-bridge/docs/contract/SHA256SUMS": "faa575a078090b6e96549b373214fb77995ef02a48a04aaf69a2723f68ef73ae"
+  "services/admin-bridge/docs/contract/signing-profile.md": "27975f047202fd71d9e7f701ed260e4067e929e38e384d7eb9f48865c3f2c7f2",
+  "services/admin-bridge/docs/contract/SHA256SUMS": "30f9ad177f8204c1c56eaada7a73c7b5d6e53c16d4405e7ba43faa66e6607c61"
  },
  "openapi": {
   "openapi": "3.1.0",
-  "info_version": "1.0.0",
+  "info_version": "1.1.0",
   "path_count": 223
  },
  "capability_matrix": {
   "total": 246,
   "by_state": {
-   "BLOCKED_DEPENDENCY": 132,
+   "READ_ONLY": 4,
+   "BLOCKED_DEPENDENCY": 128,
    "DISABLED": 114
   }
  },
