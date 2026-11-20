@@ -225,7 +225,7 @@ jobs:
           cm_contract="not-included"
           if [[ "$CFMEET" == true ]]; then names+=(cfmeet-admin); specs+=("cfmeet-admin:cfmeet-admin.sock:10003"); fi
           contract="$(node -p "require('./services/karryam-admin/src/bridge/contracts/karrygo-backoffice-v1.json').source_commit")"
-          # CF Meet Admin carries its own Bridge contract pin (DRAFT:DRAFT-UNPINNED until CF Meet publishes A0).
+          # CF Meet Admin carries its own Bridge contract pin (PINNED:<cfmeet main commit>, or DRAFT:DRAFT-UNPINNED for the HQ draft).
           if [[ "$CFMEET" == true ]]; then cm_contract="$(node -p "const m=require('./services/cfmeet-admin/src/bridge/contracts/cfmeet-backoffice-v1.json'); m.contract_status + ':' + m.source_commit")"; fi
           for n in "${names[@]}"; do
             ref="ghcr.io/cosmicforgehealthnet/$n:staging-$SHA"

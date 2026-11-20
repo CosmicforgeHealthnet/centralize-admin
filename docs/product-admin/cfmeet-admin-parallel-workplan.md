@@ -182,8 +182,9 @@ These capability IDs are fixed so that HQ's existing event consumer can be reuse
 |---|---|
 | Design and this plan on HQ `staging` | Done |
 | `services/cfmeet-admin` (B1–B3 code against the HQ draft contract) | Done: protocol, connector with approval claim, 17 modules + platform, 15 reports, 8 Bridge datasets + sync health, governed operations with 12 h approvals. 136/137 tests pass on Windows with PostgreSQL; the 1 failure is the Unix-socket test, which fails the same way for karryam-admin on Windows |
-| A0 | Pushed for review as cfmeet PR #121 (`claude/admin-bridge-a0`, 4ae4975f), not merged |
-| Pinned CF Meet commit | Waiting for the A0 merge SHA on cfmeet `main` (`contract_status` stays `DRAFT` until then) |
+| A0 | Merged into cfmeet `main` (PR #121) |
+| Pinned CF Meet commit | `7325f30447891ed91ac0b421c8eb363a9c356609` (cfmeet `main`, contract 1.0.0): `contract_status` is `PINNED`. All 246 capabilities are `DISABLED` or `BLOCKED_DEPENDENCY`, so nothing is served yet. Re-pin forward as each A1/A2 slice merges (1.1.0, 1.2.0, ...) |
+| A1/A2 slices | #122–#138 verified against HQ before merge (schemas compile, no personal-data keys, every error code mapped, 0 diffs on shared ids, contact-search flags honoured) |
 
 ## 5. Changing the interface
 

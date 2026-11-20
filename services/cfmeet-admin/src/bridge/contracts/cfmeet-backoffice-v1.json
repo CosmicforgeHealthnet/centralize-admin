@@ -1,9 +1,9 @@
 {
  "contract": "cfmeet-admin-bridge",
  "contract_version": "1.0.0",
- "contract_status": "DRAFT",
- "source_repository": "CosmicforgeHealthnet/centralize-admin (services/cfmeet-admin/contract-draft)",
- "source_commit": "DRAFT-UNPINNED",
+ "contract_status": "PINNED",
+ "source_repository": "CosmicforgeHealthnet/cfmeet",
+ "source_commit": "7325f30447891ed91ac0b421c8eb363a9c356609",
  "reviewed_at": "2026-11-20",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "hq_principal": "cosmicforge-hq-cfmeet-admin",
@@ -15,24 +15,22 @@
   "Ed25519 staff assertion bound to request_digest; approval claim on TWO_PERSON capabilities"
  ],
  "artifacts": {
-  "services/admin-bridge/docs/contract/openapi.json": "2ae645b540b4406034b2179397e442823a431431addae03bfdfc1b4bf0a2a72a",
-  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "5d00b1d816f7ae1945608418d189a8ba976c479e7f6c2ed8934bbafbc7dc7a8c",
-  "services/admin-bridge/docs/contract/event-adapters.v1.json": "bb2f0a9f15b99f6af788eaa92ad3738e2c629ceb5d3da1817872dfaab3171c37",
-  "services/admin-bridge/docs/contract/signing-profile.md": "6402b584a6369c73f409920d2e411fdffec496c41e154591e02539148766d41f",
-  "services/admin-bridge/docs/contract/SHA256SUMS": "91f6081300a1706132dd29eb40cf87f815c6bbfb24f76d1e58d86017fcefc350"
+  "services/admin-bridge/docs/contract/openapi.json": "a537059765e3b3d06e9432d00a8aa319ea26275d947b5adff1ac5c9eb5eb8056",
+  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "ae8ac8b3ff37186c0b20fae9ac7455eb41aa2e6712941d846deeb6a304295d0d",
+  "services/admin-bridge/docs/contract/event-adapters.v1.json": "d3098ab3c4213f6b95d59099a8725b7821a9c282316c4b1931d2388e0c6622ff",
+  "services/admin-bridge/docs/contract/signing-profile.md": "898a38045e20bec4510e6080b26c6b725aa149aff281620c08148e9e3eae31ae",
+  "services/admin-bridge/docs/contract/SHA256SUMS": "faa575a078090b6e96549b373214fb77995ef02a48a04aaf69a2723f68ef73ae"
  },
  "openapi": {
   "openapi": "3.1.0",
   "info_version": "1.0.0",
-  "path_count": 187
+  "path_count": 223
  },
  "capability_matrix": {
-  "total": 199,
+  "total": 246,
   "by_state": {
-   "READ_ONLY": 114,
-   "AVAILABLE": 82,
-   "DISABLED": 2,
-   "BLOCKED_DEPENDENCY": 1
+   "BLOCKED_DEPENDENCY": 132,
+   "DISABLED": 114
   }
  },
  "authorization_rule": "Source-matrix AVAILABLE is artifact state, never runtime authorization: HQ grants, recent MFA, operator enablement, certification, independent approval and the Bridge's signed access policy all apply."

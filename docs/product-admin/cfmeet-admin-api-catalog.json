@@ -9,9 +9,9 @@
   "bridge_contract": {
     "contract": "cfmeet-admin-bridge",
     "version": "1.0.0",
-    "source_commit": "DRAFT-UNPINNED",
+    "source_commit": "7325f30447891ed91ac0b421c8eb363a9c356609",
     "base_path": "/internal/cfmeet-admin/v1",
-    "capabilities": 199
+    "capabilities": 246
   },
   "exposure_environment": "unenrolled default (no Bridge enrollment, no enabled commands, no high-risk certification)",
   "http_status_policy": {
@@ -105,10 +105,10 @@
           "cfmeet_capability_id": "cfmeet.platform.read",
           "risk": "R0",
           "privacy": "INTERNAL",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -119,11 +119,11 @@
           "module": "platform",
           "cfmeet_capability_id": "cfmeet.platform.read",
           "risk": "R0",
-          "privacy": "INTERNAL",
-          "source_state": "READ_ONLY",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         }
       ]
@@ -163,10 +163,9 @@
         "cfmeet.report.sync_lag",
         "cfmeet.report.quarantine_reconciliation"
       ],
-      "bridge_capability_count": 9,
+      "bridge_capability_count": 11,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 8,
-        "DISABLED": 1
+        "BLOCKED_DEPENDENCY": 11
       },
       "bridge_capabilities": [
         {
@@ -176,12 +175,12 @@
           "kind": "READ",
           "module": "finance",
           "cfmeet_capability_id": "cfmeet.finance.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "FINANCIAL_SENSITIVE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -191,12 +190,12 @@
           "kind": "READ",
           "module": "finance",
           "cfmeet_capability_id": "cfmeet.finance.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "FINANCIAL_SENSITIVE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -207,11 +206,11 @@
           "module": "finance",
           "cfmeet_capability_id": "cfmeet.finance.read",
           "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
-          "source_state": "READ_ONLY",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -221,23 +220,53 @@
           "kind": "READ",
           "module": "telecom",
           "cfmeet_capability_id": "cfmeet.telecom.read",
-          "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
-          "source_state": "DISABLED",
-          "exposure_state": "DISABLED",
+          "risk": "R0",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "SOURCE_DISABLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "telecom.carriers.summary",
+          "bridge_capability_id": "telecom.calls.summary",
           "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/telecom/carriers/summary",
+          "bridge_path": "/internal/cfmeet-admin/v1/telecom/calls",
           "kind": "READ",
           "module": "telecom",
           "cfmeet_capability_id": "cfmeet.telecom.read",
-          "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
+          "risk": "R0",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "telecom.sms.summary",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/telecom/sms",
+          "kind": "READ",
+          "module": "telecom",
+          "cfmeet_capability_id": "cfmeet.telecom.read",
+          "risk": "R0",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "telecom.privacy-relay.summary",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/telecom/privacy-relay",
+          "kind": "READ",
+          "module": "telecom",
+          "cfmeet_capability_id": "cfmeet.telecom.read",
+          "risk": "R0",
+          "privacy": "OPERATIONS_MINIMIZED",
           "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
@@ -251,12 +280,12 @@
           "kind": "READ",
           "module": "communications",
           "cfmeet_capability_id": "cfmeet.communications.read",
-          "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
-          "source_state": "READ_ONLY",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -267,11 +296,11 @@
           "module": "operations",
           "cfmeet_capability_id": "cfmeet.operations.read",
           "risk": "R0",
-          "privacy": "INTERNAL",
-          "source_state": "READ_ONLY",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -282,11 +311,11 @@
           "module": "platform",
           "cfmeet_capability_id": "cfmeet.platform.read",
           "risk": "R0",
-          "privacy": "INTERNAL",
-          "source_state": "READ_ONLY",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -296,12 +325,12 @@
           "kind": "READ",
           "module": "platform",
           "cfmeet_capability_id": "cfmeet.platform.read",
-          "risk": "R1",
+          "risk": "R0",
           "privacy": "INTERNAL",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         }
       ]
@@ -347,10 +376,9 @@
         "cfmeet.telecom.read",
         "cfmeet.platform.read"
       ],
-      "bridge_capability_count": 116,
+      "bridge_capability_count": 130,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 115,
-        "DISABLED": 1
+        "BLOCKED_DEPENDENCY": 130
       }
     },
     {
@@ -387,9 +415,9 @@
         "cfmeet.governance.approval.decide",
         "cfmeet.governance.approval.revoke"
       ],
-      "bridge_capability_count": 81,
+      "bridge_capability_count": 114,
       "exposure_states_unenrolled": {
-        "DISABLED": 81
+        "DISABLED": 114
       }
     },
     {
@@ -442,9 +470,9 @@
           "kind": "SYNC",
           "module": "platform",
           "cfmeet_capability_id": null,
-          "risk": "R1",
+          "risk": "R0",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "INTERNAL_SYNC_ONLY",
           "blocker_codes": []
         },
@@ -455,9 +483,9 @@
           "kind": "SYNC",
           "module": "platform",
           "cfmeet_capability_id": null,
-          "risk": "R1",
+          "risk": "R0",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "INTERNAL_SYNC_ONLY",
           "blocker_codes": []
         },
@@ -469,11 +497,11 @@
           "module": "platform",
           "cfmeet_capability_id": "cfmeet.platform.read",
           "risk": "R0",
-          "privacy": "INTERNAL",
-          "source_state": "READ_ONLY",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -483,12 +511,12 @@
           "kind": "READ",
           "module": "platform",
           "cfmeet_capability_id": "cfmeet.platform.read",
-          "risk": "R1",
+          "risk": "R0",
           "privacy": "INTERNAL",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         }
       ]
@@ -523,12 +551,12 @@
           "kind": "READ",
           "module": "finance",
           "cfmeet_capability_id": "cfmeet.finance.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "FINANCIAL_SENSITIVE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -538,12 +566,12 @@
           "kind": "READ",
           "module": "finance",
           "cfmeet_capability_id": "cfmeet.finance.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "FINANCIAL_SENSITIVE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -554,11 +582,11 @@
           "module": "finance",
           "cfmeet_capability_id": "cfmeet.finance.read",
           "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
-          "source_state": "READ_ONLY",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         }
       ]
@@ -603,10 +631,10 @@
       "reports": [
         "cfmeet.report.safety_queue"
       ],
-      "bridge_capability_count": 50,
+      "bridge_capability_count": 62,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 30,
-        "DISABLED": 20
+        "BLOCKED_DEPENDENCY": 32,
+        "DISABLED": 30
       },
       "bridge_capabilities": [
         {
@@ -616,42 +644,132 @@
           "kind": "READ",
           "module": "messaging",
           "cfmeet_capability_id": "cfmeet.messaging.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "SAFETY_EVIDENCE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "messaging.moderation.list",
+          "bridge_capability_id": "messaging.reports.read",
           "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/moderation-actions",
-          "kind": "READ",
-          "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.read",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "messaging.policies.list",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/policies",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/reports/{report_id}",
           "kind": "READ",
           "module": "messaging",
           "cfmeet_capability_id": "cfmeet.messaging.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.message.remove",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/reports/{report_id}/remove-message",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.message.remove",
+          "risk": "R3",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.member.mute",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/conversations/{conversation_id}/members/{member_id}/mute",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.member.mute",
+          "risk": "R3",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.member.remove",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/conversations/{conversation_id}/members/{member_id}/remove",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.member.remove",
+          "risk": "R3",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.conversation.restrict",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/conversations/{conversation_id}/restrict",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.conversation.restrict",
+          "risk": "R3",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.report.dismiss",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/reports/{report_id}/dismiss",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.report.dismiss",
+          "risk": "R3",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.policy.read",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/policy",
+          "kind": "READ",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.read",
+          "risk": "R1",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.policy.change",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/policy",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.policy.change",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -661,12 +779,42 @@
           "kind": "READ",
           "module": "messaging",
           "cfmeet_capability_id": "cfmeet.messaging.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.hold.place",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/holds",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.hold.place",
+          "risk": "R3",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.hold.release",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/holds/{hold_id}/release",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.hold.release",
+          "risk": "R3",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -676,12 +824,27 @@
           "kind": "READ",
           "module": "messaging",
           "cfmeet_capability_id": "cfmeet.messaging.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.export.request",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/exports",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.export.request",
+          "risk": "R4",
+          "privacy": "PERSONAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -691,12 +854,27 @@
           "kind": "READ",
           "module": "messaging",
           "cfmeet_capability_id": "cfmeet.messaging.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.deletion-request.create",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/deletion-requests",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.deletion-request.create",
+          "risk": "R4",
+          "privacy": "PERSONAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -706,168 +884,132 @@
           "kind": "READ",
           "module": "messaging",
           "cfmeet_capability_id": "cfmeet.messaging.read",
+          "risk": "R1",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.switches.list",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/switches",
+          "kind": "READ",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.read",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.switch.change",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/switches/{switch_id}",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.switch.change",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.incidents.list",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/incidents",
+          "kind": "READ",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.read",
+          "risk": "R1",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "messaging.incident.record",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/incidents",
+          "kind": "COMMAND",
+          "module": "messaging",
+          "cfmeet_capability_id": "cfmeet.messaging.incident.record",
           "risk": "R2",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "messaging.kill-switches.list",
+          "bridge_capability_id": "messaging.failed-messages.list",
           "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/off-switches",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/failed-messages",
           "kind": "READ",
           "module": "messaging",
           "cfmeet_capability_id": "cfmeet.messaging.read",
           "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "messaging.failed-deliveries.list",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/failed-deliveries",
-          "kind": "READ",
+          "bridge_capability_id": "messaging.failed-message.retry",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/failed-messages/{message_id}/retry",
+          "kind": "COMMAND",
           "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.read",
-          "risk": "R1",
+          "cfmeet_capability_id": "cfmeet.messaging.failed-message.retry",
+          "risk": "R2",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "messaging.key-transparency.list",
+          "bridge_capability_id": "messaging.key-transparency.read",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/messaging/key-transparency",
           "kind": "READ",
           "module": "messaging",
           "cfmeet_capability_id": "cfmeet.messaging.read",
-          "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "messaging.moderation.apply",
+          "bridge_capability_id": "messaging.key-transparency.checkpoint",
           "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/moderation-actions",
+          "bridge_path": "/internal/cfmeet-admin/v1/messaging/key-transparency/checkpoint",
           "kind": "COMMAND",
           "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.moderation.apply",
+          "cfmeet_capability_id": "cfmeet.messaging.key-transparency.checkpoint",
           "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "messaging.policies.update",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/policies/{policy_id}/versions",
-          "kind": "COMMAND",
-          "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.policies.update",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "messaging.holds.create",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/holds",
-          "kind": "COMMAND",
-          "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.holds.create",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "messaging.exports.create",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/exports",
-          "kind": "COMMAND",
-          "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.exports.create",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "messaging.deletions.execute",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/deletion-requests/{request_id}/execution",
-          "kind": "COMMAND",
-          "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.deletions.execute",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "messaging.kill-switches.set",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/off-switches/{switch_id}",
-          "kind": "COMMAND",
-          "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.kill-switches.set",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "messaging.failed-deliveries.retry",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/messaging/failed-deliveries/{delivery_id}/retry",
-          "kind": "COMMAND",
-          "module": "messaging",
-          "cfmeet_capability_id": "cfmeet.messaging.failed-deliveries.retry",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -877,12 +1019,27 @@
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R1",
+          "privacy": "PERSONAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.calls.read",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/calls/{call_id}",
+          "kind": "READ",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.read",
+          "risk": "R1",
+          "privacy": "PERSONAL",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -892,12 +1049,12 @@
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
-          "risk": "R1",
+          "risk": "R0",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -907,12 +1064,27 @@
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "SAFETY_EVIDENCE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.abuse-report.resolve",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/abuse-reports/{report_id}/resolve",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.abuse-report.resolve",
+          "risk": "R2",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -923,71 +1095,146 @@
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "calling.limits.list",
+          "bridge_capability_id": "calling.block.release",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/blocks/{block_id}/release",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.block.release",
+          "risk": "R3",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.limits.read",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/calling/limits",
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "calling.spend.list",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/spend",
-          "kind": "READ",
+          "bridge_capability_id": "calling.limits.change",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/limits",
+          "kind": "COMMAND",
           "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.read",
-          "risk": "R2",
-          "privacy": "FINANCIAL_SENSITIVE",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
+          "cfmeet_capability_id": "cfmeet.calling.limits.change",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "calling.routing.list",
+          "bridge_capability_id": "calling.routing.read",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/calling/routing",
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "calling.features.list",
+          "bridge_capability_id": "calling.routing.change",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/routing",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.routing.change",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.enterprise-features.read",
           "method": "GET",
           "bridge_path": "/internal/cfmeet-admin/v1/calling/enterprise-features",
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.enterprise-features.change",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/enterprise-features",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.enterprise-features.change",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.spend-limits.read",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/spend-limits",
+          "kind": "READ",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.read",
+          "risk": "R1",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.spend-limits.change",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/spend-limits",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.spend-limits.change",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -997,27 +1244,87 @@
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R1",
+          "privacy": "PERSONAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "calling.holds.list",
+          "bridge_capability_id": "calling.voicemail.list",
           "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/holds",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/voicemail",
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R1",
+          "privacy": "PERSONAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.recording.delete",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/recordings/{recording_id}/delete",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.recording.delete",
+          "risk": "R4",
+          "privacy": "PERSONAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.retention-holds.list",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/retention-holds",
+          "kind": "READ",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.read",
+          "risk": "R1",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.retention-hold.place",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/retention-holds",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.retention-hold.place",
+          "risk": "R4",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.retention-hold.release",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/retention-holds/{hold_id}/release",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.retention-hold.release",
+          "risk": "R4",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1029,10 +1336,25 @@
           "cfmeet_capability_id": "cfmeet.calling.read",
           "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.incident.record",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/incidents",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.incident.record",
+          "risk": "R2",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1043,11 +1365,26 @@
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "calling.webhook-key.reseal",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/calling/webhook-keys/{key_id}/reseal",
+          "kind": "COMMAND",
+          "module": "calling",
+          "cfmeet_capability_id": "cfmeet.calling.webhook-key.reseal",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1057,154 +1394,12 @@
           "kind": "READ",
           "module": "calling",
           "cfmeet_capability_id": "cfmeet.calling.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "calling.abuse-reports.resolve",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/abuse-reports/{report_id}/resolution",
-          "kind": "COMMAND",
-          "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.abuse-reports.resolve",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "calling.blocks.release",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/blocks/{block_id}/release",
-          "kind": "COMMAND",
-          "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.blocks.release",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "calling.limits.update",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/limits/{limit_id}",
-          "kind": "COMMAND",
-          "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.limits.update",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "calling.spend.update",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/spend/{account_id}/caps",
-          "kind": "COMMAND",
-          "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.spend.update",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "calling.routing.update",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/routing/{route_id}",
-          "kind": "COMMAND",
-          "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.routing.update",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "calling.features.update",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/enterprise-features/{feature_id}",
-          "kind": "COMMAND",
-          "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.features.update",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "calling.holds.create",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/holds",
-          "kind": "COMMAND",
-          "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.holds.create",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "calling.webhook-keys.reseal",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/calling/webhook-keys/{key_id}/reseal",
-          "kind": "COMMAND",
-          "module": "calling",
-          "cfmeet_capability_id": "cfmeet.calling.webhook-keys.reseal",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "communications.profiles.list",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/communications/profiles",
-          "kind": "READ",
-          "module": "communications",
-          "cfmeet_capability_id": "cfmeet.communications.read",
-          "risk": "R2",
-          "privacy": "PERSONAL_MINIMIZED",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -1214,12 +1409,42 @@
           "kind": "READ",
           "module": "communications",
           "cfmeet_capability_id": "cfmeet.communications.read",
-          "risk": "R2",
-          "privacy": "PERSONAL_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R1",
+          "privacy": "PERSONAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "communications.profile.suspend",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/communications/profiles/{cfmeet_id}/suspend",
+          "kind": "COMMAND",
+          "module": "communications",
+          "cfmeet_capability_id": "cfmeet.communications.profile.suspend",
+          "risk": "R3",
+          "privacy": "PERSONAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "communications.profile.restore",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/communications/profiles/{cfmeet_id}/restore",
+          "kind": "COMMAND",
+          "module": "communications",
+          "cfmeet_capability_id": "cfmeet.communications.profile.restore",
+          "risk": "R3",
+          "privacy": "PERSONAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1229,12 +1454,27 @@
           "kind": "READ",
           "module": "communications",
           "cfmeet_capability_id": "cfmeet.communications.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "SAFETY_EVIDENCE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "communications.report.review",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/communications/reports/{report_id}/review",
+          "kind": "COMMAND",
+          "module": "communications",
+          "cfmeet_capability_id": "cfmeet.communications.report.review",
+          "risk": "R3",
+          "privacy": "SAFETY_EVIDENCE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1244,12 +1484,12 @@
           "kind": "READ",
           "module": "communications",
           "cfmeet_capability_id": "cfmeet.communications.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -1259,12 +1499,12 @@
           "kind": "READ",
           "module": "communications",
           "cfmeet_capability_id": "cfmeet.communications.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -1274,75 +1514,42 @@
           "kind": "READ",
           "module": "communications",
           "cfmeet_capability_id": "cfmeet.communications.read",
-          "risk": "R1",
-          "privacy": "SUPPRESSED_COUNT_METADATA",
-          "source_state": "READ_ONLY",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "communications.profiles.suspend",
+          "bridge_capability_id": "communications.backfill.run",
           "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/communications/profiles/{profile_id}/suspension",
+          "bridge_path": "/internal/cfmeet-admin/v1/communications/backfill",
           "kind": "COMMAND",
           "module": "communications",
-          "cfmeet_capability_id": "cfmeet.communications.profiles.suspend",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "communications.profiles.restore",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/communications/profiles/{profile_id}/restoration",
-          "kind": "COMMAND",
-          "module": "communications",
-          "cfmeet_capability_id": "cfmeet.communications.profiles.restore",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "communications.reports.review",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/communications/reports/{report_id}/review",
-          "kind": "COMMAND",
-          "module": "communications",
-          "cfmeet_capability_id": "cfmeet.communications.reports.review",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "communications.backfills.create",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/communications/backfills",
-          "kind": "COMMAND",
-          "module": "communications",
-          "cfmeet_capability_id": "cfmeet.communications.backfills.create",
+          "cfmeet_capability_id": "cfmeet.communications.backfill.run",
           "risk": "R2",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "communications.events.replay",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/communications/replay",
+          "kind": "COMMAND",
+          "module": "communications",
+          "cfmeet_capability_id": "cfmeet.communications.events.replay",
+          "risk": "R2",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1352,28 +1559,12 @@
           "kind": "READ",
           "module": "meetings",
           "cfmeet_capability_id": "cfmeet.meetings.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "SAFETY_EVIDENCE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "meetings.reports.review",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/meetings/reports/{report_id}/review",
-          "kind": "COMMAND",
-          "module": "meetings",
-          "cfmeet_capability_id": "cfmeet.meetings.reports.review",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         }
       ]
@@ -1418,10 +1609,10 @@
       "reports": [
         "cfmeet.report.verification_queue"
       ],
-      "bridge_capability_count": 8,
+      "bridge_capability_count": 13,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 3,
-        "DISABLED": 5
+        "BLOCKED_DEPENDENCY": 4,
+        "DISABLED": 9
       },
       "bridge_capabilities": [
         {
@@ -1432,11 +1623,11 @@
           "module": "verification",
           "cfmeet_capability_id": "cfmeet.verification.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -1447,11 +1638,11 @@
           "module": "verification",
           "cfmeet_capability_id": "cfmeet.verification.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -1463,89 +1654,160 @@
           "cfmeet_capability_id": "cfmeet.verification.read",
           "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "verification.cases.claim",
+          "bridge_capability_id": "verification.case.claim",
           "method": "POST",
           "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/claim",
           "kind": "COMMAND",
           "module": "verification",
-          "cfmeet_capability_id": "cfmeet.verification.cases.claim",
+          "cfmeet_capability_id": "cfmeet.verification.case.claim",
           "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "verification.partner-go-live.decide",
+          "bridge_capability_id": "verification.partner-go-live.approve",
           "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/go-live-decision",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/partner-go-live/approve",
           "kind": "COMMAND",
           "module": "verification",
-          "cfmeet_capability_id": "cfmeet.verification.partner-go-live.decide",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "cfmeet_capability_id": "cfmeet.verification.partner-go-live.approve",
+          "risk": "R4",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "verification.app-review.decide",
+          "bridge_capability_id": "verification.partner-go-live.reject",
           "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/app-review-decision",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/partner-go-live/reject",
           "kind": "COMMAND",
           "module": "verification",
-          "cfmeet_capability_id": "cfmeet.verification.app-review.decide",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "cfmeet_capability_id": "cfmeet.verification.partner-go-live.reject",
+          "risk": "R4",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "verification.app-publish.execute",
+          "bridge_capability_id": "verification.partner-go-live.suspend",
           "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/publication",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/partner-go-live/suspend",
           "kind": "COMMAND",
           "module": "verification",
-          "cfmeet_capability_id": "cfmeet.verification.app-publish.execute",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "cfmeet_capability_id": "cfmeet.verification.partner-go-live.suspend",
+          "risk": "R4",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "verification.subjects.suspend",
+          "bridge_capability_id": "verification.app-review.approve",
           "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/suspension",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/app-review/approve",
           "kind": "COMMAND",
           "module": "verification",
-          "cfmeet_capability_id": "cfmeet.verification.subjects.suspend",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "cfmeet_capability_id": "cfmeet.verification.app-review.approve",
+          "risk": "R4",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.app-review.reject",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/app-review/reject",
+          "kind": "COMMAND",
+          "module": "verification",
+          "cfmeet_capability_id": "cfmeet.verification.app-review.reject",
+          "risk": "R4",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.app-review.publish",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/app-review/publish",
+          "kind": "COMMAND",
+          "module": "verification",
+          "cfmeet_capability_id": "cfmeet.verification.app-review.publish",
+          "risk": "R4",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.organization.decide",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/cases/{case_id}/organization/decide",
+          "kind": "COMMAND",
+          "module": "verification",
+          "cfmeet_capability_id": "cfmeet.verification.organization.decide",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.number-kyc.list",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/number-kyc",
+          "kind": "READ",
+          "module": "verification",
+          "cfmeet_capability_id": "cfmeet.verification.read",
+          "risk": "R1",
+          "privacy": "PERSONAL",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "verification.number-kyc.decide",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/verification/number-kyc/{case_id}/decide",
+          "kind": "COMMAND",
+          "module": "verification",
+          "cfmeet_capability_id": "cfmeet.verification.number-kyc.decide",
+          "risk": "R4",
+          "privacy": "PERSONAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         }
       ]
@@ -1579,10 +1841,10 @@
           "pic": "POST /internal/pic/v1/products/{product}/operations"
         }
       ],
-      "bridge_capability_count": 18,
+      "bridge_capability_count": 21,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 8,
-        "DISABLED": 10
+        "BLOCKED_DEPENDENCY": 9,
+        "DISABLED": 12
       },
       "bridge_capabilities": [
         {
@@ -1593,11 +1855,11 @@
           "module": "pricing",
           "cfmeet_capability_id": "cfmeet.pricing.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -1608,11 +1870,101 @@
           "module": "pricing",
           "cfmeet_capability_id": "cfmeet.pricing.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.versions.read",
+          "method": "GET",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}",
+          "kind": "READ",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.read",
+          "risk": "R1",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
+          "exposure_state": "BLOCKED_DEPENDENCY",
+          "blocker_codes": [
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.version.draft",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/price-books/{price_book_id}/versions",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.version.draft",
+          "risk": "R3",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.version.edit",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/edit",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.version.edit",
+          "risk": "R3",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.version.submit",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/submit",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.version.submit",
+          "risk": "R3",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.version.approve",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/approve",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.version.approve",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.version.reject",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/reject",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.version.reject",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1623,11 +1975,56 @@
           "module": "pricing",
           "cfmeet_capability_id": "cfmeet.pricing.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.version.schedule",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/schedule",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.version.schedule",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.version.activate",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/activate",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.version.activate",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.price-book.rollback",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/price-books/{price_book_id}/rollback",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.price-book.rollback",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1638,11 +2035,41 @@
           "module": "pricing",
           "cfmeet_capability_id": "cfmeet.pricing.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.market.freeze",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/markets/{market_code}/freeze",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.market.freeze",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.market.unfreeze",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/markets/{market_code}/unfreeze",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.market.unfreeze",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1653,11 +2080,11 @@
           "module": "pricing",
           "cfmeet_capability_id": "cfmeet.pricing.read",
           "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -1667,12 +2094,27 @@
           "kind": "READ",
           "module": "pricing",
           "cfmeet_capability_id": "cfmeet.pricing.read",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R1",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.plan.assign",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/plan-assignments",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.plan.assign",
+          "risk": "R3",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1682,12 +2124,27 @@
           "kind": "READ",
           "module": "pricing",
           "cfmeet_capability_id": "cfmeet.pricing.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "FINANCIAL_SENSITIVE",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "pricing.override.change",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/pricing/overrides",
+          "kind": "COMMAND",
+          "module": "pricing",
+          "cfmeet_capability_id": "cfmeet.pricing.override.change",
+          "risk": "R4",
+          "privacy": "FINANCIAL_SENSITIVE",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -1699,168 +2156,10 @@
           "cfmeet_capability_id": "cfmeet.pricing.read",
           "risk": "R1",
           "privacy": "FINANCIAL_SENSITIVE",
-          "source_state": "AVAILABLE",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.versions.draft",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.versions.draft",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.versions.submit",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/submission",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.versions.submit",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.versions.approve",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/approval",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.versions.approve",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.versions.reject",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/rejection",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.versions.reject",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.versions.activate",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/activation",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.versions.activate",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.versions.rollback",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/versions/{version_id}/rollback",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.versions.rollback",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.freezes.set",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/freezes",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.freezes.set",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.freezes.release",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/freezes/{freeze_id}/release",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.freezes.release",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.plan-assignments.assign",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/plan-assignments",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.plan-assignments.assign",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "pricing.overrides.set",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/pricing/overrides",
-          "kind": "COMMAND",
-          "module": "pricing",
-          "cfmeet_capability_id": "cfmeet.pricing.overrides.set",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         }
       ]
@@ -1902,9 +2201,9 @@
           "pic": "GET /internal/pic/v1/products/{product}/resources/{capabilityId}/{collectionId}/{resourceId}"
         }
       ],
-      "bridge_capability_count": 5,
+      "bridge_capability_count": 4,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 3,
+        "BLOCKED_DEPENDENCY": 2,
         "DISABLED": 2
       },
       "bridge_capabilities": [
@@ -1915,12 +2214,12 @@
           "kind": "READ",
           "module": "privacy",
           "cfmeet_capability_id": "cfmeet.privacy.read",
-          "risk": "R2",
+          "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -1930,58 +2229,42 @@
           "kind": "READ",
           "module": "privacy",
           "cfmeet_capability_id": "cfmeet.privacy.read",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "privacy.service-status.list",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/privacy/service-status",
-          "kind": "READ",
-          "module": "privacy",
-          "cfmeet_capability_id": "cfmeet.privacy.read",
           "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "privacy.requests.register",
+          "bridge_capability_id": "privacy.request.register",
           "method": "POST",
           "bridge_path": "/internal/cfmeet-admin/v1/privacy/requests",
           "kind": "COMMAND",
           "module": "privacy",
-          "cfmeet_capability_id": "cfmeet.privacy.requests.register",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "cfmeet_capability_id": "cfmeet.privacy.request.register",
+          "risk": "R3",
+          "privacy": "PERSONAL",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "privacy.requests.complete-service",
+          "bridge_capability_id": "privacy.request.complete-service",
           "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/privacy/requests/{request_id}/service-completions",
+          "bridge_path": "/internal/cfmeet-admin/v1/privacy/requests/{request_id}/services/{service}/complete",
           "kind": "COMMAND",
           "module": "privacy",
-          "cfmeet_capability_id": "cfmeet.privacy.requests.complete-service",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
+          "cfmeet_capability_id": "cfmeet.privacy.request.complete-service",
+          "risk": "R4",
+          "privacy": "PERSONAL",
+          "source_state": "DISABLED",
           "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
+            "SOURCE_DISABLED"
           ]
         }
       ]
@@ -2027,9 +2310,9 @@
         "cfmeet.report.operations_health",
         "cfmeet.report.incidents"
       ],
-      "bridge_capability_count": 9,
+      "bridge_capability_count": 8,
       "exposure_states_unenrolled": {
-        "BLOCKED_DEPENDENCY": 6,
+        "BLOCKED_DEPENDENCY": 5,
         "DISABLED": 3
       },
       "bridge_capabilities": [
@@ -2041,11 +2324,11 @@
           "module": "operations",
           "cfmeet_capability_id": "cfmeet.operations.read",
           "risk": "R0",
-          "privacy": "INTERNAL",
-          "source_state": "READ_ONLY",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
@@ -2057,10 +2340,25 @@
           "cfmeet_capability_id": "cfmeet.operations.read",
           "risk": "R1",
           "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "operations.incident.resolve",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/operations/incidents/{incident_id}/resolve",
+          "kind": "COMMAND",
+          "module": "operations",
+          "cfmeet_capability_id": "cfmeet.operations.incident.resolve",
+          "risk": "R2",
+          "privacy": "OPERATIONS_MINIMIZED",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -2070,42 +2368,57 @@
           "kind": "READ",
           "module": "operations",
           "cfmeet_capability_id": "cfmeet.operations.read",
-          "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         },
         {
-          "bridge_capability_id": "operations.switch-on-requests.list",
-          "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/operations/switch-on-requests",
-          "kind": "READ",
+          "bridge_capability_id": "operations.switch.change",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/operations/switches/{switch_id}",
+          "kind": "COMMAND",
           "module": "operations",
-          "cfmeet_capability_id": "cfmeet.operations.read",
-          "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
-          "exposure_state": "BLOCKED_DEPENDENCY",
+          "cfmeet_capability_id": "cfmeet.operations.switch.change",
+          "risk": "R3",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_DISABLED"
           ]
         },
         {
-          "bridge_capability_id": "operations.switch-on-requests.read",
+          "bridge_capability_id": "operations.activations.list",
           "method": "GET",
-          "bridge_path": "/internal/cfmeet-admin/v1/operations/switch-on-requests/{request_id}",
+          "bridge_path": "/internal/cfmeet-admin/v1/operations/activations",
           "kind": "READ",
           "module": "operations",
           "cfmeet_capability_id": "cfmeet.operations.read",
-          "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
+            "SOURCE_BLOCKED_DEPENDENCY"
+          ]
+        },
+        {
+          "bridge_capability_id": "operations.activation.request",
+          "method": "POST",
+          "bridge_path": "/internal/cfmeet-admin/v1/operations/activations",
+          "kind": "COMMAND",
+          "module": "operations",
+          "cfmeet_capability_id": "cfmeet.operations.activation.request",
+          "risk": "R4",
+          "privacy": "INTERNAL",
+          "source_state": "DISABLED",
+          "exposure_state": "DISABLED",
+          "blocker_codes": [
+            "SOURCE_DISABLED"
           ]
         },
         {
@@ -2115,59 +2428,12 @@
           "kind": "READ",
           "module": "operations",
           "cfmeet_capability_id": "cfmeet.operations.read",
-          "risk": "R1",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "READ_ONLY",
+          "risk": "R0",
+          "privacy": "INTERNAL",
+          "source_state": "BLOCKED_DEPENDENCY",
           "exposure_state": "BLOCKED_DEPENDENCY",
           "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "operations.incidents.resolve",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/operations/incidents/{incident_id}/resolution",
-          "kind": "COMMAND",
-          "module": "operations",
-          "cfmeet_capability_id": "cfmeet.operations.incidents.resolve",
-          "risk": "R2",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED"
-          ]
-        },
-        {
-          "bridge_capability_id": "operations.switches.flip",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/operations/switches/{switch_id}",
-          "kind": "COMMAND",
-          "module": "operations",
-          "cfmeet_capability_id": "cfmeet.operations.switches.flip",
-          "risk": "R4",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
-          ]
-        },
-        {
-          "bridge_capability_id": "operations.switch-on-requests.create",
-          "method": "POST",
-          "bridge_path": "/internal/cfmeet-admin/v1/operations/switch-on-requests",
-          "kind": "COMMAND",
-          "module": "operations",
-          "cfmeet_capability_id": "cfmeet.operations.switch-on-requests.create",
-          "risk": "R3",
-          "privacy": "OPERATIONS_MINIMIZED",
-          "source_state": "AVAILABLE",
-          "exposure_state": "DISABLED",
-          "blocker_codes": [
-            "BRIDGE_TRUST_NOT_ENROLLED",
-            "HIGH_RISK_CERTIFICATION_REQUIRED"
+            "SOURCE_BLOCKED_DEPENDENCY"
           ]
         }
       ]
@@ -2183,10 +2449,10 @@
       "cfmeet_capability_id": "cfmeet.platform.read",
       "risk": "R0",
       "privacy": "INTERNAL",
-      "source_state": "READ_ONLY",
+      "source_state": "BLOCKED_DEPENDENCY",
       "exposure_state": "BLOCKED_DEPENDENCY",
       "blocker_codes": [
-        "BRIDGE_TRUST_NOT_ENROLLED"
+        "SOURCE_BLOCKED_DEPENDENCY"
       ],
       "specified_method": "GET",
       "specified_suffix": "/capabilities",
@@ -2200,11 +2466,11 @@
       "module": "platform",
       "cfmeet_capability_id": "cfmeet.platform.read",
       "risk": "R0",
-      "privacy": "INTERNAL",
-      "source_state": "READ_ONLY",
+      "privacy": "OPERATIONS_MINIMIZED",
+      "source_state": "BLOCKED_DEPENDENCY",
       "exposure_state": "BLOCKED_DEPENDENCY",
       "blocker_codes": [
-        "BRIDGE_TRUST_NOT_ENROLLED"
+        "SOURCE_BLOCKED_DEPENDENCY"
       ],
       "specified_method": "GET",
       "specified_suffix": "/health/aggregate",
@@ -2217,12 +2483,12 @@
       "kind": "READ",
       "module": "platform",
       "cfmeet_capability_id": "cfmeet.platform.read",
-      "risk": "R1",
+      "risk": "R0",
       "privacy": "INTERNAL",
-      "source_state": "READ_ONLY",
+      "source_state": "BLOCKED_DEPENDENCY",
       "exposure_state": "BLOCKED_DEPENDENCY",
       "blocker_codes": [
-        "BRIDGE_TRUST_NOT_ENROLLED"
+        "SOURCE_BLOCKED_DEPENDENCY"
       ],
       "specified_method": "GET",
       "specified_suffix": "/datasets/{dataset_id}",
@@ -2235,9 +2501,9 @@
       "kind": "SYNC",
       "module": "platform",
       "cfmeet_capability_id": null,
-      "risk": "R1",
+      "risk": "R0",
       "privacy": "OPERATIONS_MINIMIZED",
-      "source_state": "READ_ONLY",
+      "source_state": "BLOCKED_DEPENDENCY",
       "exposure_state": "INTERNAL_SYNC_ONLY",
       "blocker_codes": [],
       "specified_method": "GET",
@@ -2251,9 +2517,9 @@
       "kind": "SYNC",
       "module": "platform",
       "cfmeet_capability_id": null,
-      "risk": "R1",
+      "risk": "R0",
       "privacy": "OPERATIONS_MINIMIZED",
-      "source_state": "AVAILABLE",
+      "source_state": "BLOCKED_DEPENDENCY",
       "exposure_state": "INTERNAL_SYNC_ONLY",
       "blocker_codes": [],
       "specified_method": "POST",
@@ -2268,11 +2534,11 @@
       "module": "platform",
       "cfmeet_capability_id": "cfmeet.platform.read",
       "risk": "R0",
-      "privacy": "INTERNAL",
-      "source_state": "READ_ONLY",
+      "privacy": "OPERATIONS_MINIMIZED",
+      "source_state": "BLOCKED_DEPENDENCY",
       "exposure_state": "BLOCKED_DEPENDENCY",
       "blocker_codes": [
-        "BRIDGE_TRUST_NOT_ENROLLED"
+        "SOURCE_BLOCKED_DEPENDENCY"
       ],
       "specified_method": "GET",
       "specified_suffix": "/hq/projections/status",

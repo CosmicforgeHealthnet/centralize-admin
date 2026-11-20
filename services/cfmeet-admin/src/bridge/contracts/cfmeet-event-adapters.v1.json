@@ -2,10 +2,8 @@
  "contract": "cfmeet.admin-events.v1",
  "export_schema": "cosmicforge.product-admin-event.v1",
  "max_event_bytes": 16384,
- "source_files_hash": "sha256 of the file with line endings normalized to LF",
- "source_files": {},
+ "status": "PROVISIONAL: adapter fields are defined in phase A7; until then the bridge accepts no owner event",
  "exportable_classifications": [
-  "PUBLIC",
   "INTERNAL",
   "OPERATIONS_MINIMIZED",
   "FINANCIAL_SENSITIVE",
@@ -14,439 +12,94 @@
  "adapters": [
   {
    "source_service": "developer-platform",
-   "export_type": "partner.workspace.changed.v1",
-   "entity_type": "partner_workspace",
-   "classification": "OPERATIONS_MINIMIZED",
-   "fields": {
-    "state": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "ACTIVE",
-      "RESTRICTED",
-      "SUSPENDED",
-      "CLOSED"
-     ]
-    },
-    "live": {
-     "kind": "BOOL",
-     "required": true
-    },
-    "support_tier": {
-     "kind": "OPAQUE_NULLABLE"
-    },
-    "updated_at": {
-     "kind": "TIME",
-     "required": true
-    }
-   }
-  },
-  {
-   "source_service": "developer-platform",
-   "export_type": "app.review.changed.v1",
-   "entity_type": "app",
-   "classification": "OPERATIONS_MINIMIZED",
-   "fields": {
-    "state": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "DRAFT",
-      "IN_REVIEW",
-      "PUBLISHED",
-      "SUSPENDED",
-      "REJECTED"
-     ]
-    },
-    "updated_at": {
-     "kind": "TIME",
-     "required": true
-    }
-   }
-  },
-  {
-   "source_service": "developer-platform",
    "export_type": "verification.case.changed.v1",
    "entity_type": "verification_case",
    "classification": "OPERATIONS_MINIMIZED",
-   "fields": {
-    "kind": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "PARTNER_GO_LIVE",
-      "APP_REVIEW",
-      "APP_PUBLISH"
-     ]
-    },
-    "state": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "CLAIMED",
-      "APPROVED",
-      "REJECTED",
-      "SUSPENDED",
-      "PUBLISHED"
-     ]
-    },
-    "assignee": {
-     "kind": "OPAQUE_NULLABLE"
-    },
-    "submitted_at": {
-     "kind": "TIME",
-     "required": true
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "messaging",
    "export_type": "abuse.report.changed.v1",
    "entity_type": "abuse_report",
    "classification": "SAFETY_EVIDENCE",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "UNDER_REVIEW",
-      "ACTIONED",
-      "DISMISSED",
-      "ESCALATED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "LOW",
-      "MEDIUM",
-      "HIGH",
-      "CRITICAL"
-     ]
-    },
-    "assignee": {
-     "kind": "OPAQUE_NULLABLE"
-    },
-    "created_at": {
-     "kind": "TIME",
-     "required": true
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "calling",
    "export_type": "abuse.report.changed.v1",
    "entity_type": "abuse_report",
    "classification": "SAFETY_EVIDENCE",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "UNDER_REVIEW",
-      "ACTIONED",
-      "DISMISSED",
-      "ESCALATED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "LOW",
-      "MEDIUM",
-      "HIGH",
-      "CRITICAL"
-     ]
-    },
-    "assignee": {
-     "kind": "OPAQUE_NULLABLE"
-    },
-    "created_at": {
-     "kind": "TIME",
-     "required": true
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "communications",
    "export_type": "abuse.report.changed.v1",
    "entity_type": "abuse_report",
    "classification": "SAFETY_EVIDENCE",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "UNDER_REVIEW",
-      "ACTIONED",
-      "DISMISSED",
-      "ESCALATED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "LOW",
-      "MEDIUM",
-      "HIGH",
-      "CRITICAL"
-     ]
-    },
-    "assignee": {
-     "kind": "OPAQUE_NULLABLE"
-    },
-    "created_at": {
-     "kind": "TIME",
-     "required": true
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "meeting-service",
    "export_type": "abuse.report.changed.v1",
    "entity_type": "abuse_report",
    "classification": "SAFETY_EVIDENCE",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "UNDER_REVIEW",
-      "ACTIONED",
-      "DISMISSED",
-      "ESCALATED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "LOW",
-      "MEDIUM",
-      "HIGH",
-      "CRITICAL"
-     ]
-    },
-    "assignee": {
-     "kind": "OPAQUE_NULLABLE"
-    },
-    "created_at": {
-     "kind": "TIME",
-     "required": true
-    }
-   }
+   "fields": {}
+  },
+  {
+   "source_service": "developer-platform",
+   "export_type": "partner.workspace.changed.v1",
+   "entity_type": "partner_workspace",
+   "classification": "OPERATIONS_MINIMIZED",
+   "fields": {}
+  },
+  {
+   "source_service": "developer-platform",
+   "export_type": "app.review.changed.v1",
+   "entity_type": "app",
+   "classification": "OPERATIONS_MINIMIZED",
+   "fields": {}
   },
   {
    "source_service": "messaging",
    "export_type": "incident.changed.v1",
    "entity_type": "incident",
    "classification": "OPERATIONS_MINIMIZED",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "MITIGATED",
-      "RESOLVED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "SEV1",
-      "SEV2",
-      "SEV3",
-      "SEV4"
-     ]
-    },
-    "opened_at": {
-     "kind": "TIME",
-     "required": true
-    },
-    "resolved_at": {
-     "kind": "TIME_NULLABLE"
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "calling",
    "export_type": "incident.changed.v1",
    "entity_type": "incident",
    "classification": "OPERATIONS_MINIMIZED",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "MITIGATED",
-      "RESOLVED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "SEV1",
-      "SEV2",
-      "SEV3",
-      "SEV4"
-     ]
-    },
-    "opened_at": {
-     "kind": "TIME",
-     "required": true
-    },
-    "resolved_at": {
-     "kind": "TIME_NULLABLE"
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "notifications",
    "export_type": "incident.changed.v1",
    "entity_type": "incident",
    "classification": "OPERATIONS_MINIMIZED",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "MITIGATED",
-      "RESOLVED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "SEV1",
-      "SEV2",
-      "SEV3",
-      "SEV4"
-     ]
-    },
-    "opened_at": {
-     "kind": "TIME",
-     "required": true
-    },
-    "resolved_at": {
-     "kind": "TIME_NULLABLE"
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "meeting-service",
    "export_type": "incident.changed.v1",
    "entity_type": "incident",
    "classification": "OPERATIONS_MINIMIZED",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "MITIGATED",
-      "RESOLVED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "SEV1",
-      "SEV2",
-      "SEV3",
-      "SEV4"
-     ]
-    },
-    "opened_at": {
-     "kind": "TIME",
-     "required": true
-    },
-    "resolved_at": {
-     "kind": "TIME_NULLABLE"
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "developer-platform",
    "export_type": "incident.changed.v1",
    "entity_type": "incident",
    "classification": "OPERATIONS_MINIMIZED",
-   "fields": {
-    "status": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "OPEN",
-      "MITIGATED",
-      "RESOLVED"
-     ]
-    },
-    "severity": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "SEV1",
-      "SEV2",
-      "SEV3",
-      "SEV4"
-     ]
-    },
-    "opened_at": {
-     "kind": "TIME",
-     "required": true
-    },
-    "resolved_at": {
-     "kind": "TIME_NULLABLE"
-    }
-   }
+   "fields": {}
   },
   {
    "source_service": "developer-platform",
    "export_type": "pricing.version.changed.v1",
    "entity_type": "price_version",
    "classification": "FINANCIAL_SENSITIVE",
-   "fields": {
-    "state": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "DRAFT",
-      "SUBMITTED",
-      "APPROVED",
-      "REJECTED",
-      "ACTIVE",
-      "ROLLED_BACK",
-      "FROZEN"
-     ]
-    },
-    "plan": {
-     "kind": "ENUM",
-     "required": true,
-     "enum": [
-      "FREE",
-      "PRO",
-      "BUSINESS"
-     ]
-    },
-    "updated_at": {
-     "kind": "TIME",
-     "required": true
-    }
-   }
+   "fields": {}
   }
  ]
 }

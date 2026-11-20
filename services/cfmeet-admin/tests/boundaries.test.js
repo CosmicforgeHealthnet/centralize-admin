@@ -79,7 +79,8 @@ test("pinned CF Meet capability registry, schemas and event adapters regenerate 
     assert.equal(committed(file), text, path.basename(file) + " drifted: review and re-pin (scripts/pin-bridge-contract.js)");
   }
   const adapters = require("../src/bridge/contracts/cfmeet-event-adapters.v1.json");
-  for (const [rel, sha] of Object.entries(adapters.source_files)) {
+  // The published adapter file may pin owner source files by hash; verify them when it does.
+  for (const [rel, sha] of Object.entries(adapters.source_files || {})) {
     const file = path.join(checkout, rel);
     if (!fs.existsSync(file)) {
       assert.ok(process.env.CFMEET_REQUIRE_CHECKOUT !== "1", "event adapter source missing from checkout: " + rel);
@@ -108,8 +109,11 @@ test("pinned registry agrees with the pinned contract metadata and every schema 
   // The read-oriented POST contracts keep their source method.
   assert.equal(R.capability("pricing.charges.simulate").method, "POST");
   assert.equal(R.capability("pricing.charges.simulate").kind, "READ");
-  assert.equal(R.capability("accounts.exports.download").kind, "RETRIEVAL");
   assert.equal(R.capability("hq.events.ack").kind, "SYNC");
+  // Every other non-GET capability is a governed command (the reviewed POST-read allowlist is closed).
+  for (const cap of R.CAPABILITIES.filter((c) => c.method !== "GET" && !["pricing.charges.simulate", "hq.events.ack"].includes(c.id))) {
+    assert.ok(["COMMAND", "RETRIEVAL"].includes(cap.kind), cap.id + " is a non-GET read outside the reviewed allowlist");
+  }
   assert.equal(R.capability("hq.events.feed").kind, "SYNC");
   // Every CF Meet route is zone- and tenant-scoped, in one of the agreed shapes.
   for (const cap of R.CAPABILITIES) {
@@ -129,10 +133,10 @@ test("request URIs are built only from the pinned shape with validated values", 
   const base = { market: "GLOBAL", organization: "cfmeet", zone: "production", tenant: "tenant-a", purpose: "support-review" };
   assert.equal(R.buildUri(cap, { query: base, pathParams: { meeting_id: "mtg-1" }, now }),
     "/internal/cfmeet-admin/v1/meetings/meetings/mtg-1?market=GLOBAL&organization=cfmeet&zone=production&tenant=tenant-a&purpose=support-review");
-  const win = R.capability("meetings.meetings.list");
+  const win = R.capability("meetings.audit.list");
   assert.equal(R.buildUri(win, { query: { ...base, limit: 10, start: "2026-11-18T12:00:00Z", end: "2026-11-19T12:00:00Z" }, now }),
-    "/internal/cfmeet-admin/v1/meetings/meetings?market=GLOBAL&organization=cfmeet&zone=production&tenant=tenant-a&purpose=support-review&limit=10&start=2026-11-18T12%3A00%3A00Z&end=2026-11-19T12%3A00%3A00Z");
-  const search = R.capability("accounts.users.list");
+    "/internal/cfmeet-admin/v1/meetings/audit?market=GLOBAL&organization=cfmeet&zone=production&tenant=tenant-a&purpose=support-review&limit=10&start=2026-11-18T12%3A00%3A00Z&end=2026-11-19T12%3A00%3A00Z");
+  const search = R.capability("accounts.users.search");
   assert.equal(R.buildUri(search, { query: { ...base, limit: 5, q: "ada lovelace" }, now }),
     "/internal/cfmeet-admin/v1/accounts/users?market=GLOBAL&organization=cfmeet&zone=production&tenant=tenant-a&purpose=support-review&limit=5&q=ada%20lovelace");
   const bad = [
@@ -150,8 +154,9 @@ test("request URIs are built only from the pinned shape with validated values", 
   for (const value of ["../x", "a/b", "", "%2e%2e"]) assert.throws(() => R.buildUri(cap, { query: base, pathParams: { meeting_id: value }, now }), (e) => e.reason === "PATH_PARAMETER_INVALID", value);
   assert.throws(() => R.buildUri(cap, { query: base, pathParams: { meeting_id: "mtg-1", host: "evil" }, now }), (e) => e.reason === "PATH_PARAMETER_NOT_IN_CONTRACT");
   // uuid path parameters are enforced.
-  const vcase = R.capability("verification.cases.read");
-  assert.throws(() => R.buildUri(vcase, { query: base, pathParams: { case_id: "not-a-uuid" }, now }), (e) => e.reason === "PATH_PARAMETER_INVALID");
+  const exportCap = R.capability("accounts.user.export");
+  assert.equal(exportCap.path_params.find((x) => x.name === "user_id").format, "uuid");
+  assert.throws(() => R.buildUri(exportCap, { query: base, pathParams: { user_id: "not-a-uuid" }, now }), (e) => e.reason === "PATH_PARAMETER_INVALID");
 });
 
 test("a DRAFT contract can never enable the Bridge in staging or production", () => {
@@ -211,9 +216,22 @@ test("the functional suites' target registry regenerates from contract-draft and
   }
 });
 
-test("every error code the pinned Bridge contract publishes is mapped by HQ", () => {
+// The pinned contract's signing profile from the checkout; skipped (or, with
+// CFMEET_REQUIRE_CHECKOUT=1 as in CI, failed) when no checkout is available.
+function signingProfile(t) {
+  const file = path.join(CHECKOUT, "services/admin-bridge/docs/contract/signing-profile.md");
+  if (!fs.existsSync(file)) {
+    assert.ok(process.env.CFMEET_REQUIRE_CHECKOUT !== "1", "CFMEET_CHECKOUT is required but not present: " + CHECKOUT);
+    t.skip("CF Meet checkout not available");
+    return null;
+  }
+  return fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+}
+
+test("every error code the pinned Bridge contract publishes is mapped by HQ", (t) => {
   const { CATEGORY_BY_CODE } = require("../src/bridge/errors");
-  const profile = fs.readFileSync(path.join(CHECKOUT, "services/admin-bridge/docs/contract/signing-profile.md"), "utf8").replace(/\r\n/g, "\n");
+  const profile = signingProfile(t);
+  if (profile === null) return;
   const section = profile.split(/^## Error codes\s*$/m)[1];
   assert.ok(section, "the signing profile publishes an Error codes table");
   const codes = [...section.split(/^## /m)[0].matchAll(/^\| `([A-Z][A-Z0-9_]+)` \|/gm)].map((m) => m[1]);
@@ -222,15 +240,23 @@ test("every error code the pinned Bridge contract publishes is mapped by HQ", ()
   assert.deepEqual(unmapped, [], "map these Bridge error codes in src/bridge/errors.js");
 });
 
-test("HQ's definite-refusal codes equal the pinned contract's published 'Command outcomes' set", () => {
+test("HQ's definite-refusal codes equal the pinned contract's published 'Command outcomes' set", (t) => {
   const { DEFINITE_REFUSALS } = require("../src/bridge/errors");
-  const profile = fs.readFileSync(path.join(CHECKOUT, "services/admin-bridge/docs/contract/signing-profile.md"), "utf8").replace(/\r\n/g, "\n");
+  const profile = signingProfile(t);
+  if (profile === null) return;
   const section = profile.split(/^## Command outcomes\s*$/m)[1];
-  assert.ok(section, "the signing profile publishes a Command outcomes section");
+  for (const c of ["UNKNOWN_OUTCOME", "INTERNAL", "OWNER_UNAVAILABLE"]) assert.ok(!DEFINITE_REFUSALS.has(c), c);
+  if (!section) {
+    // Contract 1.0.0 (A0) serves no command, so it publishes no outcome set
+    // yet. As soon as a pinned contract serves a command, the section is mandatory.
+    const R = require("../src/bridge/contracts/registry");
+    const served = R.CAPABILITIES.filter((c) => ["COMMAND", "RETRIEVAL"].includes(c.kind) && !["DISABLED", "BLOCKED_DEPENDENCY"].includes(c.matrix_state));
+    assert.deepEqual(served.map((c) => c.id), [], "the pinned contract serves commands but publishes no Command outcomes section");
+    return;
+  }
   const published = [...section.split(/^## /m)[0].matchAll(/^- `([A-Z][A-Z0-9_]+)`\s*$/gm)].map((m) => m[1]).sort();
   const hq = [...DEFINITE_REFUSALS].filter((c) => /^[A-Z]/.test(c)).sort();
   assert.deepEqual(hq, published, "a command answered with one of these is FAILED (nothing was done); anything else 5xx is UNKNOWN_OUTCOME");
-  for (const c of ["UNKNOWN_OUTCOME", "INTERNAL", "OWNER_UNAVAILABLE"]) assert.ok(!DEFINITE_REFUSALS.has(c), c);
 });
 
 test("no pinned Bridge schema uses a key HQ's read path treats as personal data", () => {
