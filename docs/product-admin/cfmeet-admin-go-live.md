@@ -234,6 +234,21 @@ BLOCKED_DEPENDENCY in the pin. As each command family is served:
    resending.
 4. Record the evidence, then run `complete-stage S6`.
 
+**Do not enable yet** (served from contract 1.17.0, but not deliverable end to
+end on the CF Meet side). Keep these out of `CFMEET_ADMIN_ENABLED_COMMANDS`
+until CF Meet confirms each one:
+
+| Command | Waiting for |
+|---|---|
+| `cfmeet.identity.key.issue`, `cfmeet.identity.key.rotate` | The CF Meet console's reveal-once screen (partners cannot see the key yet) |
+| `cfmeet.organizations.organization.export` | A Notification Service template for the download email (the owner refuses with a definite 409 until then) |
+| `cfmeet.messaging.export.request` | The recipient's claim screen |
+
+Secrets and exports never pass through HQ. The owner delivers them to the
+rightful recipient (claim link or reveal-once), and HQ receives a reference
+only: delivery channel, `recipient_masked`, `expires_at`, and key or export
+identifiers.
+
 ## Rollback
 
 - **HQ:** set `CFMEET_BRIDGE_ENABLED=false` (and `CFMEET_BRIDGE_FEED_ENABLED=false`),
