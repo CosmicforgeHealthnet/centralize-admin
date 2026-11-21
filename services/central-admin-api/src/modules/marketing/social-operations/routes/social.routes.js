@@ -59,6 +59,7 @@ const SECTION8_PUBLIC_ROUTES = Object.freeze([
 
 const SECTION8_AUTH_ROUTES = Object.freeze([
   { method: "get", path: "/connections", action: "CONNECTION_VIEW", handler: "listConnections" },
+  { method: "get", path: "/connections/providers", action: "CONNECTION_VIEW", handler: "oauthProviders" },
   {
     method: "post",
     path: "/connections/:provider/oauth/start",

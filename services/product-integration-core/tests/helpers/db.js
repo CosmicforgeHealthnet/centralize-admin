@@ -21,7 +21,7 @@ function withDatabase(url, database, user, password) {
   return u.toString();
 }
 
-async function createDisposableDatabase({ migrateNow = true } = {}) {
+async function createDisposableDatabase({ migrateNow = true, migrationsDir } = {}) {
   const suffix = randomBytes(5).toString("hex");
   const database = "pic_test_" + suffix;
   const migrator = "pic_mig_" + suffix;
@@ -42,7 +42,7 @@ async function createDisposableDatabase({ migrateNow = true } = {}) {
   const migClient = new Client({ connectionString: migrationUrl });
   await migClient.connect();
   await migClient.query("REVOKE CREATE ON SCHEMA public FROM PUBLIC");
-  if (migrateNow) await migrate(migClient, { runtimeRole: runtime });
+  if (migrateNow) await migrate(migClient, { runtimeRole: runtime, ...(migrationsDir ? { dir: migrationsDir } : {}) });
   const pool = new Pool({ connectionString: runtimeUrl, max: 8 });
 
   async function drop() {
@@ -57,7 +57,7 @@ async function createDisposableDatabase({ migrateNow = true } = {}) {
     await c.end();
   }
 
-  return { database, pool, migClient, runtimeRole: runtime, migrationUrl, runtimeUrl, drop };
+  return { database, pool, migClient, runtimeRole: runtime, migrator, password, migrationUrl, runtimeUrl, drop };
 }
 
 module.exports = { available, createDisposableDatabase, ADMIN_URL };

@@ -59,12 +59,14 @@ function singleHeader(rawHeaders, name) {
  *   handlers             { [endpointId]: async (ctx) => ({ status?, body }) }
  *   audit                async (record) => void; throwing fails the request closed
  *   logger, now, maxBodyBytes
+ *   observe              optional ({ endpoint, status, code, reason, auth_failure, delegation_failure, duration_ms }) => void,
+ *                        called once per request with bounded, sanitized fields only (for metrics); never throws into the request
  */
 function createProductAdminHandler(options) {
   const {
     productId, serviceInstanceId, serviceKeys, nonceStore, delegationKeys = {}, handlers, audit,
     allowedServices = ["hq-product-integration-core"], delegationIssuer = "product-integration-core",
-    logger = defaultLogger, now = Date.now, maxBodyBytes = DEFAULT_MAX_BODY_BYTES,
+    logger = defaultLogger, now = Date.now, maxBodyBytes = DEFAULT_MAX_BODY_BYTES, observe = null,
   } = options;
   if (!new RegExp(C.PATTERNS.productId).test(String(productId))) throw new Error("product_id_invalid");
   if (!new RegExp(C.PATTERNS.serviceInstanceId).test(String(serviceInstanceId))) throw new Error("service_instance_id_invalid");
@@ -79,6 +81,7 @@ function createProductAdminHandler(options) {
     let endpointId = "unmatched";
     let serviceId = null;
     let status = 500;
+    let outcome = { code: null, reason: null, auth_failure: null, delegation_failure: null };
 
     const send = (code, body) => {
       status = code;
@@ -120,6 +123,7 @@ function createProductAdminHandler(options) {
           serviceId = ctx.service.serviceId;
         } catch (err) {
           const reason = err instanceof ServiceAuthError ? err.reason : "SERVICE_AUTH_FAILED";
+          outcome.auth_failure = reason;
           logger({ service: productId + "-admin", event: "service_auth_denied", endpoint: endpointId, reason, correlation_id: correlationId });
           if (reason === "REPLAY_STORE_UNAVAILABLE") throw new C.ProtocolError("UNAVAILABLE", "REPLAY_STORE_UNAVAILABLE", { retryable: true });
           throw new C.ProtocolError("UNAUTHENTICATED", "SERVICE_AUTH_FAILED");
@@ -134,6 +138,7 @@ function createProductAdminHandler(options) {
             if (!fresh) throw new I.DelegationError("REPLAYED");
             ctx.delegation = claims;
           } catch (err) {
+            outcome.delegation_failure = err.reason || "DELEGATION_INVALID";
             logger({ service: productId + "-admin", event: "delegation_denied", endpoint: endpointId, reason: err.reason || "DELEGATION_INVALID", correlation_id: correlationId });
             throw new C.ProtocolError("FORBIDDEN", "DELEGATION_INVALID");
           }
@@ -156,6 +161,7 @@ function createProductAdminHandler(options) {
 
       const result = await fn(ctx);
       if (endpointId === "healthLive" || endpointId === "healthReady") return send(result.status || 200, result.body);
+      if (result.body && result.body.error) outcome = { ...outcome, code: result.body.error.code || null, reason: result.body.error.reason || null };
       const check = C.validateEnvelope(result.body, { productId, now: now() });
       if (!check.valid) {
         logger({ service: productId + "-admin", event: "invalid_envelope_suppressed", endpoint: endpointId, errors: check.errors.slice(0, 3), correlation_id: correlationId });
@@ -164,9 +170,14 @@ function createProductAdminHandler(options) {
       return send(result.status || (result.body.error ? C.ERROR_CODES[result.body.error.code] : 200), result.body);
     } catch (err) {
       if (!(err instanceof C.ProtocolError)) logger({ service: productId + "-admin", event: "handler_error", endpoint: endpointId, error: err && err.name, correlation_id: correlationId });
+      outcome = { ...outcome, code: err instanceof C.ProtocolError ? err.code : "INTERNAL", reason: err instanceof C.ProtocolError ? err.reason : "INTERNAL_ERROR" };
       return sendError(err);
     } finally {
-      logger({ service: productId + "-admin", event: "request", endpoint: endpointId, status, service_id: serviceId, duration_ms: now() - started, correlation_id: correlationId });
+      const durationMs = now() - started;
+      logger({ service: productId + "-admin", event: "request", endpoint: endpointId, status, service_id: serviceId, duration_ms: durationMs, correlation_id: correlationId });
+      if (typeof observe === "function") {
+        try { observe({ endpoint: endpointId, status, ...outcome, duration_ms: durationMs }); } catch { /* metrics never break a request */ }
+      }
     }
   };
 }

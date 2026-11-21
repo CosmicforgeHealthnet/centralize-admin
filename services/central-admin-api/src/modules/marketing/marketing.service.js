@@ -1691,42 +1691,8 @@ async function listSocialAccounts() {
   return { data: accounts };
 }
 
-async function createSocialAccount(data) {
-  assertLegacySocialWrite();
-  // Legacy username/password provider credentials are no longer persisted.
-  // Social Operations connections require a fresh OAuth authorization.
-  const encryptedPassword = null;
-
-  const existing = await adminPrisma.marketing_social_accounts.findFirst({
-    where: {
-      platform: data.platform,
-      username: data.username,
-    },
-    select: { id: true },
-  });
-
-  const account = existing
-    ? await adminPrisma.marketing_social_accounts.update({
-        where: { id: existing.id },
-        data: {
-          connected: true,
-          encryptedPassword,
-          credentialsSaved: false,
-        },
-        select: { id: true, platform: true },
-      })
-    : await adminPrisma.marketing_social_accounts.create({
-        data: {
-          platform: data.platform,
-          username: data.username,
-          connected: true,
-          encryptedPassword,
-          credentialsSaved: false,
-        },
-        select: { id: true, platform: true },
-      });
-
-  return account;
+async function createSocialAccount() {
+  throw new ApiError(409, "Password-based social connections are no longer supported. Connect your account through Social Operations.");
 }
 
 async function deleteSocialAccount(id) {

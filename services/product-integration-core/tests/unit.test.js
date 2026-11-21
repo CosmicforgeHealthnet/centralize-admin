@@ -93,6 +93,16 @@ test("listener must be private; remote TCP requires an mTLS step", () => {
   assert.throws(() => parseListen("unix:relative.sock"), (e) => e.reason === "PIC_LISTEN_INVALID");
 });
 
+test("REGRESSION: no service or delegation key may be shared between Product Admin endpoints", () => {
+  const k = (n) => Buffer.alloc(32, n).toString("base64url");
+  const entry = (product, service, delegation) => ({ product_id: product, environment: "staging", transport: "unix", socket_path: "/run/cosmicforge/" + product + ".sock", service_auth: { key_id: "s-" + product, key_b64url: k(service) }, delegation: { kid: "d-" + product, key_b64url: k(delegation) } });
+  const build = (a, b) => buildEndpoints({ endpoints: { a: a, b: b } }, { environment: "staging" });
+  assert.equal(build(entry("karryam", 1, 2), entry("healthnet", 3, 4)).size, 2);
+  for (const [label, b] of [["same service key", entry("healthnet", 1, 4)], ["same delegation key", entry("healthnet", 3, 2)], ["A service = B delegation", entry("healthnet", 3, 1)], ["A delegation = B service", entry("healthnet", 2, 4)]]) {
+    assert.throws(() => build(entry("karryam", 1, 2), b), (e) => e.reason === "KEY_REUSE_ACROSS_BOUNDARIES", label);
+  }
+});
+
 test("endpoint allowlist: SSRF-resistant targets bound to one product and environment", () => {
   const keys = { service_auth: { key_id: "k", key_b64url: Buffer.alloc(32, 1).toString("base64url") }, delegation: { kid: "d", key_b64url: Buffer.alloc(32, 2).toString("base64url") } };
   const tls = { ca_pem: "x", cert_pem: "x", key_pem: "x" };

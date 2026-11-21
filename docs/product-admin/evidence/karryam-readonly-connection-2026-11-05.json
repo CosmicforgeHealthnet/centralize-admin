@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-05T12:20:46.652920+00:00",
+  "current_state": {
+    "signed_policy_installed": true,
+    "source_allocations": {
+      "taxi": 12,
+      "support": 2
+    },
+    "certificate_enrolled": true,
+    "bridge_remote_enabled": true,
+    "source_read_connections_enabled": true,
+    "karryam_admin_bridge_enabled": true,
+    "tls_13_mutual_auth_verified": true,
+    "staff_grants_created": 0,
+    "source_feed_enabled": false,
+    "worker_started": false,
+    "pic_synchronization_verified": false,
+    "real_staff_capability_discovery_verified": false,
+    "central_admin_web_real_data_verified": false,
+    "business_writes_enabled": false
+  },
+  "note": "Historical step summaries preserve flags at each step; current_state is the final verified state. Private bindings, keys, environment files and backups remain on the VPS.",
+  "history": {
+    "installation-backup-summary.json": [
+      {
+        "owner": "support-dispute-service",
+        "state": "BACKUP_RESTORE_PASS",
+        "backup_sha256": "2856c7823a729625cd21bbbcd6bc6bcb0a5930b8eea4aa4e2a63d6dfc2e17df6",
+        "validation_sha256": "66b2a2dbe7ac6da81c71604155e44de91ab48d88f49adb0f83ed4581858a6532",
+        "assertions": 24,
+        "directory": "/etc/cosmicforge/staging/karryam-source-access/20261105T112448Z-3169bf92/installation-backups/support-dispute-service",
+        "completed_at": "2026-11-05T11:41:51.477211+00:00"
+      },
+      {
+        "owner": "driver-taxi-service",
+        "state": "BACKUP_RESTORE_PASS",
+        "backup_sha256": "603dce2e1ab6d848b73e0ecaad7830d4569f59522a0875324ee1acb4c11772df",
+        "validation_sha256": "c29e49aa24b0e175cda92f9b784f37fe13f0d8891c74d25105cca7836fd3916f",
+        "assertions": 77,
+        "directory": "/etc/cosmicforge/staging/karryam-source-access/20261105T112448Z-3169bf92/installation-backups/driver-taxi-service",
+        "completed_at": "2026-11-05T11:42:49.720844+00:00"
+      },
+      {
+        "owner": "admin-backoffice-service",
+        "state": "BACKUP_RESTORE_PASS",
+        "backup_sha256": "a4591fed8f10cc4fda9cdbdd7bce3a525c84713e5842a9c44dd442e9a1ea6920",
+        "validation_sha256": "2b446fa0a6b878179af4ac896b120a2984d1c46d528774c500d891d4e9aa8b38",
+        "assertions": 36,
+        "directory": "/etc/cosmicforge/staging/karryam-source-access/20261105T112448Z-3169bf92/installation-backups/admin-backoffice-service",
+        "completed_at": "2026-11-05T11:43:20.944578+00:00"
+      }
+    ],
+    "source-binding-summary.json": {
+      "state": "SOURCE_BINDINGS_PREPARED_NOT_ALLOCATED",
+      "completed_at": "2026-11-05T11:50:47.516645+00:00",
+      "sources": [
+        {
+          "owner": "driver-taxi-service",
+          "prepared_bindings": 12,
+          "missing_source_dimensions": {
+            "market": 0,
+            "zone": 0,
+            "organization": 12,
+            "tenant": 12
+          },
+          "replay_status": 409,
+          "wrong_credential_status": 401,
+          "context_allocations_published": 0
+        },
+        {
+          "owner": "support-dispute-service",
+          "prepared_bindings": 2,
+          "missing_source_dimensions": {
+            "market": 2,
+            "zone": 2,
+            "organization": 2,
+            "tenant": 2
+          },
+          "replay_status": 409,
+          "wrong_credential_status": 401,
+          "context_allocations_published": 0
+        }
+      ],
+      "business_ownership_changed": false,
+      "staff_grants_created": 0,
+      "private_binding_files_exported": false
+    },
+    "source-allocation-summary.json": {
+      "state": "SOURCE_ALLOCATIONS_PUBLISHED",
+      "decision_reference": "source-allocation-decision-f5a51a53-452c-41c7-9b62-39b525ff1b93",
+      "scope": {
+        "market": "NG-LAG",
+        "organization": "karryam-staging",
+        "product": "karryam",
+        "tenant": "karryam-staging-operations",
+        "zone": "NG-LAG-MAIN"
+      },
+      "published_counts": {
+        "driver-taxi-service": 12,
+        "support-dispute-service": 2
+      },
+      "business_ownership_changed": false,
+      "staff_grants_created": 0,
+      "data_reads_enabled": false,
+      "completed_at": "2026-11-05T12:05:16.201227+00:00"
+    },
+    "bridge-enrollment-result.json": {
+      "state": "CERTIFICATE_ENROLLED_REMOTE_STILL_DISABLED",
+      "principal": "cosmicforge-hq-karryam-admin",
+      "certificate_sha256": "723c25fa54d88f06ffead6fde617aee76f998ba2b5e30d738daf603de4e7df80",
+      "expires_at": "2026-12-05T11:24:48.385446+00:00",
+      "matched_active_enrollments": 1,
+      "staff_grants_created": 0,
+      "business_writes_enabled": false,
+      "completed_at": "2026-11-05T12:08:14.491190+00:00"
+    },
+    "read-activation-summary.json": {
+      "state": "BRIDGE_AND_OWNER_READ_CONNECTION_ENABLED",
+      "changed_containers": [
+        "karrygo-admin-backoffice-service",
+        "karrygo-taxi-service",
+        "karrygo-support-dispute-service"
+      ],
+      "images_unchanged": true,
+      "unrelated_containers_changed": 0,
+      "unauthenticated_source_status": {
+        "8102": 401,
+        "8107": 401
+      },
+      "staff_grants_created": 0,
+      "business_writes_enabled": false,
+      "hq_karryam_connection_enabled": false,
+      "network": "cf-staging-karryam-owner-readonly",
+      "completed_at": "2026-11-05T12:12:01.861691+00:00"
+    },
+    "karryam-admin-activation-summary.json": {
+      "state": "KARRYAM_ADMIN_BRIDGE_CLIENT_ENABLED",
+      "image_unchanged": true,
+      "healthy": true,
+      "role_map": {
+        "karryam.customer-care.viewer": "karryam.customer-care.viewer"
+      },
+      "recent_mfa_required": true,
+      "staff_grants_created": 0,
+      "source_feed_enabled": false,
+      "worker_started": false,
+      "business_writes_enabled": false,
+      "completed_at": "2026-11-05T12:19:46.044360+00:00"
+    },
+    "connection-verification-summary.json": {
+      "state": "READ_ONLY_CONNECTION_TRANSPORT_VERIFIED",
+      "transport": {
+        "tls_authorized": true,
+        "tls_protocol": "TLSv1.3",
+        "server_fingerprint": "9b88a204c4ec8650f4f80fc1b06392314c53156b87f6bdaf0825125ee4dbd37a",
+        "unsigned_request_status": 401
+      },
+      "services": {
+        "karrygo-admin-backoffice-service": {
+          "running": true,
+          "health": "healthy",
+          "image_id": "sha256:4073655050e2939d43439f6e36adebd5504f98fc666918775edfee63b79a530c"
+        },
+        "karrygo-taxi-service": {
+          "running": true,
+          "health": "healthy",
+          "image_id": "sha256:3c1cb25ab4160b71ed749b5a4ec189ae51fd6e6254e9c1635dbdb36d36fdd219"
+        },
+        "karrygo-support-dispute-service": {
+          "running": true,
+          "health": "healthy",
+          "image_id": "sha256:e86a5d7a6deb830c27e141bdc4be209b13dda0cf19ddcc4fac39ae6570e92f20"
+        },
+        "cf-product-admin-staging-karryam-admin-1": {
+          "running": true,
+          "health": "healthy",
+          "image_id": "sha256:90f0dc976f37edc0a4e640848c089664c8f14bdca6405d7f64dcb268207e5d36"
+        },
+        "cf-product-admin-staging-product-integration-core-1": {
+          "running": true,
+          "health": "healthy",
+          "image_id": "sha256:efe0a9a9c030b8dd8cdd72263fc22d17ec64d27ca075869c3f0307b191103577"
+        },
+        "cf-product-admin-staging-karryam-admin-db-1": {
+          "running": true,
+          "health": "healthy",
+          "image_id": "sha256:81bd698b4594e751a3269e4dcd3e03a4a0ec0daf7b72e7aa1abd43cce9887542"
+        }
+      },
+      "real_staff_capability_discovery_verified": false,
+      "source_data_synchronization_verified": false,
+      "staff_grants_created": 0,
+      "completed_at": "2026-11-05T12:20:46.652920+00:00"
+    }
+  }
+}

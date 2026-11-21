@@ -4,6 +4,7 @@
 // Integration Core (PIC).
 //
 //   /api/products/...                        product reads (navigation, manifest, datasets, metrics, ...)
+//   /api/products/{id}/grants[/{grantId}]    read-only staff grant views (grant managers, recent MFA)
 //   /api/admin/product-integrations/...      registry and onboarding administration
 //   /api/admin/product-integration-grants/... staff product grants
 //
@@ -26,22 +27,50 @@ const OPAQUE = "[A-Za-z0-9][A-Za-z0-9._:-]{0,127}";
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 const DEPT = /^[A-Za-z0-9 _-]{1,64}$/;
 const METRIC_QUERY_KEYS = new Set(["window_start", "window_end", "market", "organization", "zone", "tenant", "limit"]);
+// Protocol 1.1 scoped reads (product-neutral allowlists; PIC and the
+// Product Admin validate every value again). `q` (free-text search) and
+// `parent` (the parent of a nested list) are list-only; PIC refuses them,
+// like limit/continuation, on detail reads.
+const RESOURCE_QUERY_KEYS = new Set(["market", "organization", "zone", "tenant", "purpose", "start", "end", "limit", "continuation", "q", "parent"]);
+const REPORT_QUERY_KEYS = new Set(["market", "organization", "zone", "tenant", "purpose", "start", "end", "timezone", "authority", "product_code"]);
+// Read-only grant listing: optional staff filter, bounded page, opaque cursor
+// (PIC enforces limit 1..100 and validates the cursor again).
+const GRANT_QUERY_KEYS = new Set(["staff_id", "limit", "cursor"]);
 const QUERY_VALUE = /^[A-Za-z0-9._:+-]{1,64}$/;
+const SPECIAL_VALUES = { continuation: /^[A-Za-z0-9_-]{16,2048}$/, timezone: /^[A-Za-z][A-Za-z0-9_+/-]{0,63}$/, staff_id: /^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$/, cursor: /^[A-Za-z0-9_-]{16,256}$/,
+  // Same patterns as packages/admin-contracts READ_QUERY_SCHEMAS.
+  q: /^[\p{L}\p{N} ._@:-]{1,128}$/u, parent: /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/ };
 const MFA_WINDOW_MS = 5 * 60 * 1000;
 
 const re = (source) => new RegExp("^" + source + "$");
 const TRANSITIONS = "verify-identity|validate-contract|review-policy|certify-staging|approve|reject|suspend|revoke|resume-review|health-check|sync";
 
-// [method, pattern relative to the mount, allowsQuery]
+// [method, pattern relative to the mount, allowsQuery, options]
+// options.recentMfa: the gateway also requires an MFA step-up within
+// MFA_WINDOW_MS before forwarding (same rule as the admin routes).
 const PRODUCT_ROUTES = [
   ["GET", re("/"), false],
   ["GET", re(`/${PRODUCT}/manifest`), false],
   ["GET", re(`/${PRODUCT}/capabilities`), false],
   ["GET", re(`/${PRODUCT}/datasets`), false],
-  ["GET", re(`/${PRODUCT}/metrics/${OPAQUE}`), true],
+  ["GET", re(`/${PRODUCT}/metrics/${OPAQUE}`), METRIC_QUERY_KEYS],
+  ["GET", re(`/${PRODUCT}/resources/${OPAQUE}/${OPAQUE}`), RESOURCE_QUERY_KEYS],
+  ["GET", re(`/${PRODUCT}/resources/${OPAQUE}/${OPAQUE}/${OPAQUE}`), RESOURCE_QUERY_KEYS],
+  ["GET", re(`/${PRODUCT}/reports/${OPAQUE}`), REPORT_QUERY_KEYS],
   ["GET", re(`/${PRODUCT}/events/status`), false],
   ["GET", re(`/${PRODUCT}/operations/${OPAQUE}`), false],
+  ["GET", re(`/${PRODUCT}/operations/${OPAQUE}/audit`), false],
   ["POST", re(`/${PRODUCT}/operations`), false],
+  // Read-only grant views. They mirror grant administration: PIC requires
+  // the platform permission integration.grants.manage (the one that creates
+  // and revokes grants) and only ever returns grants of the product in the URL.
+  ["GET", re(`/${PRODUCT}/grants`), GRANT_QUERY_KEYS, { recentMfa: true }],
+  ["GET", re(`/${PRODUCT}/grants/${UUID}`), false, { recentMfa: true }],
+  // Sensitive search (an email address or other contact identifier as q):
+  // the query travels in the JSON body, so it never appears in a URL that the
+  // edge proxy's access or error log records. Forwarded to PIC as the same
+  // validated GET read (PIC logs paths only).
+  ["POST", re(`/${PRODUCT}/resources/${OPAQUE}/${OPAQUE}/search`), false, { searchBody: true }],
 ];
 const INTEGRATION_ROUTES = [
   ["GET", re("/"), false],
@@ -52,6 +81,7 @@ const INTEGRATION_ROUTES = [
   ["POST", re(`/${UUID}/datasets/${OPAQUE}/approve`), false],
   ["POST", re(`/${UUID}/subscriptions`), false],
   ["POST", re(`/${UUID}/subscriptions/${UUID}/(?:enable|disable)`), false],
+  ["POST", re(`/${UUID}/operations/(?:enable|disable)`), false],
   ["POST", re(`/${UUID}/contracts/propose`), false],
   ["POST", re(`/${UUID}/contracts/${UUID}/(?:certify|activate)`), false],
 ];
@@ -75,19 +105,39 @@ function rawQuery(req) {
   return index === -1 ? "" : url.slice(index + 1);
 }
 
-// Metrics only: exact allowlisted keys, no duplicates, bounded values.
-function metricQuery(req) {
-  const params = new URLSearchParams(rawQuery(req));
+// A search term that looks like a contact identifier (an email address, or a
+// phone number: 7+ digits once separators are removed) must never be in a URL
+// (edge proxy logs record request lines): use the POST .../search route.
+const isContactLike = (v) => v.includes("@") || v.replace(/[\s._:-]/g, "").replace(/[^0-9]/g, "").length >= 7;
+
+// Exact allowlisted keys per route, no duplicates, bounded values.
+function checkedQuery(entries, keys) {
   const seen = new Set();
   const out = new URLSearchParams();
-  for (const [key, value] of params) {
-    if (!METRIC_QUERY_KEYS.has(key) || seen.has(key)) throw fail(400, "INVALID_QUERY", "Invalid product metric query");
-    if (!QUERY_VALUE.test(value)) throw fail(400, "INVALID_QUERY", "Invalid product metric query");
+  for (const [key, value] of entries) {
+    if (!keys.has(key) || seen.has(key)) throw fail(400, "INVALID_QUERY", "Invalid product query");
+    if (typeof value !== "string" || !(SPECIAL_VALUES[key] || QUERY_VALUE).test(value)) throw fail(400, "INVALID_QUERY", "Invalid product query");
     seen.add(key);
     out.append(key, value);
   }
   const qs = out.toString();
   return qs ? "?" + qs : "";
+}
+
+function metricQuery(req, keys = METRIC_QUERY_KEYS) {
+  const entries = [...new URLSearchParams(rawQuery(req))];
+  if (keys === RESOURCE_QUERY_KEYS && entries.some(([k, v]) => k === "q" && isContactLike(v))) {
+    throw fail(400, "SENSITIVE_SEARCH_REQUIRES_POST", "Search by contact identifier with POST .../search; it must not appear in a URL");
+  }
+  return checkedQuery(entries, keys);
+}
+
+// POST .../search body -> the same allowlisted resource query (q required).
+function searchBodyQuery(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw fail(400, "INVALID_QUERY", "Invalid product query");
+  const entries = Object.entries(body).map(([k, v]) => [k, Number.isInteger(v) && k === "limit" ? String(v) : v]);
+  if (!entries.some(([k]) => k === "q")) throw fail(400, "INVALID_QUERY", "Invalid product query");
+  return checkedQuery(entries, RESOURCE_QUERY_KEYS);
 }
 
 function requireSession(req, _res, next) {
@@ -115,20 +165,22 @@ function claimsFor(req, now) {
 }
 
 function createForwarder({ config, readKey, transport, now, call }) {
-  return async function forward(req, res, picPath, allowsQuery) {
+  // override: { method, query } forwards a POST .../search as the equivalent GET read.
+  return async function forward(req, res, picPath, allowsQuery, override = null) {
     if (!config.enabled) throw fail(503, "PRODUCT_INTEGRATION_DISABLED", "Product integration is disabled");
     if (!config.configured || !transport) throw fail(503, "PRODUCT_INTEGRATION_NOT_CONFIGURED", "Product integration is not configured");
-    const query = allowsQuery ? metricQuery(req) : "";
+    const query = override ? override.query : allowsQuery ? metricQuery(req, allowsQuery instanceof Set ? allowsQuery : METRIC_QUERY_KEYS) : "";
     const key = await readKey();
     if (!key) throw fail(503, "PRODUCT_INTEGRATION_NOT_CONFIGURED", "Product integration is not configured");
     const target = PIC_BASE + picPath + query;
-    const body = req.method === "POST" ? Buffer.from(JSON.stringify(req.body && typeof req.body === "object" ? req.body : {})) : Buffer.alloc(0);
+    const method = override ? override.method : req.method;
+    const body = method === "POST" ? Buffer.from(JSON.stringify(req.body && typeof req.body === "object" ? req.body : {})) : Buffer.alloc(0);
     const timestamp = now();
-    const token = signHqDelegation({ claims: { ...claimsFor(req, timestamp), bnd: requestBinding(req.method, target, body) }, key, kid: config.kid, now: timestamp });
+    const token = signHqDelegation({ claims: { ...claimsFor(req, timestamp), bnd: requestBinding(method, target, body) }, key, kid: config.kid, now: timestamp });
     const headers = { Accept: "application/json", "X-CF-HQ-Delegation": token };
     if (req.correlationId) headers["X-Correlation-Id"] = req.correlationId;
     if (body.length) headers["Content-Type"] = "application/json";
-    const result = await call(transport, { method: req.method, path: target, body, headers });
+    const result = await call(transport, { method, path: target, body, headers });
     res.set("Cache-Control", "no-store");
     return res.status(result.status).json(result.json);
   };
@@ -136,7 +188,7 @@ function createForwarder({ config, readKey, transport, now, call }) {
 
 function match(routes, method, relative) {
   const hit = routes.find(([m, pattern]) => m === method && pattern.test(relative));
-  return hit ? { allowsQuery: hit[2] } : null;
+  return hit ? { allowsQuery: hit[2], recentMfa: Boolean(hit[3] && hit[3].recentMfa), searchBody: Boolean(hit[3] && hit[3].searchBody) } : null;
 }
 
 /**
@@ -154,6 +206,8 @@ function createProductGateway(deps = {}) {
   const readKey = deps.readKey || (config.configured ? createKeyReader(config.keyFile, { now }) : async () => null);
   const forward = createForwarder({ config, readKey, transport, now, call: deps.call || callPic });
 
+  const recentMfa = requireRecentMfa(MFA_WINDOW_MS);
+  const stepUp = (req, res) => new Promise((resolve, reject) => recentMfa(req, res, (err) => (err ? reject(err) : resolve())));
   const productsRouter = express.Router();
   productsRouter.use(authenticate, requireAuthSchema, requireSession);
   productsRouter.use(async (req, res, next) => {
@@ -161,6 +215,8 @@ function createProductGateway(deps = {}) {
       const relative = req.path;
       const hit = match(PRODUCT_ROUTES, req.method, relative);
       if (!hit) throw fail(404, "NOT_FOUND", "Route not found");
+      if (hit.recentMfa) await stepUp(req, res);
+      if (hit.searchBody) return await forward(req, res, "/products" + relative.replace(/\/search$/, ""), false, { method: "GET", query: searchBodyQuery(req.body) });
       return await forward(req, res, "/products" + (relative === "/" ? "" : relative), hit.allowsQuery);
     } catch (err) {
       return next(err);
@@ -184,4 +240,4 @@ function createProductGateway(deps = {}) {
   return { productsRouter, adminRouter, config };
 }
 
-module.exports = { createProductGateway, PRODUCT_ROUTES, INTEGRATION_ROUTES, GRANT_ROUTES, ADMIN_MOUNTS, PIC_BASE };
+module.exports = { createProductGateway, PRODUCT_ROUTES, INTEGRATION_ROUTES, GRANT_ROUTES, GRANT_QUERY_KEYS, ADMIN_MOUNTS, PIC_BASE };

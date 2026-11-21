@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "status": "APPROVED_SOURCE_CONFIGURATION_INSTALLED",
+  "environment": "staging",
+  "access_group": {
+    "display_name": "Karryam staging operations",
+    "organization": "karryam-staging",
+    "tenant": "karryam-staging-operations",
+    "origin": "Proposed NEW administrative scope; not asserted to be an existing corporate organization or business tenant"
+  },
+  "roles": [
+    {
+      "product_role": "karryam.customer-care.viewer",
+      "source_permissions": [
+        "taxi.independent_rides.read",
+        "support.cases.read"
+      ],
+      "hq_actions": [
+        "product.view",
+        "product.capabilities.read",
+        "resource.read"
+      ],
+      "automatic_staff_assignments": []
+    }
+  ],
+  "source_boundaries": [
+    {
+      "owner": "driver-taxi-service",
+      "resource_kind": "independent-rides",
+      "source_contract": "taxi.admin-resources.v1",
+      "capability": "taxi.independent_rides.read",
+      "market": "NG-LAG",
+      "zone": "NG-LAG-MAIN",
+      "rule": "Prepare each actual source binding, preserve known canonical dimensions, publish only a genuine signed owner authorization allocation; do not rewrite booking ownership."
+    },
+    {
+      "owner": "support-dispute-service",
+      "resource_kind": "cases",
+      "source_contract": "support.admin-resources.v1",
+      "capability": "support.cases.read",
+      "market": null,
+      "zone": null,
+      "rule": "Do not infer geography. Establish actual source-owned context before granting disclosure. Do not fabricate a case for the end-to-end demonstration."
+    }
+  ],
+  "excluded_permissions": [
+    "operation.submit",
+    "report.read",
+    "support.messages.read",
+    "support.evidence.read",
+    "finance.summary.read",
+    "campaigns.read"
+  ],
+  "governance": {
+    "signed_source_policy": "Required separately; this proposal is unsigned and not a grant",
+    "independent_keys": "Distinct governance, owner-context publication and Bridge reader credentials; no private source signing keys in HQ",
+    "real_staff_sessions": "Required; no invented MFA or approval identities",
+    "hq_onboarding": "Keep existing request/review/certify/approve rules",
+    "domain_mutations": false,
+    "wildcard_scopes": false,
+    "automatic_admin_tier_grants": false
+  },
+  "activation": false,
+  "current_evidence": "evidence/karryam-readonly-connection-2026-11-05.json",
+  "approval_note": "User explicitly approved 12 Taxi and 2 Support allocations, certificate enrollment and scoped read-only activation; this is not a staff grant or completed HQ onboarding."
+}

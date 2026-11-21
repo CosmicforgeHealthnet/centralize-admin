@@ -71,7 +71,8 @@ function parseSegment(segment) {
 }
 
 /**
- * Verifies a delegation token. `keys` maps kid -> { key: Buffer, notAfter? }.
+ * Verifies a delegation token. `keys` maps kid -> { key: Buffer, notAfter?, revoked? }.
+ * A revoked key ID (emergency revocation) is refused even before expiry.
  * `binding` must be the server-computed requestBinding of the actual request.
  * Replay (jti) protection is the caller's responsibility (durable store).
  */
@@ -86,6 +87,7 @@ function verifyDelegation(token, { keys, typ, issuer, audience, binding, now = D
   }
   const entry = keys && Object.prototype.hasOwnProperty.call(keys, header.kid) ? keys[header.kid] : null;
   if (!entry) throw new DelegationError("KEY_UNKNOWN");
+  if (entry.revoked === true) throw new DelegationError("KEY_REVOKED");
   if (entry.notAfter && Date.parse(entry.notAfter) <= now) throw new DelegationError("KEY_EXPIRED");
   const expected = createHmac("sha256", keyBytes(entry)).update(rawHeader + "." + rawPayload).digest();
   const supplied = Buffer.from(rawSignature, "base64url");

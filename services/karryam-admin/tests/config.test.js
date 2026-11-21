@@ -103,3 +103,12 @@ test("bridge configuration is all-or-nothing, private-IP pinned and never maps s
   assert.throws(() => loadConfig({ ...scoped, KARRYAM_ADMIN_ROLE_MAP: "{}" }), reason("KARRYAM_ADMIN_ROLE_MAP_INVALID"));
   assert.throws(() => loadConfig({ ...scoped, KARRYAM_ADMIN_ROLE_MAP: JSON.stringify({ "karryam.capabilities.viewer": "approved-read" }) }), reason("KARRYAM_BRIDGE_CA_FILE_REQUIRED"));
 });
+
+test("service-auth and delegation keys may never share key material", (t) => {
+  const m = F.material();
+  t.after(m.cleanup);
+  const notAfter = new Date(Date.now() + 86400000).toISOString();
+  const reused = m.write("delegation-reused.json", JSON.stringify({ d1: { key_b64url: m.hqKey.toString("base64url"), not_after: notAfter } }));
+  assert.throws(() => loadConfig(F.enabledEnv(m, { KARRYAM_ADMIN_DELEGATION_KEYS_FILE: reused })), reason("KEY_REUSE_ACROSS_BOUNDARIES"));
+  assert.equal(loadConfig(F.enabledEnv(m)).enabled, true);
+});

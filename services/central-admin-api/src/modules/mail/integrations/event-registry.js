@@ -41,4 +41,41 @@ function karryamMapping(nativeEventType) {
   return entry;
 }
 
-module.exports = { KARRYAM_NATIVE_EVENTS, KARRYAM_REFUSED_EVENTS, KARRYAM_SERVICE_ATTRIBUTE, karryamMapping };
+// ── Product registrations (contract v1) ──────────────────────────────────
+// Managed products registered to deliver contract-v1 events to HQ Mail and
+// the event types an integration for that product may be allowed. A
+// registered product can never be granted (or deliver) an event type outside
+// its list; products not listed here keep the generic per-classification
+// rules in integration.service.js. This is a product registration only: it
+// creates no integration, no organization and no mailbox. A mail
+// administrator still creates and activates the integration (owner approval
+// plus MFA step-up), exactly as for Karryam.
+//
+// ops.alert@1 notifications for a product go to staff holding the Mail
+// administrator grant (mail / admin) or that product's integration grant
+// (mail / integration:<product>), and nobody else.
+const PRODUCT_EVENT_REGISTRATIONS = Object.freeze({
+  karryam: Object.freeze(["mail.delivery_status", "marketing.trigger", "ops.alert"]),
+  // CF Meet (docs/product-admin/cfmeet-admin-design.md section 7): operational
+  // alerts only. CF Meet keeps its own transactional mail and has no
+  // approved marketing triggers.
+  cfmeet: Object.freeze(["ops.alert"]),
+});
+
+function registeredProductEventTypes(product) {
+  return Object.prototype.hasOwnProperty.call(PRODUCT_EVENT_REGISTRATIONS, product) ? PRODUCT_EVENT_REGISTRATIONS[product] : null;
+}
+
+// True when `product` may use `eventType`: always for unregistered products
+// (generic rules apply), and only for listed types for registered ones.
+function productAllowsEventType(product, eventType) {
+  const registered = registeredProductEventTypes(product);
+  return !registered || registered.includes(eventType);
+}
+
+// Section grants (module "mail") whose holders receive a product's ops alerts.
+function opsAlertRecipientSections(product) {
+  return ["admin", `integration:${product}`];
+}
+
+module.exports = { KARRYAM_NATIVE_EVENTS, KARRYAM_REFUSED_EVENTS, KARRYAM_SERVICE_ATTRIBUTE, karryamMapping, PRODUCT_EVENT_REGISTRATIONS, registeredProductEventTypes, productAllowsEventType, opsAlertRecipientSections };

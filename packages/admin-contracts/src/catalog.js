@@ -91,6 +91,27 @@ function catalogErrors(manifest) {
       errors.push("METRIC_OBSERVATION_SCHEMA_NOT_STANDARD:" + fam.family);
     }
   }
+  errors.push(...prohibitedFieldErrors(datasets, families));
+  return errors;
+}
+
+// Field names that never belong in a generic HQ dataset, for any product
+// (Section 11.4): identity numbers, one-time codes, credentials, payment
+// secrets, raw identity documents, raw location tracks and medical records.
+// The HQ inbox carries the same rule as a database constraint.
+const PROHIBITED_FIELD = /^(nin|bvn|ssn|otp|one_time_code|password|passcode|pin|cvv|cvc|card_number|pan|iban|account_number|bank_account|routing_number|secret|api_key|access_token|refresh_token|private_key|passport_number|identity_document|id_document_image|selfie|gps_trail|location_trail|location_track|raw_location|latitude|longitude|diagnosis|medical_record|health_record|prescription)$/;
+
+function schemaPropertyNames(schema, out = [], depth = 0) {
+  if (!schema || typeof schema !== "object" || depth > 8) return out;
+  for (const [name, sub] of Object.entries(schema.properties || {})) { out.push(name); schemaPropertyNames(sub, out, depth + 1); }
+  if (schema.items) schemaPropertyNames(schema.items, out, depth + 1);
+  return out;
+}
+
+function prohibitedFieldErrors(datasets, families) {
+  const errors = [];
+  for (const ds of datasets) for (const f of ds.allowed_fields || []) if (PROHIBITED_FIELD.test(String(f.name).toLowerCase())) errors.push("PROHIBITED_FIELD:" + ds.dataset_id + "." + f.name);
+  for (const fam of families) for (const name of schemaPropertyNames(fam.payload_schema)) if (PROHIBITED_FIELD.test(String(name).toLowerCase())) errors.push("PROHIBITED_FIELD:" + fam.family + "." + name);
   return errors;
 }
 
@@ -123,4 +144,4 @@ function standardMetricObservationFamily({ family, datasetId, classification = "
   };
 }
 
-module.exports = { standardMetricObservationFamily, datasetSchemaDigest, withSchemaDigest, catalogDigest, catalogErrors, findDataset, findMetric };
+module.exports = { PROHIBITED_FIELD, prohibitedFieldErrors, standardMetricObservationFamily, datasetSchemaDigest, withSchemaDigest, catalogDigest, catalogErrors, findDataset, findMetric };

@@ -37,15 +37,17 @@ test("versioned Social Operations API is mounted and auth-protected", async () =
 
   const connections = await fetch(`${baseUrl}/api/v1/marketing/social/connections`);
   assert.equal(connections.status, 401);
+  const providers = await fetch(`${baseUrl}/api/v1/marketing/social/connections/providers`);
+  assert.equal(providers.status, 401);
 
   const legacy = await fetch(`${baseUrl}/api/marketing/social/connections`);
   assert.notEqual(legacy.status, 200);
 });
 
 test("all Section 8 route definitions are present on the new base path", () => {
-  assert.equal(SECTION8_ROUTE_DEFINITIONS.length, 71);
+  assert.equal(SECTION8_ROUTE_DEFINITIONS.length, 72);
   assert.equal(SECTION8_PUBLIC_ROUTES.length, 3);
-  assert.equal(SECTION8_AUTH_ROUTES.length, 68);
+  assert.equal(SECTION8_AUTH_ROUTES.length, 69);
 
   const routeKeys = new Set(
     SECTION8_ROUTE_DEFINITIONS.map((route) => `${route.method.toUpperCase()} ${route.path}`),
@@ -53,6 +55,7 @@ test("all Section 8 route definitions are present on the new base path", () => {
 
   for (const expected of [
     "GET /connections",
+    "GET /connections/providers",
     "POST /connections/:provider/oauth/start",
     "GET /oauth/:provider/callback",
     "POST /posts/:id/submit",

@@ -91,13 +91,25 @@ test("product access needs explicit grants: no SUPER bypass, expiry, revocation,
     const noMfa = await h.call("staff-viewer", "GET", "/products/" + P.PRODUCT_ID + "/capabilities", undefined, { mfa: false });
     assert.equal(noMfa.json.error.reason, "RECENT_MFA_REQUIRED");
 
-    // Disabled writes cannot execute and are never forwarded.
+    // Malformed commands are invalid (400); a well-formed command for a
+    // disabled capability, or for a product whose operations are not enabled,
+    // is refused (403). None of them is ever forwarded (Section 10.3).
     const before = P.state.requests;
     for (const body of [{ capability_id: "synthetic.order.cancel", params: {} }, { capability_id: "wallet.refund" }, { command: "DROP TABLE" }]) {
       const op = await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", body);
-      assert.equal(op.status, 403);
-      assert.equal(op.json.error.code, "DISABLED");
+      assert.equal(op.status, 400);
+      assert.equal(op.json.error.reason, "COMMAND_INVALID");
     }
+    const typed = (capability_id) => ({ command_id: "4c1e3c2a-9d7b-4f1e-8a2b-3c4d5e6f7a8b", idempotency_key: "idem-0123456789abcdef", capability_id, target: { type: "order", id: "order-1", expected_version: 1 },
+      params: {}, reason_code: "CUSTOMER_REQUEST", case_reference: null, scope: { market: ["NG"], organization: ["cosmicforge"], tenant: ["tenant-a"] } });
+    const disabled = await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", typed("synthetic.order.cancel"));
+    assert.equal(disabled.status, 403);
+    assert.deepEqual([disabled.json.error.code, disabled.json.error.reason], ["DISABLED", "CAPABILITY_DISABLED"]);
+    assert.equal((await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", typed("synthetic.unknown"))).status, 404);
+    assert.equal((await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", typed("synthetic.metrics.read"))).json.error.reason, "NOT_A_COMMAND");
+    const outside = typed("synthetic.order.cancel");
+    outside.scope.tenant = ["tenant-b"];
+    assert.equal((await h.call("staff-viewer", "POST", "/products/" + P.PRODUCT_ID + "/operations", outside)).json.error.reason, "SCOPE_DENIED");
     assert.equal(P.state.requests, before);
 
     // Denials are audited.
@@ -149,4 +161,53 @@ test("a disabled core refuses every API call", async () => {
     assert.equal(r.status, 503);
     assert.equal(r.json.error.reason, "PRODUCT_INTEGRATION_DISABLED");
   } finally { server.close(); }
+});
+
+test("REGRESSION: an explicit DENY cannot be revoked by the staff member it restricts", { skip }, async () => {
+  const h = await startHarness();
+  try {
+    await h.registerAndEnable();
+    await h.bootstrapPlatformGrant("staff-viewer", ["integration.grants.manage"]);
+    await h.grantViewer();
+    const denyId = await h.grantViewer("staff-viewer", { effect: "DENY", role: null, actions: ["metric.read"], scope: {} });
+    const metric = "/products/" + h.product.PRODUCT_ID + "/metrics/synthetic.completed_orders?market=NG&tenant=tenant-a";
+    assert.equal((await h.call("staff-viewer", "GET", metric)).status, 403);
+    const self = await h.call("staff-viewer", "POST", "/admin/product-integration-grants/" + denyId + "/revoke", { reason_code: "NOT_NEEDED" });
+    assert.equal(self.status, 403);
+    assert.equal(self.json.error.reason, "SELF_REVOKE_DENIED");
+    assert.equal((await h.call("staff-viewer", "GET", metric)).status, 403, "the DENY still wins");
+    // Database backstop for new revocations.
+    await assert.rejects(h.pool.query("UPDATE hq_integration.hq_product_admin_grants SET revoked_at = now(), revoked_by = staff_id, revocation_reason = 'X' WHERE id = $1", [denyId]), /no_self_revoke/);
+    // Another administrator can revoke it.
+    const other = await h.call("staff-requester", "POST", "/admin/product-integration-grants/" + denyId + "/revoke", { reason_code: "REVIEWED" });
+    assert.equal(other.status, 200);
+  } finally { await h.close(); }
+});
+
+
+test("replay storage outage denies a valid delegation before any application query", async () => {
+  const I = require("../../../packages/identity-and-permissions");
+  const key = require("node:crypto").randomBytes(32);
+  const now = Date.now(), path = "/internal/pic/v1/products";
+  let queries = 0;
+  const app = createApp({
+    pool: { query: async () => { queries++; throw new Error("must not reach application storage"); } },
+    endpoints: new Map(), trustStore: {}, environment: "test",
+    hqDelegationKeys: { "outage-test": { key } }, now: () => now,
+    nonceStore: { claim: async () => { throw new Error("private storage failure detail"); } },
+  });
+  const token = I.signDelegation({ iss: "central-admin-api", aud: "product-integration-core", sub: "staff-requester", sid: "session-outage", auth_time: Math.floor(now / 1000) - 20, mfa_at: Math.floor(now / 1000) - 10, bnd: I.requestBinding("GET", path, Buffer.alloc(0)) }, { key, kid: "outage-test", typ: I.TYPES.HQ, now });
+  const server = http.createServer(app); server.listen(0, "127.0.0.1"); await once(server, "listening");
+  try {
+    const response = await new Promise((resolve, reject) => {
+      const req = http.get({ host: "127.0.0.1", port: server.address().port, path, headers: { "X-CF-HQ-Delegation": token } }, (res) => {
+        let body = ""; res.on("data", (part) => { body += part; });
+        res.on("end", () => resolve({ status: res.statusCode, body: JSON.parse(body) }));
+      }); req.on("error", reject);
+    });
+    assert.equal(response.status, 503);
+    assert.deepEqual(response.body.error, { code: "UNAVAILABLE", reason: "REPLAY_STORE_UNAVAILABLE" });
+    assert.equal(queries, 0, "authentication must fail closed before product or onboarding queries");
+    assert.doesNotMatch(JSON.stringify(response.body), /private storage failure/);
+  } finally { server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); }
 });

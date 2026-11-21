@@ -67,28 +67,14 @@ test("legacy createSocialSchedule preserves requested time but cannot store Sche
   assert.notEqual(row.status, "Scheduled");
 });
 
-test("legacy account write does not persist password-style provider credentials", async () => {
+test("legacy password account creation is rejected without storing a connected account", async () => {
   resetPolicyEnv();
   const username = `legacy-freeze-${Date.now()}`;
-  const result = await marketingService.createSocialAccount({
-    platform: "Twitter",
-    username,
-    password: "placeholder-credential-value",
-    saveCredentials: true,
-  });
-  createdAccountIds.push(result.id);
-
-  const row = await prisma.marketing_social_accounts.findUnique({
-    where: { id: result.id },
-  });
-  assert.equal(row.encryptedPassword, null);
-  assert.equal(row.credentialsSaved, false);
-
-  const listed = await marketingService.listSocialAccounts();
-  const returned = listed.data.find((account) => account.id === result.id);
-  assert.ok(returned);
-  assert.equal(Object.hasOwn(returned, "encryptedPassword"), false);
-  assert.equal(Object.hasOwn(returned, "credentialsSaved"), false);
+  await assert.rejects(marketingService.createSocialAccount({
+    platform: "Twitter", username, password: "placeholder-credential-value", saveCredentials: true,
+  }), error => error.statusCode === 409 && /Social Operations/.test(error.message));
+  const count = await prisma.marketing_social_accounts.count({ where: { username } });
+  assert.equal(count, 0);
 });
 
 test("explicit legacy write deprecation blocks unsafe legacy writes without provider calls", async () => {

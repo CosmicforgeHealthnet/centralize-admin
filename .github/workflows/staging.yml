@@ -418,12 +418,14 @@ jobs:
               printf '    volumes: ["admin-server-staging-mail-store:/var/lib/cosmicforge-mail"]\nvolumes:\n  admin-server-staging-mail-store:\n    external: true\n' >> "$override"
             fi
           }
+          # Product Admin gateway: read-only PIC socket mount written by
+          # product-admin-staging-ops.yml attach-gateway. Absent = unchanged.
+          gateway="docker-compose.product-admin-gateway.yml"
           deploy_app() {
-            if [ -f "$mounts" ]; then
-              docker compose -f docker-compose.yml -f "$override" -f "$mounts" up -d --no-deps --no-build --pull never --force-recreate app
-            else
-              docker compose -f docker-compose.yml -f "$override" up -d --no-deps --no-build --pull never --force-recreate app
-            fi
+            set -- -f docker-compose.yml -f "$override"
+            if [ -f "$mounts" ]; then set -- "$@" -f "$mounts"; fi
+            if [ -f "$gateway" ]; then set -- "$@" -f "$gateway"; fi
+            docker compose "$@" up -d --no-deps --no-build --pull never --force-recreate app
           }
           rollback() {
             echo "Staging release failed verification: restoring previous image."

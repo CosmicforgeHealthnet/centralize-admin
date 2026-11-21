@@ -1,0 +1,38 @@
+{
+ "contract": "cfmeet-admin-bridge",
+ "contract_version": "1.2.0",
+ "contract_status": "PINNED",
+ "source_repository": "CosmicforgeHealthnet/cfmeet",
+ "source_commit": "568328cca32749e207a1fe0be7f664da6380202c",
+ "reviewed_at": "2026-11-20",
+ "bridge_base_path": "/internal/cfmeet-admin/v1",
+ "hq_principal": "cosmicforge-hq-cfmeet-admin",
+ "product": "cfmeet",
+ "authentication": [
+  "private transport",
+  "TLS 1.3 mutual TLS with enrolled HQ client certificate fingerprint",
+  "HMAC v2 service signature (X-Service-Signature-Version: 2, X-HQ-Key-ID)",
+  "Ed25519 staff assertion bound to request_digest; approval claim on TWO_PERSON capabilities"
+ ],
+ "artifacts": {
+  "services/admin-bridge/docs/contract/openapi.json": "7c50f191093e09bedaa82d5d0d230d424e74836e7453d150793e7f616e0207c3",
+  "services/admin-bridge/docs/contract/CFMEET_ADMIN_CAPABILITY_MATRIX.json": "3e7734e0e459a9eb2a17cdaec4e755b24e7df7ea60954db21c93c3f799e4ee63",
+  "services/admin-bridge/docs/contract/event-adapters.v1.json": "d3098ab3c4213f6b95d59099a8725b7821a9c282316c4b1931d2388e0c6622ff",
+  "services/admin-bridge/docs/contract/signing-profile.md": "3162a4f3d4abb6fb3b3e2de1e6484b032f3d8e266ce47c89966f51c0ca442d92",
+  "services/admin-bridge/docs/contract/SHA256SUMS": "d92bdcece8a300061cd0fbc58923d44836d211765b5915d2f993b2b1a0a0321d"
+ },
+ "openapi": {
+  "openapi": "3.1.0",
+  "info_version": "1.2.0",
+  "path_count": 223
+ },
+ "capability_matrix": {
+  "total": 246,
+  "by_state": {
+   "READ_ONLY": 12,
+   "BLOCKED_DEPENDENCY": 120,
+   "DISABLED": 114
+  }
+ },
+ "authorization_rule": "Source-matrix AVAILABLE is artifact state, never runtime authorization: HQ grants, recent MFA, operator enablement, certification, independent approval and the Bridge's signed access policy all apply."
+}

@@ -1,7 +1,7 @@
 # Product Admin infrastructure templates
 
 Configuration **templates** for the Product Integration Core (PIC) and Product
-Admins such as Karryam Admin. Nothing here is deployed by any workflow, and no
+Admins such as Karryam Admin and CF Meet Admin. Nothing here is deployed by any workflow, and no
 value here is a real credential. Every `<...>` value is an operator decision.
 
 | File | Used by | Purpose |
@@ -10,6 +10,7 @@ value here is a real credential. Every `<...>` value is an operator decision.
 | `trusted-signers.example.json` | PIC `PIC_TRUSTED_SIGNERS_FILE` | Enrolled manifest signer public keys |
 | `hq-delegation-keys.example.json` | PIC `PIC_HQ_DELEGATION_KEYS_FILE` and the Central Admin API | Keys for `cf-hq-delegation+jwt` between the API and PIC |
 | `karryam-admin-keys.example.json` | Karryam Admin key files | PIC service and delegation keys as seen by Karryam Admin |
+| `cfmeet-admin-keys.example.json` | CF Meet Admin key files | PIC service and delegation keys as seen by CF Meet Admin (endpoint `cfmeet-staging`, signer kid `cfmeet-staging-manifest-2026-11`) |
 | `postgres-roles.example.sql` | DBA | Separate migration and runtime roles |
 | `docker-compose.product-admin.example.yml` | reference only | Private, non-root, read-only, no-published-port layout on one VPS |
 | `nginx-internal-deny.example.conf` | public ingress | Guarantees `/internal/*` (protocol, PIC and bridge paths) is never public |
@@ -38,7 +39,8 @@ the protocol, contracts, registry rows and business logic do not change.
 ## Activation order (operator)
 
 1. Provision database roles (`postgres-roles.example.sql`), run
-   `npm run migrate` for PIC (and Karryam Admin in its own database).
+   `npm run migrate` for PIC (and Karryam Admin and CF Meet Admin, each in its
+   own database).
 2. Bootstrap the first platform grants with
    `scripts/bootstrap-platform-grant.js` (two or more distinct people, so
    requester, reviewer and approver can differ).

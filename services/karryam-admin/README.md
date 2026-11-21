@@ -1,6 +1,6 @@
 # Karryam Admin — independent Product Admin service
 
-Karryam Admin is the independent administrative runtime for the Karryam product. It implements the **Universal Product Admin Protocol v1** for Headquarters (HQ) and owns Karryam's private, read-only connection to the Karryam Backoffice Bridge. It is **disabled by default** and has **no executable domain commands**.
+Karryam Admin is the independent administrative runtime for the Karryam product. It implements the **Universal Product Admin Protocol v1** for Headquarters (HQ) and owns Karryam's private, read-only connection to the Karryam Backoffice Bridge. It is **disabled by default**; no source command is executable unless an operator explicitly enables an R1/R2 command after the source policy approves it.
 
 ```text
 HQ Product Integration Core ──(cf-svc-v1 + delegation, private transport)──▶ Karryam Admin
@@ -26,15 +26,36 @@ HQ never calls the bridge or any Karryam operational database. Karryam Admin nev
 | `GET /health/live` (also `/internal/product-admin/v1/health/live`) | 200 process liveness only |
 | `GET /health/ready` | 200 `CONFIGURED` when the database answers, else 503; always `upstream_certified: false`; 503 `DISABLED` when disabled |
 | `GET /manifest` | Signed manifest, or 503 `MANIFEST_SIGNER_NOT_PROVISIONED` |
-| `GET /capabilities` | Catalog + pinned bridge contract; `bridge_live` is `BLOCKED_DEPENDENCY` until bridge trust is enrolled; with bridge enabled and a `product.capabilities.read` delegation, the live bridge discovery result (or `BLOCKED_POLICY` / `UNAVAILABLE`) |
-| `GET /datasets` | `karryam.operations_daily`, `karryam.finance_daily` (both `NOT_CERTIFIED`) |
-| `GET /datasets/{id}/snapshots` | 404 unknown, else 503 `SOURCE_NOT_CERTIFIED` |
-| `GET /events`, `POST /events/ack` | strict params/body validation, then 503 `EVENT_SOURCE_NOT_CERTIFIED` (never an empty success) |
-| `GET /sync/status` | `event_source: NOT_CERTIFIED`, coverage `NONE`, validated against `sync-status.v1` |
-| `POST /operations` | Requires an `operation.submit` delegation; durably recorded as `REJECTED` (`CAPABILITY_DISABLED`), idempotent replay, 409 on key/ID reuse. **Nothing executes.** |
-| `GET /operations/{id}`, `GET /audit/{id}` | Stored rejection (`executed: false`) and sanitized audit trail |
+| `GET /capabilities` | Catalog, pinned Bridge contract and registry summary, `modules`, `reports`, the 435-entry `capability_map`; `bridge_live` discovery with a `product.capabilities.read` delegation |
+| `GET /datasets` | `karryam.support_operations`, `karryam.verification_pipeline`, `karryam.marketing_campaigns`, `karryam.sync_health` (`NOT_CERTIFIED` unless listed in `KARRYAM_ADMIN_CERTIFIED_DATASETS`) |
+| `GET /datasets/{id}/snapshots` | 404 unknown; 503 `DATASET_NOT_CERTIFIED` / `EVENT_SOURCE_NOT_CERTIFIED`; else a consistent snapshot of the latest observations with `through_sequence` |
+| `GET /events`, `POST /events/ack` | Derived outbox pages (contiguous sequences) and monotonic HQ ACKs; 503 while the dataset is uncertified or the pipeline is off (never an empty success) |
+| `GET /sync/status` | `CERTIFIED` only with a running pipeline and a certified dataset; partitions and heads from the outbox |
+| `POST /operations` | Governed pipeline: disabled capabilities durably `REJECTED`; enabled R1/R2 commands recorded, dispatched once, settled by owner evidence (`UNKNOWN_OUTCOME` otherwise); local approval propose/decide |
+| `GET /operations/{id}`, `GET /audit/{id}` | Requester-only status with authoritative readback of unsettled operations; sanitized audit trail |
+| `GET /resources/...`, `GET /reports/...` (1.1) | Scoped module reads and reports through the pinned Bridge connector or local projections (see below) |
 
-Domain reads (operations, dispatch, taxi, fleet, customers, support, verification, finance) are `BLOCKED_DEPENDENCY` (`SECTION_6_DOMAIN_MODULE_NOT_IMPLEMENTED`). Commands (wallet refund, provider verification decision, support case update, pricing update) are `DISABLED` (`COMMAND_EXECUTION_NOT_CERTIFIED`, `SECTION_11_APPROVAL_NOT_ACTIVE`).
+### Sections 6–8 (this service)
+
+- **Modules (Section 6).** 17 modules cover all 435 pinned Bridge capabilities
+  (`src/modules/catalog.js`). Reads: Protocol 1.1 `GET /resources/{module read
+  capability}/{Bridge collection}[/{id}]` — scoped, bounded (≤100, ≤31 days),
+  purpose-bound, sealed continuation tokens, audited, sensitive-access logged.
+  Reports: `GET /reports/karryam.report.<id>` (14 reports, `src/modules/reports.js`).
+  Commands: `POST /operations` governed pipeline (`src/operations/service.js`);
+  all 58 source commands are DISABLED unless listed in
+  `KARRYAM_ADMIN_ENABLED_COMMANDS` (R1/R2 only).
+- **Connector (Section 7).** `src/bridge/client` + pinned registry
+  `src/bridge/contracts/karrygo-capabilities.v1.json` (regenerate and review with
+  `KARRYGO_CHECKOUT=... node scripts/pin-bridge-contract.js [--write]`; CI fails
+  on drift).
+- **Pipeline (Section 8).** Stage A worker `node src/worker/index.js` (Bridge
+  feed → inbox → projections → derived outbox, ACK after commit); Stage B is
+  served by `/events`, `/events/ack`, `/sync/status`, `/datasets/{id}/snapshots`
+  from the derived outbox. Operator tools: `node scripts/pipeline-ops.js
+  status | reconcile [--full-backfill] | release-hold --partition .. --resolution .. --operator ..`.
+
+Evidence and blockers: [docs/product-admin/sections-6-8-implementation-report.md](../../docs/product-admin/sections-6-8-implementation-report.md).
 
 ## Run, test, migrate
 
