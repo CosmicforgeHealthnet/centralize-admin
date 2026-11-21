@@ -1600,7 +1600,7 @@
   "version": "1.0",
   "owner": "calling-service",
   "method": "POST",
-  "bridge_endpoint": "/calling/webhook-keys/{key_id}/reseal",
+  "bridge_endpoint": "/calling/webhook-keys/reseal",
   "source_endpoint": null,
   "state": "AVAILABLE",
   "permission": "calling.webhook-keys.reseal",

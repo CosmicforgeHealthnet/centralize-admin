@@ -232,7 +232,8 @@ two("calling.spend.update", "/calling/spend/{account_id}/caps");
 two("calling.routing.update", "/calling/routing/{route_id}");
 two("calling.features.update", "/calling/enterprise-features/{feature_id}");
 two("calling.holds.create", "/calling/holds");
-two("calling.webhook-keys.reseal", "/calling/webhook-keys/{key_id}/reseal");
+// Reseals all of the tenant's webhook keys (the owner cannot reseal one key), so the target is the tenant.
+two("calling.webhook-keys.reseal", "/calling/webhook-keys/reseal");
 
 // communications
 list("communications.profiles.list", "/communications/profiles", { shape: "SCOPED_SEARCH", risk: "R2", privacy: "PERSONAL_MINIMIZED" });

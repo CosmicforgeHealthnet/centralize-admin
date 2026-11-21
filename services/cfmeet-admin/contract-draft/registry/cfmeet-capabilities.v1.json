@@ -3,8 +3,8 @@
  "contract_version": "1.0.0",
  "bridge_base_path": "/internal/cfmeet-admin/v1",
  "source_artifacts": {
-  "openapi_sha256": "6c50350c8f5cecd6f5b6dbe6ab5187063be7ca341e398b96e7f21922d4c4f320",
-  "capability_matrix_sha256": "b049920552cfc095a0af1f42229451f4edf01f8b6729e29818d32146e56d49ec"
+  "openapi_sha256": "6d095d8fb638bc01f084a75df3e3b8659b39ac8029546852ffbd4687f7304a51",
+  "capability_matrix_sha256": "003a331acebc36e36c0137eccfd1cf3f810097c021dc30cdd4254d1cde48a0a9"
  },
  "totals": {
   "capabilities": 200,
@@ -3297,15 +3297,9 @@
    "kind": "COMMAND",
    "owner": "calling-service",
    "method": "POST",
-   "path": "/calling/webhook-keys/{key_id}/reseal",
+   "path": "/calling/webhook-keys/reseal",
    "source_endpoint": null,
-   "path_params": [
-    {
-     "name": "key_id",
-     "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$",
-     "max_length": 128
-    }
-   ],
+   "path_params": [],
    "query_shape": "SCOPED",
    "query_required": [
     "market",

@@ -10382,21 +10382,11 @@
     }
    }
   },
-  "/internal/cfmeet-admin/v1/calling/webhook-keys/{key_id}/reseal": {
+  "/internal/cfmeet-admin/v1/calling/webhook-keys/reseal": {
    "post": {
     "operationId": "calling.webhook-keys.reseal",
     "summary": "calling.webhook-keys.reseal",
     "parameters": [
-     {
-      "name": "key_id",
-      "in": "path",
-      "required": true,
-      "schema": {
-       "type": "string",
-       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$",
-       "maxLength": 128
-      }
-     },
      {
       "name": "market",
       "in": "query",
