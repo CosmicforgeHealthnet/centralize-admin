@@ -243,6 +243,7 @@ until CF Meet confirms each one:
 | `cfmeet.identity.key.issue`, `cfmeet.identity.key.rotate` | Code-complete end to end (the reveal-once screen is in cfmeet #150). Waiting for cfmeet #149 (Platform Access) and #150 (Developer Platform) to be merged **and released to production**, confirmed explicitly by CF Meet |
 | `cfmeet.organizations.organization.export` | A Notification Service template for the download email (the owner refuses with a definite 409 until then) |
 | `cfmeet.messaging.export.request` | The recipient's claim screen |
+| `cfmeet.accounts.user.export` | The Meeting Service's download page for the user (the email link is DOWNLOAD_LINK_EMAIL) |
 
 Secrets and exports never pass through HQ. The owner delivers them to the
 rightful recipient (claim link or reveal-once), and HQ receives a reference
