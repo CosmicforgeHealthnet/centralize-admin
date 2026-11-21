@@ -306,6 +306,30 @@ test("no pinned Bridge schema uses a key HQ's read path treats as personal data"
   assert.deepEqual(hits, [], "a published field would be refused by HQ's read path (SENSITIVE_FIELD_SUPPRESSED)");
 });
 
+// Owner decision (2026-11-21): secrets (invitation tokens, partner API keys) and
+// personal-data exports never transit HQ. CF Meet's owners deliver them to the
+// rightful recipient (single-use claim link or reveal-once); HQ receives a
+// reference only (delivery_ref, recipient_masked, key_id/public_id/last4,
+// export_id/state). No pinned schema may carry a field that holds a secret, a
+// link to one, or a sealed blob.
+test("no pinned Bridge schema carries a secret, a delivery link or a sealed blob (references only)", () => {
+  const SECRET_BEARING = /(secret|token|password|passphrase|private_key|key_material|ciphertext|sealed|(^|_)url$|(^|_)uri$|signed_url|presigned|claim_link|download_link)/i;
+  const components = require("../src/bridge/contracts/cfmeet-bridge-schemas.v1.json").components.schemas;
+  const hits = [];
+  const walk = (schema, at, seen = new Set()) => {
+    if (!schema || typeof schema !== "object" || seen.has(schema)) return;
+    seen.add(schema);
+    for (const [k, v] of Object.entries(schema.properties || {})) { if (SECRET_BEARING.test(k)) hits.push(at + "." + k); walk(v, at + "." + k, seen); }
+    for (const key of ["items", "additionalProperties", "not", "if", "then", "else", "contains", "propertyNames"]) if (schema[key] && typeof schema[key] === "object") walk(schema[key], at, seen);
+    for (const key of ["allOf", "anyOf", "oneOf"]) (schema[key] || []).forEach((s) => walk(s, at, seen));
+  };
+  for (const [name, schema] of Object.entries(components)) walk(schema, name);
+  assert.deepEqual(hits, [], "secrets and exports are owner-delivered; HQ results carry references only");
+  // The pattern really catches the shapes it guards against.
+  for (const k of ["client_secret", "invitation_token", "claim_url", "download_url", "ciphertext", "sealed", "api_key_secret"]) assert.ok(SECRET_BEARING.test(k), k);
+  for (const k of ["delivery_ref", "recipient_masked", "key_id", "public_id", "last4", "export_id", "sha256", "last_cosigned_size", "endpoint_host"]) assert.ok(!SECRET_BEARING.test(k), k);
+});
+
 test("contact-search capabilities (x-contact-search) are search reads; HQ clients send their q in a POST body", () => {
   const R = require("../src/bridge/contracts/registry");
   const flagged = R.CAPABILITIES.filter((c) => c.contact_search);
