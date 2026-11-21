@@ -240,7 +240,7 @@ until CF Meet confirms each one:
 
 | Command | Waiting for |
 |---|---|
-| `cfmeet.identity.key.issue`, `cfmeet.identity.key.rotate` | The CF Meet console's reveal-once screen (partners cannot see the key yet) |
+| `cfmeet.identity.key.issue`, `cfmeet.identity.key.rotate` | Code-complete end to end (the reveal-once screen is in cfmeet #150). Waiting for cfmeet #149 (Platform Access) and #150 (Developer Platform) to be merged **and released to production**, confirmed explicitly by CF Meet |
 | `cfmeet.organizations.organization.export` | A Notification Service template for the download email (the owner refuses with a definite 409 until then) |
 | `cfmeet.messaging.export.request` | The recipient's claim screen |
 
