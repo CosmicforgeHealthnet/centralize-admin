@@ -101,7 +101,9 @@ function createHandlers({ config, catalog, manifest, bridgeClient, operations, o
       return {
         module: m.id, title: m.title, read_capability_id: m.read, rules: m.rules,
         inventory_capabilities: inventory.length,
-        collections: collections.map((c, i) => ({ collection_id: c.id, detail: c.path_params.length > 0, exposure_state: exposures[i], privacy: c.privacy, risk: c.risk })),
+        // query_shape tells HQ which query keys a collection takes (search q, time window,
+        // paging) straight from the pin, so the web app needs no copy of the contract.
+        collections: collections.map((c, i) => ({ collection_id: c.id, detail: c.path_params.length > 0, query_shape: c.query_shape, exposure_state: exposures[i], privacy: c.privacy, risk: c.risk })),
         commands: inventory.filter((c) => c.kind === "COMMAND" || c.kind === "RETRIEVAL").map((c) => "cfmeet." + c.id),
       };
     }), governanceModuleSummary(Object.keys(LOCAL))];

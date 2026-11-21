@@ -347,6 +347,11 @@ test("capability discovery lists the governance module with its collections and 
   assert.equal(mod.read_capability_id, READ);
   assert.deepEqual(mod.collections.map((c) => [c.collection_id, c.detail]), [["approvals-pending", false], ["approvals-mine", false], ["approvals", true]]);
   assert.deepEqual(mod.commands, ["cfmeet.governance.approval.propose", "cfmeet.governance.approval.decide", "cfmeet.governance.approval.revoke"]);
+  // Bridge collections carry their pinned query shape, so HQ needs no contract copy.
+  const R = require("../src/bridge/contracts/registry");
+  for (const m of caps.modules.filter((x) => x.module !== "governance")) {
+    for (const c of m.collections) assert.equal(c.query_shape, R.capability(c.collection_id).query_shape, c.collection_id);
+  }
   // Other module reads still go to the Bridge path (unenrolled here).
   const other = await h.get("cfmeet.accounts.read/accounts.users.list", h.q({ zone: SCOPE.zone, tenant: SCOPE.tenant }));
   assert.equal(other.json.error.code, "UNAVAILABLE");
