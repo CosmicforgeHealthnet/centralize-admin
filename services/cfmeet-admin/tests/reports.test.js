@@ -117,3 +117,12 @@ test("summary and verification collections read through the same pinned contract
   assert.ok(cases.json.result.data.items.every((c) => c.product === "cfmeet" && Array.isArray(c.evidence)));
   assert.ok(cases.json.result.continuation, "the Bridge cursor becomes a sealed continuation");
 });
+
+test("local incident and safety reports list exactly the owners the pinned event adapters name", () => {
+  const { REPORTS } = require("../src/modules/reports");
+  const adapters = require("../src/bridge/contracts/cfmeet-event-adapters.v1.json").adapters;
+  const owners = (entity) => [...new Set(adapters.filter((a) => a.entity_type === entity).map((a) => a.source_service))].sort();
+  const sources = (id) => REPORTS.find((r) => r.id === id).sources.map((s) => s.source_service).sort();
+  assert.deepEqual(sources("incidents"), owners("incident"));
+  assert.deepEqual(sources("safety_queue"), owners("abuse_report"));
+});

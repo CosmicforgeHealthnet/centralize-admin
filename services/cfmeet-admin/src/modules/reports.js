@@ -23,8 +23,13 @@ const blocked = (code, detail) => ({ code, detail });
 // kind BRIDGE: live source release (Summary cells or aggregate Health);
 // kind LOCAL: CF Meet Admin projections or pipeline state; kind BLOCKED: no
 // released source contract exists.
-const ABUSE_OWNERS = Object.freeze(["messaging", "calling", "communications", "meeting-service"]);
-const INCIDENT_OWNERS = Object.freeze(["messaging", "calling", "notifications", "meeting-service", "developer-platform"]);
+// Owners of each entity, taken from the pinned event adapters: a local report
+// lists exactly the sources the Bridge contract says can publish that entity,
+// so coverage is never held PARTIAL by an owner that has no such entity.
+const ADAPTERS = require("../bridge/contracts/cfmeet-event-adapters.v1.json").adapters || [];
+const ownersOf = (entityType) => Object.freeze([...new Set(ADAPTERS.filter((x) => x.entity_type === entityType).map((x) => x.source_service))]);
+const ABUSE_OWNERS = ownersOf("abuse_report");
+const INCIDENT_OWNERS = ownersOf("incident");
 const REPORTS = Object.freeze([
   { id: "meeting_activity", title: "Meeting activity", kind: "BLOCKED", grain: "WINDOW", units: ["count"], definition: "No source-released meeting activity aggregate exists in the CF Meet Admin Bridge contract", blocker: blocked("NO_SOURCE_AGGREGATE", "The Bridge releases no meeting activity aggregate; counts would have to be invented from resource pages, which is not allowed. Daily meeting counts are in the cfmeet.meetings_daily dataset") },
   { id: "communications_metrics", title: "Communications profile metrics", kind: "BRIDGE", capability: "communications.metrics.read", grain: "SNAPSHOT", units: ["count"], definition: "Source-released communications profile and report cells for the requested scope" },
