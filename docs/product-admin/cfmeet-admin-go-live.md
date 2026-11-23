@@ -18,12 +18,12 @@ as sealed files.
 | Item | State |
 |---|---|
 | HQ: `services/cfmeet-admin` | Built. The image is built and smoke-tested in CI. In staging it starts with every flag off |
-| HQ: pinned Bridge contract | cfmeet `main` `caea7266`, contract 1.12.0: 92 reads and the 7 verification commands. Contract 2.0.0 (cfmeet #167) is agreed and is the next pin |
+| HQ: pinned Bridge contract | cfmeet `main` `67b65404`, contract 2.0.0 (response envelope `1.0`): 129 reads and 111 commands are in the contract. **This is a contract pin only: nothing is live** |
 | HQ: egress | `cf-staging-cfmeet-bridge` (`10.231.14.0/28`) may reach only `PA_CM_BRIDGE_ADDRESS:8460`, enforced in DOCKER-USER and rehearsed in Infrastructure Security CI |
-| CF Meet: Bridge runtime | Merged (cfmeet #122) but **not running anywhere**. The release tool only knows the service after cfmeet #133 (dark deployment) merges |
-| CF Meet: event feed | `hq.events.feed`/`hq.events.ack` are BLOCKED_DEPENDENCY until CF Meet phase A7. The HQ worker skips the feed while the pin says it is not served, and only pulls datasets |
-| CF Meet: datasets | `bridge.datasets.read` is served, but nothing writes dataset days yet. Every dataset returns coverage NONE with null metrics |
-| CF Meet: commands | The 7 verification commands are in the pinned contract. The other families arrive with 2.0.0. No command runs until the bridge is deployed with writes on and HQ lists it in `CFMEET_ADMIN_ENABLED_COMMANDS` |
+| CF Meet: Bridge runtime | **Dark.** The code is on cfmeet `main`, but cfmeet #133 (dark deployment) is not merged, HQ is not enrolled and no activation has run |
+| CF Meet: event feed | `hq.events.feed`/`hq.events.ack` are served from contract 2.0.0, so the HQ worker uses them once the Bridge is live and `CFMEET_BRIDGE_FEED_ENABLED=true` |
+| CF Meet: datasets | All 8 datasets have owner sources in contract 2.0.0. Figures appear only after the Bridge is live and its collector has run |
+| CF Meet: commands | In the contract, but **keep every command disabled** (`CFMEET_ADMIN_ENABLED_COMMANDS` empty) until CF Meet confirms each family is live. See step 7 |
 
 ## Gates (decisions, not technical steps)
 
@@ -198,14 +198,15 @@ then redeploy. cfmeet-admin refuses to start if anything is wrong. For example:
 (scoped discovery) succeed for a staff member with a CF Meet grant. Record the
 evidence, then `complete-stage S3`.
 
-### 5. S4 sync pilot (limited until CF Meet A7)
+### 5. S4 first event sync
 
-Set `CFMEET_BRIDGE_FEED_ENABLED=true` with the worker settings above. While the
-pinned contract does not serve `hq.events.feed`, the worker logs
-`bridge_event_feed_not_served` and only pulls datasets. Expect every dataset to
-show coverage NONE with null metrics. S4 proves the `cfmeet.source_sync`
-identity and the honest-empty path, **not real figures**. Real event
-synchronization starts once CF Meet A7 is pinned.
+Set `CFMEET_BRIDGE_FEED_ENABLED=true` with the worker settings above, including
+an approved `CFMEET_BRIDGE_FEED_CONSUMER` (the feed's ACK uses it). Contract
+2.0.0 serves the event feed and its ACK, so the worker syncs events and pulls
+the 8 datasets. A dataset shows real figures only once CF Meet's collector has
+written days for it; until then it shows coverage NONE with null metrics, never
+zero. If a pin ever stops serving the feed, the worker logs
+`bridge_event_feed_not_served` and only pulls datasets.
 
 ### 6. S5 reads in HQ
 
@@ -215,9 +216,12 @@ CF Meet product roles they need. The HQ web pages for CF Meet are frontend
 work. Re-pin HQ as further CF Meet slices merge; each slice switches on more
 reads.
 
-### 7. S6 commands (owner approved "read and modify"; gated on CF Meet A3)
+### 7. S6 commands (owner approved "read and modify")
 
-Every CF Meet command is DISABLED in the contract until CF Meet phase A3.
+**Current instruction from CF Meet: keep every command disabled** until it
+confirms that command family is live. Contract 2.0.0 lists them, but the Bridge
+is dark.
+
 HQ cannot switch on a command the Bridge does not serve:
 `CFMEET_ADMIN_ENABLED_COMMANDS` refuses any capability that is DISABLED or
 BLOCKED_DEPENDENCY in the pin. As each command family is served:
@@ -234,8 +238,8 @@ BLOCKED_DEPENDENCY in the pin. As each command family is served:
    resending.
 4. Record the evidence, then run `complete-stage S6`.
 
-**Do not enable yet** (served from contract 1.17.0, but not deliverable end to
-end on the CF Meet side). Keep these out of `CFMEET_ADMIN_ENABLED_COMMANDS`
+**Stay on hold even after the Bridge is live** (in contract 2.0.0, but not
+deliverable end to end on the CF Meet side). Keep these out of `CFMEET_ADMIN_ENABLED_COMMANDS`
 until CF Meet confirms each one:
 
 | Command | Waiting for |
