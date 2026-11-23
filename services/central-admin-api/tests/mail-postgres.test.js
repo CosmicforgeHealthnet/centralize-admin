@@ -1231,10 +1231,12 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
         const pending = (await send(["q7@partner.example"])).body.data;
         assert.ok(pending.jobId);
         await client.mailQuotaLimit.update({ where: { organizationId_purpose: { organizationId: state.orgId, purpose: "STAFF_MAIL" } }, data: { dailyHardLimit: null, monthlyHardLimit: 1 } });
-        // Monthly, not daily: every drain() moves the harness clock 4h, so a
-        // daily limit would reset whenever that crosses midnight.
-        await drain();
-        const held = await client.mailOutboxJob.findUnique({ where: { id: pending.jobId } });
+        // Run the worker without drain(): drain() moves the harness clock 4h, and
+        // by now the suite has advanced it about 185h, so near a month end that
+        // would cross into a new month and reset this monthly limit. The job is
+        // already due, and the mail accepted by the drain above counts this month.
+        await harness.worker.drain();
+        const held =await client.mailOutboxJob.findUnique({ where: { id: pending.jobId } });
         assert.equal(held.status, "RETRY_SCHEDULED");
         assert.equal(held.lastErrorCode, "MAIL_QUOTA_HARD_LIMIT");
         assert.equal((await client.mailMessageRecipient.findFirst({ where: { messageId: pending.messageId } })).status, "PENDING");
