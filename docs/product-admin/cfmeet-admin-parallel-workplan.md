@@ -183,8 +183,8 @@ These capability IDs are fixed so that HQ's existing event consumer can be reuse
 |---|---|
 | Design and this plan on HQ `staging` | Done |
 | `services/cfmeet-admin` (B1–B3 code against the HQ draft contract) | Done: protocol, connector with approval claim, 17 modules + platform, 15 reports, 8 Bridge datasets + sync health, governed operations with 12 h approvals. 136/137 tests pass on Windows with PostgreSQL; the 1 failure is the Unix-socket test, which fails the same way for karryam-admin on Windows |
-| A0, A1, A2.0 | Merged into cfmeet `main` (PR #121, #122, #132) |
-| Pinned CF Meet commit | `568328cca32749e207a1fe0be7f664da6380202c` (cfmeet `main`, contract 1.2.0, A2.0 Organizations): `contract_status` is `PINNED`. READ_ONLY: the 4 platform reads plus the 8 Organizations reads; no command is served. The signing profile now publishes Command outcomes, and HQ checks it. Re-pin forward as each slice merges |
+| A0, A1, A2, A3 | Merged into cfmeet `main` (latest merge `caea7266`) |
+| Pinned CF Meet commit | `caea72666ff793db2b9563bda44f3baa78671af4` (cfmeet `main`, contract 1.12.0, A2 reads and A3 verification): `contract_status` is `PINNED`. 92 reads and 7 verification commands are served by the contract; HQ enables no command until it is listed in `CFMEET_ADMIN_ENABLED_COMMANDS`. Next pin: contract 2.0.0 (cfmeet #167, agreed with HQ; the response envelope stays `1.0`) |
 | A1/A2 slices | #122–#138 verified against HQ before merge (schemas compile, no personal-data keys, every error code mapped, 0 diffs on shared ids, contact-search flags honoured) |
 
 ## 5. Changing the interface

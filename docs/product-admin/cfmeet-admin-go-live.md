@@ -13,17 +13,17 @@ through the `Product Admin staging operations` GitHub Actions workflow.
 **Secrets never go into git, chat, tickets or CI logs.** Operators carry them
 as sealed files.
 
-## Where things stand (2026-11-20)
+## Where things stand (2026-11-23)
 
 | Item | State |
 |---|---|
 | HQ: `services/cfmeet-admin` | Built. The image is built and smoke-tested in CI. In staging it starts with every flag off |
-| HQ: pinned Bridge contract | cfmeet `main` `568328cc`, contract 1.2.0. Read-only: the 4 platform reads plus the 8 Organizations reads |
+| HQ: pinned Bridge contract | cfmeet `main` `caea7266`, contract 1.12.0: 92 reads and the 7 verification commands. Contract 2.0.0 (cfmeet #167) is agreed and is the next pin |
 | HQ: egress | `cf-staging-cfmeet-bridge` (`10.231.14.0/28`) may reach only `PA_CM_BRIDGE_ADDRESS:8460`, enforced in DOCKER-USER and rehearsed in Infrastructure Security CI |
 | CF Meet: Bridge runtime | Merged (cfmeet #122) but **not running anywhere**. The release tool only knows the service after cfmeet #133 (dark deployment) merges |
 | CF Meet: event feed | `hq.events.feed`/`hq.events.ack` are BLOCKED_DEPENDENCY until CF Meet phase A7. The HQ worker skips the feed while the pin says it is not served, and only pulls datasets |
 | CF Meet: datasets | `bridge.datasets.read` is served, but nothing writes dataset days yet. Every dataset returns coverage NONE with null metrics |
-| CF Meet: commands | All DISABLED until CF Meet phase A3 |
+| CF Meet: commands | The 7 verification commands are in the pinned contract. The other families arrive with 2.0.0. No command runs until the bridge is deployed with writes on and HQ lists it in `CFMEET_ADMIN_ENABLED_COMMANDS` |
 
 ## Gates (decisions, not technical steps)
 
