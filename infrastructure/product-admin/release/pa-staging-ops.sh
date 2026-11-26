@@ -254,7 +254,8 @@ audit_cm_same_host() {
   if docker inspect "$PA_CM_RELAY_CONTAINER" >/dev/null 2>&1; then
     local hqnets=" " entry c n rip
     rip="$(docker inspect -f "{{with index .NetworkSettings.Networks \"$net\"}}{{.IPAddress}}{{end}}" "$PA_CM_RELAY_CONTAINER" 2>/dev/null || true)"
-    if [[ -n "$rip" ]] && (( ! seen_relay )); then
+    # A stopped container reports no usable address (Docker prints "invalid IP"): not attached.
+    if [[ "$rip" =~ ^[0-9]+(\.[0-9]+){3}$ ]] && (( ! seen_relay )); then
       seen_relay=1; [[ "$rip" == "$(cm_host 2)" ]] || bad+="$PA_CM_RELAY_CONTAINER has $rip, not $(cm_host 2); "
     fi
     for entry in "${NETWORKS[@]}" "${CM_NETWORKS[@]}"; do [[ "${entry%%:*}" == "$net" ]] || hqnets+="${entry%%:*} "; done

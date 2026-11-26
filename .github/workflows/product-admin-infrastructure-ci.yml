@@ -623,7 +623,7 @@ jobs:
           # TCP is accepted and an unadmitted source is closed without a byte; .3 and .4 get a banner.
           docker run -d --name cfmeet-admin-bridge-hq-relay --network cf-staging-cfmeet-bridge --ip 10.231.14.2 node:22-alpine node -e '
             const ok = new Set(["10.231.14.3", "10.231.14.4"]);
-            require("net").createServer((s) => { const a = String(s.remoteAddress || "").replace(/^::ffff:/, ""); if (ok.has(a)) s.end("relay-ok\n"); else s.destroy(); }).listen(8460);' >/dev/null
+            require("net").createServer((s) => { s.on("error", () => {}); const a = String(s.remoteAddress || "").replace(/^::ffff:/, ""); if (ok.has(a)) s.end("relay-ok\n"); else s.destroy(); }).on("error", (e) => { console.error(e); process.exit(1); }).listen(8460);' >/dev/null
           docker network connect cm-standin-ops cfmeet-admin-bridge-hq-relay
           test -z "$(docker port cfmeet-admin-bridge-hq-relay)"
       - name: Deploy with CF Meet Admin in same-host mode (refusals first, then the release)
