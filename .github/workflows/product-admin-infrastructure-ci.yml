@@ -651,7 +651,7 @@ jobs:
           has() { grep -q "PA_CHECK {\"id\":\"$1\",\"status\":\"$2\"" "$PA_LOGS/deploy.log" || { echo "::error::expected $1=$2"; exit 1; }; }
           for c in images_match_tested_digests containers_running_non_root no_published_ports network_membership_matches_policy socket_permissions health_live health_ready_expected unauthenticated_refused pic_to_karryam_socket pic_to_cfmeet_socket product_admin_sockets_isolated network_flows bridge_network_reachable_only_from_karryam bridge_network_reachable_only_from_cfmeet cfmeet_bridge_same_host_boundary; do has "$c" PASS; done
           grep -q '"id":"bridge_network_reachable_only_from_cfmeet","status":"PASS","detail":"CF Meet Admin reaches the same-host relay 10.231.14.2:8460' "$PA_LOGS/deploy.log"
-          grep -q '"id":"networks_internal_and_isolated","status":"PASS".*cf-staging-cfmeet-bridge internal (same-host relay 10.231.14.2)' "$PA_LOGS/deploy.log"
+          grep -q '"id":"networks_internal_and_isolated","status":"PASS".*cf-staging-cfmeet-bridge internal (same-host relay 10.231.14.2)' "$PA_LOGS/preflight.log"
           sudo grep -qx 'PA_CM_BRIDGE_MODE=same-host' "$PA_HOST_ROOT/release/images.env"
           sudo grep -qx 'PA_CM_BRIDGE_ADDRESS=10.231.14.2' "$PA_HOST_ROOT/release/images.env"
       - name: Independent proofs (not via the host script)
