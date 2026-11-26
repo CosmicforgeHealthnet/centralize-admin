@@ -249,9 +249,14 @@ audit_cm_same_host() {
   done < <(docker network inspect -f '{{range .Containers}}{{.Name}} {{.IPv4Address}}{{println}}{{end}}' "$net")
   if (( cm_on )) && running "$CTR_CM" && (( ! seen_cm )); then bad+="$CTR_CM runs but is not on $net; "; fi
   if (( cm_on )) && running "$CTR_CW" && (( ! seen_cw )); then bad+="$CTR_CW runs but is not on $net; "; fi
-  # The relay never joins another HQ network.
-  if (( seen_relay )); then
-    local hqnets=" " entry c n
+  # The relay never joins another HQ network. Checked whenever the relay container exists,
+  # attached here or not, and its attachment is read from the container as well as the network.
+  if docker inspect "$PA_CM_RELAY_CONTAINER" >/dev/null 2>&1; then
+    local hqnets=" " entry c n rip
+    rip="$(docker inspect -f "{{with index .NetworkSettings.Networks \"$net\"}}{{.IPAddress}}{{end}}" "$PA_CM_RELAY_CONTAINER" 2>/dev/null || true)"
+    if [[ -n "$rip" ]] && (( ! seen_relay )); then
+      seen_relay=1; [[ "$rip" == "$(cm_host 2)" ]] || bad+="$PA_CM_RELAY_CONTAINER has $rip, not $(cm_host 2); "
+    fi
     for entry in "${NETWORKS[@]}" "${CM_NETWORKS[@]}"; do [[ "${entry%%:*}" == "$net" ]] || hqnets+="${entry%%:*} "; done
     for c in "$PA_API_CONTAINER" "$PA_HQ_DB_CONTAINER"; do
       docker inspect "$c" >/dev/null 2>&1 && hqnets+="$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' "$c") "
@@ -259,6 +264,8 @@ audit_cm_same_host() {
     for n in $(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' "$PA_CM_RELAY_CONTAINER"); do
       [[ "$n" == "$net" || "$hqnets" != *" $n "* ]] || bad+="relay $PA_CM_RELAY_CONTAINER is also on the HQ network $n; "
     done
+  fi
+  if (( seen_relay )); then
     good+="relay $PA_CM_RELAY_CONTAINER at $(cm_host 2); "
   else
     pend+="relay $PA_CM_RELAY_CONTAINER not attached to $net yet; "
