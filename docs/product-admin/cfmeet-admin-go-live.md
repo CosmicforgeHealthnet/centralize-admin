@@ -7,7 +7,7 @@ CF Meet bridge track and lives in `docs/operations/admin-bridge-runbook.md` in
 the cfmeet repository (cfmeet PR #133). Where the two differ, stop and
 reconcile them before continuing.
 
-**Who does what.** Host steps (tunnel, S1/S2, CF Meet releases) are privileged
+**Who does what.** Host steps (Bridge network and relay, S1/S2, CF Meet releases) are privileged
 operator steps. Coding agents never access either host. HQ host steps run
 through the `Product Admin staging operations` GitHub Actions workflow.
 **Secrets never go into git, chat, tickets or CI logs.** Operators carry them
@@ -19,7 +19,7 @@ as sealed files.
 |---|---|
 | HQ: `services/cfmeet-admin` | Built. The image is built and smoke-tested in CI. In staging it starts with every flag off |
 | HQ: pinned Bridge contract | cfmeet `main` `67b65404`, contract 2.0.0 (response envelope `1.0`): 129 reads and 111 commands are in the contract. **This is a contract pin only: nothing is live** |
-| HQ: egress | `cf-staging-cfmeet-bridge` (`10.231.14.0/28`) may reach only `PA_CM_BRIDGE_ADDRESS:8460`, enforced in DOCKER-USER and rehearsed in Infrastructure Security CI |
+| HQ: Bridge network | HQ staging and CF Meet production share one VPS, so the default transport is **same-host** (`PA_CM_BRIDGE_MODE=same-host`): `cf-staging-cfmeet-bridge` (`10.231.14.0/28`) is internal and holds exactly CF Meet Admin (`.3`), its worker (`.4`) and CF Meet's relay `cfmeet-admin-bridge-hq-relay` (`.2`). Rehearsed in Infrastructure Security CI with a stand-in relay; the tunnel transport stays available for separate hosts |
 | CF Meet: Bridge runtime | **Dark.** The code is on cfmeet `main`, but cfmeet #133 (dark deployment) is not merged, HQ is not enrolled and no activation has run |
 | CF Meet: event feed | `hq.events.feed`/`hq.events.ack` are served from contract 2.0.0, so the HQ worker uses them once the Bridge is live and `CFMEET_BRIDGE_FEED_ENABLED=true` |
 | CF Meet: datasets | All 8 datasets have owner sources in contract 2.0.0. Figures appear only after the Bridge is live and its collector has run |
@@ -37,8 +37,9 @@ as sealed files.
 
 | Setting | HQ (`cfmeet-admin.env`) | CF Meet bridge |
 |---|---|---|
-| Tunnel | HQ end `10.250.0.2` | `10.250.0.1`, `ADMIN_BRIDGE_HQ_LISTEN_ADDRESS=10.250.0.1`, `ADMIN_BRIDGE_HQ_ALLOWED_SOURCE=10.250.0.2` |
-| Endpoint | `CFMEET_BRIDGE_ORIGIN=https://admin-bridge.cfmeet.internal:8460`, `CFMEET_BRIDGE_ADDRESS=10.250.0.1`; repository variables `PRODUCT_ADMIN_CM_BRIDGE_ADDRESS=10.250.0.1`, `PRODUCT_ADMIN_CM_BRIDGE_PORT=8460` | nginx stream passthrough on `10.250.0.1:8460` to the bridge on 8443; 8460 allowed only on `wg0` from `10.250.0.2` |
+| Transport (same-host, primary) | `PA_CM_BRIDGE_MODE=same-host` (default); HQ creates `cf-staging-cfmeet-bridge` (`--internal`, `10.231.14.0/28`, `.1` Docker gateway); `cfmeet-admin` `10.231.14.3`, `cfmeet-admin-worker` `10.231.14.4` (fixed in HQ's compose) | relay `cfmeet-admin-bridge-hq-relay` joins `cf-staging-cfmeet-bridge` from CF Meet's compose with `ipv4_address: 10.231.14.2`, no host port; ACL allows `10.231.14.3` and `10.231.14.4` only |
+| Endpoint (same-host) | `CFMEET_BRIDGE_ORIGIN=https://admin-bridge.cfmeet.internal:8460` (SNI), `CFMEET_BRIDGE_ADDRESS=10.231.14.2`, leaf fingerprint pinned (`CFMEET_BRIDGE_SERVER_FINGERPRINTS`); repository variables `PRODUCT_ADMIN_CM_BRIDGE_MODE` unset or `same-host`, `PRODUCT_ADMIN_CM_BRIDGE_ADDRESS` unset or `10.231.14.2`, `PRODUCT_ADMIN_CM_BRIDGE_PORT=8460` | nginx stream passthrough (pure TCP/TLS) on `10.231.14.2:8460` to the bridge on 8443; the Bridge terminates mTLS; 8460 is never published on the host |
+| Transport (tunnel, separate hosts only) | `PA_CM_BRIDGE_MODE=tunnel`, HQ end `10.250.0.2`; `CFMEET_BRIDGE_ADDRESS=10.250.0.1`; repository variables `PRODUCT_ADMIN_CM_BRIDGE_MODE=tunnel`, `PRODUCT_ADMIN_CM_BRIDGE_ADDRESS=10.250.0.1` | `10.250.0.1`, `ADMIN_BRIDGE_HQ_LISTEN_ADDRESS=10.250.0.1`, `ADMIN_BRIDGE_HQ_ALLOWED_SOURCE=10.250.0.2`; 8460 allowed only on `wg0` from `10.250.0.2` |
 | HQ client identity | `CFMEET_BRIDGE_CLIENT_URI=cf://staging/product-admin/cfmeet` | `ADMIN_BRIDGE_HQ_WORKLOAD_URI=cf://staging/product-admin/cfmeet` |
 | Bridge-internal | (none) | `CF_ORGANIZATIONS_BASE_URL` (set by `activate-admin-bridge`); the bridge's own signing key `CF_SERVICE_AUTH_KEY_ID` / `CF_SERVICE_AUTH_PRIVATE_KEY_FILE` (from the release template) |
 | Signing | `CFMEET_BRIDGE_ISSUER=cosmicforge-hq`, `CFMEET_BRIDGE_AUDIENCE=cfmeet-admin-bridge` | `enroll-staff-key --issuer cosmicforge-hq --audience cfmeet-admin-bridge` |
@@ -51,19 +52,40 @@ as sealed files.
 
 ## Steps
 
-### 1. Private tunnel (operators, both hosts; can start now)
+### 1. Same-host Bridge network (operators; can start now)
 
-1. Configure WireGuard peers on the HQ staging host (`10.250.0.2`) and the CF
-   Meet host (`10.250.0.1`), on `10.250.0.0/30`. Addresses are RFC 1918 only;
-   HQ refuses `100.64/10`.
-2. On CF Meet: allow TCP 8460 only on `wg0`, only from `10.250.0.2`.
-3. On HQ: set the repository variables `PRODUCT_ADMIN_CM_BRIDGE_ADDRESS=10.250.0.1`
-   and `PRODUCT_ADMIN_CM_BRIDGE_PORT=8460`. The HQ host must not publish 8460.
+HQ staging and CF Meet production run on one VPS, so HQ reaches the relay on
+an internal Docker network; no tunnel and no egress allowlist are needed.
+Details and checks: `infrastructure/product-admin/staging/README.md`,
+"CF Meet Bridge connectivity".
+
+1. On HQ: leave `PRODUCT_ADMIN_CM_BRIDGE_MODE` unset (or `same-host`) and
+   `PRODUCT_ADMIN_CM_BRIDGE_ADDRESS` unset (or `10.231.14.2`; clear an old
+   tunnel address, same-host refuses it), `PRODUCT_ADMIN_CM_BRIDGE_PORT=8460`.
+   `prepare-host` creates `cf-staging-cfmeet-bridge` as `--internal`
+   `10.231.14.0/28`. A host prepared earlier in tunnel mode is switched by
+   `prepare-host` only while nothing is attached: run `disable` first.
+2. On CF Meet: attach `cfmeet-admin-bridge-hq-relay` to the external network
+   `cf-staging-cfmeet-bridge` with `ipv4_address: 10.231.14.2`, no host port,
+   ACL `10.231.14.3` and `10.231.14.4` only. It joins no other HQ network, and
+   HQ's CF Meet Admin and worker join no CF Meet network.
+3. `preflight` then reports `cfmeet_bridge_same_host_boundary` PASS (exact
+   membership, fixed addresses, no 8460 on the host); before the relay is
+   attached it is `PENDING_EXTERNAL`.
+
+**Alternative for separate hosts (tunnel).** Only if the CF Meet Bridge moves
+to another host: configure WireGuard peers on the HQ staging host
+(`10.250.0.2`) and the CF Meet host (`10.250.0.1`), on `10.250.0.0/30`
+(RFC 1918 only; HQ refuses `100.64/10`); on CF Meet allow TCP 8460 only on
+`wg0`, only from `10.250.0.2`; on HQ set `PRODUCT_ADMIN_CM_BRIDGE_MODE=tunnel`,
+`PRODUCT_ADMIN_CM_BRIDGE_ADDRESS=10.250.0.1` and
+`PRODUCT_ADMIN_CM_BRIDGE_PORT=8460`, then re-run `prepare-host`. The HQ host
+must not publish 8460 in either mode.
 
 ### 2. HQ S1/S2 (HQ operator; no CF Meet dependency)
 
 Follow `infrastructure/product-admin/staging/README.md`. Run `prepare-host`
-(including the CF Meet network and egress rules), write the env and secret
+(including the CF Meet Bridge network and its firewall rules), write the env and secret
 files, prepare the database roles, `preflight`, `migrate-apply`, `deploy`,
 `attach-gateway`, then `complete-stage S1`/`S2`. CF Meet Admin is deployed with
 `CFMEET_ADMIN_ENABLED=false`, `CFMEET_BRIDGE_ENABLED=false` and
@@ -179,10 +201,12 @@ nothing unless all of the following hold:
 - the pinned read-only policy revision is stored and is the newest.
 
 It then enables the bridge (writes stay off), checks `/ready`, and only then
-installs the relay on `10.250.0.1:8460`, admitting only `10.250.0.2` (TLS
-passthrough). Until the relay exists, HQ sees *connection refused* on 8460,
-not a TLS error. Rollback removes the relay first, then returns the bridge to
-dark.
+installs the relay (TLS passthrough): same-host, `cfmeet-admin-bridge-hq-relay`
+on `cf-staging-cfmeet-bridge` at `10.231.14.2:8460`, admitting only
+`10.231.14.3` and `10.231.14.4`; tunnel, `10.250.0.1:8460` admitting only
+`10.250.0.2`. Until the relay exists, HQ sees no answer on 8460 (the
+`network-probe` result is `PENDING_EXTERNAL`), not a TLS error. Rollback
+removes the relay first, then returns the bridge to dark.
 
 **HQ enables trust:** fill in the Bridge section of `cfmeet-admin.env` with the
 agreed values, set `CFMEET_ADMIN_ENABLED=true` and `CFMEET_BRIDGE_ENABLED=true`,
@@ -261,8 +285,10 @@ identifiers.
 - **CF Meet:** set `ADMIN_BRIDGE_ENABLED=false`. Revoke HQ with
   `revoke-principal` and `revoke-staff`, and check the audit chain with
   `verify-audit-chain`.
-- **Tunnel:** take down the WireGuard peer. HQ's egress rule then reaches
-  nothing.
+- **Relay (same-host):** CF Meet detaches `cfmeet-admin-bridge-hq-relay` from
+  `cf-staging-cfmeet-bridge`. The internal network then reaches nothing.
+- **Tunnel (separate hosts):** take down the WireGuard peer. HQ's egress rule
+  then reaches nothing.
 
 ## Resolved with CF Meet
 

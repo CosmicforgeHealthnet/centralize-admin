@@ -48,14 +48,36 @@
       "name": "cf-staging-cfmeet-bridge",
       "subnet_env": "PA_SUBNET_CMBRIDGE",
       "default_subnet": "10.231.14.0/28",
-      "internal": false,
-      "egress_allowlist": [
-        { "address_env": "PA_CM_BRIDGE_ADDRESS", "port": 8460, "port_env": "PA_CM_BRIDGE_PORT", "protocol": "tcp", "purpose": "The CF Meet Admin Bridge on CF Meet's own host, reached over the operator-managed private tunnel (RFC 1918 tunnel address of the CF Meet host, e.g. 10.250.0.1; TLS 1.3 mTLS, server name admin-bridge.cfmeet.internal)" }
-      ],
+      "internal": true,
       "managed_by": "prepare-host",
-      "purpose": "Network D: CF Meet Admin (server and Stage A worker) egress to the CF Meet Admin Bridge, which runs on CF Meet's own host behind a private tunnel (WireGuard or equivalent, operator S1/S2 step). The only non-internal Product Admin network: DOCKER-USER allows exactly one destination, PA_CM_BRIDGE_ADDRESS:PA_CM_BRIDGE_PORT (default 8460), and drops every other egress (internet, DNS, the host, other subnets). No Bridge container joins it; no HQ component and no other Product Admin joins it.",
+      "purpose": "Network D: CF Meet Admin (server and Stage A worker) to the CF Meet Admin Bridge on TLS 1.3 mTLS :8460 (SNI admin-bridge.cfmeet.internal; the Bridge terminates mTLS). HQ creates and owns it. Default transport same-host (HQ staging and CF Meet production share one VPS): an internal network whose only members are CF Meet Admin (10.231.14.3), its worker (10.231.14.4) and CF Meet's source-owned TCP passthrough relay cfmeet-admin-bridge-hq-relay (10.231.14.2, attached by CF Meet from its own compose with a fixed address, no host port; its ACL admits .3 and .4 only). .1 is the Docker gateway. No route out, no DOCKER-USER egress allowlist. The tunnel transport (separate hosts) is kept behind PA_CM_BRIDGE_MODE=tunnel, see transport.modes. No HQ component, no other Product Admin and no CF Meet operational service joins it.",
       "required_members": ["cfmeet-admin", "cfmeet-admin-worker"],
-      "permitted_members": ["cfmeet-admin", "cfmeet-admin-worker"]
+      "permitted_members": ["cfmeet-admin", "cfmeet-admin-worker", "cfmeet-admin-bridge-hq-relay"],
+      "fixed_addresses": {
+        "cfmeet-admin-bridge-hq-relay": "10.231.14.2",
+        "cfmeet-admin": "10.231.14.3",
+        "cfmeet-admin-worker": "10.231.14.4"
+      },
+      "reserved_addresses": { "10.231.14.1": "Docker gateway" },
+      "transport": {
+        "mode_env": "PA_CM_BRIDGE_MODE",
+        "default_mode": "same-host",
+        "modes": {
+          "same-host": {
+            "internal": true,
+            "permitted_members": ["cfmeet-admin", "cfmeet-admin-worker", "cfmeet-admin-bridge-hq-relay"],
+            "purpose": "HQ staging and CF Meet production on the same VPS: the relay joins this internal network at 10.231.14.2 (PA_CM_BRIDGE_ADDRESS defaults to it and may name nothing else); exact membership {cfmeet-admin, cfmeet-admin-worker, cfmeet-admin-bridge-hq-relay}; port 8460 is never published on the host."
+          },
+          "tunnel": {
+            "internal": false,
+            "permitted_members": ["cfmeet-admin", "cfmeet-admin-worker"],
+            "egress_allowlist": [
+              { "address_env": "PA_CM_BRIDGE_ADDRESS", "port": 8460, "port_env": "PA_CM_BRIDGE_PORT", "protocol": "tcp", "purpose": "The CF Meet Admin Bridge on CF Meet's own host, reached over the operator-managed private tunnel (RFC 1918 tunnel address of the CF Meet host, e.g. 10.250.0.1; TLS 1.3 mTLS, server name admin-bridge.cfmeet.internal)" }
+            ],
+            "purpose": "Separate hosts: the CF Meet Admin Bridge runs on CF Meet's own host behind a private tunnel (WireGuard or equivalent, operator S1/S2 step). The only non-internal Product Admin network: DOCKER-USER allows exactly one destination, PA_CM_BRIDGE_ADDRESS:PA_CM_BRIDGE_PORT (default 8460), and drops every other egress (internet, DNS, the host, other subnets). No Bridge or relay container joins it."
+          }
+        }
+      }
     },
     "cfmeet-admin-db": {
       "name": "cf-staging-cfmeet-admin-db",
@@ -113,8 +135,9 @@
     { "from": "karryam-admin-worker", "to": "karryam-admin-db", "via": "network:karryam-admin-db", "port": 5432, "purpose": "DB-B runtime role" },
     { "from": "karryam-backoffice-bridge", "to": "bridge-metadata-database", "via": "source-owned", "purpose": "DB-C, owned and operated by Karryam Backoffice; outside this project" },
     { "from": "product-integration-core", "to": "cfmeet-admin", "via": "unix-socket:cfmeet-admin", "purpose": "Product Admin Protocol (cf-svc-v1 + product delegation)" },
-    { "from": "cfmeet-admin", "to": "cfmeet-admin-bridge", "via": "network:cfmeet-bridge+tunnel:PA_CM_BRIDGE_ADDRESS", "port": 8460, "protocol": "TLS1.3-mTLS", "purpose": "Bridge reads, governed commands" },
-    { "from": "cfmeet-admin-worker", "to": "cfmeet-admin-bridge", "via": "network:cfmeet-bridge+tunnel:PA_CM_BRIDGE_ADDRESS", "port": 8460, "protocol": "TLS1.3-mTLS", "purpose": "Stage A event feed, ACK and certified dataset pulls" },
+    { "from": "cfmeet-admin", "to": "cfmeet-admin-bridge", "via": "network:cfmeet-bridge (same-host: relay cfmeet-admin-bridge-hq-relay at PA_CM_BRIDGE_ADDRESS=10.231.14.2; tunnel: PA_CM_BRIDGE_ADDRESS over the private tunnel)", "port": 8460, "protocol": "TLS1.3-mTLS", "purpose": "Bridge reads, governed commands" },
+    { "from": "cfmeet-admin-worker", "to": "cfmeet-admin-bridge", "via": "network:cfmeet-bridge (same-host: relay cfmeet-admin-bridge-hq-relay at PA_CM_BRIDGE_ADDRESS=10.231.14.2; tunnel: PA_CM_BRIDGE_ADDRESS over the private tunnel)", "port": 8460, "protocol": "TLS1.3-mTLS", "purpose": "Stage A event feed, ACK and certified dataset pulls" },
+    { "from": "cfmeet-admin-bridge-hq-relay", "to": "cfmeet-admin-bridge", "via": "source-owned", "purpose": "Pure TCP/TLS passthrough on CF Meet's side (the Bridge terminates mTLS); owned and operated by CF Meet" },
     { "from": "cfmeet-admin", "to": "cfmeet-admin-db", "via": "network:cfmeet-admin-db", "port": 5432, "purpose": "CF Meet Admin database runtime role" },
     { "from": "cfmeet-admin-worker", "to": "cfmeet-admin-db", "via": "network:cfmeet-admin-db", "port": 5432, "purpose": "CF Meet Admin database runtime role" },
     { "from": "cfmeet-admin-bridge", "to": "bridge-metadata-database", "via": "source-owned", "purpose": "Owned and operated by CF Meet; outside this project" }
@@ -144,8 +167,15 @@
     { "from": "cfmeet-admin", "to": "karryam-admin-db", "reason": "a Product Admin uses only its own database" },
     { "from": "public-internet", "to": "cfmeet-admin", "reason": "no public listener" },
     { "from": "public-internet", "to": "cfmeet-admin-bridge", "reason": "no public Bridge route" },
-    { "from": "cfmeet-admin", "to": "public-internet", "reason": "egress allowlist: only the CF Meet Bridge tunnel address and port" },
-    { "from": "cfmeet-admin-worker", "to": "public-internet", "reason": "egress allowlist: only the CF Meet Bridge tunnel address and port" },
+    { "from": "cfmeet-admin", "to": "public-internet", "reason": "same-host: internal network, no route out; tunnel: egress allowlist only the CF Meet Bridge tunnel address and port" },
+    { "from": "cfmeet-admin-worker", "to": "public-internet", "reason": "same-host: internal network, no route out; tunnel: egress allowlist only the CF Meet Bridge tunnel address and port" },
+    { "from": "central-admin-api", "to": "cfmeet-admin-bridge-hq-relay", "reason": "HQ never talks to source bridges or their relays" },
+    { "from": "product-integration-core", "to": "cfmeet-admin-bridge-hq-relay", "reason": "only CF Meet Admin holds CF Meet Bridge credentials" },
+    { "from": "karryam-admin", "to": "cfmeet-admin-bridge-hq-relay", "reason": "a Product Admin talks only to its own source Bridge" },
+    { "from": "cfmeet-admin-worker", "to": "source-operational-database", "reason": "source data only through the Bridge" },
+    { "from": "cfmeet-admin-bridge-hq-relay", "to": "cfmeet-admin-db", "reason": "the relay never joins an HQ network other than cf-staging-cfmeet-bridge" },
+    { "from": "cfmeet-admin-bridge-hq-relay", "to": "hq-database", "reason": "the relay never joins an HQ network other than cf-staging-cfmeet-bridge" },
+    { "from": "public-internet", "to": "cfmeet-admin-bridge-hq-relay", "reason": "8460 is never published on the host" },
     { "from": "browser", "to": "internal-product-admin-endpoint", "reason": "Nginx denies /internal/* and private health/metrics paths" }
   ],
   "public_ingress": {

@@ -11,18 +11,29 @@
 #      Product Admin private subnet (even if a port were published by mistake).
 #   2. Nothing arriving on the external interface may open a connection to a
 #      container PostgreSQL (5432), Karryam Bridge (8110) or CF Meet Bridge
-#      (8460) port, whatever the subnet. 8460 is served on CF Meet's own host;
-#      the HQ staging host must never publish it either.
-#   3. CF Meet Admin Bridge egress allowlist. cf-staging-cfmeet-bridge is the
-#      only NON-internal Product Admin network: the CF Meet Admin Bridge runs
-#      on CF Meet's host and is reached over an operator-managed private
-#      tunnel at PA_CM_BRIDGE_ADDRESS:PA_CM_BRIDGE_PORT (default 8460).
-#      From that subnet exactly one destination is allowed (NEW and
-#      ESTABLISHED tcp to address:port, and its replies); every other egress
-#      is dropped (internet, DNS, the host itself via INPUT, other cf-staging
-#      subnets, other ports on the bridge host). Nothing else on the host may
-#      open a connection to the bridge address through Docker. Without
-#      PA_CM_BRIDGE_ADDRESS the subnet gets the drop rules only (no egress).
+#      (8460) port, whatever the subnet. 8460 is never published on the HQ
+#      staging host (same-host: the CF Meet relay has no host port).
+#   3. CF Meet Admin Bridge transport, PA_CM_BRIDGE_MODE (default same-host):
+#      same-host  HQ staging and CF Meet production share this VPS.
+#                 cf-staging-cfmeet-bridge is an INTERNAL network (no route
+#                 out); CF Meet's relay joins it at .2 (PA_CM_BRIDGE_ADDRESS,
+#                 default and only value: .2 of PA_SUBNET_CMBRIDGE). No egress
+#                 allowlist is needed and none is installed; the only rule is
+#                 that the subnet never reaches the host itself (INPUT). No
+#                 DOCKER-USER rule may drop traffic inside the subnet: the
+#                 connector and worker talk to the relay across this bridge.
+#      tunnel     Separate hosts. cf-staging-cfmeet-bridge is the only
+#                 NON-internal Product Admin network: the CF Meet Admin Bridge
+#                 runs on CF Meet's host and is reached over an
+#                 operator-managed private tunnel at
+#                 PA_CM_BRIDGE_ADDRESS:PA_CM_BRIDGE_PORT (default 8460).
+#                 From that subnet exactly one destination is allowed (NEW
+#                 and ESTABLISHED tcp to address:port, and its replies); every
+#                 other egress is dropped (internet, DNS, the host itself via
+#                 INPUT, other cf-staging subnets, other ports on the bridge
+#                 host). Nothing else on the host may open a connection to the
+#                 bridge address through Docker. Without PA_CM_BRIDGE_ADDRESS
+#                 the subnet gets the drop rules only (no egress).
 #
 # Karryam rules (1 and 2) are unchanged by rule 3. Rules are tagged (comment
 # cf-product-admin) and idempotent; `verify` checks the exact rule set (every
@@ -35,8 +46,10 @@
 # route), PA_SUBNET_HQ, PA_SUBNET_ADMIN, PA_SUBNET_BRIDGE, PA_SUBNET_KADB,
 # PA_SUBNET_CMBRIDGE, PA_SUBNET_CMDB
 # (defaults from infrastructure/product-admin/staging/network-policy.json),
-# PA_CM_BRIDGE_ADDRESS (RFC 1918 IPv4 tunnel address of the CF Meet host,
-# e.g. 10.250.0.1; never 100.64/10, never inside a cf-staging subnet),
+# PA_CM_BRIDGE_MODE (same-host | tunnel; default same-host),
+# PA_CM_BRIDGE_ADDRESS (same-host: unset or the relay address .2 of
+# PA_SUBNET_CMBRIDGE; tunnel: RFC 1918 IPv4 tunnel address of the CF Meet
+# host, e.g. 10.250.0.1; never 100.64/10, never inside a cf-staging subnet),
 # PA_CM_BRIDGE_PORT (default 8460).
 set -euo pipefail
 
@@ -48,6 +61,7 @@ PA_SUBNET_BRIDGE="${PA_SUBNET_BRIDGE:-10.231.12.0/28}"
 PA_SUBNET_KADB="${PA_SUBNET_KADB:-10.231.13.0/28}"
 PA_SUBNET_CMBRIDGE="${PA_SUBNET_CMBRIDGE:-10.231.14.0/28}"
 PA_SUBNET_CMDB="${PA_SUBNET_CMDB:-10.231.15.0/28}"
+PA_CM_BRIDGE_MODE="${PA_CM_BRIDGE_MODE:-same-host}"
 PA_CM_BRIDGE_ADDRESS="${PA_CM_BRIDGE_ADDRESS:-}"
 PA_CM_BRIDGE_PORT="${PA_CM_BRIDGE_PORT:-8460}"
 SUBNETS=("$PA_SUBNET_HQ" "$PA_SUBNET_ADMIN" "$PA_SUBNET_BRIDGE" "$PA_SUBNET_KADB" "$PA_SUBNET_CMBRIDGE" "$PA_SUBNET_CMDB")
@@ -63,7 +77,15 @@ in_cidr() { # ip cidr
 # Inputs are validated before anything else (also the only work of `validate`).
 for s in "${SUBNETS[@]}"; do [[ "$s" =~ ^10\.[0-9]{1,3}\.[0-9]{1,3}\.0/2[4-8]$ ]] || { echo "BLOCKED: invalid private subnet $s"; exit 1; }; done
 [[ "$PA_CM_BRIDGE_PORT" =~ ^[0-9]{1,5}$ ]] && (( PA_CM_BRIDGE_PORT >= 1 && PA_CM_BRIDGE_PORT <= 65535 )) || { echo "BLOCKED: PA_CM_BRIDGE_PORT must be a TCP port (default 8460)."; exit 1; }
-if [[ -n "$PA_CM_BRIDGE_ADDRESS" ]]; then
+case "$PA_CM_BRIDGE_MODE" in
+  same-host|tunnel) ;;
+  *) echo "BLOCKED: PA_CM_BRIDGE_MODE must be same-host or tunnel (default same-host)."; exit 1 ;;
+esac
+# Same-host: the CF Meet relay's fixed address on cf-staging-cfmeet-bridge (.1 is the Docker gateway).
+CM_RELAY_ADDRESS="${PA_SUBNET_CMBRIDGE%.0/*}.2"
+if [[ -n "$PA_CM_BRIDGE_ADDRESS" && "$PA_CM_BRIDGE_MODE" == same-host ]]; then
+  [[ "$PA_CM_BRIDGE_ADDRESS" == "$CM_RELAY_ADDRESS" ]] || { echo "BLOCKED: in same-host mode PA_CM_BRIDGE_ADDRESS must be the relay address $CM_RELAY_ADDRESS (or unset); a tunnel address needs PA_CM_BRIDGE_MODE=tunnel."; exit 1; }
+elif [[ -n "$PA_CM_BRIDGE_ADDRESS" ]]; then
   [[ "$PA_CM_BRIDGE_ADDRESS" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]] || { echo "BLOCKED: PA_CM_BRIDGE_ADDRESS must be a single IPv4 address (no name, no range)."; exit 1; }
   for o in "${BASH_REMATCH[@]:1}"; do (( 10#$o <= 255 )) || { echo "BLOCKED: PA_CM_BRIDGE_ADDRESS has an invalid octet."; exit 1; }; done
   # RFC 1918 only: CGNAT 100.64/10, loopback, link-local and public space are refused (cfmeet-admin refuses them too).
@@ -71,8 +93,12 @@ if [[ -n "$PA_CM_BRIDGE_ADDRESS" ]]; then
     || { echo "BLOCKED: PA_CM_BRIDGE_ADDRESS must be RFC 1918 (10/8, 172.16/12, 192.168/16); 100.64/10 and public addresses are refused."; exit 1; }
   for s in "${SUBNETS[@]}"; do ! in_cidr "$PA_CM_BRIDGE_ADDRESS" "$s" || { echo "BLOCKED: PA_CM_BRIDGE_ADDRESS lies inside the Product Admin subnet $s; it must be the tunnel address of the CF Meet host."; exit 1; }; done
 fi
+cm_summary() {
+  if [[ "$PA_CM_BRIDGE_MODE" == same-host ]]; then echo "CF Meet Bridge same-host relay ${PA_CM_BRIDGE_ADDRESS:-$CM_RELAY_ADDRESS}:$PA_CM_BRIDGE_PORT (internal network, no egress allowlist)"
+  else echo "CF Meet Bridge ${PA_CM_BRIDGE_ADDRESS:-<not set: egress closed>}:$PA_CM_BRIDGE_PORT"; fi
+}
 if [[ "$MODE" == validate ]]; then
-  echo "VALID: subnets; CF Meet Bridge ${PA_CM_BRIDGE_ADDRESS:-<not set: egress closed>}:$PA_CM_BRIDGE_PORT"
+  echo "VALID: subnets; $(cm_summary)"
   exit 0
 fi
 
@@ -87,16 +113,21 @@ EXT_IF="$(ext_if)"
 
 # One rule per line: "<CHAIN> <iptables match/target>", in final chain order.
 cm_rules() {
-  if [[ -n "$PA_CM_BRIDGE_ADDRESS" ]]; then
-    # The single allowed destination (RETURN hands the packet on to Docker's own chains).
-    echo "DOCKER-USER -s $PA_SUBNET_CMBRIDGE -d $PA_CM_BRIDGE_ADDRESS/32 -p tcp --dport $PA_CM_BRIDGE_PORT -m conntrack --ctstate NEW,ESTABLISHED -m comment --comment $TAG -j RETURN"
-    echo "DOCKER-USER -s $PA_CM_BRIDGE_ADDRESS/32 -d $PA_SUBNET_CMBRIDGE -p tcp --sport $PA_CM_BRIDGE_PORT -m conntrack --ctstate ESTABLISHED,RELATED -m comment --comment $TAG -j RETURN"
-    # Nothing else (other containers, other ports) may open a connection to the bridge address.
-    echo "DOCKER-USER -d $PA_CM_BRIDGE_ADDRESS/32 -m conntrack --ctstate NEW -m comment --comment $TAG -j DROP"
+  if [[ "$PA_CM_BRIDGE_MODE" == tunnel ]]; then
+    if [[ -n "$PA_CM_BRIDGE_ADDRESS" ]]; then
+      # The single allowed destination (RETURN hands the packet on to Docker's own chains).
+      echo "DOCKER-USER -s $PA_SUBNET_CMBRIDGE -d $PA_CM_BRIDGE_ADDRESS/32 -p tcp --dport $PA_CM_BRIDGE_PORT -m conntrack --ctstate NEW,ESTABLISHED -m comment --comment $TAG -j RETURN"
+      echo "DOCKER-USER -s $PA_CM_BRIDGE_ADDRESS/32 -d $PA_SUBNET_CMBRIDGE -p tcp --sport $PA_CM_BRIDGE_PORT -m conntrack --ctstate ESTABLISHED,RELATED -m comment --comment $TAG -j RETURN"
+      # Nothing else (other containers, other ports) may open a connection to the bridge address.
+      echo "DOCKER-USER -d $PA_CM_BRIDGE_ADDRESS/32 -m conntrack --ctstate NEW -m comment --comment $TAG -j DROP"
+    fi
+    # Every other egress from, and ingress to, the CF Meet Bridge subnet.
+    echo "DOCKER-USER -s $PA_SUBNET_CMBRIDGE -m comment --comment $TAG -j DROP"
+    echo "DOCKER-USER -d $PA_SUBNET_CMBRIDGE -m comment --comment $TAG -j DROP"
   fi
-  # Every other egress from, and ingress to, the CF Meet Bridge subnet; and the host itself.
-  echo "DOCKER-USER -s $PA_SUBNET_CMBRIDGE -m comment --comment $TAG -j DROP"
-  echo "DOCKER-USER -d $PA_SUBNET_CMBRIDGE -m comment --comment $TAG -j DROP"
+  # Both modes: the subnet never reaches the HQ host itself. (Same-host: the
+  # network is internal, so Docker gives it no route out and keeps every other
+  # network off it; traffic inside it, connector/worker to the relay, is left alone.)
   echo "INPUT -s $PA_SUBNET_CMBRIDGE -m comment --comment $TAG -j DROP"
 }
 
@@ -143,7 +174,7 @@ delete_tagged() { # chain: remove every rule carrying the exact tag
 
 case "$MODE" in
   print)
-    echo "# DOCKER-USER/INPUT rules for external interface $EXT_IF; CF Meet Bridge ${PA_CM_BRIDGE_ADDRESS:-<not set: egress closed>}:$PA_CM_BRIDGE_PORT"
+    echo "# DOCKER-USER/INPUT rules for external interface $EXT_IF; $(cm_summary)"
     rules | sed 's/^\([A-Z-]*\) /iptables -I \1 /'
     ;;
   apply)

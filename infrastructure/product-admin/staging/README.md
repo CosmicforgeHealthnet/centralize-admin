@@ -192,9 +192,14 @@ then runs only onto a host where S1 has passed.
    or reveals a private service.
 2. `network-probe` (host): PIC→hq-db open; PIC→DB-B, PIC→Bridge, API→Bridge,
    API→DB-B, Karryam Admin→hq-db, any→internet closed; Karryam Admin→Bridge
-   open once the Bridge is attached.
+   open once the Bridge is attached; CF Meet Admin→its Bridge (same-host relay
+   `10.231.14.2:8460` or tunnel address) open and nothing else on the HQ side
+   reaching it (see [CF Meet Bridge connectivity](#cf-meet-bridge-connectivity)).
 3. `preflight`: networks internal with policy membership only, socket dirs,
-   file modes, DOCKER-USER rules (exact set), no wildcard 5432/8110/8460 listener.
+   file modes, DOCKER-USER rules (exact set), no wildcard 5432/8110/8460
+   listener; in same-host mode `cfmeet_bridge_same_host_boundary` (exact
+   membership and fixed addresses on `cf-staging-cfmeet-bridge`, no host
+   listener or published port 8460).
 4. `db-audit`: unprivileged roles, no HQ roles on DB-B and no Karryam roles on
    DB-A, PUBLIC CONNECT revoked on `cosmicforge_admin`.
 
@@ -216,7 +221,7 @@ Design: [`docs/product-admin/cfmeet-admin-design.md`](../../../docs/product-admi
 | Services | `cfmeet-admin`, `cfmeet-admin-worker` (Stage A, `node src/worker/index.js`, same image), `cfmeet-admin-db` |
 | Container user | `10003:10003` (Karryam Admin is 10001, PIC 10002) |
 | Socket | host `${PA_HOST_ROOT}/run/cfmeet-admin` (dir `10003:10003 0750`), container `/run/cosmicforge/cfmeet/cfmeet-admin.sock` (`0660`); PIC mounts it read-only with `group_add: ["10003"]` |
-| Networks | `cf-staging-cfmeet-bridge` `10.231.14.0/28`: CF Meet Admin + worker egress to the CF Meet Admin Bridge on CF Meet's own host, over the private tunnel at `PA_CM_BRIDGE_ADDRESS:8460` (TLS 1.3 mTLS). It is the only **non-internal** Product Admin network; the DOCKER-USER egress allowlist permits exactly that one destination and drops everything else (see [CF Meet Bridge connectivity](#cf-meet-bridge-connectivity-private-tunnel)). `cf-staging-cfmeet-admin-db` `10.231.15.0/28` (internal): CF Meet Admin + worker to `cfmeet-admin-db`. No HQ component joins either, no Bridge container joins either, and Karryam services never join them |
+| Networks | `cf-staging-cfmeet-bridge` `10.231.14.0/28`: CF Meet Admin (`.3`) + worker (`.4`) to the CF Meet Admin Bridge on `PA_CM_BRIDGE_ADDRESS:8460` (TLS 1.3 mTLS). Default `PA_CM_BRIDGE_MODE=same-host`: an **internal** network whose only other member is CF Meet's relay `cfmeet-admin-bridge-hq-relay` at `.2`; `tunnel` (separate hosts): the only **non-internal** Product Admin network, behind a one-destination DOCKER-USER egress allowlist (see [CF Meet Bridge connectivity](#cf-meet-bridge-connectivity)). `cf-staging-cfmeet-admin-db` `10.231.15.0/28` (internal): CF Meet Admin + worker to `cfmeet-admin-db`. No HQ component joins either, no Bridge container joins either, the relay joins only `cf-staging-cfmeet-bridge`, and Karryam services never join them |
 | Database | `cfmeet_admin` on `cfmeet-admin-db`; owner `cfmeet_admin_migrator`, runtime `cfmeet_admin_runtime` (no UPDATE/DELETE on append-only audit), from [`cfmeet-admin-db-roles.sql`](cfmeet-admin-db-roles.sql) |
 | Identity | instance `cfmeet-admin-staging-1`, workload `cf://staging/product-admin/cfmeet`, manifest signer kid `cfmeet-staging-manifest-2026-11` (Ed25519) |
 | Bridge | base `/internal/cfmeet-admin/v1`, HQ principal `cosmicforge-hq-cfmeet-admin`; owned and enrolled by the CF Meet team |
@@ -268,7 +273,9 @@ CF Meet Admin is **optional** in a release (`release/pa-staging-ops.sh`):
   cfmeet container is created otherwise.
 - **Not deployed means skipped, never failed or passed.** Checks that need CF
   Meet running (`pic_to_cfmeet_socket`, `bridge_network_reachable_only_from_cfmeet`,
-  `migration_*_cfmeet`) report `SKIPPED_NOT_DEPLOYED`. Stage evidence records
+  `migration_*_cfmeet`) report `SKIPPED_NOT_DEPLOYED`. In same-host mode
+  `cfmeet_bridge_same_host_boundary` still audits `cf-staging-cfmeet-bridge`
+  (membership, relay, no 8460 on the host) whenever the network exists. Stage evidence records
   `pic_to_cfmeet_socket` as `NOT_APPLICABLE` (allowed only because S2 lists it
   in `optional_product_checks`), and the S1 migration composites leave the
   CF Meet part out while every other part must pass. Isolation checks that
@@ -282,7 +289,8 @@ CF Meet Admin is **optional** in a release (`release/pa-staging-ops.sh`):
 - **Host preparation.** `prepare-host` always creates `cf-staging-cfmeet-bridge`
   and `cf-staging-cfmeet-admin-db` (`PA_SUBNET_CMBRIDGE`, `PA_SUBNET_CMDB`),
   `run/cfmeet-admin` (10003:10003 0750), the CF Meet secret directories and the
-  DOCKER-USER rules for both subnets. PIC always bind-mounts the (empty)
+  DOCKER-USER rules for both subnets (`cf-staging-cfmeet-bridge` internal in
+  the default same-host mode, non-internal in tunnel mode). PIC always bind-mounts the (empty)
   `run/cfmeet-admin` directory read-only with `group_add` 10003; `deploy`
   creates that empty directory if a host prepared before CF Meet support
   lacks it. Re-run `prepare-host` (idempotent) on such a host to add the
@@ -299,21 +307,105 @@ CF Meet Admin is **optional** in a release (`release/pa-staging-ops.sh`):
   `include_cfmeet=true`.
 - Each Stage A worker runs only when its own `*_BRIDGE_FEED_ENABLED=true`.
 
-### CF Meet Bridge connectivity (private tunnel)
+### CF Meet Bridge connectivity
 
-The CF Meet Admin Bridge does **not** run on the HQ staging host. It runs on
-CF Meet's own host and listens on TCP **8460** (an nginx stream passthrough to
-the Bridge's TLS 1.3 mTLS listener). Its base path is `/internal/cfmeet-admin/v1`,
-and its server certificate carries the DNS SAN `admin-bridge.cfmeet.internal`
-from CF Meet's private CA. The owner chose a **private tunnel** between the two
-hosts (WireGuard or equivalent). Karryam's model, with the Bridge container
-attached locally to `cf-staging-karryam-bridge` on :8110, is unchanged.
+The CF Meet Admin Bridge listens behind TCP **8460**, an nginx stream
+passthrough (pure TCP/TLS, no termination) to the Bridge's TLS 1.3 mTLS
+listener; the Bridge terminates mTLS. Its base path is
+`/internal/cfmeet-admin/v1`, and its server certificate carries the DNS SAN
+`admin-bridge.cfmeet.internal` from CF Meet's private CA. HQ always connects
+to a pinned address with that name as SNI, pins the leaf fingerprint and
+presents the client certificate with URI SAN `cf://staging/product-admin/cfmeet`.
+Karryam's model, with the Bridge container attached locally to
+`cf-staging-karryam-bridge` on :8110, is unchanged.
 
-**This is a privileged operator step (S1/S2), done by an authorized operator on
-both hosts.** It is not run by GitHub Actions or by a coding agent
-(`BLOCKED_PRIVILEGED_HOST_OPERATION`, as for the rest of S1/S2).
+How HQ reaches 8460 is chosen by **`PA_CM_BRIDGE_MODE`** (repository variable
+`PRODUCT_ADMIN_CM_BRIDGE_MODE`; default **`same-host`**):
+
+| | `same-host` (default, this VPS) | `tunnel` (separate hosts only) |
+|---|---|---|
+| Where the Bridge is | CF Meet production on the **same VPS** as HQ staging | CF Meet's own host |
+| `cf-staging-cfmeet-bridge` | **internal** (no route out) | **non-internal**, the only one |
+| Members | exactly `cfmeet-admin` (10.231.14.3), `cfmeet-admin-worker` (10.231.14.4), CF Meet's relay `cfmeet-admin-bridge-hq-relay` (10.231.14.2) | `cfmeet-admin`, `cfmeet-admin-worker` only |
+| `PA_CM_BRIDGE_ADDRESS` | 10.231.14.2 (default; nothing else accepted) | tunnel IP of the CF Meet host, e.g. 10.250.0.1 |
+| DOCKER-USER | no egress allowlist; only `INPUT -s 10.231.14.0/28 DROP` (the subnet never reaches the HQ host) | one-destination egress allowlist + drops (below) |
+
+Both modes keep 8460 in the public-listener refusal list, and the HQ host
+never publishes or listens on 8460. `cf-staging-cfmeet-admin-db`
+(10.231.15.0/28, internal) stays HQ-only in both modes: `cfmeet-admin`,
+`cfmeet-admin-worker`, `cfmeet-admin-db`.
+
+**Host steps are privileged operator steps (S1/S2).** They run through the
+`Product Admin staging operations` workflow, never by a coding agent on the
+host (`BLOCKED_PRIVILEGED_HOST_OPERATION` until the narrowly scoped elevation
+path exists, as for the rest of S1/S2).
+
+#### Same-host (default)
+
+The contract with the CF Meet track:
+
+- **HQ creates and owns** `cf-staging-cfmeet-bridge`: Docker bridge,
+  `--internal`, subnet `10.231.14.0/28`. `.1` is the Docker gateway (reserved).
+- **`.2` = `cfmeet-admin-bridge-hq-relay`.** CF Meet attaches it from its own
+  compose (the network is `external` there) with a fixed `ipv4_address`, no
+  host port. Its ACL admits `.3` and `.4` only.
+- **`.3` = `cfmeet-admin`, `.4` = `cfmeet-admin-worker`**, fixed
+  `ipv4_address` in HQ's compose file (`network-policy.json`
+  `fixed_addresses`; the infra check refuses a model without them).
+- **Exact membership** {`cfmeet-admin`, `cfmeet-admin-worker`,
+  `cfmeet-admin-bridge-hq-relay`}. Anything else on the network is a failure.
+  The relay is never a member of any other HQ network; CF Meet Admin and its
+  worker never join any CF Meet network.
 
 Operator steps:
+
+1. **HQ side.** Run `prepare-host` (the default mode needs no address).
+   It creates `cf-staging-cfmeet-bridge` with `--internal` and installs the
+   DOCKER-USER/INPUT rules for same-host mode (no allowlist). On a host that
+   was prepared in tunnel mode, `prepare-host` re-creates the network as
+   internal, but only while nothing is attached: run `disable` first and have
+   CF Meet detach the relay; stopped CF Meet Admin containers (they hold no
+   data) are removed and the next `deploy` re-creates them. The stale tunnel
+   allowlist is replaced by the exact same-host rule set. If the repository
+   variable `PRODUCT_ADMIN_CM_BRIDGE_ADDRESS` still holds a tunnel address,
+   clear it (or set `10.231.14.2`): same-host refuses any other address.
+2. **CF Meet side.** Attach `cfmeet-admin-bridge-hq-relay` to the external
+   network `cf-staging-cfmeet-bridge` with `ipv4_address: 10.231.14.2`, no
+   `ports:`, ACL allowing `10.231.14.3` and `10.231.14.4` only.
+3. **Deploy.** A release with CF Meet Admin is refused unless the network is
+   internal, the same-host DOCKER-USER rule set is exactly in place (no stale
+   tunnel allowlist), `PA_CM_BRIDGE_ADDRESS` is empty or `10.231.14.2`, the
+   compose file pins `.3`/`.4` of `PA_SUBNET_CMBRIDGE`, and
+   `CFMEET_BRIDGE_ADDRESS` and the port in `CFMEET_BRIDGE_ORIGIN` agree. The
+   release's `images.env` records `PA_CM_BRIDGE_MODE=same-host`, the address
+   and the port.
+4. **Verification.**
+   - `cfmeet_bridge_same_host_boundary` (`preflight` and every `deploy`/
+     `rollback` verification): the network is internal with its subnet and
+     gateway `.1`; its members are exactly CF Meet Admin at `.3`, the worker at
+     `.4` (while it runs) and the relay at `.2`; the relay is on no other HQ
+     network (Product Admin networks, the HQ API's and the HQ database's);
+     CF Meet Admin and its worker are on no network but their own two; no host
+     process listens on 8460 and no container publishes it. A relay that is
+     not attached yet is `PENDING_EXTERNAL`; any breach is `FAIL`.
+   - `bridge_network_reachable_only_from_cfmeet` (`deploy`, `network-probe`):
+     **PASS** when CF Meet Admin (and the worker, when it runs) open
+     `10.231.14.2:8460`, and cannot reach the internet (443, 53), the HQ host
+     (gateway), another port on the relay, the HQ database, DB-B, or any
+     `PA_CM_DENY_TARGETS` entry (optional `ip:port` list, e.g. CF Meet
+     operational databases; repository variable
+     `PRODUCT_ADMIN_CM_DENY_TARGETS`); PIC, Karryam Admin, the API and a disposable
+     unauthorized container on Docker's default bridge cannot reach the relay;
+     that container cannot reach the CF Meet Admin database either.
+     **PENDING_EXTERNAL** while the relay is not up; **FAIL** on any breach.
+   - `networks_internal_and_isolated`: the relay is permitted only on
+     `cf-staging-cfmeet-bridge`, and only in same-host mode.
+
+#### Tunnel (separate hosts)
+
+Kept for a CF Meet Bridge on another host: set `PA_CM_BRIDGE_MODE=tunnel`
+(repository variable `PRODUCT_ADMIN_CM_BRIDGE_MODE=tunnel`). Its behavior is
+unchanged.
 
 1. **Tunnel.** Configure WireGuard peers on the HQ staging host and on the CF
    Meet host over a dedicated /30, for example `10.250.0.0/30`: CF Meet host
@@ -325,12 +417,14 @@ Operator steps:
 2. **CF Meet side.** Over the tunnel, allow only TCP 8460 from HQ's tunnel IP.
    Set CF Meet's `ADMIN_BRIDGE_HQ_ALLOWED_SOURCE` to HQ's tunnel IP
    (`10.250.0.2`). Docker masquerades CF Meet Admin's traffic to that address.
-3. **HQ side.** Run `prepare-host` with `PA_CM_BRIDGE_ADDRESS=10.250.0.1`
-   (`PA_CM_BRIDGE_PORT` defaults to 8460). The workflow takes these from the
-   repository variables `PRODUCT_ADMIN_CM_BRIDGE_ADDRESS` and
+3. **HQ side.** Run `prepare-host` with `PA_CM_BRIDGE_MODE=tunnel
+   PA_CM_BRIDGE_ADDRESS=10.250.0.1` (`PA_CM_BRIDGE_PORT` defaults to 8460).
+   The workflow takes these from the repository variables
+   `PRODUCT_ADMIN_CM_BRIDGE_MODE`, `PRODUCT_ADMIN_CM_BRIDGE_ADDRESS` and
    `PRODUCT_ADMIN_CM_BRIDGE_PORT`. `prepare-host` validates the address
    (RFC 1918, outside every cf-staging subnet) and creates
-   `cf-staging-cfmeet-bridge` **without** `--internal`. It then installs the
+   `cf-staging-cfmeet-bridge` **without** `--internal` (re-creating an
+   internal one only while nothing is attached). It then installs the
    egress allowlist in DOCKER-USER (and INPUT):
    - **Allowed:** from `10.231.14.0/28`, NEW and ESTABLISHED TCP to
      `PA_CM_BRIDGE_ADDRESS:PA_CM_BRIDGE_PORT` only, plus its replies.
@@ -339,8 +433,6 @@ Operator steps:
      to the HQ host itself.
    - **Nothing else may open the bridge address:** PIC, Karryam Admin and the
      HQ API are refused.
-   - **The HQ host must not publish 8460:** it joins 5432/8110 in the
-     public-listener refusal list.
    - **Without `PA_CM_BRIDGE_ADDRESS`:** the subnet gets no egress at all.
    - **Re-pointing the address:** re-running `prepare-host` with another
      address replaces the allowlist exactly. `verify` checks the exact rule
@@ -351,7 +443,9 @@ Operator steps:
    - `CFMEET_BRIDGE_ADDRESS` and the port in `CFMEET_BRIDGE_ORIGIN`, in
      `cfmeet-admin.env`, match it.
 
-   The values are recorded in the release's `images.env`.
+   The values (and `PA_CM_BRIDGE_MODE=tunnel`) are recorded in the release's
+   `images.env`. A CF Meet release recorded before the mode switch carries no
+   mode and is read as `tunnel`.
 5. **Verification** (`deploy` and `network-probe`, check
    `bridge_network_reachable_only_from_cfmeet`):
    - **PASS:** CF Meet Admin opens `PA_CM_BRIDGE_ADDRESS:8460`, and cannot reach:
@@ -364,6 +458,11 @@ Operator steps:
    - **PENDING_EXTERNAL:** the tunnel or the Bridge is not up yet. Isolation is
      still verified; this is never reported as a pass.
    - **FAIL:** any isolation breach.
+
+**Switching modes** re-creates `cf-staging-cfmeet-bridge` (see same-host
+step 1); a `rollback` across a switch needs `prepare-host` in the old mode
+first, otherwise its verification fails (fail-closed: the old release cannot
+reach a Bridge in the wrong shape).
 
 S3 out-of-band hand-offs. These values go operator to operator through the
 approved secure channel. They are **never** put in git, in chat, in tickets
@@ -378,9 +477,10 @@ or in workflow logs; secrets go only into files under
 | CF Meet | HQ | **Bridge CA bundle** (`bridge-ca.pem`, CF Meet's private CA for `admin-bridge.cfmeet.internal`) and the **leaf certificate fingerprint** (`CFMEET_BRIDGE_SERVER_FINGERPRINTS`) |
 | CF Meet | HQ | **Enrolled scope**: market `GLOBAL`, organization `cfmeet`, zones `production,sandbox`, tenant `first-party` (`CFMEET_ADMIN_MARKET`, `CFMEET_ADMIN_ORGANIZATION`, `CFMEET_ADMIN_ZONES`, `CFMEET_ADMIN_TENANTS`) |
 
-The CF Meet Admin env file then names the tunnel endpoint and TLS identity:
-- `CFMEET_BRIDGE_ORIGIN=https://admin-bridge.cfmeet.internal:8460`
-- `CFMEET_BRIDGE_ADDRESS=<the tunnel IP of the CF Meet host>`
+The CF Meet Admin env file then names the bridge endpoint and TLS identity:
+- `CFMEET_BRIDGE_ORIGIN=https://admin-bridge.cfmeet.internal:8460` (SNI)
+- `CFMEET_BRIDGE_ADDRESS=10.231.14.2` (same-host relay; tunnel mode: the tunnel IP of the CF Meet host)
+- `CFMEET_BRIDGE_SERVER_FINGERPRINTS=<sha256 of the admin-bridge.cfmeet.internal leaf>` (pinned)
 - `CFMEET_BRIDGE_CLIENT_URI=cf://staging/product-admin/cfmeet`
 
 `CFMEET_BRIDGE_ENABLED` stays `false` until S3 is approved.

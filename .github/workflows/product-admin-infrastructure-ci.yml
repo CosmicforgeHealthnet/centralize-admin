@@ -10,6 +10,13 @@ name: Product Admin Infrastructure Security CI
 #              migration preview/apply, enabled deploy, second release,
 #              rollback, refused bad configuration, emergency disable, and
 #              S0-S2 release state with evidence (environment "rehearsal").
+#              CF Meet Bridge in tunnel mode (separate hosts; netns peer).
+#   rehearsal-same-host
+#              the same script in the default same-host CF Meet transport:
+#              internal cf-staging-cfmeet-bridge, a stand-in CF Meet relay
+#              at .2 with a .3/.4 ACL, exact membership and fixed addresses,
+#              unauthorized containers refused, no 8460 on the host, and the
+#              host-side switch same-host -> tunnel -> same-host.
 # Nothing here connects to the VPS or reads staging/production secrets. A
 # rehearsal never counts as staging evidence.
 
@@ -164,6 +171,8 @@ jobs:
       PA_API_CONTAINER: rehearsal-api
       PA_BRIDGE_CONTAINER: rehearsal-bridge
       PA_BRIDGE_ADDRESS: 10.231.12.10
+      # Tunnel transport (separate hosts). The default same-host transport is rehearsed in rehearsal-same-host.
+      PA_CM_BRIDGE_MODE: tunnel
       # Stand-in for the private tunnel to CF Meet's host: CF Meet side 10.250.0.1 (the bridge address), HQ side 10.250.0.2.
       PA_CM_BRIDGE_ADDRESS: 10.250.0.1
       PA_CM_BRIDGE_PORT: "8460"
@@ -193,7 +202,7 @@ jobs:
           op="$1"; shift
           sudo env PA_REHEARSAL=1 PA_HOST_ROOT="$PA_HOST_ROOT" PA_CONFIG_ROOT="$PA_CONFIG_ROOT" PA_HQ_DB_CONTAINER="$PA_HQ_DB_CONTAINER" \
             PA_API_CONTAINER="$PA_API_CONTAINER" PA_BRIDGE_CONTAINER="$PA_BRIDGE_CONTAINER" PA_BRIDGE_ADDRESS="$PA_BRIDGE_ADDRESS" \
-            PA_CM_BRIDGE_ADDRESS="${PA_CM_BRIDGE_ADDRESS:-}" PA_CM_BRIDGE_PORT="${PA_CM_BRIDGE_PORT:-8460}" \
+            PA_CM_BRIDGE_MODE="${PA_CM_BRIDGE_MODE:-same-host}" PA_CM_BRIDGE_ADDRESS="${PA_CM_BRIDGE_ADDRESS:-}" PA_CM_BRIDGE_PORT="${PA_CM_BRIDGE_PORT:-8460}" \
             PA_PIC_IMAGE="${PA_PIC_IMAGE:-}" PA_KA_IMAGE="${PA_KA_IMAGE:-}" PA_CM_IMAGE="${PA_CM_IMAGE:-}" PA_RELEASE_SHA="${PA_RELEASE_SHA:-}" PA_RUN_ID="${GITHUB_RUN_ID}-${op}-$RANDOM" "$@" \
             bash "$GITHUB_WORKSPACE/infrastructure/product-admin/release/pa-staging-ops.sh" "$op" 2>&1 | tee -a "$PA_LOGS/$op.log"
           SH
@@ -498,4 +507,266 @@ jobs:
         with:
           name: product-admin-release-rehearsal
           path: _rehearsal/
+          if-no-files-found: warn
+
+  rehearsal-same-host:
+    name: Same-host CF Meet Bridge rehearsal (internal network, stand-in relay at .2, exact membership, mode switch)
+    needs: [static, nginx]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PA_REHEARSAL: "1"
+      PA_HQ_DB_CONTAINER: rehearsal-hq-db
+      PA_API_CONTAINER: rehearsal-api
+      PA_BRIDGE_CONTAINER: rehearsal-bridge
+      PA_BRIDGE_ADDRESS: 10.231.12.10
+      # The default transport, set explicitly: HQ staging and CF Meet production share one VPS. CF Meet's
+      # TCP passthrough relay is a container on the internal cf-staging-cfmeet-bridge at .2; no address variable.
+      PA_CM_BRIDGE_MODE: same-host
+      PA_CM_RELAY_CONTAINER: cfmeet-admin-bridge-hq-relay
+      # Stand-in CF Meet operational database on a CF Meet-owned network: must stay closed from CF Meet Admin.
+      PA_CM_DENY_TARGETS: 10.232.0.5:5432
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Rehearsal layout and ops wrapper
+        run: |
+          set -euo pipefail
+          echo "PA_HOST_ROOT=$RUNNER_TEMP/host" >> "$GITHUB_ENV"
+          echo "PA_CONFIG_ROOT=$RUNNER_TEMP/etc" >> "$GITHUB_ENV"
+          echo "PA_OUT=$RUNNER_TEMP/out" >> "$GITHUB_ENV"
+          echo "PA_LOGS=$GITHUB_WORKSPACE/_rehearsal_same_host" >> "$GITHUB_ENV"
+          mkdir -p "$GITHUB_WORKSPACE/_rehearsal_same_host"
+          cat > "$RUNNER_TEMP/ops" <<'SH'
+          #!/usr/bin/env bash
+          # Runs the real host script as root, like the VPS workflow does.
+          set -o pipefail
+          op="$1"; shift
+          sudo env PA_REHEARSAL=1 PA_HOST_ROOT="$PA_HOST_ROOT" PA_CONFIG_ROOT="$PA_CONFIG_ROOT" PA_HQ_DB_CONTAINER="$PA_HQ_DB_CONTAINER" \
+            PA_API_CONTAINER="$PA_API_CONTAINER" PA_BRIDGE_CONTAINER="$PA_BRIDGE_CONTAINER" PA_BRIDGE_ADDRESS="$PA_BRIDGE_ADDRESS" \
+            PA_CM_BRIDGE_MODE="${PA_CM_BRIDGE_MODE:-same-host}" PA_CM_BRIDGE_ADDRESS="${PA_CM_BRIDGE_ADDRESS:-}" PA_CM_BRIDGE_PORT="${PA_CM_BRIDGE_PORT:-8460}" \
+            PA_CM_RELAY_CONTAINER="$PA_CM_RELAY_CONTAINER" PA_CM_DENY_TARGETS="${PA_CM_DENY_TARGETS:-}" \
+            PA_PIC_IMAGE="${PA_PIC_IMAGE:-}" PA_KA_IMAGE="${PA_KA_IMAGE:-}" PA_CM_IMAGE="${PA_CM_IMAGE:-}" PA_RELEASE_SHA="${PA_RELEASE_SHA:-}" PA_RUN_ID="${GITHUB_RUN_ID}-${op}-$RANDOM" "$@" \
+            bash "$GITHUB_WORKSPACE/infrastructure/product-admin/release/pa-staging-ops.sh" "$op" 2>&1 | tee -a "$PA_LOGS/$op.log"
+          SH
+          chmod +x "$RUNNER_TEMP/ops"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+          # Probe helpers shared by the steps below (never via the host script).
+          cat > "$RUNNER_TEMP/probe" <<'SH'
+          #!/usr/bin/env bash
+          # probe <container> <host> <port>: TCP connect result (OPEN, TIMEOUT or an error code).
+          docker exec "$1" node -e 'const s=require("net").connect({host:process.argv[1],port:Number(process.argv[2]),timeout:3000});s.on("connect",()=>{console.log("OPEN");process.exit(0)});s.on("timeout",()=>{console.log("TIMEOUT");process.exit(0)});s.on("error",(e)=>{console.log(e.code||"ERROR");process.exit(0)})' "$2" "$3" 2>/dev/null || echo ERROR
+          SH
+          cat > "$RUNNER_TEMP/banner" <<'SH'
+          #!/usr/bin/env bash
+          # banner <docker run|exec args...> -- <host> <port>: what the relay says (relay-ok for an admitted source).
+          # Output: the data received (relay-ok); CLOSED_WITHOUT_DATA or OPEN_NO_DATA after a TCP connect;
+          # NO_CONNECTION(<reason>) when no TCP connection was ever established.
+          js='const s=require("net").connect({host:process.argv[1],port:Number(process.argv[2]),timeout:3000});let d="",c=false;const done=(x)=>{console.log(x);process.exit(0)};s.on("connect",()=>{c=true});s.on("data",(b)=>{d+=b});s.on("close",()=>done(d.trim()||(c?"CLOSED_WITHOUT_DATA":"NO_CONNECTION(closed)")));s.on("timeout",()=>done(d.trim()||(c?"OPEN_NO_DATA":"NO_CONNECTION(TIMEOUT)")));s.on("error",(e)=>done(d.trim()||(c?"CLOSED_WITHOUT_DATA":"NO_CONNECTION("+(e.code||"ERROR")+")")))'
+          args=(); while [[ "$1" != -- ]]; do args+=("$1"); shift; done; shift
+          docker "${args[@]}" node -e "$js" "$1" "$2" 2>/dev/null || echo ERROR
+          SH
+          chmod +x "$RUNNER_TEMP/probe" "$RUNNER_TEMP/banner"
+      - name: Build release images (revision label = this commit) and push to a local registry for real digests
+        run: |
+          set -euo pipefail
+          docker run -d --name registry -p 127.0.0.1:5000:5000 registry:2 >/dev/null
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:5000/v2/ >/dev/null && break; sleep 1; done
+          for n in karryam-admin product-integration-core cfmeet-admin; do
+            docker build -q --label "org.opencontainers.image.revision=$GITHUB_SHA" -f "services/$n/Dockerfile" -t "127.0.0.1:5000/$n:r1" . >/dev/null
+            docker push -q "127.0.0.1:5000/$n:r1" >/dev/null
+          done
+          digest() { docker image inspect -f '{{range .RepoDigests}}{{println .}}{{end}}' "127.0.0.1:5000/$1:r1" | grep -m1 '^127.0.0.1:5000/'; }
+          { echo "KA1=$(digest karryam-admin)"; echo "PIC1=$(digest product-integration-core)"; echo "CM1=$(digest cfmeet-admin)"; } | tee -a "$GITHUB_ENV"
+      - name: Stand-ins for the existing HQ database
+        run: |
+          set -euo pipefail
+          docker run -d --name rehearsal-hq-db -e POSTGRES_PASSWORD="$(openssl rand -hex 16)" -e POSTGRES_DB=cosmicforge_admin postgres:16-alpine >/dev/null
+          for i in $(seq 1 30); do docker exec rehearsal-hq-db pg_isready -q -h 127.0.0.1 -U postgres && break; sleep 2; done
+          docker pull -q node:22-alpine >/dev/null
+      - name: prepare-host in same-host mode (internal Bridge network, no egress allowlist)
+        run: |
+          set -euo pipefail
+          ops prepare-host
+          ops prepare-host >/dev/null
+          grep -q 'present: exact rule set already in place' "$PA_LOGS/prepare-host.log"
+          grep -q 'CF Meet Bridge transport same-host: cf-staging-cfmeet-bridge is internal' "$PA_LOGS/prepare-host.log"
+          # Every Product Admin network is internal, the CF Meet Bridge network included.
+          for n in cf-staging-hq-private cf-staging-admin-private cf-staging-karryam-bridge cf-staging-karryam-admin-db cf-staging-cfmeet-bridge cf-staging-cfmeet-admin-db; do test "$(docker network inspect -f '{{.Internal}}' "$n")" = true; done
+          test "$(docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}' cf-staging-cfmeet-bridge)" = 10.231.14.0/28
+          sudo iptables -S DOCKER-USER | tee "$PA_LOGS/docker-user.txt"
+          # No egress allowlist and no subnet-wide drop in DOCKER-USER (they would cut CF Meet Admin off the relay); the subnet never reaches the host.
+          if grep -E -- '-(s|d) 10.231.14.0/28 -m comment' "$PA_LOGS/docker-user.txt"; then echo "::error::a subnet-wide DOCKER-USER rule exists in same-host mode"; exit 1; fi
+          if grep -E -- '--dport 8460 .*-j RETURN' "$PA_LOGS/docker-user.txt"; then echo "::error::an egress allowlist exists in same-host mode"; exit 1; fi
+          sudo iptables -S INPUT | grep -q -- '-A INPUT -s 10.231.14.0/28 -m comment --comment cf-product-admin -j DROP'
+          grep -Eq -- '--ctorigdstport 8460 .*-j DROP' "$PA_LOGS/docker-user.txt"
+          # Same-host accepts only the relay address; unknown modes are refused; nothing changes.
+          for bad in 10.250.0.1 10.231.14.9; do
+            if PA_CM_BRIDGE_ADDRESS="$bad" ops prepare-host; then echo "::error::same-host prepare-host accepted PA_CM_BRIDGE_ADDRESS=$bad"; exit 1; fi
+          done
+          if PA_CM_BRIDGE_MODE=wireguard ops prepare-host; then echo "::error::an unknown transport mode was accepted"; exit 1; fi
+          test "$(docker network inspect -f '{{.Internal}}' cf-staging-cfmeet-bridge)" = true
+          # Karryam's Bridge stand-in and the API stand-in, exactly as in the tunnel rehearsal.
+          docker run -d --name rehearsal-bridge --network cf-staging-karryam-bridge --ip 10.231.12.10 node:22-alpine node -e "require('net').createServer(s=>s.end()).listen(8110)" >/dev/null
+          docker run -d --name rehearsal-api -v "$PA_HOST_ROOT/run/pic:/run/cosmicforge/pic:ro" node:22-alpine node -e "setInterval(()=>{},1<<30)" >/dev/null
+      - name: Stand-in CF Meet relay at .2 (nginx-stream-like ACL for .3/.4) and a CF Meet operational database
+        run: |
+          set -euo pipefail
+          # CF Meet's own network with an operational database: HQ must never reach it.
+          docker network create --internal --subnet 10.232.0.0/28 cm-standin-ops >/dev/null
+          docker run -d --name cm-standin-opsdb --network cm-standin-ops --ip 10.232.0.5 node:22-alpine node -e "require('net').createServer(s=>s.end()).listen(5432)" >/dev/null
+          # The relay, attached by "CF Meet" with its fixed address and no host port. Like nginx stream allow/deny,
+          # TCP is accepted and an unadmitted source is closed without a byte; .3 and .4 get a banner.
+          docker run -d --name cfmeet-admin-bridge-hq-relay --network cf-staging-cfmeet-bridge --ip 10.231.14.2 node:22-alpine node -e '
+            const ok = new Set(["10.231.14.3", "10.231.14.4"]);
+            require("net").createServer((s) => { s.on("error", () => {}); const a = String(s.remoteAddress || "").replace(/^::ffff:/, ""); if (ok.has(a)) s.end("relay-ok\n"); else s.destroy(); }).on("error", (e) => { console.error(e); process.exit(1); }).listen(8460);' >/dev/null
+          docker network connect cm-standin-ops cfmeet-admin-bridge-hq-relay
+          test -z "$(docker port cfmeet-admin-bridge-hq-relay)"
+      - name: Deploy with CF Meet Admin in same-host mode (refusals first, then the release)
+        run: |
+          set -euo pipefail
+          sudo "$(command -v node)" infrastructure/product-admin/release/rehearsal-fixtures.mjs --config-root "$PA_CONFIG_ROOT" --out "$PA_OUT" --mode disabled --release-sha "$GITHUB_SHA"
+          none_cm() { test -z "$(docker ps -a --filter label=com.docker.compose.project=cf-product-admin-staging --filter name=cfmeet --format '{{.Names}}')"; }
+          # (a) cfmeet-admin.env naming a tunnel address is refused before anything changes.
+          echo 'CFMEET_BRIDGE_ADDRESS=10.250.0.1' | sudo tee -a "$PA_CONFIG_ROOT/cfmeet-admin.env" >/dev/null
+          if PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_CM_IMAGE="$CM1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy; then echo "::error::a tunnel CFMEET_BRIDGE_ADDRESS was accepted in same-host mode"; exit 1; fi
+          grep -q 'CFMEET_BRIDGE_ADDRESS in cfmeet-admin.env (10.250.0.1) differs from PA_CM_BRIDGE_ADDRESS (10.231.14.2)' "$PA_LOGS/deploy.log"
+          sudo sed -i '/^CFMEET_BRIDGE_ADDRESS=/d' "$PA_CONFIG_ROOT/cfmeet-admin.env"
+          echo 'CFMEET_BRIDGE_ADDRESS=10.231.14.2' | sudo tee -a "$PA_CONFIG_ROOT/cfmeet-admin.env" >/dev/null
+          # (b) A tunnel address in same-host mode is refused.
+          if PA_CM_BRIDGE_ADDRESS=10.250.0.1 PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_CM_IMAGE="$CM1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy; then echo "::error::deploy accepted a tunnel address in same-host mode"; exit 1; fi
+          grep -q 'is not the same-host relay address 10.231.14.2' "$PA_LOGS/deploy.log"
+          # (c) Tunnel mode onto the internal network is refused (no silent switch).
+          if PA_CM_BRIDGE_MODE=tunnel PA_CM_BRIDGE_ADDRESS=10.250.0.1 PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_CM_IMAGE="$CM1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy; then echo "::error::tunnel deploy accepted on the internal network"; exit 1; fi
+          grep -q 'cf-staging-cfmeet-bridge is internal (same-host model)' "$PA_LOGS/deploy.log"
+          none_cm
+          : > "$PA_LOGS/deploy.log"
+          # (d) The release.
+          ops preflight
+          PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_CM_IMAGE="$CM1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy
+          has() { grep -q "PA_CHECK {\"id\":\"$1\",\"status\":\"$2\"" "$PA_LOGS/deploy.log" || { echo "::error::expected $1=$2"; exit 1; }; }
+          for c in images_match_tested_digests containers_running_non_root no_published_ports network_membership_matches_policy socket_permissions health_live health_ready_expected unauthenticated_refused pic_to_karryam_socket pic_to_cfmeet_socket product_admin_sockets_isolated network_flows bridge_network_reachable_only_from_karryam bridge_network_reachable_only_from_cfmeet cfmeet_bridge_same_host_boundary; do has "$c" PASS; done
+          grep -q '"id":"bridge_network_reachable_only_from_cfmeet","status":"PASS","detail":"CF Meet Admin reaches the same-host relay 10.231.14.2:8460' "$PA_LOGS/deploy.log"
+          grep -q '"id":"networks_internal_and_isolated","status":"PASS".*cf-staging-cfmeet-bridge internal (same-host relay 10.231.14.2)' "$PA_LOGS/preflight.log"
+          sudo grep -qx 'PA_CM_BRIDGE_MODE=same-host' "$PA_HOST_ROOT/release/images.env"
+          sudo grep -qx 'PA_CM_BRIDGE_ADDRESS=10.231.14.2' "$PA_HOST_ROOT/release/images.env"
+      - name: Independent proofs (not via the host script)
+        run: |
+          set -euo pipefail
+          CM=cf-product-admin-staging-cfmeet-admin-1; NET=cf-staging-cfmeet-bridge
+          expect() { local got; got="$(probe "$1" "$2" "$3")"; if [[ "$4" == open ]]; then [[ "$got" == OPEN ]] || { echo "::error::$1 -> $2:$3 expected open, got $got"; exit 1; }; else [[ "$got" != OPEN ]] || { echo "::error::$1 -> $2:$3 expected closed"; exit 1; }; fi; echo "$1 -> $2:$3 $got"; }
+          # Shape: internal, exact membership, fixed addresses.
+          test "$(docker network inspect -f '{{.Internal}}' "$NET")" = true
+          members="$(docker network inspect -f '{{range .Containers}}{{.Name}}={{.IPv4Address}} {{end}}' "$NET" | tr ' ' '\n' | sed '/^$/d' | LC_ALL=C sort | tr '\n' ' ')"
+          echo "members: $members"
+          test "$members" = "cf-product-admin-staging-cfmeet-admin-1=10.231.14.3/28 cfmeet-admin-bridge-hq-relay=10.231.14.2/28 "
+          # The relay is on no other HQ network; CF Meet Admin is on its own two networks only.
+          test "$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' cfmeet-admin-bridge-hq-relay | tr ' ' '\n' | sed '/^$/d' | LC_ALL=C sort | tr '\n' ' ')" = "cf-staging-cfmeet-bridge cm-standin-ops "
+          test "$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' "$CM" | tr ' ' '\n' | sed '/^$/d' | LC_ALL=C sort | tr '\n' ' ')" = "cf-staging-cfmeet-admin-db cf-staging-cfmeet-bridge "
+          # Admitted sources reach the relay: CF Meet Admin (.3) and a stand-in for the worker at its fixed .4.
+          test "$(banner exec "$CM" -- 10.231.14.2 8460)" = relay-ok
+          test "$(banner run --rm --network "$NET" --ip 10.231.14.4 node:22-alpine -- 10.231.14.2 8460)" = relay-ok
+          # An unauthorized container ON the network is refused by the relay ACL, and the membership audit fails while it is there.
+          docker run -d --name rogue --network "$NET" --ip 10.231.14.5 node:22-alpine node -e "setInterval(()=>{},1<<30)" >/dev/null
+          test "$(banner exec rogue -- 10.231.14.2 8460)" = CLOSED_WITHOUT_DATA
+          : > "$PA_LOGS/preflight.log"
+          if ops preflight; then echo "::error::preflight passed with an unauthorized member on $NET"; exit 1; fi
+          grep -q '"id":"networks_internal_and_isolated","status":"FAIL".*rogue not permitted on cf-staging-cfmeet-bridge' "$PA_LOGS/preflight.log"
+          grep -q '"id":"cfmeet_bridge_same_host_boundary","status":"FAIL".*rogue (10.231.14.5) is not permitted' "$PA_LOGS/preflight.log"
+          docker rm -f rogue >/dev/null
+          # Unauthorized containers OFF the network reach neither the relay nor the CF Meet Admin database network.
+          cdb="$(docker inspect -f '{{with index .NetworkSettings.Networks "cf-staging-cfmeet-admin-db"}}{{.IPAddress}}{{end}}' cf-product-admin-staging-cfmeet-admin-db-1)"
+          test -n "$cdb"
+          for target in "10.231.14.2 8460" "$cdb 5432"; do
+            # shellcheck disable=SC2086
+            got="$(banner run --rm --network bridge node:22-alpine -- $target)"
+            [[ "$got" == NO_CONNECTION* ]] || { echo "::error::an unauthorized container reached $target ($got)"; exit 1; }
+            echo "unauthorized (default bridge) -> $target $got"
+          done
+          for c in cf-product-admin-staging-product-integration-core-1 cf-product-admin-staging-karryam-admin-1 rehearsal-api; do expect "$c" 10.231.14.2 8460 closed; done
+          # The relay itself never reaches the CF Meet Admin database (it is not on that network).
+          expect cfmeet-admin-bridge-hq-relay "$cdb" 5432 closed
+          # CF Meet Admin: no route out of the internal network, no CF Meet operational database, no HQ or Karryam database.
+          expect "$CM" 10.231.14.2 8460 open
+          expect "$CM" 10.231.14.2 8461 closed
+          expect "$CM" 1.1.1.1 443 closed
+          expect "$CM" 1.1.1.1 53 closed
+          expect "$CM" 10.231.14.1 22 closed
+          expect "$CM" 10.232.0.5 5432 closed
+          expect "$CM" hq-db 5432 closed
+          expect "$CM" karryam-admin-db 5432 closed
+          # No host listener and no published port 8460.
+          if sudo ss -ltnH | awk '{print $4}' | grep -E ':8460$'; then echo "::error::a host process listens on 8460"; exit 1; fi
+          if docker ps --format '{{.Names}} {{.Ports}}' | grep -E ':8460->|->8460/'; then echo "::error::a container publishes 8460"; exit 1; fi
+      - name: The host checks fail closed (relay on an HQ network, connector on a CF Meet network, host listener on 8460, relay detached)
+        run: |
+          set -euo pipefail
+          CM=cf-product-admin-staging-cfmeet-admin-1
+          refused() { : > "$PA_LOGS/preflight.log"; if ops preflight; then echo "::error::preflight passed: $1"; exit 1; fi; grep -q "\"id\":\"cfmeet_bridge_same_host_boundary\",\"status\":\"FAIL\".*$2" "$PA_LOGS/preflight.log" || { echo "::error::expected cfmeet_bridge_same_host_boundary FAIL ($2)"; exit 1; }; }
+          docker network connect cf-staging-karryam-bridge cfmeet-admin-bridge-hq-relay
+          refused "relay on an HQ network" "also on the HQ network cf-staging-karryam-bridge"
+          docker network disconnect cf-staging-karryam-bridge cfmeet-admin-bridge-hq-relay
+          docker network connect cm-standin-ops "$CM"
+          refused "CF Meet Admin on a CF Meet network" "$CM is also on cm-standin-ops"
+          docker network disconnect cm-standin-ops "$CM"
+          python3 -m http.server 8460 --bind 127.0.0.1 >/dev/null 2>&1 &
+          srv=$!
+          for i in $(seq 1 20); do ss -ltnH | grep -q ':8460 ' && break; sleep 0.5; done
+          refused "host listener on 8460" "a host process listens on 8460"
+          kill "$srv"; wait "$srv" 2>/dev/null || true
+          : > "$PA_LOGS/preflight.log"; ops preflight
+          grep -q '"id":"cfmeet_bridge_same_host_boundary","status":"PASS"' "$PA_LOGS/preflight.log"
+          # Relay not attached: PENDING_EXTERNAL, never a pass; isolation still verified.
+          docker network disconnect cf-staging-cfmeet-bridge cfmeet-admin-bridge-hq-relay
+          : > "$PA_LOGS/network-probe.log"; ops network-probe
+          grep -q '"id":"bridge_network_reachable_only_from_cfmeet","status":"PENDING_EXTERNAL"' "$PA_LOGS/network-probe.log"
+          grep -q '"id":"network_flows","status":"PASS"' "$PA_LOGS/network-probe.log"
+          : > "$PA_LOGS/preflight.log"; ops preflight
+          grep -q '"id":"cfmeet_bridge_same_host_boundary","status":"PENDING_EXTERNAL".*not attached' "$PA_LOGS/preflight.log"
+          docker network connect --ip 10.231.14.2 cf-staging-cfmeet-bridge cfmeet-admin-bridge-hq-relay
+          : > "$PA_LOGS/network-probe.log"; ops network-probe
+          grep -q '"id":"bridge_network_reachable_only_from_cfmeet","status":"PASS"' "$PA_LOGS/network-probe.log"
+      - name: Host-side transport switch (same-host -> tunnel -> same-host), only while nothing is attached
+        run: |
+          set -euo pipefail
+          internal() { docker network inspect -f '{{.Internal}}' cf-staging-cfmeet-bridge; }
+          # Refused while CF Meet Admin and the relay are attached; the network is unchanged.
+          if PA_CM_BRIDGE_MODE=tunnel PA_CM_BRIDGE_ADDRESS=10.250.0.1 ops prepare-host; then echo "::error::the network was switched with members attached"; exit 1; fi
+          grep -q 'must become internal=false for PA_CM_BRIDGE_MODE=tunnel but has members' "$PA_LOGS/prepare-host.log"
+          test "$(internal)" = true
+          ops disable
+          docker network disconnect cf-staging-cfmeet-bridge cfmeet-admin-bridge-hq-relay
+          PA_CM_BRIDGE_MODE=tunnel PA_CM_BRIDGE_ADDRESS=10.250.0.1 ops prepare-host
+          test "$(internal)" = false
+          sudo iptables -S DOCKER-USER | grep -Eq -- '-d 10.250.0.1/32 -p tcp( -m tcp)? --dport 8460'
+          sudo iptables -S DOCKER-USER | grep -q -- '-A DOCKER-USER -s 10.231.14.0/28 -m comment --comment cf-product-admin -j DROP'
+          if docker inspect cf-product-admin-staging-cfmeet-admin-1 >/dev/null 2>&1; then echo "::error::the stopped CF Meet Admin container still references the old network"; exit 1; fi
+          # And back: the tunnel allowlist and subnet drops disappear exactly.
+          ops prepare-host
+          test "$(internal)" = true
+          if sudo iptables -S DOCKER-USER | grep -Eq -- '10.250.0.1/32|-(s|d) 10.231.14.0/28 -m comment'; then echo "::error::stale tunnel rules after switching back to same-host"; exit 1; fi
+          docker network connect --ip 10.231.14.2 cf-staging-cfmeet-bridge cfmeet-admin-bridge-hq-relay
+          : > "$PA_LOGS/deploy.log"
+          PA_PIC_IMAGE="$PIC1" PA_KA_IMAGE="$KA1" PA_CM_IMAGE="$CM1" PA_RELEASE_SHA="$GITHUB_SHA" ops deploy
+          for c in cfmeet_bridge_same_host_boundary bridge_network_reachable_only_from_cfmeet network_membership_matches_policy network_flows; do
+            grep -q "PA_CHECK {\"id\":\"$c\",\"status\":\"PASS\"" "$PA_LOGS/deploy.log" || { echo "::error::expected $c=PASS after the switch back"; exit 1; }
+          done
+          test "$(docker inspect -f '{{with index .NetworkSettings.Networks "cf-staging-cfmeet-bridge"}}{{.IPAddress}}{{end}}' cf-product-admin-staging-cfmeet-admin-1)" = 10.231.14.3
+          sudo chown -R "$(id -u):$(id -g)" "$PA_LOGS" || true
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          docker ps -a --format '{{.Names}} {{.Status}} {{.Image}}'
+          docker network inspect cf-staging-cfmeet-bridge || true
+          sudo iptables -S DOCKER-USER || true
+          for c in $(docker ps -a --filter label=com.docker.compose.project=cf-product-admin-staging --format '{{.Names}}'); do echo "== $c"; docker logs --tail 60 "$c" 2>&1; done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-release-rehearsal-same-host
+          path: _rehearsal_same_host/
           if-no-files-found: warn
