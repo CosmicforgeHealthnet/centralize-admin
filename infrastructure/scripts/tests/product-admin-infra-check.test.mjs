@@ -64,12 +64,12 @@ function goodModel() {
           { type: "bind", source: h + "/run/cfmeet-admin", target: "/run/cosmicforge/cfmeet" },
           { type: "bind", source: c + "/secrets/cfmeet-admin", target: "/run/secrets/cfmeet-admin", read_only: true },
         ],
-        networks: { "cfmeet-bridge": null, "cfmeet-admin-db": null },
+        networks: { "cfmeet-bridge": { ipv4_address: "10.231.14.3" }, "cfmeet-admin-db": null },
       }),
       "cfmeet-admin-worker": hardened({
         image: "ghcr.io/cosmicforgehealthnet/cfmeet-admin@" + D, user: "10003:10003",
         volumes: [{ type: "bind", source: c + "/secrets/cfmeet-admin", target: "/run/secrets/cfmeet-admin", read_only: true }],
-        networks: { "cfmeet-bridge": null, "cfmeet-admin-db": null },
+        networks: { "cfmeet-bridge": { ipv4_address: "10.231.14.4" }, "cfmeet-admin-db": null },
       }),
       "cfmeet-admin-db": hardened({
         image: "docker.io/library/postgres@" + D, user: "70:70", mem_limit: "536870912",
@@ -167,6 +167,10 @@ const MUTATIONS = [
   ["socket-writer-mount", (m) => { m.services["cfmeet-admin"].volumes[0].read_only = true; }],
   ["socket-not-shared", (m) => { m.services["karryam-admin"].volumes.push({ type: "bind", source: "/srv/cosmicforge/staging/run/cfmeet-admin", target: "/run/cosmicforge/cfmeet", read_only: true }); }],
   ["socket-not-shared", (m) => { m.services["cfmeet-admin"].volumes.push({ type: "bind", source: "/srv/cosmicforge/staging/run/karryam-admin", target: "/run/cosmicforge/karryam", read_only: true }); }],
+  // Same-host CF Meet transport: CF Meet Admin .3 and its worker .4 are fixed (the relay admits only those).
+  ["network-fixed-address", (m) => { m.services["cfmeet-admin"].networks["cfmeet-bridge"] = null; }],
+  ["network-fixed-address", (m) => { m.services["cfmeet-admin-worker"].networks["cfmeet-bridge"].ipv4_address = "10.231.14.2"; }],
+  ["network-fixed-address", (m) => { m.services["cfmeet-admin"].networks["cfmeet-bridge"].ipv4_address = "10.231.14.9"; }],
 ];
 
 for (const [check, mutate] of MUTATIONS) {
@@ -208,25 +212,48 @@ test("firewall check requires the CF Meet subnets", () => {
   assert.ok(failing(checkFirewall(text.replaceAll("PA_SUBNET_CMDB", "PA_SUBNET_XX"), policy)).includes("firewall-covers-subnet"));
 });
 
-// CF Meet Bridge over a private tunnel: cf-staging-cfmeet-bridge is the only
-// non-internal network, allowed solely with a single-destination egress
-// allowlist that the firewall implements.
+// CF Meet Bridge transport modes on cf-staging-cfmeet-bridge (PA_CM_BRIDGE_MODE):
+// same-host (default) is internal with exactly CF Meet Admin, its worker and
+// CF Meet's relay at fixed addresses; tunnel is the only non-internal network
+// shape, allowed solely with a single-destination egress allowlist that the
+// firewall implements, and never with a Bridge or relay member.
 const FIREWALL_TEXT = () => fs.readFileSync(path.join(ROOT, "infrastructure/product-admin/firewall/docker-user-rules.sh"), "utf8");
+const tunnel = (p) => p.networks["cfmeet-bridge"].transport.modes.tunnel;
+const sameHost = (p) => p.networks["cfmeet-bridge"].transport.modes["same-host"];
 const POLICY_MUTATIONS = [
   ["non-internal without an allowlist", "policy-network-internal", (p) => { p.networks["karryam-bridge"].internal = false; }],
-  ["non-internal without an allowlist (CF Meet)", "policy-network-internal", (p) => { delete p.networks["cfmeet-bridge"].egress_allowlist; }],
-  ["allowlist with two destinations", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist.push({ address_env: "PA_OTHER_ADDRESS", port: 443, protocol: "tcp" }); }],
-  ["wildcard literal address", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].address = "0.0.0.0/0"; }],
-  ["wildcard port", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].port = "*"; }],
-  ["port range", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].ports = [8460, 8461]; }],
-  ["udp", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].protocol = "udp"; }],
-  ["address not from an operator variable", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist[0].address_env = "*"; }],
-  ["empty allowlist", "policy-egress-single-destination", (p) => { p.networks["cfmeet-bridge"].egress_allowlist = []; }],
-  ["bridge container member on cfmeet-bridge", "policy-remote-bridge-not-member", (p) => { p.networks["cfmeet-bridge"].permitted_members.push("cfmeet-admin-bridge"); }],
-  ["bridge container member on cfmeet-bridge (members)", "policy-egress-network-members", (p) => { p.networks["cfmeet-bridge"].permitted_members.push("cfmeet-admin-bridge"); }],
-  ["database behind the allowlist", "policy-egress-network-members", (p) => { p.networks["cfmeet-bridge"].permitted_members.push("cfmeet-admin-db"); }],
-  ["internal network declaring an allowlist", "policy-internal-has-no-allowlist", (p) => { p.networks["cfmeet-admin-db"].egress_allowlist = structuredClone(p.networks["cfmeet-bridge"].egress_allowlist); }],
-  ["cfmeet-bridge made internal again (Karryam-style local Bridge)", "policy-remote-bridge-not-member", (p) => { p.networks["cfmeet-bridge"].internal = true; delete p.networks["cfmeet-bridge"].egress_allowlist; }],
+  ["non-internal without an allowlist (CF Meet tunnel)", "policy-network-internal", (p) => { delete tunnel(p).egress_allowlist; }],
+  ["allowlist with two destinations", "policy-egress-single-destination", (p) => { tunnel(p).egress_allowlist.push({ address_env: "PA_OTHER_ADDRESS", port: 443, protocol: "tcp" }); }],
+  ["wildcard literal address", "policy-egress-single-destination", (p) => { tunnel(p).egress_allowlist[0].address = "0.0.0.0/0"; }],
+  ["wildcard port", "policy-egress-single-destination", (p) => { tunnel(p).egress_allowlist[0].port = "*"; }],
+  ["port range", "policy-egress-single-destination", (p) => { tunnel(p).egress_allowlist[0].ports = [8460, 8461]; }],
+  ["udp", "policy-egress-single-destination", (p) => { tunnel(p).egress_allowlist[0].protocol = "udp"; }],
+  ["address not from an operator variable", "policy-egress-single-destination", (p) => { tunnel(p).egress_allowlist[0].address_env = "*"; }],
+  ["empty allowlist", "policy-egress-single-destination", (p) => { tunnel(p).egress_allowlist = []; }],
+  ["bridge container member in tunnel mode", "policy-remote-bridge-not-member", (p) => { tunnel(p).permitted_members.push("cfmeet-admin-bridge"); }],
+  ["bridge container member in tunnel mode (members)", "policy-egress-network-members", (p) => { tunnel(p).permitted_members.push("cfmeet-admin-bridge"); }],
+  ["relay member in tunnel mode", "policy-remote-bridge-not-member", (p) => { tunnel(p).permitted_members.push("cfmeet-admin-bridge-hq-relay"); }],
+  ["relay behind the allowlist (members)", "policy-egress-network-members", (p) => { tunnel(p).permitted_members.push("cfmeet-admin-bridge-hq-relay"); }],
+  ["database behind the allowlist", "policy-egress-network-members", (p) => { tunnel(p).permitted_members.push("cfmeet-admin-db"); }],
+  ["internal network declaring an allowlist", "policy-internal-has-no-allowlist", (p) => { p.networks["cfmeet-admin-db"].egress_allowlist = structuredClone(tunnel(p).egress_allowlist); }],
+  ["tunnel mode made internal (no allowlist)", "policy-remote-bridge-not-member", (p) => { tunnel(p).internal = true; delete tunnel(p).egress_allowlist; }],
+  ["same-host mode made non-internal", "policy-same-host-relay", (p) => { sameHost(p).internal = false; p.networks["cfmeet-bridge"].internal = false; }],
+  ["same-host mode with an allowlist", "policy-internal-has-no-allowlist", (p) => { sameHost(p).egress_allowlist = structuredClone(tunnel(p).egress_allowlist); }],
+  ["same-host member beyond the three", "policy-same-host-relay", (p) => { sameHost(p).permitted_members.push("cfmeet-admin-db"); }],
+  ["same-host without the relay", "policy-same-host-relay", (p) => { sameHost(p).permitted_members = ["cfmeet-admin", "cfmeet-admin-worker"]; }],
+  ["the Bridge itself on the same-host network", "policy-remote-bridge-not-member", (p) => { sameHost(p).permitted_members.push("cfmeet-admin-bridge"); }],
+  ["relay without a fixed address", "policy-same-host-relay", (p) => { delete p.networks["cfmeet-bridge"].fixed_addresses["cfmeet-admin-bridge-hq-relay"]; }],
+  ["relay on another HQ network", "policy-relay-only-on-bridge-network", (p) => { p.networks["cfmeet-admin-db"].permitted_members.push("cfmeet-admin-bridge-hq-relay"); }],
+  ["relay on a Karryam network", "policy-product-networks-isolated", (p) => { p.networks["karryam-bridge"].permitted_members.push("cfmeet-admin-bridge-hq-relay"); }],
+  ["fixed address on the Docker gateway", "policy-fixed-addresses", (p) => { p.networks["cfmeet-bridge"].fixed_addresses["cfmeet-admin"] = "10.231.14.1"; }],
+  ["fixed address outside the subnet", "policy-fixed-addresses", (p) => { p.networks["cfmeet-bridge"].fixed_addresses["cfmeet-admin-worker"] = "10.231.15.4"; }],
+  ["fixed address assigned twice", "policy-fixed-addresses", (p) => { p.networks["cfmeet-bridge"].fixed_addresses["cfmeet-admin-worker"] = "10.231.14.3"; }],
+  ["fixed address for a non-member", "policy-fixed-addresses", (p) => { p.networks["cfmeet-bridge"].fixed_addresses["central-admin-api"] = "10.231.14.5"; }],
+  ["unknown default mode", "policy-transport-modes", (p) => { p.networks["cfmeet-bridge"].transport.default_mode = "shared"; }],
+  ["unknown transport mode", "policy-transport-modes", (p) => { p.networks["cfmeet-bridge"].transport.modes.vpn = structuredClone(tunnel(p)); }],
+  ["top level differs from the default mode", "policy-transport-default-is-top-level", (p) => { p.networks["cfmeet-bridge"].transport.default_mode = "tunnel"; }],
+  ["HQ may reach the relay", "policy-forbids-required-bypass", (p) => { p.forbidden_flows = p.forbidden_flows.filter((f) => !(f.from === "central-admin-api" && f.to === "cfmeet-admin-bridge-hq-relay")); }],
+  ["relay may reach the CF Meet Admin database", "policy-forbids-required-bypass", (p) => { p.forbidden_flows = p.forbidden_flows.filter((f) => !(f.from === "cfmeet-admin-bridge-hq-relay" && f.to === "cfmeet-admin-db")); }],
 ];
 for (const [name, check, mutate] of POLICY_MUTATIONS) {
   test(`egress policy fails closed: ${name}`, () => {
@@ -245,6 +272,12 @@ const FIREWALL_MUTATIONS = [
   ["8460 not refused on the HQ host", "firewall-protects-db-and-bridge-ports", (t) => t.replace("PORTS=(5432 8110 8460)", "PORTS=(5432 8110)")],
   ["address not validated", "firewall-validates-egress-address", (t) => t.replaceAll("RFC 1918", "private")],
   ["verify without the exact-set check", "firewall-verifies-exact-set", (t) => t.replaceAll("UNEXPECTED", "EXTRA")],
+  // Transport switch: same-host by default, nothing else accepted, and the tunnel allowlist and
+  // subnet drops never emitted in same-host mode (they would cut CF Meet Admin off the relay).
+  ["tunnel made the default", "firewall-implements-transport-modes", (t) => t.replace('PA_CM_BRIDGE_MODE="${PA_CM_BRIDGE_MODE:-same-host}"', 'PA_CM_BRIDGE_MODE="${PA_CM_BRIDGE_MODE:-tunnel}"')],
+  ["any mode accepted", "firewall-implements-transport-modes", (t) => t.replace("same-host|tunnel) ;;", "*) ;;")],
+  ["allowlist emitted in every mode", "firewall-implements-transport-modes", (t) => t.replace('if [[ "$PA_CM_BRIDGE_MODE" == tunnel ]]; then', "if true; then")],
+  ["subnet drop emitted in same-host mode too", "firewall-implements-transport-modes", (t) => t.replace(/( {2}fi\r?\n)( {2}# Both modes)/, '$1  echo "DOCKER-USER -s $PA_SUBNET_CMBRIDGE -m comment --comment $TAG -j DROP"\n$2')],
 ];
 for (const [name, check, mutate] of FIREWALL_MUTATIONS) {
   test(`egress firewall fails closed: ${name}`, () => {

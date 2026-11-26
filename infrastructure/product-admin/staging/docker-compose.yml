@@ -8,8 +8,10 @@
 #   Central Admin API --unix socket--> Product Integration Core --unix socket--> Karryam Admin
 #                                                                 --unix socket--> CF Meet Admin
 #   Karryam Admin (+ worker) --TLS 1.3 mTLS :8110 on cf-staging-karryam-bridge--> Karryam Backoffice Bridge
-#   CF Meet Admin (+ worker) --cf-staging-cfmeet-bridge + private tunnel, TLS 1.3 mTLS
-#       to PA_CM_BRIDGE_ADDRESS:8460--> CF Meet Admin Bridge (on CF Meet's own host)
+#   CF Meet Admin (+ worker) --TLS 1.3 mTLS to PA_CM_BRIDGE_ADDRESS:8460--> CF Meet Admin Bridge
+#       same-host (default): on cf-staging-cfmeet-bridge (internal) via CF Meet's relay
+#         cfmeet-admin-bridge-hq-relay at 10.231.14.2 (CF Meet Admin .3, worker .4)
+#       tunnel (separate hosts): cf-staging-cfmeet-bridge + private tunnel to CF Meet's host
 #   Product Integration Core --cf-staging-hq-private--> DB-A (existing HQ database, alias hq-db)
 #   Karryam Admin (+ worker) --cf-staging-karryam-admin-db--> DB-B (karryam-admin-db below)
 #   CF Meet Admin (+ worker) --cf-staging-cfmeet-admin-db--> CF Meet Admin database (cfmeet-admin-db below)
@@ -20,11 +22,13 @@
 # images.env records CFMEET_ADMIN_IMAGE (a digest). Without the profile the
 # project is exactly PIC + Karryam Admin. PIC always mounts the (possibly
 # empty) CF Meet socket directory read-only; prepare-host and deploy create it.
-# Every network is internal (no route to the internet, no masquerade), except
-# cf-staging-cfmeet-bridge: its single permitted egress is the CF Meet Bridge
-# tunnel address and port (DOCKER-USER egress allowlist in
-# firewall/docker-user-rules.sh); everything else from it is dropped. No
-# service publishes a host port. Images are immutable digest references
+# Every network is internal (no route to the internet, no masquerade). The
+# one exception is cf-staging-cfmeet-bridge in tunnel mode
+# (PA_CM_BRIDGE_MODE=tunnel, separate hosts only): its single permitted egress
+# is the CF Meet Bridge tunnel address and port (DOCKER-USER egress allowlist
+# in firewall/docker-user-rules.sh); everything else from it is dropped. In
+# the default same-host mode it is internal like the others and its only
+# other member is CF Meet's relay at .2. No service publishes a host port. Images are immutable digest references
 # chosen by the release workflow. Every service starts DISABLED unless the
 # operator-managed env file enables it.
 #
@@ -195,7 +199,9 @@ services:
 
   # CF Meet Admin: the independent Product Admin for CF Meet (product id
   # cfmeet). Same hardening as Karryam Admin, its own uid/gid 10003, its own
-  # Bridge network and database; it never joins a Karryam network.
+  # Bridge network and database; it never joins a Karryam or CF Meet network.
+  # Fixed address 10.231.14.3 on cf-staging-cfmeet-bridge: CF Meet's relay
+  # (10.231.14.2) admits only .3 and .4 (network-policy.json fixed_addresses).
   cfmeet-admin:
     <<: *hardening
     profiles: ["cfmeet"]
@@ -218,7 +224,8 @@ services:
         target: /run/secrets/cfmeet-admin
         read_only: true
     networks:
-      cfmeet-bridge: {}
+      cfmeet-bridge:
+        ipv4_address: 10.231.14.3
       cfmeet-admin-db: {}
     depends_on:
       cfmeet-admin-db:
@@ -230,7 +237,8 @@ services:
 
   # CF Meet Stage A worker (event feed and certified dataset pulls): same
   # image, separate process, no listener. Talks only to the CF Meet Bridge
-  # and the CF Meet Admin database; never to HQ.
+  # (fixed address 10.231.14.4, admitted by CF Meet's relay) and the CF Meet
+  # Admin database; never to HQ.
   cfmeet-admin-worker:
     <<: *hardening
     profiles: ["cfmeet"]
@@ -252,7 +260,8 @@ services:
         target: /run/secrets/cfmeet-admin
         read_only: true
     networks:
-      cfmeet-bridge: {}
+      cfmeet-bridge:
+        ipv4_address: 10.231.14.4
       cfmeet-admin-db: {}
     depends_on:
       cfmeet-admin-db:
@@ -308,11 +317,12 @@ volumes:
   cfmeet-admin-db-data:
     name: cf-staging-cfmeet-admin-db-data
 
-# Created and owned by `pa-staging-ops.sh prepare-host` (internal except
-# cf-staging-cfmeet-bridge, which is egress-allowlisted; fixed
+# Created and owned by `pa-staging-ops.sh prepare-host` (internal, except
+# cf-staging-cfmeet-bridge in tunnel mode, which is egress-allowlisted; fixed
 # subnets from network-policy.json) so membership can be audited and the
-# source-owned Bridge and the existing HQ database can be attached by their
-# owners without joining this compose project.
+# source-owned Bridges (Karryam's Bridge, CF Meet's same-host relay) and the
+# existing HQ database can be attached by their owners without joining this
+# compose project.
 networks:
   hq-private:
     name: cf-staging-hq-private

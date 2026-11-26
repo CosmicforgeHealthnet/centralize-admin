@@ -29,11 +29,16 @@ name: Product Admin staging operations
 # the host (PA_CM_IMAGE) only when include_cfmeet=true (manual run) or the
 # repository variable PRODUCT_ADMIN_STAGING_CFMEET is "true" (automatic
 # delivery). Otherwise a deploy is PIC + Karryam Admin exactly as before.
-# The CF Meet Bridge runs on CF Meet's own host behind an operator-managed
-# private tunnel: its tunnel address and port come from the repository
-# variables PRODUCT_ADMIN_CM_BRIDGE_ADDRESS (RFC 1918, e.g. 10.250.0.1) and
-# PRODUCT_ADMIN_CM_BRIDGE_PORT (default 8460). They are not secrets; the host
-# script validates them and refuses a CF Meet release without them.
+# CF Meet Bridge transport: repository variable PRODUCT_ADMIN_CM_BRIDGE_MODE
+# (default same-host: HQ staging and CF Meet production share the VPS; the
+# CF Meet relay sits at 10.231.14.2 on the internal cf-staging-cfmeet-bridge,
+# so PRODUCT_ADMIN_CM_BRIDGE_ADDRESS stays unset or 10.231.14.2) or tunnel
+# (separate hosts: PRODUCT_ADMIN_CM_BRIDGE_ADDRESS is the RFC 1918 tunnel
+# address of the CF Meet host, e.g. 10.250.0.1). PRODUCT_ADMIN_CM_BRIDGE_PORT
+# defaults to 8460. Optional PRODUCT_ADMIN_CM_DENY_TARGETS (comma list of
+# ip:port, e.g. CF Meet operational databases) is probed CLOSED from CF Meet
+# Admin and its worker. None of them is a secret; the host script validates
+# them and refuses a CF Meet release whose transport does not match the host.
 
 on:
   push:
@@ -345,13 +350,14 @@ jobs:
               return call("docker",kind,"inspect",name)[0]==0
           sudo_rc,_=call("sudo","-n","-l")
           networks=["cf-staging-hq-private","cf-staging-admin-private","cf-staging-karryam-bridge","cf-staging-karryam-admin-db","cf-staging-cfmeet-bridge","cf-staging-cfmeet-admin-db"]
-          names=["admin-server-staging-app-1","admin-server-staging-db-1","cf-product-admin-staging-product-integration-core-1","cf-product-admin-staging-karryam-admin-1","cf-product-admin-staging-karryam-admin-db-1","cf-product-admin-staging-cfmeet-admin-1","cf-product-admin-staging-cfmeet-admin-db-1"]
+          names=["admin-server-staging-app-1","admin-server-staging-db-1","cf-product-admin-staging-product-integration-core-1","cf-product-admin-staging-karryam-admin-1","cf-product-admin-staging-karryam-admin-db-1","cf-product-admin-staging-cfmeet-admin-1","cf-product-admin-staging-cfmeet-admin-db-1","cfmeet-admin-bridge-hq-relay"]
           result={
            "report":"product-admin-staging-readonly-inventory","environment":"staging",
            "user":os.environ.get("USER","unknown"),"euid":os.geteuid(),
            "sudo_noninteractive_listing_available":sudo_rc==0,
            "docker_access":call("docker","info","--format","{{.ServerVersion}}")[0]==0,
            "private_networks":{n:docker_exists("network",n) for n in networks},
+           "cfmeet_bridge_internal":(lambda r: r[1] if r[0]==0 else None)(call("docker","network","inspect","-f","{{.Internal}}","cf-staging-cfmeet-bridge")),
            "expected_containers":{n:docker_exists("container",n) for n in names},
            "staging_api_dir_exists":os.path.isdir("/var/www/admin-server-staging"),
            "product_admin_state_dir_visible":os.path.isdir("/srv/cosmicforge/staging/release"),
@@ -372,8 +378,10 @@ jobs:
           PIC: ${{ needs.images.outputs.pic }}
           KA: ${{ needs.images.outputs.ka }}
           CM: ${{ needs.images.outputs.cm }}
+          CM_BRIDGE_MODE: ${{ vars.PRODUCT_ADMIN_CM_BRIDGE_MODE }}
           CM_BRIDGE_ADDRESS: ${{ vars.PRODUCT_ADMIN_CM_BRIDGE_ADDRESS }}
           CM_BRIDGE_PORT: ${{ vars.PRODUCT_ADMIN_CM_BRIDGE_PORT }}
+          CM_DENY_TARGETS: ${{ vars.PRODUCT_ADMIN_CM_DENY_TARGETS }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -385,7 +393,7 @@ jobs:
               || { echo "Automatic delivery skipped: no prepared host with S1 PASSED. Nothing changed."; exit 0; }
           fi
           # Secrets travel only on stdin, never on a remote command line.
-          { printf 'export PA_RELEASE_SHA=%q PA_PIC_IMAGE=%q PA_KA_IMAGE=%q PA_CM_IMAGE=%q PA_CM_BRIDGE_ADDRESS=%q PA_CM_BRIDGE_PORT=%q PA_RUN_ID=%q GHCR_USER=%q GHCR_TOKEN=%q\n' "$SHA" "$PIC" "$KA" "$CM" "$CM_BRIDGE_ADDRESS" "${CM_BRIDGE_PORT:-8460}" "$run" "$GHCR_USER" "$GHCR_TOKEN"
+          { printf 'export PA_RELEASE_SHA=%q PA_PIC_IMAGE=%q PA_KA_IMAGE=%q PA_CM_IMAGE=%q PA_CM_BRIDGE_MODE=%q PA_CM_BRIDGE_ADDRESS=%q PA_CM_BRIDGE_PORT=%q PA_CM_DENY_TARGETS=%q PA_RUN_ID=%q GHCR_USER=%q GHCR_TOKEN=%q\n' "$SHA" "$PIC" "$KA" "$CM" "${CM_BRIDGE_MODE:-same-host}" "$CM_BRIDGE_ADDRESS" "${CM_BRIDGE_PORT:-8460}" "$CM_DENY_TARGETS" "$run" "$GHCR_USER" "$GHCR_TOKEN"
             printf 'bash %q/infrastructure/product-admin/release/pa-staging-ops.sh %q\n' "$d" "$OP"
           } | "$ssh" "bash -s" | tee ops.log
       - name: Stage evidence and durable release state
