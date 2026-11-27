@@ -179,9 +179,9 @@ jobs:
           checks=()
           add() { checks+=("{\"id\":\"$1\",\"status\":\"$2\",\"detail\":\"$3\"}"); echo "$1=$2 $3"; }
           git fetch -q origin staging
-          if git merge-base --is-ancestor "$SHA" origin/staging; then add commit_on_staging PASS "ancestor of origin/staging $(git rev-parse --short origin/staging)"; else add commit_on_staging FAIL "not on origin/staging"; fi
-          # A path-filtered workflow that did not run is NOT a pass.
           ok=1; detail=""
+          if git merge-base --is-ancestor "$SHA" origin/staging; then add commit_on_staging PASS "ancestor of origin/staging $(git rev-parse --short origin/staging)"; else add commit_on_staging FAIL "not on origin/staging"; ok=0; fi
+          # A path-filtered workflow that did not run is NOT a pass.
           for wf in "Product Admin Platform CI" "Product Admin Infrastructure Security CI" "Monorepo Layout and Container CI"; do
             c="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&per_page=50" --jq "[.workflow_runs[] | select(.name == \"$wf\" and .event == \"push\")] | sort_by(.run_attempt) | last | .conclusion // \"missing\"")"
             detail+="$wf=$c; "; [[ "$c" == success ]] || ok=0
@@ -192,7 +192,9 @@ jobs:
             if (( ok )); then add "$id" PASS "covered by the required workflows for $SHA"; else add "$id" FAIL "required workflows not green"; fi
           done
           printf '[%s]\n' "$(IFS=,; echo "${checks[*]}")" > _evidence/s0-checks.json
+          (( ok )) || exit 1
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: product-admin-s0-checks
           path: _evidence/
