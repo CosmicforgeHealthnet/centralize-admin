@@ -585,18 +585,32 @@ jobs:
     permissions:
       contents: read
       actions: read
+    env:
+      PROMOTION_PR: ${{ github.event_name == 'pull_request' && github.head_ref == 'staging' && github.base_ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
+      - name: Require successful code checks for staging-to-main PR merge candidate
+        if: env.PROMOTION_PR == 'true'
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          jq -e 'length == 7 and all(.[]; .result == "success")' <<< "$NEEDS_JSON"
+          echo "All Product Admin PR code checks passed on the merge candidate. This is not live staging certification or authorization to promote." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@v4
+        if: env.PROMOTION_PR != 'true'
         with:
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
+        if: env.PROMOTION_PR != 'true'
         with:
           node-version: "22"
       - uses: actions/download-artifact@v4
+        if: env.PROMOTION_PR != 'true'
         with:
           path: _artifacts
       - name: Status of the other required workflows for this exact commit
+        if: env.PROMOTION_PR != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -635,6 +649,7 @@ jobs:
           sleep 10
           done
       - name: Evaluate the fourteen gates
+        if: env.PROMOTION_PR != 'true'
         env:
           BASE: ${{ github.event_name == 'push' && github.event.before || github.event.pull_request.base.sha }}
         run: |
@@ -647,7 +662,7 @@ jobs:
             --report _gates/product-admin-staging-gates.json --markdown _gates/product-admin-staging-gates.md
           cat _gates/product-admin-staging-gates.md >> "$GITHUB_STEP_SUMMARY"
       - name: Section 14 WP/DoD and release closure (never self-certify live staging)
-        if: always()
+        if: always() && env.PROMOTION_PR != 'true'
         run: |
           set -euo pipefail
           node --test infrastructure/scripts/tests/product-admin-section14-closure.test.mjs
@@ -655,14 +670,14 @@ jobs:
             --report _gates/product-admin-section14-closure.json --markdown _gates/product-admin-section14-closure.md
           cat _gates/product-admin-section14-closure.md >> "$GITHUB_STEP_SUMMARY"
       - name: Section 14 closure for CF Meet Admin (same gates, CF Meet paths)
-        if: always()
+        if: always() && env.PROMOTION_PR != 'true'
         run: |
           set -euo pipefail
           node infrastructure/scripts/product-admin-section14-closure.mjs --product cfmeet --sha "$GITHUB_SHA" --gates _gates/product-admin-staging-gates.json \
             --report _gates/cfmeet-admin-section14-closure.json --markdown _gates/cfmeet-admin-section14-closure.md
           cat _gates/cfmeet-admin-section14-closure.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && env.PROMOTION_PR != 'true'
         with:
           name: product-admin-staging-gates
           path: _gates/
