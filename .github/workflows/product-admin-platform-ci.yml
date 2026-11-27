@@ -605,8 +605,18 @@ jobs:
             const runs = JSON.parse(execFileSync("gh", ["api", `repos/${process.env.GITHUB_REPOSITORY}/actions/runs?head_sha=${process.env.GITHUB_SHA}&per_page=100`])).workflow_runs;
             const out = {};
             for (const name of ["Product Admin Infrastructure Security CI", "Monorepo Layout and Container CI", "Social Operations CI"]) {
-              const r = runs.filter((x) => x.name === name).sort((a, b) => b.run_attempt - a.run_attempt)[0];
-              out[name] = !r ? "missing" : r.status !== "completed" ? "in_progress" : r.conclusion;
+              const stagingPush = process.env.GITHUB_EVENT_NAME === "push" && process.env.GITHUB_REF === "refs/heads/staging";
+              const candidates = runs.filter((x) => x.name === name && (!stagingPush || (x.event === "push" && x.head_branch === "staging")));
+              if (name === "Social Operations CI" && stagingPush) {
+                const r = candidates.filter((x) => x.path === ".github/workflows/staging.yml").sort((a,b) => b.id-a.id)[0];
+                if (!r) { out[name] = "missing"; continue; }
+                const jobs = JSON.parse(execFileSync("gh", ["api", "repos/"+process.env.GITHUB_REPOSITORY+"/actions/runs/"+r.id+"/attempts/"+r.run_attempt+"/jobs?per_page=100"])).jobs;
+                const j = jobs.find((x) => x.name === "Verify Social Operations backend");
+                out[name] = !j ? "missing" : j.status !== "completed" ? "in_progress" : j.conclusion;
+              } else {
+                const r = candidates.sort((a,b) => b.id-a.id)[0];
+                out[name] = !r ? "missing" : r.status !== "completed" ? "in_progress" : r.conclusion;
+              }
             }
             // This workflow: its own required jobs.
             out["Product Admin Platform CI"] = process.argv[1] === "success" ? "success" : "failure";

@@ -178,11 +178,22 @@ jobs:
             if [[ "$current" != "$SHA" ]]; then ok=0; detail="release superseded"; break; fi
             runs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&branch=staging&event=push&per_page=100" | jq -cs '[.[].workflow_runs[]]')"
             pending=0; detail=""
-            for wf in product-admin-platform-ci.yml product-admin-infrastructure-ci.yml monorepo-layout-ci.yml social-operations-ci.yml; do
+            for wf in product-admin-platform-ci.yml product-admin-infrastructure-ci.yml monorepo-layout-ci.yml; do
               c="$(jq -r --arg p ".github/workflows/$wf" '[.[] | select(.path==$p)] | max_by(.id) | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end' <<< "$runs")"
               detail+="$wf=$c; "
               case "$c" in success) ;; pending|missing) pending=1 ;; *) ok=0 ;; esac
             done
+            # Check canonical API CI, not deployment jobs.
+            api_run="$(jq -c '[.[] | select(.path==".github/workflows/staging.yml")] | max_by(.id) // {}' <<< "$runs")"
+            api_id="$(jq -r '.id // empty' <<< "$api_run")"
+            api_status=missing
+            if [[ -n "$api_id" ]]; then
+              attempt="$(jq -r '.run_attempt' <<< "$api_run")"
+              api_jobs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$api_id/attempts/$attempt/jobs?per_page=100" | jq -cs '[.[].jobs[]]')"
+              api_status="$(jq -r '[.[] | select(.name=="Verify Social Operations backend")] | max_by(.id) | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end' <<< "$api_jobs")"
+            fi
+            detail+="staging.yml/verify=$api_status; "
+            case "$api_status" in success) ;; missing|pending) pending=1 ;; *) ok=0 ;; esac
             echo "$detail"
             if (( ! ok || ! pending )); then break; fi
             if (( SECONDS >= deadline )); then ok=0; break; fi

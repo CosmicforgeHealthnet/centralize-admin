@@ -34,3 +34,12 @@ test("connection-check never attempts root or uploads a bundle",()=>{
   assert.ok(p.includes("needs.plan.outputs.operation != 'connection-check'"));
   assert.ok(!p.includes("environment: product-admin-staging"));
 });
+
+test("staging release checks the canonical API CI job, not duplicate backend runs",()=>{
+  const legacy=fs.readFileSync(path.join(root,".github/workflows/social-operations-ci.yml"),"utf8");
+  assert.ok(!/^      - staging$/m.test(legacy));
+  assert.ok(p.includes('select(.path==".github/workflows/staging.yml")'));
+  assert.ok(p.includes('select(.name=="Verify Social Operations backend")'));
+  assert.ok(p.includes('case "$api_status" in success) ;; missing|pending) pending=1 ;; *) ok=0 ;; esac'));
+  assert.ok(original.includes("cache-from: type=gha,scope=ca-staging-api"));
+});

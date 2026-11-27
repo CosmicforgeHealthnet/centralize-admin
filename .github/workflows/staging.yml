@@ -306,6 +306,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ steps.image.outputs.tag }}
+          cache-from: type=gha,scope=ca-staging-api
+          cache-to: type=gha,mode=max,scope=ca-staging-api,ignore-error=true
 
   deploy-staging-api:
     name: Deploy staging API to Contabo and verify login
