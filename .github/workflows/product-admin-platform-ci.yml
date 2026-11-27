@@ -578,6 +578,7 @@ jobs:
 
   staging-gates:
     name: Section 13.3 staging gates (machine-readable and human-readable)
+    timeout-minutes: 50
     needs: [packages, karryam-admin, cfmeet-admin, product-integration-core, security-coverage, containers, cfmeet-admin-container]
     if: always()
     runs-on: ubuntu-latest
@@ -600,13 +601,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          deadline=$((SECONDS + 2700))
+          while true; do
           node -e '
             const { execFileSync } = require("child_process");
             const runs = JSON.parse(execFileSync("gh", ["api", `repos/${process.env.GITHUB_REPOSITORY}/actions/runs?head_sha=${process.env.GITHUB_SHA}&per_page=100`])).workflow_runs;
             const out = {};
             for (const name of ["Product Admin Infrastructure Security CI", "Monorepo Layout and Container CI", "Social Operations CI"]) {
               const stagingPush = process.env.GITHUB_EVENT_NAME === "push" && process.env.GITHUB_REF === "refs/heads/staging";
-              const candidates = runs.filter((x) => x.name === name && (!stagingPush || (x.event === "push" && x.head_branch === "staging")));
+              const paths = {"Product Admin Infrastructure Security CI": ".github/workflows/product-admin-infrastructure-ci.yml", "Monorepo Layout and Container CI": ".github/workflows/monorepo-layout-ci.yml", "Social Operations CI": ".github/workflows/staging.yml"};
+              const candidates = runs.filter((x) => x.name === name && (!stagingPush || (x.event === "push" && x.head_branch === "staging" && x.path === paths[name])));
               if (name === "Social Operations CI" && stagingPush) {
                 const r = candidates.filter((x) => x.path === ".github/workflows/staging.yml").sort((a,b) => b.id-a.id)[0];
                 if (!r) { out[name] = "missing"; continue; }
@@ -622,6 +626,14 @@ jobs:
             out["Product Admin Platform CI"] = process.argv[1] === "success" ? "success" : "failure";
             require("fs").writeFileSync("ci-status.json", JSON.stringify(out, null, 2));
             console.log(out);' "${{ needs.karryam-admin.result == 'success' && needs.cfmeet-admin.result == 'success' && needs.cfmeet-admin-container.result == 'success' && needs.product-integration-core.result == 'success' && needs.packages.result == 'success' && needs.security-coverage.result == 'success' && needs.containers.result == 'success' && 'success' || 'failure' }}"
+          # For staging pushes, wait for the canonical same-SHA checks instead
+          # of certifying while sibling CI is still running. Never wait on deploy.
+          if [[ "$GITHUB_EVENT_NAME" != push || "$GITHUB_REF" != refs/heads/staging ]]; then break; fi
+          if jq -e 'any(.[]; . != "success" and . != "missing" and . != "in_progress")' ci-status.json >/dev/null; then exit 1; fi
+          if jq -e 'all(.[]; . == "success")' ci-status.json >/dev/null; then break; fi
+          if (( SECONDS >= deadline )); then echo "::error::Required same-commit CI did not finish in time"; exit 1; fi
+          sleep 10
+          done
       - name: Evaluate the fourteen gates
         env:
           BASE: ${{ github.event_name == 'push' && github.event.before || github.event.pull_request.base.sha }}
@@ -630,6 +642,7 @@ jobs:
           mkdir -p _gates
           base_args=()
           if [[ "$BASE" =~ ^[0-9a-f]{40}$ && "$BASE" != 0000000000000000000000000000000000000000 ]]; then base_args=(--base "$BASE"); fi
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/staging ]]; then base_args+=(--monorepo-push true); fi
           node infrastructure/scripts/product-admin-staging-gates.mjs --sha "$GITHUB_SHA" "${base_args[@]}" --artifacts _artifacts --ci-status ci-status.json \
             --report _gates/product-admin-staging-gates.json --markdown _gates/product-admin-staging-gates.md
           cat _gates/product-admin-staging-gates.md >> "$GITHUB_STEP_SUMMARY"

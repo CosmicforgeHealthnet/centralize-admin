@@ -21,14 +21,14 @@ name: Product Admin staging operations
 # Never run an uploaded bundle with unrestricted passwordless sudo.
 #
 # Automatic delivery: a staging push starts the plan; the release gate waits
-# for the exact push CI. `deploy` runs ONLY when the repository variable
-# PRODUCT_ADMIN_STAGING_AUTO_DEPLOY is "true" AND the release state on the
-# host shows S1 PASSED for the host (prepared, migrated). Default: off.
+# for the exact push CI. Automatic delivery is the default; the repository
+# variable PRODUCT_ADMIN_STAGING_AUTO_DEPLOY=false is an emergency opt-out.
+# Host capability and the prepared-host checks remain mandatory.
 #
 # CF Meet Admin is optional: its image is built, smoke-tested and passed to
 # the host (PA_CM_IMAGE) only when include_cfmeet=true (manual run) or the
-# repository variable PRODUCT_ADMIN_STAGING_CFMEET is "true" (automatic
-# delivery). Otherwise a deploy is PIC + Karryam Admin exactly as before.
+# repository variable PRODUCT_ADMIN_STAGING_CFMEET is not "false" (automatic
+# delivery, default on). Explicit false retains PIC + Karryam Admin only.
 # CF Meet Bridge transport: repository variable PRODUCT_ADMIN_CM_BRIDGE_MODE
 # (default same-host: HQ staging and CF Meet production share the VPS; the
 # CF Meet relay sits at 10.231.14.2 on the internal cf-staging-cfmeet-bridge,
@@ -128,8 +128,8 @@ jobs:
           set -euo pipefail
           if [[ "$EVENT" == push ]]; then
             sha="$GITHUB_SHA"
-            if [[ "$AUTO_DEPLOY" == true ]]; then op=deploy; auto=true
-            else op=connection-check; auto=false; fi
+            if [[ "$AUTO_DEPLOY" == false ]]; then op=connection-check; auto=false
+            else op=deploy; auto=true; fi
           else op="$OP"; sha="${INPUT_SHA:-$GITHUB_SHA}"; auto=false; fi
           [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::release_sha must be a full 40-character commit SHA"; exit 1; }
           case "$op" in
@@ -141,7 +141,7 @@ jobs:
           esac
           cfmeet=false
           if [[ "$op" == deploy ]]; then
-            if [[ "$auto" == true ]]; then [[ "$AUTO_CFMEET" == true ]] && cfmeet=true; else [[ "$INCLUDE_CFMEET" == true ]] && cfmeet=true; fi
+            if [[ "$auto" == true ]]; then [[ "$AUTO_CFMEET" != false ]] && cfmeet=true; else [[ "$INCLUDE_CFMEET" == true ]] && cfmeet=true; fi
           fi
           { echo "operation=$op"; echo "sha=$sha"; echo "host=$host"; echo "auto=$auto"; echo "cfmeet=$cfmeet"; } >> "$GITHUB_OUTPUT"
           echo "Operation $op, release commit $sha (automatic: $auto, CF Meet Admin: $cfmeet). Production is never targeted."
@@ -405,14 +405,14 @@ jobs:
           if [[ "$AUTO" == true ]]; then
             # Automatic delivery only onto a host whose S1 already passed for a previous release.
             "$ssh" "python3 -c \"import json,sys; s=json.load(open('/srv/cosmicforge/staging/release/state.json')); h=[s['current']]+s['history']; sys.exit(0 if any(r['stages']['S1']['status']=='PASSED' for r in h) else 1)\"" \
-              || { echo "Automatic delivery skipped: no prepared host with S1 PASSED. Nothing changed."; exit 0; }
+              || { echo "::error::Automatic delivery blocked: no prepared host with S1 PASSED. Nothing changed."; exit 1; }
           fi
           # Secrets travel only on stdin, never on a remote command line.
           { printf 'export PA_RELEASE_SHA=%q PA_PIC_IMAGE=%q PA_KA_IMAGE=%q PA_CM_IMAGE=%q PA_CM_BRIDGE_MODE=%q PA_CM_BRIDGE_ADDRESS=%q PA_CM_BRIDGE_PORT=%q PA_CM_DENY_TARGETS=%q PA_RUN_ID=%q GHCR_USER=%q GHCR_TOKEN=%q\n' "$SHA" "$PIC" "$KA" "$CM" "${CM_BRIDGE_MODE:-same-host}" "$CM_BRIDGE_ADDRESS" "${CM_BRIDGE_PORT:-8460}" "$CM_DENY_TARGETS" "$run" "$GHCR_USER" "$GHCR_TOKEN"
             printf 'bash %q/infrastructure/product-admin/release/pa-staging-ops.sh %q\n' "$d" "$OP"
           } | "$ssh" "bash -s" | tee ops.log
       - name: Stage evidence and durable release state
-        if: always() && (needs.plan.outputs.operation == 'deploy' || needs.plan.outputs.operation == 'complete-stage')
+        if: success() && (needs.plan.outputs.operation == 'deploy' || needs.plan.outputs.operation == 'complete-stage')
         env:
           OP: ${{ needs.plan.outputs.operation }}
           SHA: ${{ needs.plan.outputs.sha }}

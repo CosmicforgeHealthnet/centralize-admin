@@ -95,7 +95,7 @@ export function evaluate(inp) {
   const repo = inp.repo || {};
   if (!repo.checked) gate(1, "Repository integrity", "NOT_RUN", { reason: "git checks not available" });
   else if (!repo.onStaging || repo.unrelatedChanges.length || repo.protectedChanges.length) gate(1, "Repository integrity", "FAIL", { evidence: ["git"], reason: [!repo.onStaging && "commit not on origin/staging", repo.unrelatedChanges.length && `uncommitted or out-of-scope changes: ${repo.unrelatedChanges.slice(0, 5).join(", ")}`, repo.protectedChanges.length && `Mail/HealthNet/other protected paths changed: ${repo.protectedChanges.slice(0, 5).join(", ")}`].filter(Boolean).join("; ") });
-  else gate(1, "Repository integrity", "PASS", { evidence: [`git:${repo.range || inp.sha}`], reason: "on origin/staging, clean tree, no protected-module changes in the range" });
+  else gate(1, "Repository integrity", "PASS", { evidence: [`git:${repo.range || inp.sha}`], reason: repo.monorepoPush ? "on origin/staging, clean tree; other service changes handled by their own CI" : "on origin/staging, clean tree, no protected-module changes in the range" });
 
   // 2. Product naming
   const naming = inp.naming;
@@ -136,7 +136,7 @@ export function evaluate(inp) {
   const compat = COMPAT_WORKFLOWS.map((n) => `${n}=${ci(n)}`);
   if (COMPAT_WORKFLOWS.some((n) => ci(n) === "missing" || ci(n) === "in_progress")) gate(13, "Existing platform compatibility", "NOT_RUN", { evidence: compat, reason: "compatibility CI not finished for this commit" });
   else if (!ciGreen(COMPAT_WORKFLOWS) || (repo.protectedChanges || []).length) gate(13, "Existing platform compatibility", "FAIL", { evidence: compat, reason: "compatibility CI failed or protected modules changed" });
-  else gate(13, "Existing platform compatibility", "PASS", { evidence: compat, reason: "API/Mail/HealthNet/Marketing suites green; no protected module changed; legacy logistics untouched" });
+  else gate(13, "Existing platform compatibility", "PASS", { evidence: compat, reason: repo.monorepoPush ? "canonical backend compatibility suite green for the monorepo push" : "API/Mail/HealthNet/Marketing suites green; no protected module changed; legacy logistics untouched" });
   // 14. Production separation
   const prod = inp.production || {};
   if (!prod.checked) gate(14, "Production separation", "NOT_RUN", { reason: "main/production checks not available" });
@@ -152,7 +152,18 @@ export function evaluate(inp) {
   };
 }
 
-export function collect({ sha, base, artifactsDir, ciStatusFile, stagingStateFile }) {
+// A staging push is a monorepo release, not an isolated Product Admin patch.
+// Keep the narrow scope for standalone certification, and separately report
+// changes owned by other services. Production workflows remain forbidden.
+export function classifyReleasePaths(changed, monorepoPush = false) {
+  const production = changed.filter((p) => /^\.github\/workflows\/(production|ca-db-production-cutover)\.yml$/.test(p));
+  return {
+    outOfScope: changed.filter((p) => !isReleaseScopePath(p)),
+    protectedChanges: monorepoPush ? production : changed.filter((p) => PROTECTED_PATHS.some((r) => r.test(p))),
+  };
+}
+
+export function collect({ sha, base, artifactsDir, ciStatusFile, stagingStateFile, monorepoPush = false }) {
   const files = findFiles(artifactsDir, ["product-admin-contract-audit.json", "cfmeet-admin-contract-audit.json", "karryam-admin-required-suites.json", "cfmeet-admin-required-suites.json", "pic-required-suites.json", "product-admin-e2e-journeys.json", "product-admin-security-coverage.json", "product-admin-release-state.json", "release-status.json"]);
   const artifacts = {};
   if (files["product-admin-contract-audit.json"]) artifacts.contract_audit = readJson(files["product-admin-contract-audit.json"][0]);
@@ -172,8 +183,8 @@ export function collect({ sha, base, artifactsDir, ciStatusFile, stagingStateFil
     const status = (gitRaw("status", "--porcelain", "--untracked-files=no") || "").split("\n").filter(Boolean).map((l) => l.slice(3));
     const range = base ? `${base}..${sha}` : null;
     const changed = range ? (git("diff", "--name-only", range) || "").split("\n").filter(Boolean) : [];
-    const outOfScope = changed.filter((p) => !isReleaseScopePath(p));
-    Object.assign(repo, { checked: true, onStaging, unrelatedChanges: [...status, ...outOfScope.map((p) => "out of scope: " + p)], protectedChanges: changed.filter((p) => PROTECTED_PATHS.some((r) => r.test(p))), range });
+    const { outOfScope, protectedChanges } = classifyReleasePaths(changed, monorepoPush);
+    Object.assign(repo, { checked: true, onStaging, unrelatedChanges: [...status, ...(monorepoPush ? [] : outOfScope.map((p) => "out of scope: " + p))], protectedChanges, otherServiceChanges: monorepoPush ? outOfScope : [], monorepoPush, range });
   }
   // Production separation.
   const production = { checked: false };
@@ -225,7 +236,7 @@ export function markdown(r) {
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const a = Object.fromEntries(process.argv.slice(2).reduce((acc, v, i, arr) => (v.startsWith("--") ? [...acc, [v.slice(2), arr[i + 1]]] : acc), []));
   const sha = a.sha || git("rev-parse", "HEAD");
-  const r = evaluate(collect({ sha, base: a.base, artifactsDir: a.artifacts, ciStatusFile: a["ci-status"], stagingStateFile: a["staging-state"] }));
+  const r = evaluate(collect({ sha, base: a.base, artifactsDir: a.artifacts, ciStatusFile: a["ci-status"], stagingStateFile: a["staging-state"], monorepoPush: a["monorepo-push"] === "true" }));
   if (a.report) { fs.mkdirSync(path.dirname(path.resolve(a.report)), { recursive: true }); fs.writeFileSync(a.report, JSON.stringify(r, null, 2)); }
   if (a.markdown) fs.writeFileSync(a.markdown, markdown(r));
   for (const g of r.gates) process.stdout.write(`${String(g.id).padStart(2)} ${g.status.padEnd(16)} ${g.title}: ${g.reason}\n`);

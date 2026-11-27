@@ -3,7 +3,7 @@
 // needs every gate PASS with real staging evidence for the same commit.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { evaluate, markdown, isReleaseScopePath } from "../product-admin-staging-gates.mjs";
+import { evaluate, markdown, isReleaseScopePath, classifyReleasePaths } from "../product-admin-staging-gates.mjs";
 
 const SHA = "c".repeat(40);
 const journeys = (status = "PASS") => ({ status, journeys: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, status })) });
@@ -114,4 +114,19 @@ test("explicit shared CI maintenance paths are in scope, not unrelated workflows
     protectedChanges: [".github/workflows/production.yml"] } }));
   assert.equal(byId(unrelated)[1], "FAIL");
   assert.equal(unrelated.result, "NOT_CERTIFIED");
+});
+
+
+test("monorepo push records other service changes without rejecting them; production stays protected", () => {
+  const changes = ["services/central-admin-api/src/modules/mail/x.js", "services/central-admin-api/package.json", "apps/central-admin-web/src/app/page.tsx", ".github/workflows/production.yml", ".github/workflows/ca-db-production-cutover.yml"];
+  const mixed = classifyReleasePaths(changes, true);
+  assert.deepEqual(mixed.outOfScope, changes);
+  assert.deepEqual(mixed.protectedChanges, changes.slice(3));
+  assert.deepEqual(classifyReleasePaths(changes.slice(0, 3), true).protectedChanges, []);
+  assert.ok(classifyReleasePaths(changes, false).protectedChanges.includes(changes[0]));
+  const good = evaluate(inputs({ repo: { ...inputs().repo, monorepoPush: true, otherServiceChanges: changes.slice(0, 3) } }));
+  assert.equal(byId(good)[1], "PASS");
+  assert.equal(byId(good)[13], "PASS");
+  const bad = evaluate(inputs({ repo: { ...inputs().repo, monorepoPush: true, protectedChanges: mixed.protectedChanges } }));
+  assert.equal(byId(bad)[1], "FAIL");
 });
