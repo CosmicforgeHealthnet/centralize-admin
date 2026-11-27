@@ -18,10 +18,12 @@ test("reuses the existing staging environment and SSH credentials",()=>{
 test("pins the same client and server SSH fingerprints",()=>{
   for(const fp of ["SHA256:LSVBOgX3GxSbGvrqRUwA/BYxw2zVxdvQUQLnV6ALW+4","SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ"]) {assert.ok(p.includes(fp)); assert.ok(original.includes(fp));}
 });
-test("connection-check never attempts root or uploads a bundle",()=>{
+test("automatic staging deploy is default; explicit connection-check stays read-only",()=>{
   assert.ok(p.includes("github.event_name == 'push' && github.ref == 'refs/heads/staging'"));
   assert.ok(p.includes('if [[ "$EVENT" == push ]]; then'));
-  assert.ok(p.includes('else op=connection-check; auto=false; fi'));
+  assert.match(p, /if \[\[ "\$AUTO_DEPLOY" == false \]\]; then op=connection-check; auto=false\s+else op=deploy; auto=true; fi/);
+  assert.ok(p.includes('[[ "$AUTO_CFMEET" != false ]] && cfmeet=true'));
+  assert.ok(p.includes('Automatic delivery blocked: no prepared host with S1 PASSED. Nothing changed."; exit 1'));
   assert.ok(!p.includes("  workflow_run:"));
   assert.ok(p.includes('(( ok )) || exit 1'));
   assert.ok(p.includes("options: [connection-check,"));
