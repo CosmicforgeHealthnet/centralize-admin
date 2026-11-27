@@ -3,7 +3,7 @@
 // needs every gate PASS with real staging evidence for the same commit.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { evaluate, markdown } from "../product-admin-staging-gates.mjs";
+import { evaluate, markdown, isReleaseScopePath } from "../product-admin-staging-gates.mjs";
 
 const SHA = "c".repeat(40);
 const journeys = (status = "PASS") => ({ status, journeys: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, status })) });
@@ -92,4 +92,26 @@ test("CF Meet: its contract audit must pass too when present, and naming names b
   assert.equal(bad.result, "NOT_CERTIFIED");
   // Without a cfmeet audit artifact the Karryam behaviour is unchanged.
   assert.equal(byId(evaluate(inputs()))[6], "PENDING_EXTERNAL");
+});
+
+test("explicit shared CI maintenance paths are in scope, not unrelated workflows or application code", () => {
+  for (const p of [
+    ".github/workflows/monorepo-layout-ci.yml",
+    ".github/workflows/social-operations-ci.yml",
+    ".github/workflows/staging.yml",
+  ]) assert.equal(isReleaseScopePath(p), true, p);
+  for (const p of [
+    ".github/workflows/production.yml",
+    ".github/workflows/ca-db-production-cutover.yml",
+    ".github/workflows/monorepo-layout-ci.yml.bak",
+    ".github/workflows/social-operations-ci.yml.bak",
+    "services/central-admin-api/src/modules/mail/x.js",
+    "apps/central-admin-web/src/app/page.tsx",
+    "services/healthnet-admin/src/index.js",
+  ]) assert.equal(isReleaseScopePath(p), false, p);
+  const unrelated = evaluate(inputs({ repo: { checked: true, onStaging: true,
+    unrelatedChanges: ["out of scope: .github/workflows/production.yml"],
+    protectedChanges: [".github/workflows/production.yml"] } }));
+  assert.equal(byId(unrelated)[1], "FAIL");
+  assert.equal(unrelated.result, "NOT_CERTIFIED");
 });

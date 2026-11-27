@@ -37,6 +37,17 @@ export const PRODUCT_ADMINS = [
 const RELEASE_SCOPE = [/^services\/(karryam-admin|cfmeet-admin|product-integration-core)\//, /^packages\//, /^infrastructure\/product-admin\//, /^infrastructure\/scripts\/(product-admin-|node-test-jsonl-reporter|tests\/)/, /^\.github\/workflows\/(product-admin-[a-z-]+|staging)\.yml$/, /^docs\/product-admin\//, /^services\/central-admin-api\/src\/modules\/product-gateway\//, /^services\/central-admin-api\/tests\/product-gateway/];
 const PROTECTED_PATHS = [/^services\/central-admin-api\/src\/modules\/(mail|healthnet|marketing|auth|logistics)\//, /^services\/healthnet-admin\//, /^apps\/central-admin-web\//, /^\.github\/workflows\/production\.yml$/];
 
+// Explicitly authorized shared staging CI maintenance paths. Do not add a
+// wildcard for workflows: production and unrelated application paths remain protected.
+const SHARED_STAGING_CI_SCOPE = new Set([
+  ".github/workflows/monorepo-layout-ci.yml",
+  ".github/workflows/social-operations-ci.yml",
+]);
+
+export function isReleaseScopePath(p) {
+  return SHARED_STAGING_CI_SCOPE.has(p) || RELEASE_SCOPE.some((r) => r.test(p));
+}
+
 function findFiles(dir, names) {
   const out = {};
   if (!dir || !fs.existsSync(dir)) return out;
@@ -83,7 +94,7 @@ export function evaluate(inp) {
   // 1. Repository integrity
   const repo = inp.repo || {};
   if (!repo.checked) gate(1, "Repository integrity", "NOT_RUN", { reason: "git checks not available" });
-  else if (!repo.onStaging || repo.unrelatedChanges.length || repo.protectedChanges.length) gate(1, "Repository integrity", "FAIL", { evidence: ["git"], reason: [!repo.onStaging && "commit not on origin/staging", repo.unrelatedChanges.length && `uncommitted changes: ${repo.unrelatedChanges.slice(0, 5).join(", ")}`, repo.protectedChanges.length && `Mail/HealthNet/other protected paths changed: ${repo.protectedChanges.slice(0, 5).join(", ")}`].filter(Boolean).join("; ") });
+  else if (!repo.onStaging || repo.unrelatedChanges.length || repo.protectedChanges.length) gate(1, "Repository integrity", "FAIL", { evidence: ["git"], reason: [!repo.onStaging && "commit not on origin/staging", repo.unrelatedChanges.length && `uncommitted or out-of-scope changes: ${repo.unrelatedChanges.slice(0, 5).join(", ")}`, repo.protectedChanges.length && `Mail/HealthNet/other protected paths changed: ${repo.protectedChanges.slice(0, 5).join(", ")}`].filter(Boolean).join("; ") });
   else gate(1, "Repository integrity", "PASS", { evidence: [`git:${repo.range || inp.sha}`], reason: "on origin/staging, clean tree, no protected-module changes in the range" });
 
   // 2. Product naming
@@ -161,7 +172,7 @@ export function collect({ sha, base, artifactsDir, ciStatusFile, stagingStateFil
     const status = (gitRaw("status", "--porcelain", "--untracked-files=no") || "").split("\n").filter(Boolean).map((l) => l.slice(3));
     const range = base ? `${base}..${sha}` : null;
     const changed = range ? (git("diff", "--name-only", range) || "").split("\n").filter(Boolean) : [];
-    const outOfScope = changed.filter((p) => !RELEASE_SCOPE.some((r) => r.test(p)));
+    const outOfScope = changed.filter((p) => !isReleaseScopePath(p));
     Object.assign(repo, { checked: true, onStaging, unrelatedChanges: [...status, ...outOfScope.map((p) => "out of scope: " + p)], protectedChanges: changed.filter((p) => PROTECTED_PATHS.some((r) => r.test(p))), range });
   }
   // Production separation.
