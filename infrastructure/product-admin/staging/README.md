@@ -484,3 +484,8 @@ The CF Meet Admin env file then names the bridge endpoint and TLS identity:
 - `CFMEET_BRIDGE_CLIENT_URI=cf://staging/product-admin/cfmeet`
 
 `CFMEET_BRIDGE_ENABLED` stays `false` until S3 is approved.
+
+
+## Automatic staging capability (one-time authorized host installation)
+
+The staging-push workflow now requests deployment through a fixed root-owned entry point rather than uploading scripts for root execution. The installer must run once as an authorized VPS administrator from a clean, reviewed, full-SHA checkout of this repository. Run `bash infrastructure/product-admin/release/install-staging-capability.sh FULL_REVIEWED_SHA`. The helper accepts only exact staging-push CI-certified service digests, checks the installed privileged bundle against the candidate revision and keeps production credentials out of staging. Normal application releases do not need host approval. Changes to the privileged bundle itself require a reviewed reinstall. Missing service-specific runtime/migration configuration or source-owned bridge enrollment still fails closed; this is not automatic authorization of S3–S7 business activation. The helper prepares configured service infrastructure, backs up staging data, previews and applies candidate migrations, deploys and verifies images, and records an automatic deployment receipt. This path requires live-host verification before certification.

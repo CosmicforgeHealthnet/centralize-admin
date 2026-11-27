@@ -15,15 +15,15 @@ name: Product Admin staging operations
 # STAGING_HOST/STAGING_USER/STAGING_SSH_KEY secrets. Because this workflow
 # exists only on staging (not main, the default branch), GitHub will not show
 # "Run workflow" for it; a push to staging starts the release plan directly,
-# using a read-only connection-check while automatic delivery is disabled. Only connection-check
-# runs as cf-staging-deploy without root. All privileged operations remain
-# blocked until an operator installs reviewed, narrowly scoped elevation.
+# using a read-only connection-check when automatic delivery is explicitly disabled.
+# The root-owned capability accepts only an exact staging-push CI-certified image set.
+# Install it once on the VPS; future application-only releases reuse it.
 # Never run an uploaded bundle with unrestricted passwordless sudo.
 #
 # Automatic delivery: a staging push starts the plan; the release gate waits
 # for the exact push CI. Automatic delivery is the default; the repository
 # variable PRODUCT_ADMIN_STAGING_AUTO_DEPLOY=false is an emergency opt-out.
-# Host capability and the prepared-host checks remain mandatory.
+# Host capability and actual preparation/migration checks remain mandatory.
 #
 # CF Meet Admin is optional: its image is built, smoke-tested and passed to
 # the host (PA_CM_IMAGE) only when include_cfmeet=true (manual run) or the
@@ -100,6 +100,8 @@ jobs:
       - run: |
           bash -n infrastructure/product-admin/release/pa-staging-ops.sh
           bash -n infrastructure/product-admin/firewall/docker-user-rules.sh
+          bash -n infrastructure/product-admin/release/install-staging-capability.sh
+          python3 -I -m py_compile infrastructure/product-admin/release/pa-staging-capability.py infrastructure/product-admin/release/pa-staging-db-bootstrap.py
           sha256sum infrastructure/product-admin/release/pa-staging-ops.sh infrastructure/product-admin/staging/docker-compose.yml
 
   plan:
@@ -318,6 +320,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: staging
+    permissions:
+      contents: read
+      actions: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -381,15 +387,14 @@ jobs:
           print(json.dumps(result,sort_keys=True))
           '"'"'' | tee _evidence/product-admin-staging-readonly-inventory.json
           if [[ "$OP" != connection-check ]]; then
-            echo "::error::BLOCKED_PRIVILEGED_HOST_OPERATION: S1/S2 require an operator-reviewed, narrowly scoped elevation path. Do not give cf-staging-deploy unrestricted sudo over a runner-uploaded script. No host files were changed."
-            exit 1
+            [[ "$OP" == deploy && "$GITHUB_EVENT_NAME" == push ]] || { echo "::error::This operation requires its separate operator authorization path; the scoped capability only accepts staging-push deliveries."; exit 1; }
+            printf '%s\n' '{"op":"probe"}' | "$RUNNER_TEMP/ssh" 'sudo -n /usr/local/sbin/cf-product-admin-staging' | grep -Fx cf-product-admin-staging-v1 \
+              || { echo "::error::BLOCKED_PRIVILEGED_HOST_OPERATION: install the reviewed staging-only capability once as root. No unrestricted sudo or runner-uploaded code."; exit 1; }
           fi
-      - name: Run ${{ needs.plan.outputs.operation }}
-        if: needs.plan.outputs.operation != 'complete-stage' && needs.plan.outputs.operation != 'connection-check'
+      - name: Deploy through root-owned staging capability
+        if: needs.plan.outputs.operation == 'deploy'
         env:
-          OP: ${{ needs.plan.outputs.operation }}
           SHA: ${{ needs.plan.outputs.sha }}
-          AUTO: ${{ needs.plan.outputs.auto }}
           PIC: ${{ needs.images.outputs.pic }}
           KA: ${{ needs.images.outputs.ka }}
           CM: ${{ needs.images.outputs.cm }}
@@ -401,18 +406,15 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          ssh="$RUNNER_TEMP/ssh"; d="/root/.cf-product-admin-staging/$BUNDLE"; run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          if [[ "$AUTO" == true ]]; then
-            # Automatic delivery only onto a host whose S1 already passed for a previous release.
-            "$ssh" "python3 -c \"import json,sys; s=json.load(open('/srv/cosmicforge/staging/release/state.json')); h=[s['current']]+s['history']; sys.exit(0 if any(r['stages']['S1']['status']=='PASSED' for r in h) else 1)\"" \
-              || { echo "::error::Automatic delivery blocked: no prepared host with S1 PASSED. Nothing changed."; exit 1; }
-          fi
-          # Secrets travel only on stdin, never on a remote command line.
-          { printf 'export PA_RELEASE_SHA=%q PA_PIC_IMAGE=%q PA_KA_IMAGE=%q PA_CM_IMAGE=%q PA_CM_BRIDGE_MODE=%q PA_CM_BRIDGE_ADDRESS=%q PA_CM_BRIDGE_PORT=%q PA_CM_DENY_TARGETS=%q PA_RUN_ID=%q GHCR_USER=%q GHCR_TOKEN=%q\n' "$SHA" "$PIC" "$KA" "$CM" "${CM_BRIDGE_MODE:-same-host}" "$CM_BRIDGE_ADDRESS" "${CM_BRIDGE_PORT:-8460}" "$CM_DENY_TARGETS" "$run" "$GHCR_USER" "$GHCR_TOKEN"
-            printf 'bash %q/infrastructure/product-admin/release/pa-staging-ops.sh %q\n' "$d" "$OP"
-          } | "$ssh" "bash -s" | tee ops.log
+          [[ "${CM_BRIDGE_MODE:-same-host}" == same-host && "${CM_BRIDGE_ADDRESS:-10.231.14.2}" == 10.231.14.2 && "${CM_BRIDGE_PORT:-8460}" == 8460 && -z "$CM_DENY_TARGETS" ]] \
+            || { echo "::error::Installed capability supports only the reviewed same-host staging transport. No host mutation."; exit 1; }
+          # Only typed data crosses SSH stdin. No shell, archive or code is uploaded as root.
+          python3 -c 'import os,json; e=os.environ; print(json.dumps(dict(op="deploy",sha=e["SHA"],pic=e["PIC"],karryam=e["KA"],cfmeet=e["CM"],run=e["GITHUB_RUN_ID"]+"-"+e["GITHUB_RUN_ATTEMPT"],user=e["GHCR_USER"],token=e["GHCR_TOKEN"])))' \
+            | "$RUNNER_TEMP/ssh" 'sudo -n /usr/local/sbin/cf-product-admin-staging' | tee ops.log
+          grep '^PA_AUTO_DEPLOYMENT ' ops.log | tail -n 1 | cut -d' ' -f2- > _evidence/auto-deployment.json
+          jq -e --arg sha "$SHA" '.environment == "staging" and .sha == $sha' _evidence/auto-deployment.json
       - name: Stage evidence and durable release state
-        if: success() && (needs.plan.outputs.operation == 'deploy' || needs.plan.outputs.operation == 'complete-stage')
+        if: success() && needs.plan.outputs.operation == 'complete-stage'
         env:
           OP: ${{ needs.plan.outputs.operation }}
           SHA: ${{ needs.plan.outputs.sha }}

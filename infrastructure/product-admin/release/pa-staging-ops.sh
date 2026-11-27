@@ -107,13 +107,16 @@ check() {
   local id="$1" st="$2" detail="${3:-}"
   detail="$(printf '%s' "$detail" | tr -d '\000-\037"\\' | cut -c1-300)"
   [[ "$st" == FAIL ]] && FAILED=1
+  if [[ "${AUTO_STRICT:-0}" == 1 && "$st" == PENDING_EXTERNAL ]]; then
+    case "$id" in config_files_protected|db_no_cross_credentials|db_roles_separated|backup_restorable|migration_*) FAILED=1 ;; esac
+  fi
   printf 'PA_CHECK {"id":"%s","status":"%s","detail":"%s"}\n' "$id" "$st" "$detail"
 }
 die() { echo "BLOCKED: $*"; exit 1; }
 require_root() { [[ "$(id -u)" == 0 ]] || die "this operation needs root on the host"; }
 # CF Meet Admin is part of a release iff its images.env records CFMEET_ADMIN_IMAGE.
 cm_in() { [[ -f "$1" ]] && grep -Eq '^CFMEET_ADMIN_IMAGE=.+' "$1"; }
-release_cm_on() { cm_in "$RELEASE_DIR/images.env"; }
+release_cm_on() { cm_in "${CANDIDATE_IMAGES_FILE:-$RELEASE_DIR/images.env}"; }
 # The compose profile "cfmeet" is activated only for such a release.
 compose_with() {
   local envf="$1"; shift
@@ -598,7 +601,11 @@ deploy() {
   up+=(product-integration-core)
   if (( feed )); then up+=(karryam-admin-worker); fi
   if (( cm_on )) && enabled_in "$PA_CONFIG_ROOT/cfmeet-admin.env" CFMEET_BRIDGE_FEED_ENABLED; then up+=(cfmeet-admin-worker); fi
-  compose up -d --no-build --pull never --remove-orphans "${up[@]}"
+  if ! compose up -d --no-build --pull never --remove-orphans "${up[@]}"; then
+    echo "Compose deployment failed; restoring prior images."
+    restore_previous
+    exit 1
+  fi
   if (( ! feed )); then compose rm -f -s karryam-admin-worker >/dev/null 2>&1 || true; fi
   if (( cm_on )); then
     enabled_in "$PA_CONFIG_ROOT/cfmeet-admin.env" CFMEET_BRIDGE_FEED_ENABLED || { compose rm -f -s cfmeet-admin-worker >/dev/null 2>&1 || true; }
@@ -619,9 +626,21 @@ deploy() {
 restore_previous() {
   if [[ -f "$RELEASE_DIR/previous-images.env" ]]; then
     cp "$RELEASE_DIR/previous-images.env" "$RELEASE_DIR/images.env"
-    # A previous release without CF Meet Admin is a valid target: PIC + Karryam only, CF Meet stopped.
-    if release_cm_on; then compose up -d --no-build --pull never karryam-admin-db karryam-admin cfmeet-admin-db cfmeet-admin product-integration-core || true
-    else compose up -d --no-build --pull never karryam-admin-db karryam-admin product-integration-core || true; stop_cfmeet "$CTR_CW" "$CTR_CM" "$CTR_CDB"; fi
+    local up=(karryam-admin-db karryam-admin)
+    if release_cm_on; then up+=(cfmeet-admin-db cfmeet-admin); fi
+    up+=(product-integration-core)
+    enabled_in "$PA_CONFIG_ROOT/karryam-admin.env" KARRYAM_BRIDGE_FEED_ENABLED && up+=(karryam-admin-worker)
+    if release_cm_on && enabled_in "$PA_CONFIG_ROOT/cfmeet-admin.env" CFMEET_BRIDGE_FEED_ENABLED; then up+=(cfmeet-admin-worker); fi
+    compose up -d --no-build --pull never "${up[@]}" || die "rollback compose failed; not certified"
+    if ! enabled_in "$PA_CONFIG_ROOT/karryam-admin.env" KARRYAM_BRIDGE_FEED_ENABLED; then compose rm -f -s karryam-admin-worker >/dev/null 2>&1 || true; fi
+    if release_cm_on; then
+      if ! enabled_in "$PA_CONFIG_ROOT/cfmeet-admin.env" CFMEET_BRIDGE_FEED_ENABLED; then compose rm -f -s cfmeet-admin-worker >/dev/null 2>&1 || true; fi
+    else stop_cfmeet "$CTR_CW" "$CTR_CM" "$CTR_CDB"; fi
+    if [[ "${AUTO_STRICT:-0}" == 1 ]]; then
+      FAILED=0
+      verify_deploy "$(grep '^PIC_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)" "$(grep '^KARRYAM_ADMIN_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)"
+      (( FAILED == 0 )) || die "previous images restored but rollback health verification failed"
+    fi
     echo "ROLLED_BACK to $(grep '^PA_RELEASE_SHA=' "$RELEASE_DIR/images.env" | cut -d= -f2)"
   else
     compose stop karryam-admin karryam-admin-worker product-integration-core || true
@@ -943,17 +962,25 @@ latest_verified_backup_age_ok() {
 
 migrate_service() { # mode service
   local mode="$1" svc="$2" image net envf user
-  [[ -f "$RELEASE_DIR/images.env" ]] || { check "migration_${mode}_$svc" NOT_RUN "no deployed release images"; return; }
+  [[ -f "${CANDIDATE_IMAGES_FILE:-$RELEASE_DIR/images.env}" ]] || { check "migration_${mode}_$svc" NOT_RUN "no deployed release images"; return; }
   if [[ "$svc" == cfmeet ]] && ! release_cm_on; then skipped "migration_${mode}_$svc"; return; fi
-  if [[ "$svc" == pic ]]; then image="$(grep '^PIC_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)"; net=cf-staging-hq-private; envf="$PA_CONFIG_ROOT/product-integration-core.migrate.env"; user=10002:10002
-  elif [[ "$svc" == cfmeet ]]; then image="$(grep '^CFMEET_ADMIN_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)"; net=cf-staging-cfmeet-admin-db; envf="$PA_CONFIG_ROOT/cfmeet-admin.migrate.env"; user=10003:10003
-  else image="$(grep '^KARRYAM_ADMIN_IMAGE=' "$RELEASE_DIR/images.env" | cut -d= -f2)"; net=cf-staging-karryam-admin-db; envf="$PA_CONFIG_ROOT/karryam-admin.migrate.env"; user=10001:10001; fi
+  if [[ "$svc" == pic ]]; then image="$(grep '^PIC_IMAGE=' "${CANDIDATE_IMAGES_FILE:-$RELEASE_DIR/images.env}" | cut -d= -f2)"; net=cf-staging-hq-private; envf="$PA_CONFIG_ROOT/product-integration-core.migrate.env"; user=10002:10002
+  elif [[ "$svc" == cfmeet ]]; then image="$(grep '^CFMEET_ADMIN_IMAGE=' "${CANDIDATE_IMAGES_FILE:-$RELEASE_DIR/images.env}" | cut -d= -f2)"; net=cf-staging-cfmeet-admin-db; envf="$PA_CONFIG_ROOT/cfmeet-admin.migrate.env"; user=10003:10003
+  else image="$(grep '^KARRYAM_ADMIN_IMAGE=' "${CANDIDATE_IMAGES_FILE:-$RELEASE_DIR/images.env}" | cut -d= -f2)"; net=cf-staging-karryam-admin-db; envf="$PA_CONFIG_ROOT/karryam-admin.migrate.env"; user=10001:10001; fi
   [[ -f "$envf" ]] || { check "migration_${mode}_$svc" PENDING_EXTERNAL "operator migration env file missing"; return; }
   local args=(--rm --network "$net" --read-only --cap-drop ALL --security-opt no-new-privileges --user "$user" --env-file "$envf" "$image" node scripts/migrate.js)
   [[ "$mode" == preview ]] && args+=(--preview)
   local out rc=0; out="$(docker run "${args[@]}" 2>&1)" || rc=$?
   printf '%s\n' "$out" | grep -E '"event":"(preview|migration_preview|done|migrations_complete)"' | sed -E 's/postgres(ql)?:\/\/[^ "]*/[redacted-url]/g' | tail -n 1 | cut -c1-600
-  if (( rc == 0 )) && { [[ "$mode" == apply ]] || printf '%s' "$out" | grep -q '"ok":true'; }; then check "migration_${mode}_$svc" PASS "$svc $mode ok"; else check "migration_${mode}_$svc" FAIL "$svc $mode exit $rc"; fi
+  if (( rc == 0 )) && { [[ "$mode" == apply ]] || printf '%s' "$out" | grep -q '"ok":true'; }; then
+    if [[ "$mode" == preview && "${AUTO_POST_MIGRATION:-0}" == 1 ]]; then
+      if ! printf '%s\n' "$out" | python3 -I -c 'import sys,json; r=[json.loads(l) for l in sys.stdin if l.startswith("{")]; p=[x for x in r if x.get("event") in ("preview","migration_preview")]; sys.exit(0 if len(p)==1 and p[0].get("ok") is True and p[0].get("pending")==[] else 1)'; then
+        check "migration_${mode}_$svc" FAIL "post-migration preview still has pending or unverifiable migrations"
+        return
+      fi
+    fi
+    check "migration_${mode}_$svc" PASS "$svc $mode ok"
+  else check "migration_${mode}_$svc" FAIL "$svc $mode exit $rc"; fi
 }
 
 migrate_preview() { migrate_service preview pic; migrate_service preview karryam; migrate_service preview cfmeet; }
@@ -962,6 +989,7 @@ migrate_apply() {
   latest_verified_backup_age_ok || die "no verified, restorable backup from the last 24 hours: run backup first"
   FAILED=0; migrate_preview; (( FAILED )) && die "migration preview failed; nothing applied"
   migrate_service apply pic; migrate_service apply karryam; migrate_service apply cfmeet
+  (( FAILED == 0 )) || die "migration apply failed"
   FAILED=0; migrate_preview
 }
 
@@ -1008,6 +1036,136 @@ status() {
   fi
 }
 
+
+# Run only through the root-installed capability. Candidate migrations are
+# backed up and applied BEFORE switching the application images. The active
+# release manifest is not changed until the normal verified deployment.
+auto_deploy() {
+  require_root
+  [[ "$PA_REHEARSAL" == 0 ]] || die "auto-deploy is reserved for the installed staging capability"
+  AUTO_STRICT=1
+  local pic="$PA_PIC_IMAGE" ka="$PA_KA_IMAGE" cm="${PA_CM_IMAGE:-}" sha="$PA_RELEASE_SHA" start="$SECONDS"
+  [[ "$sha" =~ ^[a-f0-9]{40}$ ]] || die "invalid candidate revision"
+  valid_ref "$pic" && [[ "$pic" == *product-integration-core@* ]] || die "invalid PIC image"
+  valid_ref "$ka" && [[ "$ka" == *karryam-admin@* ]] || die "invalid Karryam image"
+  [[ -z "$cm" ]] || { valid_ref "$cm" && [[ "$cm" == *cfmeet-admin@* ]]; } || die "invalid CF Meet image"
+  # Never remove an already deployed CF Meet service because of an omitted image.
+  if cm_in "$RELEASE_DIR/images.env" && [[ -z "$cm" ]]; then die "CF Meet is already deployed; explicit removal is not an automatic release"; fi
+  local svc f
+  local services=(product-integration-core karryam-admin)
+  [[ -z "$cm" ]] || services+=(cfmeet-admin)
+  for svc in "${services[@]}"; do
+    for f in "$PA_CONFIG_ROOT/$svc.env" "$PA_CONFIG_ROOT/$svc.migrate.env"; do
+      [[ -f "$f" && ! -L "$f" && "$(stat -c '%u %a' "$f")" =~ ^0\ 6[04]0$ ]] || die "missing or unsafe root-owned configuration: $f"
+    done
+  done
+  # Validate migration/runtime credentials for the actual staging DB targets before mutation.
+  python3 -I "$HERE/pa-staging-db-bootstrap.py" validate-pic
+  python3 -I "$HERE/pa-staging-db-bootstrap.py" validate-karryam
+  [[ -z "$cm" ]] || python3 -I "$HERE/pa-staging-db-bootstrap.py" validate-cfmeet
+  # Root-only preparation is idempotent for existing networks/directories.
+  prepare_host
+  (( FAILED == 0 )) || die "staging host preparation failed"
+  # Create only a NEW dedicated database's local superuser secret, never rotate
+  # a password or replace an existing volume/container's credential.
+  local d password
+  local dedicated=(karryam-admin)
+  [[ -z "$cm" ]] || dedicated+=(cfmeet-admin)
+  for d in "${dedicated[@]}"; do
+    password="$PA_CONFIG_ROOT/secrets/$d-db/postgres-password"
+    if [[ ! -e "$password" && ! -L "$password" ]]; then
+      if docker volume inspect "cf-staging-$d-db-data" >/dev/null 2>&1 || docker inspect "$PROJECT-$d-db-1" >/dev/null 2>&1; then
+        die "existing dedicated database is missing its protected password file: $d"
+      fi
+      local temp
+      temp="$(mktemp "$PA_CONFIG_ROOT/secrets/$d-db/.password.XXXXXX")"
+      python3 -I -c 'import secrets; print(secrets.token_hex(32),end="")' > "$temp"
+      chown 0:70 "$temp"; chmod 0440 "$temp"; mv -n "$temp" "$password"
+      [[ ! -e "$temp" ]] || { rm -f "$temp"; die "password appeared concurrently"; }
+      echo "Generated local superuser password for new dedicated database: $d"
+    fi
+    [[ -f "$password" && ! -L "$password" && "$(stat -c '%u %g %a' "$password")" =~ ^0\ 70\ (440|640)$ ]] || die "unsafe dedicated DB password file: $d"
+  done
+  install -d -m 0700 "$RUN_DIR"
+  # Pull the immutable candidate and check its exact source revision before migrations.
+  local images=("$pic" "$ka") image
+  [[ -z "$cm" ]] || images+=("$cm")
+  local auth
+  auth="$(mktemp -d)"
+  if ! printf '%s' "$GHCR_TOKEN" | DOCKER_CONFIG="$auth" docker login ghcr.io --username "$GHCR_USER" --password-stdin >/dev/null; then rm -rf "$auth"; die "GHCR authentication failed"; fi
+  for image in "${images[@]}"; do
+    if ! DOCKER_CONFIG="$auth" docker pull -q "$image" >/dev/null; then rm -rf "$auth"; die "candidate image pull failed"; fi
+    [[ "$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")" == "$sha" ]] || { rm -rf "$auth"; die "candidate image revision mismatch"; }
+  done
+  rm -rf "$auth"
+  # Refuse invalid runtime configurations before creating a database or migrating.
+  local cfg
+  cfg="$(config_check "$pic" "$PA_CONFIG_ROOT/product-integration-core.env" "$PA_CONFIG_ROOT/secrets/product-integration-core" /run/secrets/product-integration-core PIC_ENABLED PIC_EXPECT_ENVIRONMENT PIC_ENVIRONMENT)"
+  [[ "$cfg" == *'"event":"config_valid"'* ]] || die "PIC candidate configuration invalid"
+  cfg="$(config_check "$ka" "$PA_CONFIG_ROOT/karryam-admin.env" "$PA_CONFIG_ROOT/secrets/karryam-admin" /run/secrets/karryam-admin KARRYAM_ADMIN_ENABLED KARRYAM_ADMIN_EXPECT_ENVIRONMENT KARRYAM_ADMIN_ENVIRONMENT)"
+  [[ "$cfg" == *'"event":"config_valid"'* ]] || die "Karryam candidate configuration invalid"
+  if [[ -n "$cm" ]]; then
+    cfg="$(config_check "$cm" "$PA_CONFIG_ROOT/cfmeet-admin.env" "$PA_CONFIG_ROOT/secrets/cfmeet-admin" /run/secrets/cfmeet-admin CFMEET_ADMIN_ENABLED CFMEET_ADMIN_EXPECT_ENVIRONMENT CFMEET_ADMIN_ENVIRONMENT)"
+    [[ "$cfg" == *'"event":"config_valid"'* ]] || die "CF Meet candidate configuration invalid"
+  fi
+  # The same hardened compose definition is used to create missing dedicated DB containers.
+  # Existing databases are never recreated during provisioning.
+  local db
+  db="$(resolve_db_image)"
+  CANDIDATE_IMAGES_FILE="$RUN_DIR/candidate-images.env"
+  printf 'PIC_IMAGE=%s\nKARRYAM_ADMIN_IMAGE=%s\nKARRYAM_ADMIN_DB_IMAGE=%s\nPA_HOST_ROOT=%s\nPA_CONFIG_ROOT=%s\nPA_RELEASE_SHA=%s\n' "$pic" "$ka" "$db" "$PA_HOST_ROOT" "$PA_CONFIG_ROOT" "$sha" > "$CANDIDATE_IMAGES_FILE"
+  local dbs=(karryam-admin-db)
+  if [[ -n "$cm" ]]; then
+    printf 'CFMEET_ADMIN_IMAGE=%s\nCFMEET_ADMIN_DB_IMAGE=%s\nPA_CM_BRIDGE_ADDRESS=10.231.14.2\nPA_CM_BRIDGE_PORT=8460\nPA_CM_BRIDGE_MODE=same-host\n' "$cm" "$db" >> "$CANDIDATE_IMAGES_FILE"
+    dbs+=(cfmeet-admin-db)
+  fi
+  # Verify the resolved candidate model before running even the database containers.
+  local req=()
+  [[ -z "$cm" ]] || req=(--require-product cfmeet)
+  compose_with "$CANDIDATE_IMAGES_FILE" config --format json > "$RUN_DIR/resolved-auto.json"
+  chmod 0644 "$RUN_DIR/resolved-auto.json"
+  docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user 0:0 \
+    -v "$BUNDLE:/bundle:ro" -v "$RUN_DIR:/out" --entrypoint node "$pic" \
+    "/bundle/$INFRA_CHECK" --compose-json /out/resolved-auto.json --require-digests "${req[@]}" --report /out/network-policy-auto.json
+  compose_with "$CANDIDATE_IMAGES_FILE" up -d --no-build --pull never --no-recreate --wait --wait-timeout 120 "${dbs[@]}"
+  python3 -I "$HERE/pa-staging-db-bootstrap.py" karryam
+  [[ -z "$cm" ]] || python3 -I "$HERE/pa-staging-db-bootstrap.py" cfmeet
+  db_audit
+  (( FAILED == 0 )) || die "database role isolation audit failed"
+  migrate_preview
+  (( FAILED == 0 )) || die "candidate migration preview failed"
+  backup
+  (( FAILED == 0 )) && latest_verified_backup_age_ok || die "verified pre-migration backup required"
+  local last_backup
+  last_backup="$(ls -1d "$PA_HOST_ROOT"/backups/*/ | sort | tail -n 1)"
+  [[ -s "$last_backup/db-a-$PA_HQ_DB_NAME.dump" && -s "$last_backup/db-b-karryam_admin.dump" ]] || die "verified backup is missing a required database"
+  [[ -z "$cm" || -s "$last_backup/db-cfmeet-cfmeet_admin.dump" ]] || die "verified backup is missing CF Meet database"
+  migrate_service apply pic
+  (( FAILED == 0 )) || die "PIC migration failed"
+  migrate_service apply karryam
+  (( FAILED == 0 )) || die "Karryam migration failed"
+  migrate_service apply cfmeet
+  (( FAILED == 0 )) || die "CF Meet migration failed"
+  AUTO_POST_MIGRATION=1
+  migrate_preview
+  (( FAILED == 0 )) || die "post-migration verification failed"
+  AUTO_POST_MIGRATION=0
+  unset CANDIDATE_IMAGES_FILE
+  # Use existing hardened deployment and digest/health verification.
+  deploy
+  network_probe
+  if (( FAILED )); then
+    restore_previous
+    die "network verification failed; previous image release restored"
+  fi
+  # Receipt is distinct from S0-S7 business activation/certification evidence.
+  printf '{"environment":"staging","sha":"%s","pic":"%s","karryam":"%s","cfmeet":"%s","duration_seconds":%s}\n' \
+    "$sha" "$pic" "$ka" "$cm" "$((SECONDS-start))" > "$RUN_DIR/auto-deployment.json"
+  cp "$RUN_DIR/auto-deployment.json" "$RELEASE_DIR/auto-deployment.json.new"
+  mv "$RELEASE_DIR/auto-deployment.json.new" "$RELEASE_DIR/auto-deployment.json"
+  printf 'PA_AUTO_DEPLOYMENT %s\n' "$(cat "$RELEASE_DIR/auto-deployment.json")"
+}
+
 LOCK="/run/lock/cf-product-admin-staging.lock"
 [[ "$PA_REHEARSAL" == 1 ]] && LOCK="${PA_HOST_ROOT}.lock"
 exec 9> "$LOCK"
@@ -1029,6 +1187,7 @@ case "$OP" in
   migrate-preview) migrate_preview ;;
   migrate-apply) migrate_apply ;;
   deploy) deploy; network_probe ;;
+  auto-deploy) auto_deploy ;;
   rollback) rollback ;;
   disable) disable ;;
   attach-gateway) attach_gateway ;;
