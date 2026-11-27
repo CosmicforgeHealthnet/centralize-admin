@@ -78,41 +78,45 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
 
   // The provider event behind a job is marked once its job settles, so the
   // webhook backlog, processing lag and webhook retention reflect reality.
-  async function settleWebhookEvent(job, status, code = null) {
+  async function settleWebhookEvent(db, job, status, code = null) {
     if (!job.webhookEventId) return;
-    await client.mailWebhookEvent.updateMany({
+    await db.mailWebhookEvent.updateMany({
       where: { id: job.webhookEventId, status: "RECEIVED" },
       data: { status, processedAt: clock(), ...(code ? { lastError: String(code).slice(0, 500) } : {}) },
     });
   }
 
   async function complete(job, { providerRequestId = null } = {}) {
-    const result = await client.mailOutboxJob.updateMany({
-      where: { id: job.id, leaseOwner: job.leaseOwner, status: "LEASED" },
-      data: { status: "SUCCEEDED", completedAt: clock(), leaseOwner: null, leaseExpiresAt: null, providerRequestId, lastErrorCode: null, lastErrorMessage: null },
+    return client.$transaction(async (tx) => {
+      const result = await tx.mailOutboxJob.updateMany({
+        where: { id: job.id, leaseOwner: job.leaseOwner, status: "LEASED" },
+        data: { status: "SUCCEEDED", completedAt: clock(), leaseOwner: null, leaseExpiresAt: null, providerRequestId, lastErrorCode: null, lastErrorMessage: null },
+      });
+      if (result.count === 1) await settleWebhookEvent(tx, job, "PROCESSED");
+      return result.count === 1;
     });
-    if (result.count === 1) await settleWebhookEvent(job, "PROCESSED");
-    return result.count === 1;
   }
 
   async function fail(job, { code, message, retryable, reconcile = false, retryAfterSeconds = null }) {
     const exhausted = job.attemptCount >= job.maxAttempts;
     const status = !retryable ? "FAILED" : exhausted ? "DEAD_LETTER" : reconcile ? "RECONCILING" : "RETRY_SCHEDULED";
     const delay = retryAfterSeconds != null ? Math.min(Math.max(retryAfterSeconds, 1), 3600) : backoffSeconds(job.attemptCount, { random });
-    const result = await client.mailOutboxJob.updateMany({
-      where: { id: job.id, leaseOwner: job.leaseOwner, status: "LEASED" },
-      data: {
-        status,
-        leaseOwner: null,
-        leaseExpiresAt: null,
-        lastErrorCode: String(code || "UNKNOWN").slice(0, 64),
-        lastErrorMessage: String(message || "").slice(0, 500),
-        nextAttemptAt: new Date(clock().getTime() + delay * 1000),
-        completedAt: status === "FAILED" || status === "DEAD_LETTER" ? clock() : null,
-      },
+    return client.$transaction(async (tx) => {
+      const result = await tx.mailOutboxJob.updateMany({
+        where: { id: job.id, leaseOwner: job.leaseOwner, status: "LEASED" },
+        data: {
+          status,
+          leaseOwner: null,
+          leaseExpiresAt: null,
+          lastErrorCode: String(code || "UNKNOWN").slice(0, 64),
+          lastErrorMessage: String(message || "").slice(0, 500),
+          nextAttemptAt: new Date(clock().getTime() + delay * 1000),
+          completedAt: status === "FAILED" || status === "DEAD_LETTER" ? clock() : null,
+        },
+      });
+      if (result.count === 1 && (status === "FAILED" || status === "DEAD_LETTER")) await settleWebhookEvent(tx, job, "FAILED", code || "UNKNOWN");
+      return { updated: result.count === 1, status };
     });
-    if (result.count === 1 && (status === "FAILED" || status === "DEAD_LETTER")) await settleWebhookEvent(job, "FAILED", code || "UNKNOWN");
-    return { updated: result.count === 1, status };
   }
 
   // Re-schedule a claimed job without consuming an attempt (operational pause,
@@ -161,11 +165,14 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
       // Outbound sends interrupted mid-flight are reconciled (provider-side
       // idempotency key makes the retry safe), never blindly resent with a new key.
       const status = exhausted ? "DEAD_LETTER" : job.queue === "OUTBOUND" ? "RECONCILING" : "RETRY_SCHEDULED";
-      const result = await client.mailOutboxJob.updateMany({
-        where: { id: job.id, status: "LEASED", leaseOwner: job.leaseOwner, leaseExpiresAt: { lt: now } },
-        data: { status, leaseOwner: null, leaseExpiresAt: null, nextAttemptAt: now, lastErrorCode: "LEASE_EXPIRED", completedAt: exhausted ? now : null },
+      const result = await client.$transaction(async (tx) => {
+        const update = await tx.mailOutboxJob.updateMany({
+          where: { id: job.id, status: "LEASED", leaseOwner: job.leaseOwner, leaseExpiresAt: { lt: now } },
+          data: { status, leaseOwner: null, leaseExpiresAt: null, nextAttemptAt: now, lastErrorCode: "LEASE_EXPIRED", completedAt: exhausted ? now : null },
+        });
+        if (update.count === 1 && exhausted) await settleWebhookEvent(tx, job, "FAILED", "LEASE_EXPIRED");
+        return update;
       });
-      if (result.count === 1 && exhausted) await settleWebhookEvent(job, "FAILED", "LEASE_EXPIRED");
       if (result.count === 1) recovered.push({ job: { ...job, status }, status });
     }
     return recovered;
