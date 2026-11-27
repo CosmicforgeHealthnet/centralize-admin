@@ -22,19 +22,6 @@ on:
       - ".github/workflows/product-admin-platform-ci.yml"
   push:
     branches: [staging]
-    paths:
-      - "services/central-admin-api/scripts/social-operations/secret-scan.js"
-      - "packages/**"
-      - "services/karryam-admin/**"
-      - "services/cfmeet-admin/**"
-      - "services/product-integration-core/**"
-      - "services/central-admin-api/src/modules/product-gateway/**"
-      - "services/central-admin-api/tests/product-gateway*.test.js"
-      - "infrastructure/product-admin/**"
-      - "infrastructure/scripts/check-layout.mjs"
-      - "infrastructure/scripts/product-admin-*"
-      - "infrastructure/scripts/node-test-jsonl-reporter.mjs"
-      - ".github/workflows/product-admin-platform-ci.yml"
   workflow_dispatch:
 
 permissions:

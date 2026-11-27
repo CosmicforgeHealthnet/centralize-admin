@@ -34,16 +34,6 @@ on:
       - ".github/workflows/product-admin-staging-ops.yml"
   push:
     branches: [staging]
-    paths:
-      - "infrastructure/product-admin/**"
-      - "infrastructure/scripts/product-admin-*"
-      - "infrastructure/scripts/tests/**"
-      - "services/karryam-admin/**"
-      - "services/cfmeet-admin/**"
-      - "services/product-integration-core/**"
-      - "packages/**"
-      - ".github/workflows/product-admin-infrastructure-ci.yml"
-      - ".github/workflows/product-admin-staging-ops.yml"
   workflow_dispatch:
 
 permissions:

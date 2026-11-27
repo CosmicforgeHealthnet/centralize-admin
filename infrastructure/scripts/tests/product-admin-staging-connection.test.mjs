@@ -20,7 +20,10 @@ test("pins the same client and server SSH fingerprints",()=>{
 });
 test("connection-check never attempts root or uploads a bundle",()=>{
   assert.ok(p.includes("github.event_name == 'push' && github.ref == 'refs/heads/staging'"));
-  assert.ok(p.includes('if [[ "$EVENT" == push ]]; then op=connection-check'));
+  assert.ok(p.includes('if [[ "$EVENT" == push ]]; then'));
+  assert.ok(p.includes('else op=connection-check; auto=false; fi'));
+  assert.ok(!p.includes("  workflow_run:"));
+  assert.ok(p.includes('(( ok )) || exit 1'));
   assert.ok(p.includes("options: [connection-check,"));
   assert.ok(p.includes("connection-check|preflight|status"));
   assert.ok(p.includes('if [[ "$OP" != connection-check ]]; then'));

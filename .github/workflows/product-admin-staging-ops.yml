@@ -14,14 +14,14 @@ name: Product Admin staging operations
 # SSH reuses the existing protected `staging` environment and its
 # STAGING_HOST/STAGING_USER/STAGING_SSH_KEY secrets. Because this workflow
 # exists only on staging (not main, the default branch), GitHub will not show
-# "Run workflow" for it; a push to staging automatically runs a read-only
-# connection-check instead. Only connection-check
+# "Run workflow" for it; a push to staging starts the release plan directly,
+# using a read-only connection-check while automatic delivery is disabled. Only connection-check
 # runs as cf-staging-deploy without root. All privileged operations remain
 # blocked until an operator installs reviewed, narrowly scoped elevation.
 # Never run an uploaded bundle with unrestricted passwordless sudo.
 #
-# Automatic delivery: after "Product Admin Platform CI" succeeds on a staging
-# push, `deploy` runs automatically ONLY when the repository variable
+# Automatic delivery: a staging push starts the plan; the release gate waits
+# for the exact push CI. `deploy` runs ONLY when the repository variable
 # PRODUCT_ADMIN_STAGING_AUTO_DEPLOY is "true" AND the release state on the
 # host shows S1 PASSED for the host (prepared, migrated). Default: off.
 #
@@ -42,15 +42,6 @@ name: Product Admin staging operations
 
 on:
   push:
-    branches: [staging]
-    paths:
-      - ".github/workflows/product-admin-staging-ops.yml"
-      - "infrastructure/product-admin/release/**"
-      - "infrastructure/product-admin/staging/**"
-      - "infrastructure/product-admin/firewall/**"
-  workflow_run:
-    workflows: ["Product Admin Platform CI"]
-    types: [completed]
     branches: [staging]
   workflow_dispatch:
     inputs:
@@ -115,10 +106,7 @@ jobs:
     name: Plan (branch gate, operation, confirmation, release commit)
     if: >-
       (github.event_name == 'push' && github.ref == 'refs/heads/staging') ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging') ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.head_branch == 'staging' && github.event.workflow_run.event == 'push' &&
-       vars.PRODUCT_ADMIN_STAGING_AUTO_DEPLOY == 'true')
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging')
     runs-on: ubuntu-latest
     outputs:
       operation: ${{ steps.p.outputs.operation }}
@@ -133,13 +121,15 @@ jobs:
           OP: ${{ inputs.operation }}
           CONFIRM: ${{ inputs.confirm }}
           INPUT_SHA: ${{ inputs.release_sha }}
-          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          AUTO_DEPLOY: ${{ vars.PRODUCT_ADMIN_STAGING_AUTO_DEPLOY }}
           INCLUDE_CFMEET: ${{ inputs.include_cfmeet }}
           AUTO_CFMEET: ${{ vars.PRODUCT_ADMIN_STAGING_CFMEET }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT" == push ]]; then op=connection-check; sha="$GITHUB_SHA"; auto=false
-          elif [[ "$EVENT" == workflow_run ]]; then op=deploy; sha="$RUN_SHA"; auto=true
+          if [[ "$EVENT" == push ]]; then
+            sha="$GITHUB_SHA"
+            if [[ "$AUTO_DEPLOY" == true ]]; then op=deploy; auto=true
+            else op=connection-check; auto=false; fi
           else op="$OP"; sha="${INPUT_SHA:-$GITHUB_SHA}"; auto=false; fi
           [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::release_sha must be a full 40-character commit SHA"; exit 1; }
           case "$op" in
@@ -161,6 +151,7 @@ jobs:
     needs: plan
     if: needs.plan.outputs.operation == 'deploy'
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     permissions:
       contents: read
       actions: read
@@ -178,13 +169,24 @@ jobs:
           mkdir -p _evidence
           checks=()
           add() { checks+=("{\"id\":\"$1\",\"status\":\"$2\",\"detail\":\"$3\"}"); echo "$1=$2 $3"; }
-          git fetch -q origin staging
           ok=1; detail=""
-          if git merge-base --is-ancestor "$SHA" origin/staging; then add commit_on_staging PASS "ancestor of origin/staging $(git rev-parse --short origin/staging)"; else add commit_on_staging FAIL "not on origin/staging"; ok=0; fi
-          # A path-filtered workflow that did not run is NOT a pass.
-          for wf in "Product Admin Platform CI" "Product Admin Infrastructure Security CI" "Monorepo Layout and Container CI"; do
-            c="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&per_page=50" --jq "[.workflow_runs[] | select(.name == \"$wf\" and .event == \"push\")] | sort_by(.run_attempt) | last | .conclusion // \"missing\"")"
-            detail+="$wf=$c; "; [[ "$c" == success ]] || ok=0
+          current="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq '.object.sha')"
+          if [[ "$current" == "$SHA" ]]; then add commit_on_staging PASS "exact current staging head"; else add commit_on_staging FAIL "release superseded"; ok=0; fi
+          deadline=$((SECONDS + 2700))
+          while (( ok )); do
+            current="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq '.object.sha')"
+            if [[ "$current" != "$SHA" ]]; then ok=0; detail="release superseded"; break; fi
+            runs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&branch=staging&event=push&per_page=100" | jq -cs '[.[].workflow_runs[]]')"
+            pending=0; detail=""
+            for wf in product-admin-platform-ci.yml product-admin-infrastructure-ci.yml monorepo-layout-ci.yml social-operations-ci.yml; do
+              c="$(jq -r --arg p ".github/workflows/$wf" '[.[] | select(.path==$p)] | max_by(.id) | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end' <<< "$runs")"
+              detail+="$wf=$c; "
+              case "$c" in success) ;; pending|missing) pending=1 ;; *) ok=0 ;; esac
+            done
+            echo "$detail"
+            if (( ! ok || ! pending )); then break; fi
+            if (( SECONDS >= deadline )); then ok=0; break; fi
+            sleep 20
           done
           if (( ok )); then add required_ci_green PASS "$detail"; else add required_ci_green FAIL "$detail"; fi
           # Each of these runs inside the required workflows above; their success is the evidence.
