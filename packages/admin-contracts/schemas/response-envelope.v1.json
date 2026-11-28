@@ -57,6 +57,7 @@
             "NOT_FOUND",
             "METHOD_NOT_ALLOWED",
             "CONFLICT",
+            "RATE_LIMITED",
             "PAYLOAD_TOO_LARGE",
             "INVALID_REQUEST",
             "DISABLED",

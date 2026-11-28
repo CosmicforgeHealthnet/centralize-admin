@@ -8,7 +8,7 @@ export interface SOApiEnvelope<T> {
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
-export type SOProvider = "FACEBOOK" | "INSTAGRAM" | "TIKTOK" | "X" | "LINKEDIN";
+export type SOProvider = "META" | "FACEBOOK" | "INSTAGRAM" | "TIKTOK" | "X" | "LINKEDIN";
 
 export type SOConnectionStatus =
   | "PENDING_AUTHORIZATION"
@@ -104,7 +104,7 @@ export interface SOConnection {
   status: SOConnectionStatus;
   scopes: string[];
   expiresAt: string | null;
-  webhookHealthy: boolean;
+  webhookHealthy: boolean | null;
   identityCount: number;
   hasRequiredCredentials: boolean;
   createdAt: string | null;

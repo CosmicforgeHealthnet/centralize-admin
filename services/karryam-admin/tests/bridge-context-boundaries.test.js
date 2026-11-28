@@ -1,0 +1,27 @@
+"use strict";
+const test=require("node:test"),assert=require("node:assert/strict");
+const {bridgeStaffContext,bridgeCapabilityState}=require("../src/bridge/capabilities");
+test("Bridge staff context enforces every MFA, role and scope boundary",()=>{
+ const now=1700000000,b={market:"market",organization:"org",acr:"mfa",roleMap:{viewer:"native.viewer"},zones:["zone"],tenants:["tenant"]};
+ const d={sub:"staff",sid:"session",mfa_at:now-1,role:"viewer",scope:{market:["market"],organization:["org"],zone:["zone"],tenant:["tenant"]}};
+ const denied=(delegation,bridge,options,reason)=>assert.throws(()=>bridgeStaffContext(delegation,bridge,now,options),e=>e.reason===reason);
+ denied(null,b,{},"DELEGATION_REQUIRED");
+ for(const mfa_at of [undefined,null,0,1.5,now+6,now-301])denied({...d,mfa_at},b,{},"RECENT_MFA_REQUIRED");
+ denied({...d,mfa_at:now-31},{...b,mfaMaxAgeSeconds:30},{},"RECENT_MFA_REQUIRED");
+ denied({...d,mfa_at:now-301},{...b,mfaMaxAgeSeconds:999},{},"RECENT_MFA_REQUIRED");
+ for(const role of [null,"","missing","__proto__"])denied({...d,role},b,{},"ROLE_NOT_APPROVED");
+ denied(d,{...b,roleMap:{viewer:""}},{},"ROLE_NOT_APPROVED");
+ for(const scope of [null,{}, {market:"market"},{market:["other"]},{market:["market"],organization:"org"},{market:["market"],organization:["other"]}])denied({...d,scope},b,{},"SCOPE_NOT_GRANTED");
+ for(const options of [{zone:"zone"},{tenant:"tenant"},{zone:null,tenant:"tenant"}])denied(d,b,options,"ZONE_AND_TENANT_REQUIRED");
+ denied({...d,scope:{...d.scope,zone:null}},b,{zone:"zone",tenant:"tenant"},"ZONE_NOT_GRANTED");
+ denied({...d,scope:{...d.scope,zone:["other"]}},b,{zone:"zone",tenant:"tenant"},"ZONE_NOT_GRANTED");
+ denied({...d,scope:{...d.scope,tenant:null}},b,{zone:"zone",tenant:"tenant"},"TENANT_NOT_GRANTED");
+ denied({...d,scope:{...d.scope,tenant:["other"]}},b,{zone:"zone",tenant:"tenant"},"TENANT_NOT_GRANTED");
+ denied(d,{...b,zones:undefined},{zone:"zone",tenant:"tenant"},"ZONE_NOT_ENROLLED");
+ denied(d,{...b,tenants:undefined},{zone:"zone",tenant:"tenant"},"TENANT_NOT_ENROLLED");
+ assert.deepEqual(bridgeStaffContext(d,b,now,{zone:"zone",tenant:"tenant"}),{sub:"staff",sessionId:"session",authTime:now-1,acr:"mfa",role:"native.viewer",market:"market",organization:"org",zone:"zone",tenant:"tenant"});
+ assert.equal(bridgeStaffContext({...d,mfa_at:now+3},b,now).authTime,now);
+ const liveNow=Math.floor(Date.now()/1000);assert.equal(bridgeStaffContext({...d,mfa_at:liveNow},b).sub,"staff");
+ for(const disabled of [undefined,null,false,{}, {enabled:false}])assert.equal(bridgeCapabilityState(disabled),"BLOCKED_DEPENDENCY");
+ assert.equal(bridgeCapabilityState({enabled:true}),"READ_ONLY");
+});

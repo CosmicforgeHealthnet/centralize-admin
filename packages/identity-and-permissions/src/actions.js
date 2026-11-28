@@ -13,6 +13,11 @@ const ACTIONS = Object.freeze({
   "metric.read": { kind: "PRODUCT", dataset: true, recentMfaSeconds: null, independentApproval: false },
   "events.status.read": { kind: "PRODUCT", dataset: false, recentMfaSeconds: null, independentApproval: false },
   "operation.read": { kind: "PRODUCT", dataset: false, recentMfaSeconds: null, independentApproval: false },
+  // Protocol 1.1 scoped live reads through a Product Admin to its source.
+  // The source bridge requires a recent strong authentication, so HQ asks
+  // for MFA within five minutes before delegating.
+  "resource.read": { kind: "PRODUCT", dataset: false, recentMfaSeconds: 300, independentApproval: false },
+  "report.read": { kind: "PRODUCT", dataset: false, recentMfaSeconds: 300, independentApproval: false },
   // Sensitive future operations: recent MFA and independent approval metadata.
   "operation.submit": { kind: "PRODUCT", dataset: false, recentMfaSeconds: 300, independentApproval: true },
 

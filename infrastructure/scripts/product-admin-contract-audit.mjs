@@ -1,0 +1,345 @@
+#!/usr/bin/env node
+// Section 13.2 (spec 9.2) contract audit -> product-admin-contract-audit.json
+//
+// Checks, without network access:
+//   1. Pinned Karryam Backoffice Bridge contract: source commit, artifact
+//      digests, exactly 435 unique capabilities, each with method, path, kind,
+//      risk and module; totals agree with the pinned metadata; every schema
+//      compiles.
+//   2. With KARRYGO_CHECKOUT: artifact digests recomputed from the checkout,
+//      every capability's exact method + path present in the source OpenAPI,
+//      and the committed registry/schemas regenerate byte-identically (the
+//      existing pin-bridge-contract logic).
+//   3. Product Admin Protocol is v1.1 and the published JSON schemas and
+//      OpenAPI regenerate byte-identically from source (write-schemas.js run
+//      in a scratch copy, never in the repository).
+//   4. The committed Karryam Admin API catalog matches buildCatalog().
+//   5. Every HQ gateway route shape forwards to an existing PIC route with the
+//      same method (real PIC request router, disposable loopback listener;
+//      no database is touched because authentication is checked first).
+//
+// Exit 1 on any failed check (undocumented breaking drift). Usage:
+//   node infrastructure/scripts/product-admin-contract-audit.mjs [--product karryam|cfmeet] [--out <dir>] [--require-checkout]
+// Env: KARRYGO_CHECKOUT, KARRYGO_REQUIRE_CHECKOUT=1 (karryam, the default);
+//      CFMEET_CHECKOUT, CFMEET_REQUIRE_CHECKOUT=1 (cfmeet); CONTRACT_AUDIT_DIR.
+//
+// --product cfmeet audits services/cfmeet-admin the same way. While its
+// contract is "contract_status": "DRAFT" (source_commit DRAFT-UNPINNED) the
+// default checkout is the HQ draft in services/cfmeet-admin/contract-draft;
+// once PINNED, source_commit must be a full SHA and the checkout is the
+// public CosmicforgeHealthnet/cfmeet repository at that commit. The cfmeet
+// report is written as cfmeet-admin-contract-audit.json.
+
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import http from "node:http";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const require = createRequire(import.meta.url);
+const EXPECTED_CAPABILITIES = 435;
+
+// Per-product Bridge contract profiles. Karryam stays exactly as before.
+export const PRODUCTS = Object.freeze({
+  karryam: Object.freeze({
+    product: "karryam", service: "karryam-admin", checkoutEnv: "KARRYGO_CHECKOUT", requireEnv: "KARRYGO_REQUIRE_CHECKOUT", checkoutLabel: "karrygo_checkout",
+    schemasFile: "karrygo-bridge-schemas.v1.json", contractDir: "services/admin-backoffice-service/docs/openapi", matrixFile: "KARRYGO_ADMIN_CAPABILITY_MATRIX.json",
+    expectedCapabilities: EXPECTED_CAPABILITIES, reportFile: "product-admin-contract-audit.json", catalogCheckId: "karryam_admin.api_catalog_in_sync", draftDir: null,
+  }),
+  cfmeet: Object.freeze({
+    product: "cfmeet", service: "cfmeet-admin", checkoutEnv: "CFMEET_CHECKOUT", requireEnv: "CFMEET_REQUIRE_CHECKOUT", checkoutLabel: "cfmeet_checkout",
+    schemasFile: "cfmeet-bridge-schemas.v1.json", contractDir: "services/admin-bridge/docs/contract", matrixFile: "CFMEET_ADMIN_CAPABILITY_MATRIX.json",
+    // The CF Meet contract is still evolving (DRAFT): the expected count is the pinned matrix total.
+    expectedCapabilities: null, reportFile: "cfmeet-admin-contract-audit.json", catalogCheckId: "cfmeet_admin.api_catalog_in_sync", draftDir: "services/cfmeet-admin/contract-draft",
+  }),
+});
+const DRAFT_COMMIT = "DRAFT-UNPINNED";
+
+export function profileFor(product = "karryam") {
+  const p = PRODUCTS[product];
+  if (!p) throw new Error(`unknown product ${product} (expected ${Object.keys(PRODUCTS).join("|")})`);
+  return p;
+}
+const EXPECTED_PROTOCOL = { major: 1, minor: 1 };
+
+const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");
+const lf = (file) => fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+
+function check(id, fn) {
+  try {
+    const detail = fn();
+    if (detail && detail.status === "SKIP") return { id, status: "SKIP", reason: detail.reason };
+    return { id, status: "PASS", detail: detail || null };
+  } catch (err) {
+    return { id, status: "FAIL", reason: String(err && err.message || err).slice(0, 2000) };
+  }
+}
+
+function assert(cond, message) { if (!cond) throw new Error(message); }
+
+function bridgeContractChecks(checkout, requireCheckout, profile = PRODUCTS.karryam) {
+  const ka = path.join(ROOT, "services", profile.service);
+  const R = require(path.join(ka, "src/bridge/contracts/registry"));
+  const { PINNED_BRIDGE_CONTRACT: P } = require(path.join(ka, "src/bridge/contracts"));
+  const { compileBridgeSchema } = require(path.join(ka, "src/bridge/contracts/schema"));
+  const components = require(path.join(ka, "src/bridge/contracts", profile.schemasFile)).components.schemas;
+  const draft = Boolean(profile.draftDir) && P.contract_status === "DRAFT";
+  const expected = profile.expectedCapabilities ?? P.capability_matrix?.total;
+  const out = [];
+  out.push(check("bridge.pinned_metadata", () => {
+    if (draft) assert(P.source_commit === DRAFT_COMMIT, `a DRAFT contract must carry source_commit ${DRAFT_COMMIT}`);
+    else assert(/^[0-9a-f]{40}$/.test(P.source_commit), "source_commit is not a full SHA");
+    if (profile.draftDir) assert(["DRAFT", "PINNED"].includes(P.contract_status), "contract_status must be DRAFT or PINNED");
+    assert(P.product === profile.product, `pinned product is not ${profile.product}`);
+    for (const [rel, sha] of Object.entries(P.artifacts)) assert(/^[0-9a-f]{64}$/.test(sha), "artifact digest malformed: " + rel);
+    return { contract: P.contract, contract_version: P.contract_version, ...(profile.draftDir ? { contract_status: P.contract_status } : {}), source_repository: P.source_repository, source_branch: P.source_branch, source_commit: P.source_commit, reviewed_at: P.reviewed_at, bridge_base_path: P.bridge_base_path, artifacts: P.artifacts };
+  }));
+  out.push(check("bridge.capability_registry", () => {
+    const caps = R.CAPABILITIES;
+    assert(Number.isInteger(expected) && expected > 0, "pinned capability total missing");
+    assert(caps.length === expected, `expected ${expected} capabilities, found ${caps.length}`);
+    assert(caps.length === P.capability_matrix.total, "registry total differs from pinned matrix total");
+    const ids = new Set();
+    const problems = [];
+    const tally = { kind: {}, risk: {}, module: {}, method: {}, matrix_state: {} };
+    for (const c of caps) {
+      if (ids.has(c.id)) problems.push("duplicate id " + c.id);
+      ids.add(c.id);
+      for (const k of ["id", "method", "path", "kind", "risk", "module", "matrix_state", "permission"]) if (typeof c[k] !== "string" || c[k] === "") problems.push(`${c.id}: missing ${k}`);
+      if (!["GET", "POST", "PUT", "PATCH", "DELETE"].includes(c.method)) problems.push(`${c.id}: method ${c.method}`);
+      if (!/^R[0-4]$/.test(c.risk)) problems.push(`${c.id}: risk ${c.risk}`);
+      if (!String(c.path).startsWith("/") || String(c.path).includes("..")) problems.push(`${c.id}: path ${c.path}`);
+      for (const k of Object.keys(tally)) tally[k][c[k]] = (tally[k][c[k]] || 0) + 1;
+      try {
+        if (c.result_schema && c.success_media === "application/json") compileBridgeSchema(c.result_schema, components);
+        if (c.request_body) compileBridgeSchema(c.request_body, components);
+      } catch (err) { problems.push(`${c.id}: schema ${err.message}`); }
+    }
+    assert(JSON.stringify(Object.fromEntries(Object.entries(tally.matrix_state).sort())) === JSON.stringify(Object.fromEntries(Object.entries(P.capability_matrix.by_state).sort())), "matrix states differ from pinned metadata");
+    assert(problems.length === 0, problems.slice(0, 20).join("; "));
+    const s = R.summary();
+    assert(s.source_artifacts.openapi_sha256 === P.artifacts[`${profile.contractDir}/openapi.json`], "registry built from a different OpenAPI than pinned");
+    assert(s.source_artifacts.capability_matrix_sha256 === P.artifacts[`${profile.contractDir}/${profile.matrixFile}`], "registry built from a different matrix than pinned");
+    return { capabilities: caps.length, unique_ids: ids.size, digest: sha256(JSON.stringify(caps.map((c) => [c.id, c.method, c.path, c.kind, c.risk, c.module, c.matrix_state]))), ...tally };
+  }));
+  out.push(check("bridge.registry_files", () => {
+    const dir = path.join(ka, "src/bridge/contracts");
+    return Object.fromEntries(fs.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().map((f) => [f, sha256(Buffer.from(lf(path.join(dir, f))))]));
+  }));
+  const have = checkout && fs.existsSync(path.join(checkout, profile.contractDir));
+  const skipOrFail = (id) => check(id, () => {
+    assert(!requireCheckout, `${profile.checkoutEnv} is required but not present` + (checkout ? ": " + checkout : ""));
+    return { status: "SKIP", reason: `${profile.checkoutEnv} not available` };
+  });
+  if (!have) {
+    out.push(skipOrFail("bridge.source_artifact_digests"), skipOrFail("bridge.source_methods_and_paths"), skipOrFail("bridge.registry_regenerates"));
+    return out;
+  }
+  out.push(check("bridge.source_artifact_digests", () => {
+    const drift = [];
+    for (const [rel, sha] of Object.entries(P.artifacts)) {
+      const actual = sha256(fs.readFileSync(path.join(checkout, rel)));
+      if (actual !== sha) drift.push(rel);
+    }
+    assert(drift.length === 0, "drift in " + drift.join(", "));
+    return { checked: Object.keys(P.artifacts).length };
+  }));
+  out.push(check("bridge.source_methods_and_paths", () => {
+    const openapi = JSON.parse(fs.readFileSync(path.join(checkout, profile.contractDir, "openapi.json"), "utf8"));
+    assert(openapi.info.version === P.openapi.info_version, "OpenAPI info.version differs");
+    assert(Object.keys(openapi.paths).length === P.openapi.path_count, "OpenAPI path count differs");
+    const missing = R.CAPABILITIES.filter((c) => { const p = openapi.paths[R.BRIDGE_BASE + c.path]; return !p || !p[c.method.toLowerCase()]; }).map((c) => `${c.id} ${c.method} ${c.path}`);
+    assert(missing.length === 0, "capabilities without an exact source method+path: " + missing.slice(0, 20).join("; "));
+    return { matched: R.CAPABILITIES.length, openapi_paths: Object.keys(openapi.paths).length };
+  }));
+  out.push(check("bridge.registry_regenerates", () => {
+    const { buildPinnedRegistry, serialize, REGISTRY_FILE, SCHEMAS_FILE } = require(path.join(ka, "scripts/pin-bridge-contract"));
+    const { registry, schemas } = buildPinnedRegistry(checkout);
+    assert(lf(REGISTRY_FILE) === serialize(registry), "capability registry drifted: review and re-pin (scripts/pin-bridge-contract.js)");
+    assert(lf(SCHEMAS_FILE) === serialize(schemas), "Bridge schemas drifted: review and re-pin");
+    return { registry: path.basename(REGISTRY_FILE), schemas: path.basename(SCHEMAS_FILE) };
+  }));
+  return out;
+}
+
+function protocolChecks() {
+  const pkg = path.join(ROOT, "packages", "admin-contracts");
+  const C = require(pkg);
+  const out = [];
+  out.push(check("protocol.version", () => {
+    assert(C.PROTOCOL_VERSION.major === EXPECTED_PROTOCOL.major && C.PROTOCOL_VERSION.minor === EXPECTED_PROTOCOL.minor, `protocol is ${C.PROTOCOL_VERSION.major}.${C.PROTOCOL_VERSION.minor}, expected 1.1`);
+    assert(C.isSupportedProtocol({ major: 1, minor: 0 }), "protocol 1.0 peers must stay compatible");
+    assert(!C.isSupportedProtocol({ major: 2, minor: 0 }), "a major version change must not be accepted silently");
+    return { name: C.PROTOCOL_NAME, version: `${C.PROTOCOL_VERSION.major}.${C.PROTOCOL_VERSION.minor}`, contract_version: C.CONTRACT_VERSION, base_path: C.BASE_PATH, endpoints: Object.keys(C.ENDPOINTS).length, error_codes: C.ERROR_CODES };
+  }));
+  out.push(check("protocol.published_schemas_in_sync", () => {
+    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "pa-contract-audit-"));
+    try {
+      const copy = path.join(scratch, "admin-contracts");
+      for (const sub of ["src", "scripts", "schemas", "openapi"]) fs.cpSync(path.join(pkg, sub), path.join(copy, sub), { recursive: true });
+      fs.copyFileSync(path.join(pkg, "package.json"), path.join(copy, "package.json"));
+      execFileSync(process.execPath, [path.join(copy, "scripts", "write-schemas.js")], { cwd: copy, stdio: "ignore" });
+      const files = [...fs.readdirSync(path.join(pkg, "schemas")).map((f) => "schemas/" + f), ...fs.readdirSync(path.join(pkg, "openapi")).map((f) => "openapi/" + f)];
+      const regenerated = [...fs.readdirSync(path.join(copy, "schemas")).map((f) => "schemas/" + f), ...fs.readdirSync(path.join(copy, "openapi")).map((f) => "openapi/" + f)];
+      const drift = regenerated.filter((f) => !files.includes(f) || lf(path.join(pkg, f)) !== lf(path.join(copy, f)));
+      assert(drift.length === 0, "published contract drift (run npm --prefix packages/admin-contracts run schemas:write): " + drift.join(", "));
+      return Object.fromEntries(files.sort().map((f) => [f, sha256(Buffer.from(lf(path.join(pkg, f))))]));
+    } finally { fs.rmSync(scratch, { recursive: true, force: true }); }
+  }));
+  out.push(check("protocol.event_envelope_in_sync", () => {
+    const E = require(path.join(ROOT, "packages", "event-contracts"));
+    const file = path.join(ROOT, "packages", "event-contracts", "schemas", "event-envelope.v1.json");
+    assert(lf(file) === JSON.stringify(E.publishedEnvelopeSchema(), null, 2) + "\n", "event envelope schema drift (npm --prefix packages/event-contracts run schemas:write)");
+    return { "schemas/event-envelope.v1.json": sha256(Buffer.from(lf(file))) };
+  }));
+  return out;
+}
+
+function catalogCheck(profile = PRODUCTS.karryam) {
+  return check(profile.catalogCheckId, () => {
+    const { buildCatalog, OUT } = require(path.join(ROOT, "services", profile.service, "scripts", "api-catalog.js"));
+    const json = JSON.stringify(buildCatalog(), null, 2) + "\n";
+    assert(fs.existsSync(OUT) && lf(OUT) === json, `API catalog drift: run node services/${profile.service}/scripts/api-catalog.js and review the change`);
+    const cat = JSON.parse(json);
+    const { PINNED_BRIDGE_CONTRACT: P } = require(path.join(ROOT, "services", profile.service, "src/bridge/contracts"));
+    assert(cat.bridge_contract.capabilities === (profile.expectedCapabilities ?? P.capability_matrix.total), "catalog capability count differs");
+    const mismatched = cat.section_10_2_hq_bridge_contracts.filter((c) => !c.matches_specification).map((c) => c.capability_id || c.id);
+    assert(mismatched.length === 0, "Section 10.2 contracts differ from the specification: " + mismatched.join(", "));
+    return { file: path.relative(ROOT, OUT).split(path.sep).join("/"), sha256: sha256(Buffer.from(json)), families: cat.families.length, section_10_2_contracts: cat.section_10_2_hq_bridge_contracts.length };
+  });
+}
+
+// Expands a gateway route regex source into concrete sample paths.
+export function samplePaths(source, fragments) {
+  let s = source.replace(/^\^/, "").replace(/\$$/, "");
+  for (const [frag, value] of fragments) s = s.split(frag).join(value);
+  const group = /\(\?:([^()]+)\)/;
+  let list = [s];
+  while (list.some((p) => group.test(p))) {
+    list = list.flatMap((p) => { const m = group.exec(p); return m ? m[1].split("|").map((alt) => p.replace(m[0], alt)) : [p]; });
+  }
+  return list.map((p) => p.replace(/\\\//g, "/"));
+}
+
+async function gatewayCheck(productId = "karryam") {
+  const id = "hq_gateway.routes_map_to_pic";
+  let routesModule;
+  const Module = require("node:module");
+  const originalLoad = Module._load;
+  // The gateway module needs express only to build routers; the route tables
+  // are plain data. Stub express when the API's dependencies are not installed.
+  Module._load = function load(request, parent, isMain) {
+    if (request === "express") {
+      try { return originalLoad.call(this, request, parent, isMain); } catch { return { Router: () => ({ use() {} }) }; }
+    }
+    return originalLoad.call(this, request, parent, isMain);
+  };
+  try { routesModule = require(path.join(ROOT, "services/central-admin-api/src/modules/product-gateway/routes.js")); }
+  catch (err) { return { id, status: "FAIL", reason: "gateway routes not loadable: " + err.message }; }
+  finally { Module._load = originalLoad; }
+  const { PRODUCT_ROUTES, ADMIN_MOUNTS, PIC_BASE } = routesModule;
+  let createApp;
+  try { ({ createApp } = require(path.join(ROOT, "services/product-integration-core/src/api/app.js"))); }
+  catch (err) { return { id, status: "FAIL", reason: "PIC router not loadable (install services/product-integration-core dependencies): " + err.message }; }
+  const fragments = [
+    ["[a-z][a-z0-9-]{1,31}", productId],
+    ["[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "00000000-0000-4000-8000-000000000001"],
+    ["[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", "sample.id-1"],
+  ];
+  const cases = [];
+  for (const [method, pattern, , options] of PRODUCT_ROUTES) {
+    // A search-body route (POST .../search) forwards as the GET read of the
+    // same collection, so it must map to that PIC route.
+    const search = Boolean(options && options.searchBody);
+    for (const rel of samplePaths(pattern.source, fragments)) {
+      const picRel = search ? rel.replace(/\/search$/, "") : rel;
+      cases.push({ method: search ? "GET" : method, gatewayMethod: method, gateway: "/api/products" + (rel === "/" ? "" : rel), pic: PIC_BASE + "/products" + (picRel === "/" ? "" : picRel) });
+    }
+  }
+  for (const [mount, { prefix, routes }] of Object.entries(ADMIN_MOUNTS)) {
+    for (const [method, pattern] of routes) {
+      for (const rel of samplePaths(pattern.source, fragments)) cases.push({ method, gateway: mount + (rel === "/" ? "" : rel), pic: PIC_BASE + prefix + (rel === "/" ? "" : rel) });
+    }
+  }
+  const pool = { query: async () => { throw new Error("audit must not reach the database"); }, connect: async () => { throw new Error("audit must not reach the database"); } };
+  const handler = createApp({ pool, endpoints: new Map(), trustStore: {}, hqDelegationKeys: {}, environment: "test", nonceStore: { claim: async () => { throw new Error("no nonce store in audit"); } }, logger: () => {} });
+  const server = http.createServer(handler);
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = server.address().port;
+  const send = (c) => new Promise((resolve, reject) => {
+    const body = c.method === "POST" ? "{}" : "";
+    const req = http.request({ host: "127.0.0.1", port, method: c.method, path: c.pic, headers: c.method === "POST" ? { "content-type": "application/json", "content-length": Buffer.byteLength(body) } : {} }, (res) => {
+      let data = ""; res.on("data", (d) => { data += d; }); res.on("end", () => { let json = null; try { json = JSON.parse(data); } catch { /* not json */ } resolve({ status: res.statusCode, reason: json && json.error ? json.error.reason : null }); });
+    });
+    req.on("error", reject);
+    req.end(body);
+  });
+  const unmapped = [];
+  try {
+    for (const c of cases) {
+      const r = await send(c);
+      // 401 DELEGATION_REQUIRED proves the PIC route exists for this method;
+      // 404/405 means the gateway would forward to nothing.
+      c.pic_status = r.status;
+      if (!(r.status === 401 && r.reason === "DELEGATION_REQUIRED")) unmapped.push(`${c.gatewayMethod || c.method} ${c.gateway} -> ${c.method} ${c.pic} (${r.status} ${r.reason})`);
+    }
+  } finally { await new Promise((resolve) => server.close(resolve)); }
+  if (unmapped.length) return { id, status: "FAIL", reason: "gateway routes without a PIC route: " + unmapped.join("; ") };
+  return { id, status: "PASS", detail: { routes_checked: cases.length, product_routes: PRODUCT_ROUTES.length, admin_mounts: Object.keys(ADMIN_MOUNTS), mapping: cases.map((c) => `${c.gatewayMethod || c.method} ${c.gateway} -> ${c.method} ${c.pic}`) } };
+}
+
+function gitSha() {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  try { return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim(); } catch { return null; }
+}
+
+/** Default checkout: the product's env var; for a DRAFT contract, the committed HQ draft. */
+export function defaultCheckout(profile) {
+  if (process.env[profile.checkoutEnv]) return profile.draftDir ? path.resolve(process.env[profile.checkoutEnv]) : process.env[profile.checkoutEnv];
+  if (!profile.draftDir) return null;
+  const { PINNED_BRIDGE_CONTRACT: P } = require(path.join(ROOT, "services", profile.service, "src/bridge/contracts"));
+  return P.contract_status === "DRAFT" ? path.join(ROOT, profile.draftDir) : null;
+}
+
+export async function runAudit({ product = "karryam", checkout, requireCheckout } = {}) {
+  const profile = profileFor(product);
+  if (checkout === undefined) checkout = defaultCheckout(profile);
+  if (requireCheckout === undefined) requireCheckout = process.env[profile.requireEnv] === "1";
+  const started = new Date().toISOString();
+  const checks = [...bridgeContractChecks(checkout, requireCheckout, profile), ...protocolChecks(), catalogCheck(profile), await gatewayCheck(profile.product)];
+  const failed = checks.filter((c) => c.status === "FAIL");
+  return {
+    artifact: "product-admin-contract-audit",
+    schema_version: 1,
+    source_sha: gitSha(),
+    environment: process.env.GITHUB_ACTIONS ? "github-actions" : "local",
+    node_version: process.version,
+    tool: "infrastructure/scripts/product-admin-contract-audit.mjs",
+    ...(profile.product === "karryam" ? {} : { product: profile.product }),
+    [profile.checkoutLabel]: checkout && fs.existsSync(checkout) ? "PRESENT" : "ABSENT",
+    started_at: started,
+    finished_at: new Date().toISOString(),
+    checks,
+    summary: { pass: checks.filter((c) => c.status === "PASS").length, fail: failed.length, skip: checks.filter((c) => c.status === "SKIP").length },
+    status: failed.length ? "FAIL" : "PASS",
+  };
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const argv = process.argv.slice(2);
+  const outIdx = argv.indexOf("--out");
+  const outDir = path.resolve(outIdx >= 0 ? argv[outIdx + 1] : process.env.CONTRACT_AUDIT_DIR || path.join(ROOT, "artifacts"));
+  const prodIdx = argv.indexOf("--product");
+  const profile = profileFor(prodIdx >= 0 ? argv[prodIdx + 1] : "karryam");
+  const report = await runAudit({ product: profile.product, requireCheckout: argv.includes("--require-checkout") || process.env[profile.requireEnv] === "1" });
+  fs.mkdirSync(outDir, { recursive: true });
+  const file = path.join(outDir, profile.reportFile);
+  fs.writeFileSync(file, JSON.stringify(report, null, 2) + "\n");
+  for (const c of report.checks) process.stderr.write(`${c.status.padEnd(4)} ${c.id}${c.reason ? " — " + c.reason : ""}\n`);
+  process.stderr.write(`contract audit: ${report.status} -> ${file}\n`);
+  process.exitCode = report.status === "PASS" ? 0 : 1;
+}

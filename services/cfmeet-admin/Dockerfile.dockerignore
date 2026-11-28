@@ -1,0 +1,23 @@
+# Per-Dockerfile ignore list (BuildKit) for services/cfmeet-admin/Dockerfile.
+# Context is the repository root; only the shared protocol packages and this
+# service's runtime files are sent.
+*
+!packages/admin-contracts/package.json
+!packages/admin-contracts/src/**
+!packages/admin-contracts/schemas/**
+!packages/service-clients/package.json
+!packages/service-clients/src/**
+!packages/identity-and-permissions/package.json
+!packages/identity-and-permissions/src/**
+!packages/event-contracts/package.json
+!packages/event-contracts/src/**
+!services/cfmeet-admin/package.json
+!services/cfmeet-admin/package-lock.json
+!services/cfmeet-admin/src/**
+!services/cfmeet-admin/scripts/**
+!services/cfmeet-admin/migrations/**
+**/node_modules
+**/.env
+**/.env.*
+**/*.pem
+**/*.key

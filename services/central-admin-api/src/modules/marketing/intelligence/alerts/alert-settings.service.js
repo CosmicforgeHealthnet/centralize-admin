@@ -26,7 +26,7 @@ const DEFAULTS = Object.freeze({
 
 const RATIO_KEYS = new Set(["alertCpaThresholdPct", "alertConversionRateDropPct", "alertCampaignPerformanceDropPct", "alertHighPerformanceThresholdPct"]);
 const INTEGER_KEYS = new Set(["alertAnalysisWindowDays", "alertComparisonWindowDays", "alertCooldownMinutes", "alertCooldownInfoMinutes", "alertCooldownWarningMinutes", "alertCooldownCriticalMinutes", "alertRecoveryEvaluations", "alertPersistenceEvaluations", "alertDegradedConnectionFailureCount", "alertSyncStaleHours"]);
-const DEPARTMENTS = new Set(["FINANCE", "DEVELOPMENT", "CUSTOMER_CARE", "MARKETING", "SOCIAL_MEDIA", "EXECUTIVE", "MANAGEMENT", "HR", "VERIFICATION", "RTC", "TELEMEDICINE", "OPERATIONS"]);
+const DEPARTMENTS = new Set(["FINANCE", "DEVELOPMENT", "CUSTOMER_CARE", "MARKETING", "SOCIAL_MEDIA", "EXECUTIVE", "MANAGEMENT", "HR", "VERIFICATION", "RTC", "TELEMEDICINE", "OPERATIONS", "CF_MEET_OPERATIONS"]);
 
 function rawValue(row) {
   const value = row?.valueJson;

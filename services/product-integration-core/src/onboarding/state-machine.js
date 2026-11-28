@@ -9,6 +9,8 @@
 // A suspended product returns only to REQUESTED and must pass every gate
 // again; nothing a product sends (e.g. a new manifest) moves it forward.
 
+const { validPermit } = require("./operator");
+
 const STATES = Object.freeze(["DRAFT", "REQUESTED", "IDENTITY_VERIFIED", "CONTRACT_VALIDATED", "POLICY_REVIEWED", "CERTIFIED_STAGING", "ENABLED", "REJECTED", "SUSPENDED", "REVOKED"]);
 const TERMINAL = Object.freeze(["REJECTED", "REVOKED"]);
 
@@ -51,15 +53,16 @@ class TransitionError extends Error {
   }
 }
 
-function assertTransition({ from, to, actorId, requestedBy, certifiedBy = null, expectedRevision, currentRevision, reviewedFromSuspension = false }) {
+function assertTransition({ from, to, actorId, requestedBy, certifiedBy = null, expectedRevision, currentRevision, reviewedFromSuspension = false, operatorPermit = null, environment, productId, scope, now = Date.now() }) {
   if (!STATES.includes(from) || !STATES.includes(to)) throw new TransitionError("UNKNOWN_STATE", 400);
   if (!Number.isInteger(expectedRevision)) throw new TransitionError("EXPECTED_REVISION_REQUIRED", 400);
   if (expectedRevision !== currentRevision) throw new TransitionError("STALE_REVISION");
   if (TERMINAL.includes(from)) throw new TransitionError("TERMINAL_STATE");
   if (!TRANSITIONS[from].includes(to)) throw new TransitionError("TRANSITION_NOT_ALLOWED");
   if (from === "SUSPENDED" && to === "REQUESTED" && !reviewedFromSuspension) throw new TransitionError("EXPLICIT_REREVIEW_REQUIRED");
-  if (INDEPENDENT_FROM_REQUESTER.includes(to) && actorId === requestedBy) throw new TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
-  if (to === "ENABLED" && certifiedBy && actorId === certifiedBy) throw new TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
+  const operatorException = Boolean(productId && scope) && validPermit(operatorPermit, { environment, productId, scope, now }) && actorId === "operator:" + operatorPermit.decision.operator;
+  if (!operatorException && INDEPENDENT_FROM_REQUESTER.includes(to) && actorId === requestedBy) throw new TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
+  if (!operatorException && to === "ENABLED" && certifiedBy && actorId === certifiedBy) throw new TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
   return { action: TRANSITION_ACTION[to] };
 }
 

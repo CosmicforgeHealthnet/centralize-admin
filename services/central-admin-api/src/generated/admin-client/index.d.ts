@@ -1030,7 +1030,8 @@ export const Department: {
   VERIFICATION: 'VERIFICATION',
   RTC: 'RTC',
   TELEMEDICINE: 'TELEMEDICINE',
-  OPERATIONS: 'OPERATIONS'
+  OPERATIONS: 'OPERATIONS',
+  CF_MEET_OPERATIONS: 'CF_MEET_OPERATIONS'
 };
 
 export type Department = (typeof Department)[keyof typeof Department]

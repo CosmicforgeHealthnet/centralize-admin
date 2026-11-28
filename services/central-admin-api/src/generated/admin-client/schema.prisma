@@ -38,6 +38,7 @@ enum Department {
   RTC
   TELEMEDICINE
   OPERATIONS
+  CF_MEET_OPERATIONS
 }
 
 enum SectionAccessMode {

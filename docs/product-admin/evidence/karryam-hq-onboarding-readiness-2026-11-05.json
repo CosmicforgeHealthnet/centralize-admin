@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "status": "PARTIAL_SETUP_COMPLETE",
+  "note": "Historical snapshots retain their timestamps. Three platform setup grants were subsequently applied; no product data grant or staff approval was created. A proposed operator exception is not activated.",
+  "history": {
+    "hq-setup-grants-summary.json": {
+      "state": "TIME_LIMITED_SETUP_GRANTS_BOOTSTRAPPED",
+      "expires_at": "2026-11-08T18:36:46.388551+00:00",
+      "grants_created": 3,
+      "staff_names": [
+        "David Odimayo",
+        "Adejugbe Enoch Adebola",
+        "CosmicForge Admin"
+      ],
+      "source_data_grants_created": 0,
+      "staff_approvals_performed": 0,
+      "real_mfa_sessions_required": true,
+      "completed_at": "2026-11-05T18:36:49.820999+00:00"
+    },
+    "hq-onboarding-readiness-summary.json": {
+      "state": "SETUP_GRANTS_AND_MFA_READINESS_VERIFIED",
+      "staff": [
+        {
+          "name": "David Odimayo",
+          "mfa_enrolled": false,
+          "recent_mfa_sessions": 0
+        },
+        {
+          "name": "Adejugbe Enoch Adebola",
+          "mfa_enrolled": false,
+          "recent_mfa_sessions": 0
+        },
+        {
+          "name": "CosmicForge Admin",
+          "mfa_enrolled": true,
+          "recent_mfa_sessions": 0
+        }
+      ],
+      "grant_count": 3,
+      "operator_audit_count": 3,
+      "staff_approvals_performed": 0,
+      "source_data_grants_created": 0,
+      "checked_at": "2026-11-05T18:40:19.547660+00:00"
+    },
+    "source-feed-readiness-summary.json": {
+      "state": "SOURCE_FEED_NOT_READY",
+      "support": {
+        "cases": 2,
+        "event_scope_complete": 0
+      },
+      "feature_flags": {
+        "karrygo-support-dispute-service": {
+          "SUPPORT_DISPUTE_ADMIN_EVENTS_ENABLED": "false",
+          "SUPPORT_DISPUTE_ADMIN_EVENTS_SNAPSHOT_ENABLED": "false"
+        },
+        "karrygo-admin-backoffice-service": {
+          "ADMIN_HQ_EVENTS_ENABLED": "false",
+          "ADMIN_EVENT_INGRESS_ENABLED": "false",
+          "ADMIN_EVENT_BACKFILL_ENABLED": "false"
+        }
+      },
+      "blockers": [
+        "Existing Support event function emits incomplete source scope; approved resource contexts do not automatically scope event publication.",
+        "Current signed policy permits resource reads only, not hq.events.feed, hq.events.ack or hq.projections.status.",
+        "All four signed-manifest datasets are NOT_CERTIFIED.",
+        "HQ registration, grants, contracts, datasets and subscriptions currently have zero rows."
+      ],
+      "business_data_modified": false,
+      "checked_at": "2026-11-05T18:35:06.728380+00:00"
+    },
+    "signed-manifest-verification-summary.json": {
+      "verified": true,
+      "endpoint_ref": "karryam-staging",
+      "product_id": "karryam",
+      "service_instance_id": "karryam-admin-staging-1",
+      "environment": "staging",
+      "workload_identity": "cf://staging/product-admin/karryam",
+      "approved_signer_kid": "karryam-staging-manifest-2026-11",
+      "manifest_digest": "sha256:8c3f722bbe27355390713d72db9411d68d5e263a12d4d09256e1bcba5e062a4f",
+      "manifest_revision": 1,
+      "build_sha": "df0805b7b4524a5f97db93a0832bddc3d5344488",
+      "datasets": [
+        {
+          "dataset_id": "karryam.support_operations",
+          "version": "1.0.0",
+          "readiness": "NOT_CERTIFIED"
+        },
+        {
+          "dataset_id": "karryam.verification_pipeline",
+          "version": "1.0.0",
+          "readiness": "NOT_CERTIFIED"
+        },
+        {
+          "dataset_id": "karryam.marketing_campaigns",
+          "version": "1.0.0",
+          "readiness": "NOT_CERTIFIED"
+        },
+        {
+          "dataset_id": "karryam.sync_health",
+          "version": "1.0.0",
+          "readiness": "NOT_CERTIFIED"
+        }
+      ],
+      "verified_at": "2026-11-05T18:42:29.894Z"
+    }
+  }
+}

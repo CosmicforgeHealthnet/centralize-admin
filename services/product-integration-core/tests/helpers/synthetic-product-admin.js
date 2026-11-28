@@ -17,12 +17,23 @@ const PRODUCT_ID = "synthetic-third";
 const INSTANCE_ID = "synthetic-third-test-1";
 const DATASET_ID = "synthetic.daily_activity";
 const FAMILY = "synthetic.metric_observation";
+// A second, non-metric standard event family: stored and sequenced by HQ but
+// never projected (projection NONE). Proves generic events, not only metrics.
+const STATUS_FAMILY = "synthetic.order_status_changed";
+const { standardMetricObservationFamily } = require("../../../../packages/admin-contracts/src/catalog");
+const statusFamily = () => ({
+  family: STATUS_FAMILY, schema_id: "synthetic.order-status", schema_version: "1.0.0", dataset_id: DATASET_ID,
+  classification: "INTERNAL", projection: "NONE",
+  payload_schema: { type: "object", additionalProperties: false, required: ["status"], properties: { status: { type: "string", enum: ["CREATED", "COMPLETED", "CANCELLED"] } } },
+  status: "ACTIVE", sunset_at: null, version_policy: "MAJOR_FOR_BREAKING",
+});
 
 async function startSyntheticProductAdmin({ environment = "test" } = {}) {
   const signer = T.generateSigner("synthetic-signer-1");
   const serviceKey = randomBytes(32);
   const delegationKey = randomBytes(32);
-  let manifestOptions = { productId: PRODUCT_ID, serviceInstanceId: INSTANCE_ID, environment, ttlMs: 6 * 3600 * 1000 };
+  let manifestOptions = { productId: PRODUCT_ID, serviceInstanceId: INSTANCE_ID, environment, ttlMs: 6 * 3600 * 1000,
+    eventFamilies: [standardMetricObservationFamily({ family: FAMILY, datasetId: DATASET_ID }), statusFamily()] };
   let signed = T.signedSampleManifest(signer, manifestOptions);
 
   const partitions = new Map(); // partition -> [{ sequence, event }]
@@ -59,6 +70,23 @@ async function startSyntheticProductAdmin({ environment = "test" } = {}) {
     if (overrides.payload) event.payload_digest = E.payloadDigest(event.payload);
     list.push({ sequence, event });
     if (skip) state.hiddenSequences.add(partitionKey + ":" + sequence);
+    return event;
+  }
+
+  // Appends a standard non-metric status event and returns it.
+  function emitStatus({ partitionKey = "NG-LAGOS", status = "COMPLETED", entityId = "order-1", entityVersion, scope = { market: "NG", organization: "cosmicforge", tenant: "tenant-a" }, payload } = {}) {
+    const list = partitionEvents(partitionKey);
+    const sequence = (list.length ? list[list.length - 1].sequence : 0) + 1;
+    const at = new Date(Date.now() - 1000).toISOString();
+    const event = E.createEvent({
+      schema_id: "synthetic.order-status", schema_version: "1.0.0", family: STATUS_FAMILY,
+      event_id: randomUUID(), source_id: INSTANCE_ID, product_id: PRODUCT_ID, dataset_id: DATASET_ID,
+      partition_key: partitionKey, sequence,
+      entity: { type: "synthetic.order", id: entityId, version: entityVersion ?? sequence },
+      scope, classification: "INTERNAL", occurred_at: at, emitted_at: new Date().toISOString(),
+      payload: payload || { status },
+    });
+    list.push({ sequence, event });
     return event;
   }
 
@@ -137,6 +165,7 @@ async function startSyntheticProductAdmin({ environment = "test" } = {}) {
       return { [signer.kid]: { product_id: PRODUCT_ID, environment, public_key_pem: signer.publicKey.export({ type: "spki", format: "pem" }), not_after: new Date(Date.now() + 86400000).toISOString() } };
     },
     emitMetric,
+    emitStatus,
     partitionEvents,
     republishManifest(options) {
       manifestOptions = { ...manifestOptions, ...options };
@@ -147,4 +176,4 @@ async function startSyntheticProductAdmin({ environment = "test" } = {}) {
   };
 }
 
-module.exports = { startSyntheticProductAdmin, PRODUCT_ID, INSTANCE_ID, DATASET_ID };
+module.exports = { startSyntheticProductAdmin, PRODUCT_ID, INSTANCE_ID, DATASET_ID, STATUS_FAMILY };

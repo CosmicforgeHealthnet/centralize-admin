@@ -1,11 +1,13 @@
-# Example only — NOT referenced by any deployment workflow. Shows how the two
-# new services run privately next to the existing Central Admin API on one
+# Example only — NOT referenced by any deployment workflow. Shows how the
+# new services (PIC and the Product Admins Karryam Admin and CF Meet Admin) run privately next to the existing Central Admin API on one
 # host. No ports are published: services talk over Unix sockets in a shared
 # directory that only these containers mount.
 services:
   product-integration-core:
     image: ghcr.io/cosmicforgehealthnet/product-integration-core:<reviewed-tag>
     user: "10002:10002"
+    # Reads the Karryam Admin (group 10001) and CF Meet Admin (group 10003) sockets.
+    group_add: ["10001", "10003"]
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
@@ -21,6 +23,7 @@ services:
     volumes:
       - pic-socket:/run/cosmicforge/pic
       - karryam-admin-socket:/run/cosmicforge/karryam:ro
+      - cfmeet-admin-socket:/run/cosmicforge/cfmeet:ro
       - /etc/cosmicforge/secrets/pic:/run/secrets:ro
     networks: [admin-private]
 
@@ -40,9 +43,67 @@ services:
       - /etc/cosmicforge/secrets/karryam-admin:/run/secrets:ro
     networks: [admin-private]
 
+  # Stage A worker: same image, separate process. It talks only to the
+  # private Bridge and the Karryam Admin database; it never calls HQ and has
+  # no listener (so no socket health check).
+  karryam-admin-worker:
+    image: ghcr.io/cosmicforgehealthnet/karryam-admin:<reviewed-tag>
+    command: ["node", "src/worker/index.js"]
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      disable: true
+    environment:
+      KARRYAM_ADMIN_ENABLED: "false"      # enable only after certification
+      KARRYAM_BRIDGE_ENABLED: "false"     # requires approved bridge trust enrollment
+      KARRYAM_BRIDGE_FEED_ENABLED: "false"
+    env_file: [/etc/cosmicforge/karryam-admin.env]
+    volumes:
+      - /etc/cosmicforge/secrets/karryam-admin:/run/secrets:ro
+    networks: [admin-private]
+
+  cfmeet-admin:
+    image: ghcr.io/cosmicforgehealthnet/cfmeet-admin:<reviewed-tag>
+    user: "10003:10003"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      CFMEET_ADMIN_ENABLED: "false"      # enable only after certification
+      CFMEET_ADMIN_LISTEN: unix:/run/cosmicforge/cfmeet/cfmeet-admin.sock
+      CFMEET_BRIDGE_ENABLED: "false"     # requires approved bridge trust enrollment
+    env_file: [/etc/cosmicforge/cfmeet-admin.env]
+    volumes:
+      - cfmeet-admin-socket:/run/cosmicforge/cfmeet
+      - /etc/cosmicforge/secrets/cfmeet-admin:/run/secrets:ro
+    networks: [admin-private]
+
+  # CF Meet Stage A worker: same image, separate process, no listener. It
+  # talks only to the CF Meet Admin Bridge and the CF Meet Admin database.
+  cfmeet-admin-worker:
+    image: ghcr.io/cosmicforgehealthnet/cfmeet-admin:<reviewed-tag>
+    command: ["node", "src/worker/index.js"]
+    user: "10003:10003"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      disable: true
+    environment:
+      CFMEET_ADMIN_ENABLED: "false"       # enable only after certification
+      CFMEET_BRIDGE_ENABLED: "false"      # requires approved bridge trust enrollment
+      CFMEET_BRIDGE_FEED_ENABLED: "false"
+    env_file: [/etc/cosmicforge/cfmeet-admin.env]
+    volumes:
+      - /etc/cosmicforge/secrets/cfmeet-admin:/run/secrets:ro
+    networks: [admin-private]
+
 volumes:
   pic-socket: {}
   karryam-admin-socket: {}
+  cfmeet-admin-socket: {}
 
 networks:
   admin-private:

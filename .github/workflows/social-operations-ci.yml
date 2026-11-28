@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - fix/marketing-admin-db-target
-      - staging
+      # Staging push CI is owned by staging.yml (includes Mail and audited image inputs).
       - main
 
 jobs:

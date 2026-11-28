@@ -25,5 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
       - name: Validate root Docker build after service move
-        run: docker build --tag central-admin-api:monorepo-ci .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: central-admin-api:monorepo-ci
+          cache-from: type=gha,scope=ca-monorepo-api
+          cache-to: type=gha,mode=max,scope=ca-monorepo-api,ignore-error=true

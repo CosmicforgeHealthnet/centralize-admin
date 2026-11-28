@@ -442,6 +442,7 @@ export const ACCOUNT_DEPARTMENTS = [
   "RTC",
   "TELEMEDICINE",
   "OPERATIONS",
+  "CF_MEET_OPERATIONS",
 ] as const;
 export type AccountDepartment = (typeof ACCOUNT_DEPARTMENTS)[number];
 

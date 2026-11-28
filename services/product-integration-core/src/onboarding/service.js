@@ -13,6 +13,8 @@ const { recordAudit } = require("../audit");
 const { authorizeStaff } = require("../authz");
 const { resolveEndpoint, clientFor, EndpointError } = require("../registry/endpoints");
 const SM = require("./state-machine");
+const Operator = require("./operator");
+const policy = require("../registry/sync-policy");
 
 class OnboardingError extends Error {
   constructor(reason, status = 409, detail) {
@@ -40,6 +42,62 @@ function validScope(scope, { allowedDims = DIMS, required = [] } = {}) {
   return required.every((dim) => Array.isArray(scope[dim]));
 }
 
+// Read-only grant listing (HQ grants screen). Bounded pages with an opaque
+// keyset cursor over (created_at, id); the cursor only positions a page
+// inside the already-authorized product and carries no authority.
+const GRANT_PAGE_DEFAULT = 50;
+const GRANT_PAGE_MAX = 100;
+const GRANT_QUERY_KEYS = new Set(["staff_id", "limit", "cursor"]);
+const GRANT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const GRANT_STAFF_ID = /^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$/;
+const GRANT_CURSOR = /^[A-Za-z0-9_-]{16,256}$/;
+const GRANT_CURSOR_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
+const PRODUCT_ID = new RegExp(C.PATTERNS.productId);
+const GRANT_COLUMNS = `id, grant_kind, product_id, staff_id, role, effect, actions, datasets, scope, not_before, expires_at, granted_by, created_at, revoked_at, revoked_by, revocation_reason, to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time`;
+
+function parseGrantQuery(query) {
+  const params = query instanceof URLSearchParams ? query : new URLSearchParams();
+  const seen = new Set();
+  for (const [key] of params) {
+    if (!GRANT_QUERY_KEYS.has(key) || seen.has(key)) throw new OnboardingError("QUERY_INVALID", 400);
+    seen.add(key);
+  }
+  let limit = GRANT_PAGE_DEFAULT;
+  if (params.has("limit")) {
+    const raw = params.get("limit");
+    if (!/^[0-9]{1,3}$/.test(raw) || Number(raw) < 1 || Number(raw) > GRANT_PAGE_MAX) throw new OnboardingError("LIMIT_INVALID", 400);
+    limit = Number(raw);
+  }
+  const staffId = params.has("staff_id") ? params.get("staff_id") : null;
+  if (staffId !== null && !GRANT_STAFF_ID.test(staffId)) throw new OnboardingError("STAFF_INVALID", 400);
+  let cursor = null;
+  if (params.has("cursor")) {
+    const raw = params.get("cursor");
+    let decoded = null;
+    try { decoded = GRANT_CURSOR.test(raw) ? JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) : null; } catch { decoded = null; }
+    if (!Array.isArray(decoded) || decoded.length !== 2 || !GRANT_CURSOR_TIME.test(String(decoded[0])) || !GRANT_ID.test(String(decoded[1]))) throw new OnboardingError("CURSOR_INVALID", 400);
+    cursor = { time: decoded[0], id: decoded[1] };
+  }
+  return { limit, staffId, cursor };
+}
+
+function grantCursor(row) {
+  return Buffer.from(JSON.stringify([row.cursor_time, row.id]), "utf8").toString("base64url");
+}
+
+// Everything a grants screen needs; the grants table holds no secrets.
+function grantView(row, nowMs) {
+  const at = (value) => (value ? new Date(value).toISOString() : null);
+  const status = row.revoked_at ? "REVOKED"
+    : row.expires_at && new Date(row.expires_at).getTime() <= nowMs ? "EXPIRED"
+      : row.not_before && new Date(row.not_before).getTime() > nowMs ? "NOT_YET_VALID" : "ACTIVE";
+  return {
+    grant_id: row.id, grant_kind: row.grant_kind, product_id: row.product_id, staff_id: row.staff_id, role: row.role, effect: row.effect,
+    actions: row.actions, datasets: row.datasets, scope: row.scope, not_before: at(row.not_before), expires_at: at(row.expires_at),
+    granted_by: row.granted_by, created_at: at(row.created_at), revoked_at: at(row.revoked_at), revoked_by: row.revoked_by, revocation_reason: row.revocation_reason, status,
+  };
+}
+
 function subsetScope(inner, outer) {
   for (const [dim, values] of Object.entries(inner)) {
     if (outer[dim] && values.some((v) => !outer[dim].includes(v))) return false;
@@ -47,13 +105,25 @@ function subsetScope(inner, outer) {
   return true;
 }
 
-function createOnboarding({ pool, endpoints, trustStore, environment, now = Date.now, clientOptions = {} }) {
-  const authz = (subject, action, ctx, extra = {}) => authorizeStaff(pool, { subject, action, correlationId: ctx.correlationId, now: now(), ...extra });
+function createOnboarding({ pool, endpoints, trustStore, environment, now = Date.now, clientOptions = {}, operatorPermit = null }) {
+  const operatorMode = () => {
+    if (!operatorPermit) return false;
+    if (!Operator.validPermit(operatorPermit, { environment, now: now() })) throw new OnboardingError("OPERATOR_NOT_AUTHORIZED", 403);
+    return true;
+  };
+  operatorMode(); // Reject forged/expired permits before constructing any workflow.
+  const authz = (subject, action, ctx, extra = {}) => operatorMode()
+    ? Operator.authorizeOperator(pool, operatorPermit, { environment, subject, action, correlationId: ctx.correlationId, now: now() })
+    : authorizeStaff(pool, { subject, action, correlationId: ctx.correlationId, now: now(), ...extra });
+  function assertOperatorScope(row) {
+    if (operatorMode() && !Operator.validPermit(operatorPermit, { environment, productId: row.product_id, scope: row.allowed_scope, now: now() })) throw new OnboardingError("OPERATOR_SCOPE_DENIED", 403);
+  }
 
   async function lockRow(client, id) {
     if (!/^[0-9a-f-]{36}$/.test(String(id))) throw new OnboardingError("NOT_FOUND", 404);
     const { rows } = await client.query(`SELECT * FROM ${T}hq_product_admins WHERE id = $1 AND environment = $2 FOR UPDATE`, [id, environment]);
     if (!rows[0]) throw new OnboardingError("NOT_FOUND", 404);
+    assertOperatorScope(rows[0]);
     return rows[0];
   }
 
@@ -61,10 +131,12 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
     if (!/^[0-9a-f-]{36}$/.test(String(id))) throw new OnboardingError("NOT_FOUND", 404);
     const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admins WHERE id = $1 AND environment = $2`, [id, environment]);
     if (!rows[0]) throw new OnboardingError("NOT_FOUND", 404);
+    assertOperatorScope(rows[0]);
     return rows[0];
   }
 
   async function approval(client, row, fields, ctx) {
+    if (operatorMode()) fields = { ...fields, actorId: "operator:" + operatorPermit.decision.operator, reasonCode: "OWNER_DELEGATED_STAGING_SETUP", evidenceRef: fields.evidenceRef || operatorPermit.decision.decision_id };
     await client.query(
       `INSERT INTO ${T}hq_product_admin_onboarding_approvals (product_admin_id, decision, from_status, to_status, actor_id, reason_code, evidence_ref, expected_revision, resulting_revision, contract_id, dataset_row_id, subscription_id, correlation_id)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
@@ -72,11 +144,19 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
   }
 
   async function audit(client, subject, row, action, ctx, metadata = {}, outcome = "RECORDED", reasonCode = null) {
-    await recordAudit(client, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId: row ? row.product_id : null, productAdminId: row ? row.id : null, action, outcome, reasonCode, metadata });
+    await recordAudit(client, { correlationId: ctx.correlationId, actorType: operatorMode() ? "OPERATOR" : "STAFF", actorId: subject.staffId, productId: row ? row.product_id : null, productAdminId: row ? row.id : null, action, outcome, reasonCode: operatorMode() ? "OWNER_DELEGATED_STAGING_SETUP" : reasonCode, metadata: operatorMode() ? { ...metadata, decision_ref: operatorPermit.decision.decision_id, independence_exception: true } : metadata });
+  }
+
+  async function readAudit(subject, productId, action, ctx, metadata) {
+    try {
+      await recordAudit(pool, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId, action, outcome: "ALLOWED", metadata: { ...metadata, session_ref: subject.sessionId } });
+    } catch {
+      throw new OnboardingError("AUDIT_UNAVAILABLE", 503);
+    }
   }
 
   async function transition(client, row, to, subject, opts, ctx) {
-    SM.assertTransition({ from: row.lifecycle_status, to, actorId: subject.staffId, requestedBy: row.requested_by, certifiedBy: opts.certifiedBy || null, expectedRevision: opts.expectedRevision, currentRevision: row.revision, reviewedFromSuspension: Boolean(opts.reviewedFromSuspension) });
+    SM.assertTransition({ operatorPermit, environment, productId: row.product_id, scope: row.allowed_scope, now: now(), from: row.lifecycle_status, to, actorId: subject.staffId, requestedBy: row.requested_by, certifiedBy: opts.certifiedBy || null, expectedRevision: opts.expectedRevision, currentRevision: row.revision, reviewedFromSuspension: Boolean(opts.reviewedFromSuspension) });
     const set = opts.set || {};
     const keys = Object.keys(set);
     for (const key of keys) if (!SETTABLE.has(key)) throw new Error("column_not_settable:" + key);
@@ -93,6 +173,9 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
 
   // Fetches and verifies the manifest from the registry-pinned destination.
   async function fetchVerifiedManifest(row, { minimumRevision } = {}) {
+    // Never verify against a trust store whose source files changed after it
+    // was loaded (e.g. a revocation written by an operator): restart first.
+    if (trustStore && typeof trustStore.isCurrent === "function" && !trustStore.isCurrent()) throw new OnboardingError("TRUST_STORE_CHANGED", 503);
     let endpoint;
     try { endpoint = resolveEndpoint(endpoints, row); } catch (err) { throw new OnboardingError(err.reason || "ENDPOINT_INVALID", 409); }
     if (endpoint.fingerprint256 || row.identity_fingerprint_ref) {
@@ -127,6 +210,28 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       `SELECT c.* FROM ${T}hq_product_admin_onboarding_approvals a JOIN ${T}hq_product_admin_contracts c ON c.id = a.contract_id
        WHERE a.product_admin_id = $1 AND a.decision = 'CONTRACT_VALIDATED' ORDER BY a.id DESC LIMIT 1`, [productAdminId]);
     return rows[0] || null;
+  }
+
+  // While an ENABLED product has any unresolved drift, nothing new may be
+  // activated for it (dataset approval, subscription creation or enabling):
+  // the drift must first be resolved by re-verification or a reviewed
+  // contract activation.
+  function assertNoUnresolvedDrift(row) {
+    if (row.lifecycle_status !== "ENABLED") return;
+    const blocked = policy.driftBlock(row.drift_status);
+    if (blocked) throw new OnboardingError("CONTRACT_DRIFT_UNRESOLVED", 409, blocked);
+  }
+
+  // A dataset version may be approved or subscribed only if the contract in
+  // force declares exactly that version and schema: the active contract once
+  // ENABLED, the validated onboarding candidate before that.
+  async function assertDeclaredByCurrentContract(client, row, ds) {
+    let current = null;
+    if (row.lifecycle_status === "ENABLED") ({ rows: [current] } = await client.query(`SELECT catalog FROM ${T}hq_product_admin_contracts WHERE id = $1 AND status = 'ACTIVE'`, [row.current_contract_id]));
+    else current = await candidateContract(client, row.id);
+    const declared = current && (current.catalog.datasets || []).find((d) => d.dataset_id === ds.dataset_id && d.version === ds.version);
+    if (!declared || declared.schema_digest !== ds.schema_digest) throw new OnboardingError("DATASET_NOT_IN_CURRENT_CONTRACT", 409);
+    return declared;
   }
 
   async function activeContract(client, productAdminId) {
@@ -164,8 +269,9 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
     return { id, revision: next };
   }
 
-  return {
+  const workflow = {
     async list(subject, ctx) {
+      if (operatorMode()) throw new OnboardingError("OPERATOR_LIST_DENIED", 403);
       await authz(subject, "integration.read", ctx);
       const { rows } = await pool.query(`SELECT * FROM ${T}hq_product_admins WHERE environment = $1 ORDER BY product_id, created_at`, [environment]);
       return rows;
@@ -187,6 +293,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
     // product is trusted until each gate below passes.
     async request(subject, input, ctx) {
       await authz(subject, "integration.request", ctx);
+      assertOperatorScope({ product_id: input && input.product_id, allowed_scope: input && input.allowed_scope });
       const fields = ["product_id", "display_name", "service_instance_id", "environment", "endpoint_ref", "workload_identity", "approved_signer_kid", "identity_fingerprint_ref", "allowed_scope"];
       for (const key of Object.keys(input || {})) if (!fields.includes(key)) throw new OnboardingError("UNKNOWN_FIELD", 400);
       const p = C.PATTERNS;
@@ -201,8 +308,10 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       const endpoint = endpoints.get(input.endpoint_ref);
       if (!endpoint) throw new OnboardingError("ENDPOINT_NOT_ALLOWLISTED", 400);
       if (endpoint.productId !== input.product_id || endpoint.environment !== environment) throw new OnboardingError("ENDPOINT_PRODUCT_MISMATCH", 403);
-      const signer = trustStore[input.approved_signer_kid];
+      if (trustStore && typeof trustStore.isCurrent === "function" && !trustStore.isCurrent()) throw new OnboardingError("TRUST_STORE_CHANGED", 503);
+      const signer = trustStore && Object.prototype.hasOwnProperty.call(trustStore, input.approved_signer_kid) ? trustStore[input.approved_signer_kid] : null;
       if (!signer || signer.productId !== input.product_id || signer.environment !== environment) throw new OnboardingError("SIGNER_NOT_ENROLLED", 400);
+      if (policy.signerBlock({ approved_signer_kid: input.approved_signer_kid, product_id: input.product_id, environment }, trustStore, now())) throw new OnboardingError("SIGNER_NOT_CURRENT", 400);
       const id = randomUUID();
       try {
         return await withTx(pool, async (client) => {
@@ -277,14 +386,15 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       return withTx(pool, async (client) => {
         const row = await lockRow(client, id);
         if (!["CONTRACT_VALIDATED", "POLICY_REVIEWED", "CERTIFIED_STAGING", "ENABLED"].includes(row.lifecycle_status)) throw new SM.TransitionError("TRANSITION_NOT_ALLOWED");
-        if (!I.requireIndependentActor(subject.staffId, [row.requested_by])) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
+        if (!operatorMode() && !I.requireIndependentActor(subject.staffId, [row.requested_by])) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
         const { rows } = await client.query(`SELECT * FROM ${T}hq_product_admin_datasets WHERE product_admin_id = $1 AND dataset_id = $2 AND version = $3 FOR UPDATE`, [id, datasetId, version]);
         const ds = rows[0];
         if (!ds) throw new OnboardingError("UNKNOWN_DATASET", 404);
         if (ds.approval_status !== "PROPOSED") throw new OnboardingError("DATASET_NOT_PROPOSED", 409);
-        // HQ can only approve what the product itself declares certified.
-        const { rows: [source] } = await client.query(`SELECT catalog FROM ${T}hq_product_admin_contracts WHERE id = $1`, [ds.contract_id]);
-        const declared = (source.catalog.datasets || []).find((d) => d.dataset_id === ds.dataset_id && d.version === ds.version);
+        assertNoUnresolvedDrift(row);
+        // Read readiness from the contract currently in force. A dataset row
+        // can retain its original contract_id across a readiness-only revision.
+        const declared = decision === "APPROVE" ? await assertDeclaredByCurrentContract(client, row, ds) : null;
         if (decision === "APPROVE" && (!declared || declared.readiness !== "CERTIFIED_BY_PRODUCT")) throw new OnboardingError("DATASET_NOT_CERTIFIED_BY_PRODUCT", 409);
         const approve = decision === "APPROVE" && C.HQ_SYNCABLE_PRIVACY.includes(ds.privacy_class);
         await client.query(`UPDATE ${T}hq_product_admin_datasets SET approval_status = $2, approved_by = $3, approved_at = $4 WHERE id = $1`,
@@ -306,8 +416,14 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         if (!contract) throw new OnboardingError("NO_VALIDATED_CONTRACT", 409);
         if (await approvedDatasetCount(client, id) === 0) throw new OnboardingError("NO_APPROVED_DATASET", 409);
         if (contract.status === "VALIDATED") {
-          if (contract.validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
-          await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4 WHERE id = $1`, [contract.id, subject.staffId, new Date(now()), evidence_ref]);
+          if (!operatorMode() && contract.validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
+          if (operatorMode()) {
+            await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4, operator_certification_decision_ref = $5 WHERE id = $1`, [contract.id, subject.staffId, new Date(now()), evidence_ref, operatorPermit.decision.decision_id]);
+          } else {
+            // Keep normal staff onboarding compatible with pre-005 schemas
+            // during forward migration and rollback of application images.
+            await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4 WHERE id = $1`, [contract.id, subject.staffId, new Date(now()), evidence_ref]);
+          }
           await approval(client, row, { decision: "CONTRACT_CERTIFIED", actorId: subject.staffId, contractId: contract.id, evidenceRef: evidence_ref }, ctx);
         } else if (!["CERTIFIED", "ACTIVE"].includes(contract.status)) {
           throw new OnboardingError("CONTRACT_NOT_CERTIFIABLE", 409);
@@ -328,7 +444,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         if (!row.identity_verified_at) throw new OnboardingError("IDENTITY_NOT_VERIFIED", 409);
         if (!row.manifest_expires_at || row.manifest_expires_at.getTime() <= now()) throw new OnboardingError("MANIFEST_EXPIRED", 409);
         if (await approvedDatasetCount(client, id) === 0) throw new OnboardingError("NO_APPROVED_DATASET", 409);
-        SM.assertTransition({ from: row.lifecycle_status, to: "ENABLED", actorId: subject.staffId, requestedBy: row.requested_by, certifiedBy: contract.certified_by, expectedRevision: expected_revision, currentRevision: row.revision });
+        SM.assertTransition({ operatorPermit, environment, productId: row.product_id, scope: row.allowed_scope, now: now(), from: row.lifecycle_status, to: "ENABLED", actorId: subject.staffId, requestedBy: row.requested_by, certifiedBy: contract.certified_by, expectedRevision: expected_revision, currentRevision: row.revision });
         if (contract.status === "CERTIFIED") {
           await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'SUPERSEDED' WHERE product_admin_id = $1 AND status = 'ACTIVE'`, [id]);
           await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'ACTIVE', activated_at = $2 WHERE id = $1`, [contract.id, new Date(now())]);
@@ -382,6 +498,7 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       return withTx(pool, async (client) => {
         const locked = await lockRow(client, id);
         const active = await activeContract(client, id);
+        if (operatorMode()) Operator.assertReadonlyCatalogChange(operatorPermit.decision, active.catalog, catalogOf(verified.manifest));
         if (active.catalog_digest === verified.catalogDigest) throw new OnboardingError("NO_CONTRACT_CHANGE", 409);
         const comparison = C.compareCatalogs(active.catalog, catalogOf(verified.manifest));
         const breaking = comparison.decision === "BREAKING";
@@ -404,8 +521,15 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         const { rows } = await client.query(`SELECT * FROM ${T}hq_product_admin_contracts WHERE id = $1 AND product_admin_id = $2 FOR UPDATE`, [contractId, id]);
         if (!rows[0]) throw new OnboardingError("UNKNOWN_CONTRACT", 404);
         if (rows[0].status !== "VALIDATED") throw new OnboardingError("CONTRACT_NOT_CERTIFIABLE", 409);
-        if (rows[0].validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
-        await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4 WHERE id = $1`, [contractId, subject.staffId, new Date(now()), evidence_ref]);
+        if (operatorMode()) {
+          const active = await activeContract(client, id);
+          if (!active) throw new OnboardingError("NO_ACTIVE_CONTRACT", 409);
+          Operator.assertReadonlyCatalogChange(operatorPermit.decision, active.catalog, rows[0].catalog);
+          await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4, operator_certification_decision_ref = $5 WHERE id = $1`, [contractId, subject.staffId, new Date(now()), evidence_ref, operatorPermit.decision.decision_id]);
+        } else {
+          if (rows[0].validated_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_REVIEWER_REQUIRED", 403);
+          await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'CERTIFIED', certified_by = $2, certified_at = $3, certification_evidence_ref = $4 WHERE id = $1`, [contractId, subject.staffId, new Date(now()), evidence_ref]);
+        }
         await approval(client, row, { decision: "CONTRACT_CERTIFIED", actorId: subject.staffId, contractId, evidenceRef: evidence_ref }, ctx);
         return { contract_id: contractId, status: "CERTIFIED" };
       });
@@ -421,9 +545,19 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         const contract = rows[0];
         if (!contract) throw new OnboardingError("UNKNOWN_CONTRACT", 404);
         if (contract.status !== "CERTIFIED") throw new OnboardingError("CONTRACT_NOT_CERTIFIED", 409);
-        if (contract.certified_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
+        if (!operatorMode() && contract.certified_by === subject.staffId) throw new SM.TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
         const decision = C.activationDecision(contract.compatibility, { reviewed: true });
         if (!decision.allowed) throw new OnboardingError(decision.reason, 409);
+        // The stored comparison was made when the revision was proposed, by
+        // the comparator of that time, against the contract active then.
+        // Re-compare against the contract active now with the current
+        // comparator: a revision that is no longer purely additive (or that
+        // a since-corrected comparator mis-classified) is refused.
+        const { rows: [current] } = await client.query(`SELECT * FROM ${T}hq_product_admin_contracts WHERE product_admin_id = $1 AND status = 'ACTIVE' FOR UPDATE`, [id]);
+        if (!current || current.id !== row.current_contract_id) throw new OnboardingError("NO_ACTIVE_CONTRACT", 409);
+        if (operatorMode()) Operator.assertReadonlyCatalogChange(operatorPermit.decision, current.catalog, contract.catalog);
+        const fresh = C.activationDecision(C.compareCatalogs(current.catalog, contract.catalog), { reviewed: true });
+        if (!fresh.allowed) throw new OnboardingError(fresh.reason === "IDENTICAL" ? "NO_CONTRACT_CHANGE" : fresh.reason, 409);
         await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'SUPERSEDED' WHERE product_admin_id = $1 AND status = 'ACTIVE'`, [id]);
         await client.query(`UPDATE ${T}hq_product_admin_contracts SET status = 'ACTIVE', activated_at = $2 WHERE id = $1`, [contractId, new Date(now())]);
         const { rows: updated } = await client.query(`UPDATE ${T}hq_product_admins SET current_contract_id = $2, drift_status = 'NONE', revision = revision + 1 WHERE id = $1 AND revision = $3 RETURNING *`, [id, contractId, expected_revision]);
@@ -445,6 +579,8 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
         const ds = rows[0];
         if (!ds) throw new OnboardingError("UNKNOWN_DATASET", 404);
         if (ds.approval_status !== "APPROVED" || !C.HQ_SYNCABLE_PRIVACY.includes(ds.privacy_class)) throw new OnboardingError("DATASET_NOT_APPROVED", 409);
+        assertNoUnresolvedDrift(row);
+        await assertDeclaredByCurrentContract(client, row, ds);
         if (!ds.authorized_departments.includes(input.consumer_department)) throw new OnboardingError("DEPARTMENT_NOT_AUTHORIZED", 403);
         const required = ["market", "organization"].filter((d) => ds.scope_dimensions.includes(d));
         if (!validScope(input.allowed_scope, { allowedDims: ds.scope_dimensions, required })) throw new OnboardingError("ALLOWED_SCOPE_INVALID", 400);
@@ -473,10 +609,42 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       await authz(subject, "integration.subscriptions.manage", ctx);
       return withTx(pool, async (client) => {
         const row = await lockRow(client, id);
+        // A terminal registration keeps its history; its subscriptions cannot change.
+        if (["REVOKED", "REJECTED"].includes(row.lifecycle_status)) throw new OnboardingError("REGISTRATION_TERMINAL", 409);
+        if (enabled) assertNoUnresolvedDrift(row);
         const { rows } = await client.query(`UPDATE ${T}hq_product_admin_subscriptions SET enabled = $3, status = CASE WHEN $3 THEN 'ACTIVE' ELSE status END, updated_at = now() WHERE id = $1 AND product_admin_id = $2 AND (NOT $3 OR status <> 'POLICY_BLOCKED') RETURNING id, enabled, status`, [subscriptionId, id, Boolean(enabled)]);
         if (!rows[0]) throw new OnboardingError("UNKNOWN_SUBSCRIPTION", 404);
         await approval(client, row, { decision: "SUBSCRIPTION_CHANGED", actorId: subject.staffId, subscriptionId, reasonCode: enabled ? "ENABLED" : "DISABLED" }, ctx);
         return rows[0];
+      });
+    },
+
+    // Product-level switch for governed command forwarding (Section 11.3).
+    // Enabling needs integration.approve by someone other than the person
+    // who requested the registration or activated it, evidence, the
+    // current revision and an ENABLED product without unresolved drift.
+    // Disabling is an immediate stop (integration.suspend, reason code).
+    // It never makes a capability executable by itself: the Product Admin
+    // and its source still decide every command.
+    async setOperations(subject, id, { expected_revision, enabled, evidence_ref, reason_code } = {}, ctx) {
+      if (typeof enabled !== "boolean") throw new OnboardingError("ENABLED_FLAG_REQUIRED", 400);
+      await authz(subject, enabled ? "integration.approve" : "integration.suspend", ctx);
+      if (enabled && !EVIDENCE.test(String(evidence_ref || ""))) throw new OnboardingError("EVIDENCE_REQUIRED", 400);
+      if (!enabled && !REASON.test(String(reason_code || ""))) throw new OnboardingError("REASON_CODE_REQUIRED", 400);
+      return withTx(pool, async (client) => {
+        const row = await lockRow(client, id);
+        if (row.revision !== expected_revision) throw new SM.TransitionError("STALE_REVISION");
+        if (enabled) {
+          if (row.lifecycle_status !== "ENABLED") throw new OnboardingError("PRODUCT_NOT_ENABLED", 409);
+          assertNoUnresolvedDrift(row);
+          if (!I.requireIndependentActor(subject.staffId, [row.requested_by, row.activated_by])) throw new SM.TransitionError("INDEPENDENT_APPROVER_REQUIRED", 403);
+        }
+        if (row.operations_enabled === enabled) return { id, operations_enabled: enabled, revision: row.revision, changed: false };
+        const { rows: [updated] } = await client.query(`UPDATE ${T}hq_product_admins SET operations_enabled = $2, revision = revision + 1 WHERE id = $1 AND revision = $3 RETURNING revision`, [id, enabled, expected_revision]);
+        if (!updated) throw new SM.TransitionError("STALE_REVISION");
+        await approval(client, row, { decision: enabled ? "OPERATIONS_ENABLED" : "OPERATIONS_DISABLED", actorId: subject.staffId, evidenceRef: enabled ? evidence_ref : null, reasonCode: enabled ? null : reason_code, expectedRevision: expected_revision, resultingRevision: updated.revision }, ctx);
+        await audit(client, subject, row, "integration.operations." + (enabled ? "enable" : "disable"), ctx, { revision: updated.revision });
+        return { id, operations_enabled: enabled, revision: updated.revision, changed: true };
       });
     },
 
@@ -485,12 +653,13 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       const grant = {
         id: randomUUID(), grant_kind: input.grant_kind, product_id: input.grant_kind === "PRODUCT" ? input.product_id : null, staff_id: input.staff_id,
         role: input.role || null, effect: input.effect || "ALLOW", actions: input.actions, datasets: input.datasets || [], scope: input.scope || {},
-        expires_at: input.expires_at || null, revoked_at: null,
+        expires_at: input.expires_at || null, not_before: input.not_before || null, revoked_at: null,
       };
       const errors = I.grantErrors(grant);
       if (errors.length) throw new OnboardingError("GRANT_INVALID", 400, errors.slice(0, 5));
       if (grant.role !== null && !/^[a-z][a-z0-9_.-]{1,63}$/.test(grant.role)) throw new OnboardingError("GRANT_INVALID", 400);
       if (grant.expires_at !== null && !(Date.parse(grant.expires_at) > now())) throw new OnboardingError("GRANT_EXPIRY_INVALID", 400);
+      if (grant.not_before !== null && (!Number.isFinite(Date.parse(grant.not_before)) || (grant.expires_at !== null && Date.parse(grant.expires_at) <= Date.parse(grant.not_before)))) throw new OnboardingError("GRANT_EFFECTIVE_DATE_INVALID", 400);
       if (grant.staff_id === subject.staffId) throw new OnboardingError("SELF_GRANT_DENIED", 403);
       return withTx(pool, async (client) => {
         let row = null;
@@ -505,8 +674,8 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
           }
         }
         await client.query(
-          `INSERT INTO ${T}hq_product_admin_grants (id, grant_kind, product_id, staff_id, role, effect, actions, datasets, scope, expires_at, granted_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-          [grant.id, grant.grant_kind, grant.product_id, grant.staff_id, grant.role, grant.effect, grant.actions, grant.datasets, JSON.stringify(grant.scope), grant.expires_at, subject.staffId]);
+          `INSERT INTO ${T}hq_product_admin_grants (id, grant_kind, product_id, staff_id, role, effect, actions, datasets, scope, expires_at, not_before, granted_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+          [grant.id, grant.grant_kind, grant.product_id, grant.staff_id, grant.role, grant.effect, grant.actions, grant.datasets, JSON.stringify(grant.scope), grant.expires_at, grant.not_before, subject.staffId]);
         await audit(client, subject, row, "integration.grant.create", ctx, { grant_ref: grant.id, grant_kind: grant.grant_kind, staff_ref: grant.staff_id, actions: grant.actions, effect: grant.effect });
         return { grant_id: grant.id };
       });
@@ -516,13 +685,69 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       await authz(subject, "integration.grants.manage", ctx);
       if (!REASON.test(String(reason_code || ""))) throw new OnboardingError("REASON_CODE_REQUIRED", 400);
       return withTx(pool, async (client) => {
-        const { rows } = await client.query(`UPDATE ${T}hq_product_admin_grants SET revoked_at = now(), revoked_by = $2, revocation_reason = $3 WHERE id = $1 AND revoked_at IS NULL RETURNING id, product_id`, [grantId, subject.staffId, reason_code]);
+        // Symmetric with the no-self-grant rule: nobody revokes a grant that
+        // applies to themselves, so an explicit DENY cannot be lifted by the
+        // person it restricts.
+        const { rows: [target] } = await client.query(`SELECT staff_id FROM ${T}hq_product_admin_grants WHERE id = $1 FOR UPDATE`, [grantId]);
+        if (target && target.staff_id === subject.staffId) throw new OnboardingError("SELF_REVOKE_DENIED", 403);
+        const { rows } = await client.query(`UPDATE ${T}hq_product_admin_grants SET revoked_at = now(), revoked_by = $2, revocation_reason = $3 WHERE id = $1 AND revoked_at IS NULL AND staff_id <> $2 RETURNING id, product_id`, [grantId, subject.staffId, reason_code]);
         if (!rows[0]) throw new OnboardingError("UNKNOWN_GRANT", 404);
         await recordAudit(client, { correlationId: ctx.correlationId, actorType: "STAFF", actorId: subject.staffId, productId: rows[0].product_id, action: "integration.grant.revoke", outcome: "RECORDED", metadata: { grant_ref: grantId } });
         return { grant_id: grantId, revoked: true };
       });
     },
+
+    // Read-only views of one product's staff grants. Same platform permission
+    // as creating and revoking them (integration.grants.manage, recent MFA);
+    // only PRODUCT grants bound to the requested product are ever returned,
+    // so a grant of another product is indistinguishable from a missing one.
+    // Every read is audited; if the audit cannot be written nothing is returned.
+    async listGrants(subject, productId, query, ctx) {
+      if (!PRODUCT_ID.test(String(productId))) throw new OnboardingError("NOT_FOUND", 404);
+      await authz(subject, "integration.grants.manage", ctx, { productId });
+      const { limit, staffId, cursor } = parseGrantQuery(query);
+      const values = [productId];
+      let where = "grant_kind = 'PRODUCT' AND product_id = $1";
+      if (staffId !== null) { values.push(staffId); where += ` AND staff_id = $${values.length}`; }
+      if (cursor) { values.push(cursor.time, cursor.id); where += ` AND (created_at, id) < ($${values.length - 1}::timestamptz, $${values.length}::uuid)`; }
+      values.push(limit + 1);
+      const { rows } = await pool.query(`SELECT ${GRANT_COLUMNS} FROM ${T}hq_product_admin_grants WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT $${values.length}`, values);
+      const page = rows.slice(0, limit);
+      await readAudit(subject, productId, "integration.grant.list", ctx, { result_count: page.length, page_limit: limit, staff_ref: staffId, continued: Boolean(cursor) });
+      const at = now();
+      return { product_id: productId, grants: page.map((row) => grantView(row, at)), limit, next_cursor: rows.length > limit ? grantCursor(page[page.length - 1]) : null };
+    },
+
+    async getGrant(subject, productId, grantId, ctx) {
+      if (!PRODUCT_ID.test(String(productId))) throw new OnboardingError("NOT_FOUND", 404);
+      await authz(subject, "integration.grants.manage", ctx, { productId });
+      if (!GRANT_ID.test(String(grantId))) throw new OnboardingError("UNKNOWN_GRANT", 404);
+      const { rows } = await pool.query(`SELECT ${GRANT_COLUMNS} FROM ${T}hq_product_admin_grants WHERE id = $1 AND grant_kind = 'PRODUCT' AND product_id = $2`, [grantId, productId]);
+      await readAudit(subject, productId, "integration.grant.read", ctx, { grant_ref: grantId, found: Boolean(rows[0]) });
+      if (!rows[0]) throw new OnboardingError("UNKNOWN_GRANT", 404);
+      return grantView(rows[0], now());
+    },
   };
+  if (!operatorPermit) return workflow;
+  // This local capability cannot administer grants, command
+  // switches or suspension/revocation. A readiness-only catalog revision
+  // additionally requires independently pinned old/new digests and dataset IDs.
+  const allowed = ["get", "request", "verifyIdentity", "validateContract", "reviewPolicy", "approveDataset", "certifyStaging", "approve"];
+  if (operatorPermit.decision.readonly_catalog_activation) allowed.push("proposeContractRevision", "certifyContract", "activateContract");
+  const restricted = Object.fromEntries(allowed.map((name) => [name, workflow[name]]));
+  const datasetIds = operatorPermit.decision.readonly_catalog_activation?.dataset_ids || operatorPermit.decision.readonly_subscription_datasets;
+  if (datasetIds) restricted.approveDataset = (subject, id, datasetId, input, ctx) => {
+    if (!datasetIds.includes(datasetId) || input?.version !== "1.0.0" || input?.decision !== "APPROVE") throw new OnboardingError("OPERATOR_DATASET_SCOPE_DENIED", 403);
+    return workflow.approveDataset(subject, id, datasetId, input, ctx);
+  };
+  if (operatorPermit.decision.allow_scoped_readonly_subscriptions === true) {
+    restricted.createSubscription = (subject, id, input = {}, ctx) => {
+      const d=operatorPermit.decision;
+      if (!d.readonly_subscription_datasets.includes(input.dataset_id) || input.version!=="1.0.0" || input.consumer_department!==d.readonly_subscription_department || input.enabled!==true || !Operator.equalScope(input.allowed_scope,d.allowed_scope)) throw new OnboardingError("OPERATOR_SUBSCRIPTION_SCOPE_DENIED",403);
+      return workflow.createSubscription(subject,id,input,ctx);
+    };
+  }
+  return Object.freeze(restricted);
 }
 
 module.exports = { createOnboarding, OnboardingError, validScope, subsetScope, EndpointError };

@@ -1,0 +1,477 @@
+{
+  "checked_at_utc": "2026-11-07T02:47:44.525261+00:00",
+  "read_only": true,
+  "source_services": [
+    {
+      "service": "Analytics Service",
+      "owner": "analytics-service",
+      "runtime": null,
+      "not_found_meaning": "No container matched the known names; this is not proof the service is absent elsewhere."
+    },
+    {
+      "service": "Support/Dispute Service",
+      "owner": "support-dispute-service",
+      "runtime": {
+        "container": "karrygo-support-dispute-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/support-dispute-service@sha256:b2b0433a846eb34978b0ae7b79052d78917fec7695e1fc3a9899395cc6e6b859",
+        "image_id": "sha256:b56e6e68a27d9e6e4ac49140ace8547d014593e0cb758dd5235ed680d45952e7",
+        "configured_admin_flags": {
+          "SUPPORT_DISPUTE_ADMIN_EVENTS_ENABLED": true,
+          "SUPPORT_DISPUTE_ADMIN_CONTEXT_PUBLISH_ENABLED": true,
+          "SUPPORT_DISPUTE_ADMIN_EVENTS_SNAPSHOT_ENABLED": true,
+          "SUPPORT_DISPUTE_ADMIN_RESOURCE_READ_ENABLED": true
+        },
+        "credential_or_policy_files_configured": [
+          "SUPPORT_DISPUTE_ADMIN_ACCESS_POLICY_FILE",
+          "SUPPORT_DISPUTE_ADMIN_ACCESS_POLICY_KEYS_FILE",
+          "SUPPORT_DISPUTE_ADMIN_CONTEXT_PUBLISH_SECRET_FILE",
+          "SUPPORT_DISPUTE_ADMIN_EVENTS_SECRET_FILE",
+          "SUPPORT_DISPUTE_ADMIN_EVENTS_SNAPSHOT_SECRET_FILE",
+          "SUPPORT_DISPUTE_ADMIN_RESOURCE_SECRET_FILE"
+        ]
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Payment/Wallet Service",
+      "owner": "payment-wallet-service",
+      "runtime": {
+        "container": "karrygo-payment-wallet-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/payment-wallet-service:4d90bfb6948de8529a452c57f2d7954880b9c746",
+        "image_id": "sha256:9f68da77ce0293ec3e0d71ca27988a5abb86101581383a096215d1b96e89ac76",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Verification/Compliance Service",
+      "owner": "verification-compliance-service",
+      "runtime": {
+        "container": "karrygo-verification-staging",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/verification-compliance-service:9caa16b6bbc52840067e773707108954528d3ddb",
+        "image_id": "sha256:5bf5d9545e2af2b0d90f6308ac359cd5c70e3de8bd00bc491f2f8d524d3954a8",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Notification Service",
+      "owner": "notification-service",
+      "runtime": {
+        "container": "karrygo-notification-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/notification-service:9caa16b6bbc52840067e773707108954528d3ddb",
+        "image_id": "sha256:91b08a2de4cdf69e5e5f3cff0e195acebb838bbe3a041c7d4f6a6de7a02aaf50",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Taxi Service",
+      "owner": "driver-taxi-service",
+      "runtime": {
+        "container": "karrygo-taxi-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "sha256:3c1cb25ab4160b71ed749b5a4ec189ae51fd6e6254e9c1635dbdb36d36fdd219",
+        "image_id": "sha256:3c1cb25ab4160b71ed749b5a4ec189ae51fd6e6254e9c1635dbdb36d36fdd219",
+        "configured_admin_flags": {
+          "TAXI_ADMIN_CONTEXT_PUBLISH_ENABLED": true,
+          "TAXI_ADMIN_RESOURCE_READ_ENABLED": true
+        },
+        "credential_or_policy_files_configured": [
+          "TAXI_ADMIN_ACCESS_POLICY_FILE",
+          "TAXI_ADMIN_ACCESS_POLICY_KEYS_FILE",
+          "TAXI_ADMIN_CONTEXT_PUBLISH_SECRET_FILE",
+          "TAXI_ADMIN_RESOURCE_SECRET_FILE"
+        ]
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Customer Service",
+      "owner": "customer-service",
+      "runtime": {
+        "container": "karrygo-customer-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/customer-service:4d90bfb6948de8529a452c57f2d7954880b9c746",
+        "image_id": "sha256:ac0ce7c36c0030bffeb28476f38b0c311ae7eba187ee5ecb140ab926759a9a73",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Dispatch/Delivery Service",
+      "owner": "driver-dispatch-delivery-service",
+      "runtime": {
+        "container": "karrygo-dispatch-delivery-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/driver-dispatch-delivery-service:9caa16b6bbc52840067e773707108954528d3ddb",
+        "image_id": "sha256:e3b853755876e328aaf99b4a81fcec405526c54bd66ddfd70a4a837f302b7902",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Hauling Service",
+      "owner": "driver-hauling-service",
+      "runtime": {
+        "container": "karrygo-hauling-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/driver-hauling-service:a7e08d0ef23d78ce7d4ca4f2efc0067391ee170c",
+        "image_id": "sha256:bf964093d30275a9533c6be604a78a3b4c42502f6837a8c1b5a94d2da6293a9a",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Fleet Partner Service",
+      "owner": "fleet-partner-service",
+      "runtime": {
+        "container": "karrygo-fleet-partner-api",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/fleet-partner-service:9caa16b6bbc52840067e773707108954528d3ddb",
+        "image_id": "sha256:de378bfba0f796a115267c876dbf298debcac279594d1100dedee4705fead30d",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Media/File Service",
+      "owner": "media-file-service",
+      "runtime": {
+        "container": "karrygo-media-file-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/media-file-service:75aee3c64f6621207286a9699aeceb8f8151379a",
+        "image_id": "sha256:3def9b21eb3f757950848cb6a46e6f968472c653eedc0632ff65cc5be16efb08",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Pricing Service",
+      "owner": "pricing-service",
+      "runtime": {
+        "container": "karrygo-pricing-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/pricing-service:4d90bfb6948de8529a452c57f2d7954880b9c746",
+        "image_id": "sha256:cd89d5ad21aac440fd485c1ea6870ac9baa3c40d1a596fbdad96c342ef40eb18",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Vendor Service",
+      "owner": "vendor-service",
+      "runtime": {
+        "container": "karrygo-vendor-api-staging",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "karrygo/vendor-service:5d939bb0aee26ddb4ab1964644df31e670538868",
+        "image_id": "sha256:870938b918e4a7ca7ce696912798470e6673f6319d67cc7eee9eec43639e393a",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    },
+    {
+      "service": "Referral Service",
+      "owner": "referral-service",
+      "runtime": {
+        "container": "karrygo-referral-service",
+        "status": "running",
+        "docker_health": "healthy",
+        "image": "ghcr.io/cosmicforgehealthnet/referral-service:4d90bfb6948de8529a452c57f2d7954880b9c746",
+        "image_id": "sha256:a6098d5d56bc729e754ea66bfe7e6a0c22190f3b5b83facbd78f0105c016baa6",
+        "configured_admin_flags": {},
+        "credential_or_policy_files_configured": []
+      },
+      "not_found_meaning": null
+    }
+  ],
+  "caveat": "Running containers and static flags do not prove an authorized live source read.",
+  "bridge": {
+    "container": "karrygo-admin-backoffice-service",
+    "status": "running",
+    "docker_health": "healthy",
+    "image": "ghcr.io/cosmicforgehealthnet/admin-backoffice-service:77dcf3fcbeaea902d3629514c129b755d85a75fe",
+    "image_id": "sha256:4073655050e2939d43439f6e36adebd5504f98fc666918775edfee63b79a530c",
+    "configured_admin_flags": {
+      "ADMIN_EVENT_INGRESS_ENABLED": true,
+      "ADMIN_REMOTE_WRITES_ENABLED": false,
+      "ADMIN_VENDOR_COMMAND_WRITES_ENABLED": false,
+      "ADMIN_HAULING_RECOVERY_ENABLED": false,
+      "ADMIN_TAXI_READ_ENABLED": false,
+      "ADMIN_CUSTOMER_REVIEW_WORK_ITEM_WRITES_ENABLED": false,
+      "ADMIN_ANALYTICS_READ_ENABLED": false,
+      "ADMIN_VENDOR_WRITES_ENABLED": false,
+      "ADMIN_CUSTOMER_REVIEW_WORK_ITEM_READBACK_ENABLED": false,
+      "ADMIN_TAXI_RESOURCE_READ_ENABLED": true,
+      "ADMIN_TAXI_WRITES_ENABLED": false,
+      "ADMIN_VENDOR_COMMAND_READBACK_ENABLED": false,
+      "ADMIN_HQ_EVENTS_ENABLED": true,
+      "ADMIN_CUSTOMER_WRITES_ENABLED": false,
+      "ADMIN_REMOTE_ENABLED": true,
+      "ADMIN_CUSTOMER_SENSITIVE_READ_ENABLED": false,
+      "ADMIN_VENDOR_RESOURCE_READ_ENABLED": false,
+      "ADMIN_DISPATCH_RECOVERY_ENABLED": false,
+      "ADMIN_EVENT_BACKFILL_ENABLED": true,
+      "ADMIN_SUPPORT_DISPUTE_RESOURCE_READ_ENABLED": true
+    },
+    "credential_or_policy_files_configured": [
+      "ADMIN_ACCESS_POLICY_FILE",
+      "ADMIN_ACCESS_POLICY_KEYS_FILE",
+      "ADMIN_SUPPORT_DISPUTE_EVENT_SNAPSHOT_SECRET_FILE",
+      "ADMIN_SUPPORT_DISPUTE_RESOURCE_SECRET_FILE",
+      "ADMIN_TAXI_RESOURCE_SECRET_FILE"
+    ]
+  },
+  "signed_policy": {
+    "configured": true,
+    "version": 2,
+    "expires_at": "2026-12-05T11:24:48.385446+00:00",
+    "rules": [
+      {
+        "capability": "taxi.independent_rides.read",
+        "owner": "driver-taxi-service",
+        "source_contract": "taxi.admin-resources.v1",
+        "roles": [
+          "karryam.customer-care.viewer"
+        ],
+        "purposes": [
+          "support-review"
+        ]
+      },
+      {
+        "capability": "support.cases.read",
+        "owner": "support-dispute-service",
+        "source_contract": "support.admin-resources.v1",
+        "roles": [
+          "karryam.customer-care.viewer"
+        ],
+        "purposes": [
+          "support-review",
+          "hq_event_sync"
+        ]
+      },
+      {
+        "capability": "hq.events.feed",
+        "owner": "admin-backoffice-service",
+        "source_contract": "karryam.admin-events.v1",
+        "roles": [
+          "karryam.source-sync.reader"
+        ],
+        "purposes": [
+          "hq_event_sync"
+        ]
+      },
+      {
+        "capability": "hq.events.ack",
+        "owner": "admin-backoffice-service",
+        "source_contract": "karryam.admin-events.v1",
+        "roles": [
+          "karryam.source-sync.reader"
+        ],
+        "purposes": [
+          "hq_event_sync"
+        ]
+      },
+      {
+        "capability": "hq.projections.status",
+        "owner": "admin-backoffice-service",
+        "source_contract": "karryam.admin-events.v1",
+        "roles": [
+          "karryam.source-sync.reader"
+        ],
+        "purposes": [
+          "hq_event_sync"
+        ]
+      }
+    ]
+  },
+  "hq": {
+    "succeeded": true,
+    "checks": [
+      {
+        "check": "products",
+        "rows": [
+          {
+            "product_id": "karryam",
+            "lifecycle_status": "ENABLED",
+            "health_status": "REACHABLE",
+            "sync_status": "HEALTHY",
+            "drift_status": "NONE"
+          }
+        ]
+      },
+      {
+        "check": "subscriptions",
+        "rows": [
+          {
+            "consumer_department": "operations",
+            "status": "ACTIVE",
+            "enabled": true,
+            "coverage": "COMPLETE",
+            "last_success_at": "2026-11-07T00:00:29.356Z",
+            "last_source_observation_at": "2026-11-07T00:00:07.903Z"
+          },
+          {
+            "consumer_department": "operations",
+            "status": "ACTIVE",
+            "enabled": true,
+            "coverage": "COMPLETE",
+            "last_success_at": "2026-11-07T00:02:59.350Z",
+            "last_source_observation_at": "2026-11-07T00:02:10.770Z"
+          }
+        ]
+      },
+      {
+        "check": "metric_observations",
+        "rows": [
+          {
+            "metric_id": "karryam.support.cases_emergency_open",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-07T00:02:10.770Z"
+          },
+          {
+            "metric_id": "karryam.support.cases_emergency_open",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-06T03:07:20.027Z"
+          },
+          {
+            "metric_id": "karryam.support.cases_escalated",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-07T00:02:10.770Z"
+          },
+          {
+            "metric_id": "karryam.support.cases_escalated",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-06T03:07:20.027Z"
+          },
+          {
+            "metric_id": "karryam.support.cases_open",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-07T00:02:10.770Z"
+          },
+          {
+            "metric_id": "karryam.support.cases_open",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-06T03:07:20.701Z"
+          },
+          {
+            "metric_id": "karryam.sync.bridge_lag_events",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-07T00:00:07.903Z"
+          },
+          {
+            "metric_id": "karryam.sync.bridge_lag_events",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-06T03:07:20.904Z"
+          },
+          {
+            "metric_id": "karryam.sync.open_entity_gaps",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-07T00:00:07.903Z"
+          },
+          {
+            "metric_id": "karryam.sync.open_entity_gaps",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-06T03:07:20.269Z"
+          },
+          {
+            "metric_id": "karryam.sync.open_quarantine",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-07T00:00:07.903Z"
+          },
+          {
+            "metric_id": "karryam.sync.open_quarantine",
+            "value_state": "OBSERVED",
+            "coverage": "COMPLETE",
+            "source_observed_at": "2026-11-06T03:07:20.269Z"
+          }
+        ]
+      }
+    ]
+  },
+  "karryam_admin": {
+    "succeeded": true,
+    "checks": [
+      {
+        "check": "feed_partitions",
+        "rows": [
+          {
+            "partition_key": "NG-LAG:karryam-staging:NG-LAG-MAIN:karryam-staging-operations",
+            "last_sequence": "2",
+            "acked_sequence": "2",
+            "last_error_code": null
+          }
+        ]
+      },
+      {
+        "check": "source_coverage",
+        "rows": [
+          {
+            "source_service": "notification-service",
+            "entity_type": "campaign_revision",
+            "bridge_coverage": "PARTIAL_COVERAGE",
+            "bridge_open_gaps": 0,
+            "bridge_freshness": "UNKNOWN",
+            "bridge_backfill": "NONE",
+            "observed_at": "2026-11-07T02:44:38.304Z"
+          },
+          {
+            "source_service": "support-dispute-service",
+            "entity_type": "support_case",
+            "bridge_coverage": "COMPLETE",
+            "bridge_open_gaps": 0,
+            "bridge_freshness": "STALE",
+            "bridge_backfill": "COMPLETE",
+            "observed_at": "2026-11-07T02:44:38.304Z"
+          },
+          {
+            "source_service": "verification-compliance-service",
+            "entity_type": "vendor_verification_case",
+            "bridge_coverage": "PARTIAL_COVERAGE",
+            "bridge_open_gaps": 0,
+            "bridge_freshness": "UNKNOWN",
+            "bridge_backfill": "NONE",
+            "observed_at": "2026-11-07T02:44:38.304Z"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -3236,7 +3236,8 @@ exports.Department = exports.$Enums.Department = {
   VERIFICATION: 'VERIFICATION',
   RTC: 'RTC',
   TELEMEDICINE: 'TELEMEDICINE',
-  OPERATIONS: 'OPERATIONS'
+  OPERATIONS: 'OPERATIONS',
+  CF_MEET_OPERATIONS: 'CF_MEET_OPERATIONS'
 };
 
 exports.AdminTier = exports.$Enums.AdminTier = {

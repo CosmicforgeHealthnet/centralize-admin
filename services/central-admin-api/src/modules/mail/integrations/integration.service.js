@@ -22,6 +22,7 @@ const { iso } = require("../services/serializers");
 const { verifyServiceRequest, parseServiceSecrets } = require("./service-auth");
 const { parseEnvelope, parseDeliveryStatus, parseMarketingTrigger, parseOpsAlert, ContractError, idempotencyFingerprint } = require("./contracts");
 const compat = require("./karryam-compat");
+const { productAllowsEventType, opsAlertRecipientSections } = require("./event-registry");
 const { approvedEvent } = require("../marketing/automation/event-registry");
 const { enforceWithdrawal } = require("../marketing/consent-enforcement");
 const { isRestrictedHealthOrganization } = require("../authz/sending-gate");
@@ -129,7 +130,9 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     const shouldNotify = !recent && data.severity !== "info";
     const notify = async () => {
       if (!shouldNotify) return;
-      const admins = await client.adminSectionGrant.findMany({ where: { module: "mail", section: { in: ["admin", `integration:${integration.product}`] }, revokedAt: null }, select: { adminUserId: true } });
+      // Mail administrators and this product's integration grant holders only
+      // (event-registry.js); revoked or expired grants never receive alerts.
+      const admins = await client.adminSectionGrant.findMany({ where: { module: "mail", section: { in: opsAlertRecipientSections(integration.product) }, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: clock() } }] }, select: { adminUserId: true } });
       await notifications.notifyUsers([...new Set(admins.map((row) => row.adminUserId))], { icon: data.severity === "critical" ? "xcircle" : "alert", title: `[${integration.product}] ${data.severity}: ${data.code}`, subtitle: data.summary }).catch(() => {});
     };
     return { outcome: { kind: "ops_alert", code: data.code, severity: data.severity, component: data.component, notified: shouldNotify }, notify };
@@ -195,7 +198,7 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
       if (envelope.product !== integration.product || !organization || envelope.organization !== organization.slug) throw new ContractError("MAIL_INTEGRATION_SCOPE_MISMATCH", 403, {});
       // A restricted-health brand is treated as restricted whatever the row says.
       const classification = isRestrictedHealthOrganization(config, organization) ? "RESTRICTED_HEALTH" : integration.classification;
-      if (!integration.allowedEventTypes.includes(envelope.eventType) || !(EVENT_TYPES_FOR[classification] || []).includes(envelope.eventType)) throw new ContractError("MAIL_INTEGRATION_FORBIDDEN_CONTENT", 403, { reason: "EVENT_TYPE_NOT_ALLOWED", eventType: envelope.eventType });
+      if (!integration.allowedEventTypes.includes(envelope.eventType) || !(EVENT_TYPES_FOR[classification] || []).includes(envelope.eventType) || !productAllowsEventType(integration.product, envelope.eventType)) throw new ContractError("MAIL_INTEGRATION_FORBIDDEN_CONTENT", 403, { reason: "EVENT_TYPE_NOT_ALLOWED", eventType: envelope.eventType });
       const existing = await client.mailProductIntegrationEvent.findUnique({ where: { integrationId_eventId: { integrationId: integration.id, eventId: envelope.eventId } } });
       if (existing) {
         if (existing.payloadSha256 !== payloadSha256) throw new ContractError("MAIL_INTEGRATION_EVENT_CONFLICT", 409, { eventId: envelope.eventId });
@@ -307,6 +310,8 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     const events = [...new Set((Array.isArray(eventTypes) ? eventTypes : []).map(String))];
     const triggers = [...new Set((Array.isArray(triggerTypes) ? triggerTypes : []).map(String))];
     if (events.some((type) => !allowed.includes(type))) throw mailError("MAIL_VALIDATION_FAILED", { field: "allowedEventTypes", reason: classification === "RESTRICTED_HEALTH" ? "RESTRICTED_HEALTH_OPS_ALERTS_ONLY" : "UNKNOWN_EVENT_TYPE" });
+    // Registered products (event-registry.js) are limited to their registration.
+    if (events.some((type) => !productAllowsEventType(product, type))) throw mailError("MAIL_VALIDATION_FAILED", { field: "allowedEventTypes", reason: "EVENT_TYPE_NOT_REGISTERED_FOR_PRODUCT" });
     for (const trigger of triggers) {
       const [type, version] = trigger.split("@");
       const registered = approvedEvent(type, Number(version));

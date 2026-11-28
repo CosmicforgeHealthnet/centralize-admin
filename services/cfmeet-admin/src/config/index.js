@@ -1,0 +1,365 @@
+"use strict";
+
+// Strict, fail-closed configuration. The service is DISABLED by default:
+// with CFMEET_ADMIN_ENABLED unset it starts, reports not-ready and refuses
+// every protocol call. Enabling it requires every credential to be present
+// and valid; any problem stops startup with a sanitized reason code.
+
+const net = require("node:net");
+const { X509Certificate, createPrivateKey } = require("node:crypto");
+const { contracts, clients } = require("../packages");
+const { parseListen } = require("../transport/listen-spec");
+const K = require("../security/keys");
+
+const { ConfigError } = K;
+const OPAQUE = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$/;
+const PRODUCT_ROLE = /^[a-z][a-z0-9_.-]{1,95}$/;
+const BRIDGE_ROLE = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$/;
+const FINGERPRINT = /^[0-9a-f]{64}$/;
+const PRODUCT_ID = "cfmeet";
+
+function bool(value, name) {
+  if (value === undefined || value === "") return false;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  throw new ConfigError(name + "_MUST_BE_TRUE_OR_FALSE");
+}
+
+function required(env, name, pattern) {
+  const value = env[name];
+  if (typeof value !== "string" || value.trim() === "") throw new ConfigError(name + "_REQUIRED");
+  if (pattern && !pattern.test(value)) throw new ConfigError(name + "_INVALID");
+  return value;
+}
+
+function databaseUrl(value, name) {
+  let url;
+  try { url = new URL(value); } catch { throw new ConfigError(name + "_INVALID"); }
+  if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.hostname || url.pathname.length < 2) throw new ConfigError(name + "_INVALID");
+  return value;
+}
+
+function intInRange(value, name, min, max, fallback) {
+  if (value === undefined || value === "") return fallback;
+  if (!/^[0-9]{1,9}$/.test(value)) throw new ConfigError(name + "_INVALID");
+  const n = Number(value);
+  if (n < min || n > max) throw new ConfigError(name + "_OUT_OF_RANGE");
+  return n;
+}
+
+// PR #36 origin rules: HTTPS only, no credentials, path, query or fragment.
+function bridgeOrigin(value) {
+  let origin;
+  try { origin = new URL(value); } catch { throw new ConfigError("CFMEET_BRIDGE_ORIGIN_INVALID"); }
+  if (origin.protocol !== "https:" || origin.username || origin.password || origin.pathname !== "/" || origin.search || origin.hash || !origin.hostname) {
+    throw new ConfigError("CFMEET_BRIDGE_ORIGIN_INVALID");
+  }
+  return origin;
+}
+
+const WORKLOAD_URI = /^(?:spiffe|cf):\/\/[a-z0-9.-]{1,63}(?:\/[A-Za-z0-9._-]{1,63}){1,6}$/;
+const SCOPE_VALUE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/;
+
+function fingerprintList(value, name) {
+  if (value === undefined || value.trim() === "") return [];
+  const list = value.split(",").map((v) => v.trim().replace(/:/g, "").toLowerCase()).filter(Boolean);
+  if (list.some((f) => !FINGERPRINT.test(f))) throw new ConfigError(name + "_INVALID");
+  return [...new Set(list)];
+}
+
+// Approved zone/tenant enrollment for zone- and tenant-scoped Bridge routes.
+// CF Meet identifies a tenant by its Platform Access tenant UUID (the Bridge
+// passes the tenant scope to owners such as Calling as tenantId; anything else
+// is RESOURCE_NOT_FOUND). Scopes compare as exact strings, so staging and
+// production enrol only the canonical lowercase form.
+const PLATFORM_ACCESS_TENANT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+function scopeList(value, name) {
+  if (value === undefined || value.trim() === "") return [];
+  const list = value.split(",").map((v) => v.trim()).filter(Boolean);
+  if (list.length > 64 || list.some((v) => !SCOPE_VALUE.test(v) || v === "*")) throw new ConfigError(name + "_INVALID");
+  return [...new Set(list)];
+}
+
+// The enrolled client certificate must be currently valid, carry exactly the
+// approved workload URI SAN and not be on the revocation list.
+function checkClientCertificate(pem, expectedUri, revoked, now) {
+  let cert;
+  try { cert = new X509Certificate(pem); } catch { throw new ConfigError("CFMEET_BRIDGE_CLIENT_CERT_INVALID"); }
+  if (Date.parse(cert.validFrom) > now || Date.parse(cert.validTo) <= now) throw new ConfigError("CFMEET_BRIDGE_CLIENT_CERT_NOT_CURRENTLY_VALID");
+  const uris = String(cert.subjectAltName || "").split(",").map((s) => s.trim()).filter((s) => s.startsWith("URI:")).map((s) => s.slice(4));
+  if (uris.length !== 1 || uris[0] !== expectedUri) throw new ConfigError("CFMEET_BRIDGE_CLIENT_CERT_URI_MISMATCH");
+  const fingerprint = cert.fingerprint256.replace(/:/g, "").toLowerCase();
+  if (revoked.includes(fingerprint)) throw new ConfigError("CFMEET_BRIDGE_CLIENT_CERT_REVOKED");
+  return Object.freeze({ uri: expectedUri, fingerprint, notAfter: new Date(Date.parse(cert.validTo)).toISOString() });
+}
+
+// The Bridge CA bundle must hold at least one currently valid CA certificate.
+function checkCaBundle(pem, now) {
+  const blocks = String(pem).match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g) || [];
+  if (blocks.length === 0) throw new ConfigError("CFMEET_BRIDGE_CA_FILE_INVALID");
+  let current = 0;
+  for (const block of blocks) {
+    let cert;
+    try { cert = new X509Certificate(block); } catch { throw new ConfigError("CFMEET_BRIDGE_CA_FILE_INVALID"); }
+    if (!cert.ca) throw new ConfigError("CFMEET_BRIDGE_CA_FILE_NOT_A_CA");
+    if (Date.parse(cert.validFrom) <= now && Date.parse(cert.validTo) > now) current += 1;
+  }
+  if (current === 0) throw new ConfigError("CFMEET_BRIDGE_CA_NOT_CURRENTLY_VALID");
+}
+
+// The client private key must belong to the enrolled client certificate.
+function checkKeyPair(certPem, keyPem) {
+  let key;
+  try { key = createPrivateKey(keyPem); } catch { throw new ConfigError("CFMEET_BRIDGE_CLIENT_KEY_INVALID"); }
+  if (!new X509Certificate(certPem).checkPrivateKey(key)) throw new ConfigError("CFMEET_BRIDGE_CLIENT_KEY_CERT_MISMATCH");
+}
+
+// A DRAFT contract (HQ's contract-draft, before Track A's A0 is pinned) is
+// for local development and tests only: it can never enable the Bridge in
+// staging or production.
+function contractStatus() {
+  return require("../bridge/contracts").PINNED_BRIDGE_CONTRACT.contract_status;
+}
+
+function loadBridgeConfig(env, now = Date.now(), environment = null) {
+  const enabled = bool(env.CFMEET_BRIDGE_ENABLED, "CFMEET_BRIDGE_ENABLED");
+  if (!enabled) return Object.freeze({ enabled: false });
+  if (contractStatus() !== "PINNED" && ["staging", "production"].includes(environment)) throw new ConfigError("CFMEET_BRIDGE_CONTRACT_NOT_PINNED");
+  const origin = bridgeOrigin(required(env, "CFMEET_BRIDGE_ORIGIN"));
+  const address = required(env, "CFMEET_BRIDGE_ADDRESS");
+  if (!net.isIP(address) || !clients.isPrivateAddress(address)) throw new ConfigError("CFMEET_BRIDGE_ADDRESS_NOT_PRIVATE_IP");
+  const market = required(env, "CFMEET_ADMIN_MARKET", OPAQUE);
+  const organization = required(env, "CFMEET_ADMIN_ORGANIZATION", OPAQUE);
+  const acr = required(env, "CFMEET_ADMIN_ACR", OPAQUE);
+  const serviceKid = required(env, "CFMEET_BRIDGE_SERVICE_KID", OPAQUE);
+  const staffKid = required(env, "CFMEET_BRIDGE_STAFF_KID", OPAQUE);
+  const issuer = required(env, "CFMEET_BRIDGE_ISSUER", OPAQUE);
+  const audience = required(env, "CFMEET_BRIDGE_AUDIENCE", OPAQUE);
+  let roleMap;
+  try { roleMap = JSON.parse(required(env, "CFMEET_ADMIN_ROLE_MAP")); } catch (err) {
+    if (err instanceof ConfigError) throw err;
+    throw new ConfigError("CFMEET_ADMIN_ROLE_MAP_INVALID");
+  }
+  // Keys are HQ *product grant roles*; staff tiers are never mapped.
+  if (!roleMap || typeof roleMap !== "object" || Array.isArray(roleMap) || Object.keys(roleMap).length === 0 ||
+      Object.entries(roleMap).some(([k, v]) => !PRODUCT_ROLE.test(k) || ["SUPER", "EXECUTIVE", "ADMIN", "EMPLOYEE"].includes(k.toUpperCase()) || typeof v !== "string" || !BRIDGE_ROLE.test(v))) {
+    throw new ConfigError("CFMEET_ADMIN_ROLE_MAP_INVALID");
+  }
+  const serverCa = K.readSecretFile(required(env, "CFMEET_BRIDGE_CA_FILE"), "CFMEET_BRIDGE_CA_FILE");
+  const clientCert = K.readSecretFile(required(env, "CFMEET_BRIDGE_CLIENT_CERT_FILE"), "CFMEET_BRIDGE_CLIENT_CERT_FILE");
+  const revokedServerFingerprints = fingerprintList(env.CFMEET_BRIDGE_REVOKED_FINGERPRINTS, "CFMEET_BRIDGE_REVOKED_FINGERPRINTS");
+  const clientIdentity = checkClientCertificate(clientCert, required(env, "CFMEET_BRIDGE_CLIENT_URI", WORKLOAD_URI), revokedServerFingerprints, now);
+  checkCaBundle(serverCa, now);
+  const clientKey = K.readSecretFile(required(env, "CFMEET_BRIDGE_CLIENT_KEY_FILE"), "CFMEET_BRIDGE_CLIENT_KEY_FILE");
+  checkKeyPair(clientCert, clientKey);
+  const tenants = scopeList(env.CFMEET_ADMIN_TENANTS, "CFMEET_ADMIN_TENANTS");
+  if (["staging", "production"].includes(environment) && tenants.some((t) => !PLATFORM_ACCESS_TENANT.test(t))) throw new ConfigError("CFMEET_ADMIN_TENANTS_NOT_PLATFORM_ACCESS_UUID");
+  return Object.freeze({
+    enabled: true,
+    origin: origin.href,
+    hostname: origin.hostname,
+    port: Number(origin.port || 443),
+    address,
+    market, organization, acr, serviceKid, staffKid, issuer, audience,
+    zones: Object.freeze(scopeList(env.CFMEET_ADMIN_ZONES, "CFMEET_ADMIN_ZONES")),
+    tenants: Object.freeze(tenants),
+    mfaMaxAgeSeconds: intInRange(env.CFMEET_ADMIN_BRIDGE_MFA_MAX_AGE_SECONDS, "CFMEET_ADMIN_BRIDGE_MFA_MAX_AGE_SECONDS", 30, 300, 300),
+    serverFingerprints: Object.freeze(fingerprintList(env.CFMEET_BRIDGE_SERVER_FINGERPRINTS, "CFMEET_BRIDGE_SERVER_FINGERPRINTS")),
+    revokedServerFingerprints: Object.freeze(revokedServerFingerprints),
+    clientIdentity,
+    roleMap: Object.freeze({ ...roleMap }),
+    serverCa,
+    clientCert,
+    clientKey,
+    serviceKey: K.loadBase64UrlKeyFile(required(env, "CFMEET_BRIDGE_HMAC_KEY_FILE"), "CFMEET_BRIDGE_HMAC_KEY_FILE"),
+    staffPrivateKey: K.loadEd25519PrivateKey(required(env, "CFMEET_BRIDGE_STAFF_PRIVATE_KEY_FILE"), "CFMEET_BRIDGE_STAFF_PRIVATE_KEY_FILE"),
+  });
+}
+
+function loadTls(env, listen) {
+  const configured = ["CFMEET_ADMIN_TLS_CERT_FILE", "CFMEET_ADMIN_TLS_KEY_FILE", "CFMEET_ADMIN_TLS_CLIENT_CA_FILE", "CFMEET_ADMIN_ALLOWED_CLIENT_FINGERPRINTS"].filter((n) => env[n]);
+  if (listen.kind === "unix") {
+    if (configured.length) throw new ConfigError("TLS_NOT_SUPPORTED_ON_UNIX_SOCKET");
+    return null;
+  }
+  if (configured.length === 0) {
+    if (!listen.loopback) throw new ConfigError("NON_LOOPBACK_TCP_REQUIRES_MTLS");
+    return null;
+  }
+  const fingerprints = required(env, "CFMEET_ADMIN_ALLOWED_CLIENT_FINGERPRINTS").split(",").map((v) => v.trim().replace(/:/g, "").toLowerCase()).filter(Boolean);
+  if (fingerprints.length === 0 || fingerprints.some((f) => !FINGERPRINT.test(f))) throw new ConfigError("CFMEET_ADMIN_ALLOWED_CLIENT_FINGERPRINTS_INVALID");
+  return Object.freeze({
+    cert: K.readSecretFile(required(env, "CFMEET_ADMIN_TLS_CERT_FILE"), "CFMEET_ADMIN_TLS_CERT_FILE"),
+    key: K.readSecretFile(required(env, "CFMEET_ADMIN_TLS_KEY_FILE"), "CFMEET_ADMIN_TLS_KEY_FILE"),
+    clientCa: K.readSecretFile(required(env, "CFMEET_ADMIN_TLS_CLIENT_CA_FILE"), "CFMEET_ADMIN_TLS_CLIENT_CA_FILE"),
+    allowedClientFingerprints: Object.freeze(fingerprints),
+  });
+}
+
+function loadConfig(env = process.env, { now = Date.now() } = {}) {
+  const listen = parseListen(env.CFMEET_ADMIN_LISTEN);
+  const enabled = bool(env.CFMEET_ADMIN_ENABLED, "CFMEET_ADMIN_ENABLED");
+  if (!enabled) return Object.freeze({ enabled: false, productId: PRODUCT_ID, listen, tls: null });
+
+  const environment = required(env, "CFMEET_ADMIN_ENVIRONMENT");
+  if (!contracts.ENVIRONMENTS.includes(environment)) throw new ConfigError("CFMEET_ADMIN_ENVIRONMENT_INVALID");
+  const serviceInstanceId = required(env, "CFMEET_ADMIN_SERVICE_INSTANCE_ID", new RegExp(contracts.PATTERNS.serviceInstanceId));
+  const workloadIdentity = required(env, "CFMEET_ADMIN_WORKLOAD_IDENTITY", new RegExp(contracts.PATTERNS.workloadIdentity));
+  if (!workloadIdentity.endsWith("/cfmeet")) throw new ConfigError("CFMEET_ADMIN_WORKLOAD_IDENTITY_INVALID");
+  const buildSha = required(env, "CFMEET_ADMIN_BUILD_SHA", new RegExp(contracts.PATTERNS.buildSha));
+  const database = databaseUrl(required(env, "CFMEET_ADMIN_DATABASE_URL"), "CFMEET_ADMIN_DATABASE_URL");
+  if (env.CFMEET_ADMIN_MIGRATION_DATABASE_URL && env.CFMEET_ADMIN_MIGRATION_DATABASE_URL === database) {
+    throw new ConfigError("RUNTIME_AND_MIGRATION_CREDENTIALS_MUST_DIFFER");
+  }
+  const serviceKeys = K.loadServiceKeys(required(env, "CFMEET_ADMIN_HQ_SERVICE_KEYS_FILE"), { now, name: "CFMEET_ADMIN_HQ_SERVICE_KEYS_FILE" });
+  const delegationKeys = K.loadDelegationKeys(required(env, "CFMEET_ADMIN_DELEGATION_KEYS_FILE"), { now, name: "CFMEET_ADMIN_DELEGATION_KEYS_FILE" });
+  const bridge = loadBridgeConfig(env, now, environment);
+  // Continuation tokens are sealed with their own key (required whenever the
+  // Bridge is enabled, because only then are paginated reads possible).
+  const cursorKey = env.CFMEET_ADMIN_CURSOR_KEY_FILE || bridge.enabled
+    ? K.loadBase64UrlKeyFile(required(env, "CFMEET_ADMIN_CURSOR_KEY_FILE"), "CFMEET_ADMIN_CURSOR_KEY_FILE")
+    : null;
+  const enabledCommands = commandAllowlist(env.CFMEET_ADMIN_ENABLED_COMMANDS, bridge);
+  const certifiedDatasets = idList(env.CFMEET_ADMIN_CERTIFIED_DATASETS, "CFMEET_ADMIN_CERTIFIED_DATASETS", KNOWN_DATASETS);
+  const feed = loadFeedConfig(env, bridge, environment);
+  // Each trust boundary needs its own key: service authentication, staff
+  // delegation, the bridge HMAC key and the continuation-token key must
+  // never share key material.
+  const boundaries = [
+    Object.values(serviceKeys).map((k) => k.key),
+    Object.values(delegationKeys).map((k) => k.key),
+    bridge.enabled && bridge.serviceKey ? [bridge.serviceKey] : [],
+    cursorKey ? [cursorKey] : [],
+  ];
+  for (let i = 0; i < boundaries.length; i += 1) {
+    for (let j = i + 1; j < boundaries.length; j += 1) {
+      if (boundaries[i].some((a) => boundaries[j].some((b) => Buffer.from(a).equals(Buffer.from(b))))) throw new ConfigError("KEY_REUSE_ACROSS_BOUNDARIES");
+    }
+  }
+
+  let manifestSigner = null;
+  const signerFile = env.CFMEET_ADMIN_MANIFEST_SIGNING_KEY_FILE;
+  const signerKid = env.CFMEET_ADMIN_MANIFEST_SIGNING_KID;
+  if (signerFile || signerKid) {
+    if (!signerFile || !signerKid) throw new ConfigError("MANIFEST_SIGNER_REQUIRES_KEY_AND_KID");
+    if (!K.KEY_ID.test(signerKid)) throw new ConfigError("CFMEET_ADMIN_MANIFEST_SIGNING_KID_INVALID");
+    manifestSigner = Object.freeze({ kid: signerKid, privateKey: K.loadEd25519PrivateKey(signerFile, "CFMEET_ADMIN_MANIFEST_SIGNING_KEY_FILE") });
+  }
+
+  return Object.freeze({
+    enabled: true,
+    productId: PRODUCT_ID,
+    environment,
+    serviceInstanceId,
+    workloadIdentity,
+    buildSha,
+    databaseUrl: database,
+    listen,
+    tls: loadTls(env, listen),
+    serviceKeys,
+    delegationKeys,
+    allowedServices: Object.freeze(["hq-product-integration-core"]),
+    manifestSigner,
+    manifestRevision: intInRange(env.CFMEET_ADMIN_MANIFEST_REVISION, "CFMEET_ADMIN_MANIFEST_REVISION", 1, 2147483647, 1),
+    manifestTtlSeconds: intInRange(env.CFMEET_ADMIN_MANIFEST_TTL_SECONDS, "CFMEET_ADMIN_MANIFEST_TTL_SECONDS", 300, 7 * 24 * 3600, 3600),
+    bridge,
+    cursorKey,
+    enabledCommands,
+    certifiedDatasets,
+    feed,
+  });
+}
+
+// Dataset IDs this Product Admin can publish (see sync/datasets.js).
+const KNOWN_DATASETS = Object.freeze(require("../sync/datasets").DEFINITIONS.map((d) => d.dataset_id));
+const CATALOG_ID = /^[a-z][a-z0-9_.-]{1,95}$/;
+
+function idList(value, name, known) {
+  if (value === undefined || value.trim() === "") return Object.freeze([]);
+  const list = [...new Set(value.split(",").map((v) => v.trim()).filter(Boolean))];
+  if (list.some((v) => !CATALOG_ID.test(v) || (known && !known.includes(v)))) throw new ConfigError(name + "_INVALID");
+  return Object.freeze(list);
+}
+
+// Explicitly enabled source commands. Only exact pinned COMMAND/RETRIEVAL
+// capabilities qualify, R3/R4 are refused until a separate certification,
+// and nothing can be enabled without an enrolled Bridge.
+function commandAllowlist(value, bridge) {
+  const list = idList(value, "CFMEET_ADMIN_ENABLED_COMMANDS");
+  if (list.length === 0) return list;
+  if (!bridge.enabled) throw new ConfigError("CFMEET_ADMIN_ENABLED_COMMANDS_REQUIRE_BRIDGE");
+  const registry = require("../bridge/contracts/registry");
+  for (const id of list) {
+    const cap = id.startsWith("cfmeet.") ? registry.capability(id.slice("cfmeet.".length)) : null;
+    if (!cap || !["COMMAND", "RETRIEVAL"].includes(cap.kind) || ["BLOCKED_DEPENDENCY", "DISABLED"].includes(cap.matrix_state)) throw new ConfigError("CFMEET_ADMIN_ENABLED_COMMANDS_INVALID");
+    // R3/R4 may be listed, but listing never makes them executable: exposure
+    // also requires a high-risk certification in force (database, operator
+    // identity only) and execution re-checks it with an independent approval.
+  }
+  return list;
+}
+
+// Stage A consumer (worker process). Disabled unless explicitly enabled with
+// an enrolled Bridge and an operator-approved consumer principal.
+function loadFeedConfig(env, bridge, environment) {
+  if (!bool(env.CFMEET_BRIDGE_FEED_ENABLED, "CFMEET_BRIDGE_FEED_ENABLED")) return Object.freeze({ enabled: false });
+  if (!bridge.enabled) throw new ConfigError("CFMEET_BRIDGE_FEED_REQUIRES_BRIDGE");
+  let scopes;
+  try { scopes = JSON.parse(required(env, "CFMEET_BRIDGE_FEED_SCOPES")); } catch (err) {
+    if (err instanceof ConfigError) throw err;
+    throw new ConfigError("CFMEET_BRIDGE_FEED_SCOPES_INVALID");
+  }
+  if (!Array.isArray(scopes) || scopes.length === 0 || scopes.length > 32) throw new ConfigError("CFMEET_BRIDGE_FEED_SCOPES_INVALID");
+  const seen = new Set();
+  for (const s of scopes) {
+    if (!s || typeof s !== "object" || Object.keys(s).sort().join(",") !== "market,organization,tenant,zone") throw new ConfigError("CFMEET_BRIDGE_FEED_SCOPES_INVALID");
+    if (s.market !== bridge.market || s.organization !== bridge.organization || !bridge.zones.includes(s.zone) || !bridge.tenants.includes(s.tenant)) throw new ConfigError("CFMEET_BRIDGE_FEED_SCOPE_NOT_ENROLLED");
+    // Stage B publishes partition scopes to HQ, whose scope values are stricter.
+    if (!SCOPE_VALUE.test(s.market) || !SCOPE_VALUE.test(s.organization)) throw new ConfigError("CFMEET_BRIDGE_FEED_SCOPE_NOT_HQ_REPRESENTABLE");
+    const key = [s.market, s.organization, s.zone, s.tenant].join("|");
+    if (seen.has(key)) throw new ConfigError("CFMEET_BRIDGE_FEED_SCOPES_DUPLICATE");
+    seen.add(key);
+  }
+  return Object.freeze({
+    enabled: true,
+    scopes: Object.freeze(scopes.map((s) => Object.freeze({ ...s }))),
+    consumer: required(env, "CFMEET_BRIDGE_FEED_CONSUMER", OPAQUE),
+    subject: required(env, "CFMEET_BRIDGE_FEED_SUBJECT", OPAQUE),
+    role: required(env, "CFMEET_BRIDGE_FEED_ROLE", BRIDGE_ROLE),
+    acr: required(env, "CFMEET_BRIDGE_FEED_ACR", OPAQUE),
+    purpose: "event-sync",
+    pageSize: intInRange(env.CFMEET_BRIDGE_FEED_PAGE_SIZE, "CFMEET_BRIDGE_FEED_PAGE_SIZE", 1, 100, 50),
+    pollSeconds: intInRange(env.CFMEET_BRIDGE_FEED_POLL_SECONDS, "CFMEET_BRIDGE_FEED_POLL_SECONDS", 5, 3600, 15),
+    rewindEvents: intInRange(env.CFMEET_BRIDGE_FEED_REWIND_EVENTS, "CFMEET_BRIDGE_FEED_REWIND_EVENTS", 0, 10000, 200),
+    reconcileSeconds: intInRange(env.CFMEET_BRIDGE_RECONCILE_INTERVAL_SECONDS, "CFMEET_BRIDGE_RECONCILE_INTERVAL_SECONDS", 300, 7 * 86400, 86400),
+    retentionDays: intInRange(env.CFMEET_ADMIN_INBOX_RETENTION_DAYS, "CFMEET_ADMIN_INBOX_RETENTION_DAYS", 7, 3650, 90),
+    leaseSeconds: intInRange(env.CFMEET_BRIDGE_FEED_LEASE_SECONDS, "CFMEET_BRIDGE_FEED_LEASE_SECONDS", 10, 600, 60),
+    datasetPullSeconds: intInRange(env.CFMEET_BRIDGE_DATASET_PULL_SECONDS, "CFMEET_BRIDGE_DATASET_PULL_SECONDS", 300, 86400, 900),
+    datasetDays: intInRange(env.CFMEET_BRIDGE_DATASET_DAYS, "CFMEET_BRIDGE_DATASET_DAYS", 1, 31, 3),
+    environment,
+  });
+}
+
+// Never log configuration values, only which optional pieces are present.
+function describeConfig(config) {
+  if (!config.enabled) return { enabled: false, listen: config.listen.kind };
+  return {
+    enabled: true,
+    environment: config.environment,
+    service_instance_id: config.serviceInstanceId,
+    listen: config.listen.kind,
+    mtls: Boolean(config.tls),
+    manifest_signer: config.manifestSigner ? "PROVISIONED" : "NOT_PROVISIONED",
+    bridge: config.bridge.enabled ? "CONFIGURED_NOT_CERTIFIED" : "DISABLED",
+    bridge_contract: contractStatus(),
+    bridge_client_cert_expires_in_days: config.bridge.enabled ? Math.floor((Date.parse(config.bridge.clientIdentity.notAfter) - Date.now()) / 86400000) : null,
+    enabled_commands: config.enabledCommands.length,
+    certified_datasets: config.certifiedDatasets.length,
+    bridge_feed: config.feed.enabled ? { partitions: config.feed.scopes.length } : "DISABLED",
+  };
+}
+
+// The Bridge trust checks are also used, unchanged, by scripts/bridge-enrollment.js
+// to check the material CF Meet returns before the Bridge is enabled.
+module.exports = { loadConfig, describeConfig, bridgeOrigin, ConfigError, PRODUCT_ID, checkClientCertificate, checkCaBundle, checkKeyPair, WORKLOAD_URI };

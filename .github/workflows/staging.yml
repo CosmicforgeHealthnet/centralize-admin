@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     outputs:
       api_changed: ${{ steps.scope.outputs.api_changed }}
     steps:
@@ -31,18 +32,35 @@ jobs:
       - name: Test deployment scope classifier
         run: bash infrastructure/scripts/test-staging-api-change-scope.sh
 
-      - name: Classify exact push or manually selected release range
+      - name: Classify from last successful staging API deployment
         id: scope
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          BEFORE_SHA: ${{ github.event.before }}
           HEAD_SHA: ${{ github.sha }}
           DISPATCH_BASE_SHA: ${{ inputs.api_release_base_sha }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           case "$EVENT_NAME" in
-            push) base_sha="$BEFORE_SHA" ;;
+            push)
+              # Workflow success alone is insufficient: the deploy job may have
+              # been skipped. Only a successful deployment job establishes a baseline.
+              base_sha=""
+              runs="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/staging.yml/runs?branch=staging&status=success&per_page=50" --jq '.workflow_runs[] | [.id,.head_sha,.run_attempt] | @tsv')"
+              while IFS=$'\t' read -r run_id candidate attempt; do
+                [[ -n "$run_id" && "$candidate" != "$HEAD_SHA" ]] || continue
+                git cat-file -e "${candidate}^{commit}" 2>/dev/null && git merge-base --is-ancestor "$candidate" "$HEAD_SHA" || continue
+                jobs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/attempts/$attempt/jobs?per_page=100" --jq '.jobs[] | select(.name=="Deploy staging API to Contabo and verify login" and .conclusion=="success") | .id')"
+                if [[ -n "$jobs" ]]; then base_sha="$candidate"; break; fi
+              done <<< "$runs"
+              if [[ -z "$base_sha" ]]; then
+                echo "No verified prior API deploy found; conservatively deploying."
+                echo 'api_changed=true' >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              echo "Last successful API deploy: $base_sha"
+              ;;
             workflow_dispatch) base_sha="$DISPATCH_BASE_SHA" ;;
             *) echo "::error::Unsupported event for API deployment classification."; exit 1 ;;
           esac
@@ -279,11 +297,33 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
       packages: write
     outputs:
       image: ${{ steps.image.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+      - name: Wait for exact-commit Product Admin, infrastructure and layout CI
+        timeout-minutes: 50
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          deadline=$((SECONDS + 2700))
+          while true; do
+            current="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq '.object.sha')"
+            [[ "$current" == "$GITHUB_SHA" ]] || { echo "::error::Staging release superseded"; exit 1; }
+            runs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$GITHUB_SHA&branch=staging&event=push&per_page=100" | jq -cs '[.[].workflow_runs[]]')"
+            pending=0
+            for wf in product-admin-platform-ci.yml product-admin-infrastructure-ci.yml monorepo-layout-ci.yml; do
+              c="$(jq -r --arg p ".github/workflows/$wf" '[.[] | select(.path==$p)] | max_by(.id) | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end' <<< "$runs")"
+              echo "$wf=$c"
+              case "$c" in success) ;; pending|missing) pending=1 ;; *) exit 1 ;; esac
+            done
+            (( pending )) || break
+            (( SECONDS < deadline )) || { echo "::error::Required same-commit CI timed out"; exit 1; }
+            sleep 10
+          done
       - name: Use the exact dependency manifest verified by staging CI
         uses: actions/download-artifact@v4
         with:
@@ -306,6 +346,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ steps.image.outputs.tag }}
+          cache-from: type=gha,scope=ca-staging-api
+          cache-to: type=gha,mode=max,scope=ca-staging-api,ignore-error=true
 
   deploy-staging-api:
     name: Deploy staging API to Contabo and verify login
@@ -339,6 +381,10 @@ jobs:
             echo "::error::Set STAGING_SSH_KEY in the staging GitHub environment. Production secrets are intentionally not used."
             exit 1
           fi
+      - name: Refuse a superseded staging release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq '.object.sha')" = "$GITHUB_SHA"
       - name: Deploy staging with verified OpenSSH host identity
         shell: bash
         env:
@@ -418,12 +464,14 @@ jobs:
               printf '    volumes: ["admin-server-staging-mail-store:/var/lib/cosmicforge-mail"]\nvolumes:\n  admin-server-staging-mail-store:\n    external: true\n' >> "$override"
             fi
           }
+          # Product Admin gateway: read-only PIC socket mount written by
+          # product-admin-staging-ops.yml attach-gateway. Absent = unchanged.
+          gateway="docker-compose.product-admin-gateway.yml"
           deploy_app() {
-            if [ -f "$mounts" ]; then
-              docker compose -f docker-compose.yml -f "$override" -f "$mounts" up -d --no-deps --no-build --pull never --force-recreate app
-            else
-              docker compose -f docker-compose.yml -f "$override" up -d --no-deps --no-build --pull never --force-recreate app
-            fi
+            set -- -f docker-compose.yml -f "$override"
+            if [ -f "$mounts" ]; then set -- "$@" -f "$mounts"; fi
+            if [ -f "$gateway" ]; then set -- "$@" -f "$gateway"; fi
+            docker compose "$@" up -d --no-deps --no-build --pull never --force-recreate app
           }
           rollback() {
             echo "Staging release failed verification: restoring previous image."

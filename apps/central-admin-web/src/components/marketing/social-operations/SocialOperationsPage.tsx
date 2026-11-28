@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import SocialOperationsSubNav, { SOSection } from "./SocialOperationsSubNav";
 import SocialOperationsOverviewPage from "./overview/SocialOperationsOverviewPage";
 import SocialConnectionsPage from "./accounts/SocialConnectionsPage";
@@ -31,7 +32,8 @@ const INBOX_TABS = [
 ] as const;
 
 export default function SocialOperationsPage() {
-  const [activeSection, setActiveSection] = useState<SOSection>("overview");
+  const params = useSearchParams();
+  const [activeSection, setActiveSection] = useState<SOSection>(params.get("socialView") === "accounts" ? "accounts" : "overview");
   const [contentTab, setContentTab] = useState<(typeof CONTENT_TABS)[number]["key"]>("calendar");
   const [inboxTab, setInboxTab] = useState<(typeof INBOX_TABS)[number]["key"]>("conversations");
 

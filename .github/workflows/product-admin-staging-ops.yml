@@ -1,0 +1,459 @@
+name: Product Admin staging operations
+
+# The ONLY path by which the private Product Admin services reach the staging
+# VPS (Section 12.2.6). Coding agents never SSH to the host. Staging only:
+# every job refuses anything but refs/heads/staging, main and production are
+# never touched, and nothing here promotes to production.
+#
+# Operations (pa-staging-ops.sh on the host, as root):
+#   read-only : preflight, status, network-probe, db-audit, migrate-preview, public-probe (runner only)
+#   mutating  : prepare-host, backup, migrate-apply, deploy, rollback, disable, attach-gateway
+#               -> confirm=APPLY_STAGING_PRODUCT_ADMIN_CHANGES
+#   evidence  : complete-stage (S1..S7 from the latest host logs + operator evidence)
+#
+# SSH reuses the existing protected `staging` environment and its
+# STAGING_HOST/STAGING_USER/STAGING_SSH_KEY secrets. Because this workflow
+# exists only on staging (not main, the default branch), GitHub will not show
+# "Run workflow" for it; a push to staging starts the release plan directly,
+# using a read-only connection-check when automatic delivery is explicitly disabled.
+# The root-owned capability accepts only an exact staging-push CI-certified image set.
+# Install it once on the VPS; future application-only releases reuse it.
+# Never run an uploaded bundle with unrestricted passwordless sudo.
+#
+# Automatic delivery: a staging push starts the plan; the release gate waits
+# for the exact push CI. Automatic delivery is the default; the repository
+# variable PRODUCT_ADMIN_STAGING_AUTO_DEPLOY=false is an emergency opt-out.
+# Host capability and actual preparation/migration checks remain mandatory.
+#
+# CF Meet Admin is optional: its image is built, smoke-tested and passed to
+# the host (PA_CM_IMAGE) only when include_cfmeet=true (manual run) or the
+# repository variable PRODUCT_ADMIN_STAGING_CFMEET is not "false" (automatic
+# delivery, default on). Explicit false retains PIC + Karryam Admin only.
+# CF Meet Bridge transport: repository variable PRODUCT_ADMIN_CM_BRIDGE_MODE
+# (default same-host: HQ staging and CF Meet production share the VPS; the
+# CF Meet relay sits at 10.231.14.2 on the internal cf-staging-cfmeet-bridge,
+# so PRODUCT_ADMIN_CM_BRIDGE_ADDRESS stays unset or 10.231.14.2) or tunnel
+# (separate hosts: PRODUCT_ADMIN_CM_BRIDGE_ADDRESS is the RFC 1918 tunnel
+# address of the CF Meet host, e.g. 10.250.0.1). PRODUCT_ADMIN_CM_BRIDGE_PORT
+# defaults to 8460. Optional PRODUCT_ADMIN_CM_DENY_TARGETS (comma list of
+# ip:port, e.g. CF Meet operational databases) is probed CLOSED from CF Meet
+# Admin and its worker. None of them is a secret; the host script validates
+# them and refuses a CF Meet release whose transport does not match the host.
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Operation
+        type: choice
+        options: [connection-check, preflight, status, network-probe, db-audit, migrate-preview, public-probe, prepare-host, backup, migrate-apply, deploy, rollback, disable, attach-gateway, complete-stage]
+        default: preflight
+      release_sha:
+        description: "deploy: full commit SHA to release (default: this run's commit)"
+        required: false
+        default: ""
+      stage:
+        description: "complete-stage: S1..S7"
+        required: false
+        default: ""
+      operator_evidence:
+        description: 'complete-stage: JSON list [{"id":"...","ref":"ticket/URL","by":"login"}]'
+        required: false
+        default: "[]"
+      approved_by:
+        description: "complete-stage: independent approver login (must differ from the actor)"
+        required: false
+        default: ""
+      confirm:
+        description: "Mutating operations: APPLY_STAGING_PRODUCT_ADMIN_CHANGES"
+        required: false
+        default: ""
+      include_cfmeet:
+        description: "deploy: include CF Meet Admin (needs the CF Meet operator files on the host)"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-admin-staging-ops
+  cancel-in-progress: false
+
+env:
+  STAGING_HOST_KEY_SHA256: "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ"
+  STAGING_CLIENT_KEY_SHA256: "SHA256:LSVBOgX3GxSbGvrqRUwA/BYxw2zVxdvQUQLnV6ALW+4"
+  PUBLIC_API_HOST: stagingca.cosmicforge-healthnet.com
+
+jobs:
+  validate:
+    name: Validate bundle (no secrets, no connection)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: |
+          bash -n infrastructure/product-admin/release/pa-staging-ops.sh
+          bash -n infrastructure/product-admin/firewall/docker-user-rules.sh
+          bash -n infrastructure/product-admin/release/install-staging-capability.sh
+          python3 -I -m py_compile infrastructure/product-admin/release/pa-staging-capability.py infrastructure/product-admin/release/pa-staging-db-bootstrap.py
+          sha256sum infrastructure/product-admin/release/pa-staging-ops.sh infrastructure/product-admin/staging/docker-compose.yml
+
+  plan:
+    name: Plan (branch gate, operation, confirmation, release commit)
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/staging') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging')
+    runs-on: ubuntu-latest
+    outputs:
+      operation: ${{ steps.p.outputs.operation }}
+      sha: ${{ steps.p.outputs.sha }}
+      host: ${{ steps.p.outputs.host }}
+      auto: ${{ steps.p.outputs.auto }}
+      cfmeet: ${{ steps.p.outputs.cfmeet }}
+    steps:
+      - id: p
+        env:
+          EVENT: ${{ github.event_name }}
+          OP: ${{ inputs.operation }}
+          CONFIRM: ${{ inputs.confirm }}
+          INPUT_SHA: ${{ inputs.release_sha }}
+          AUTO_DEPLOY: ${{ vars.PRODUCT_ADMIN_STAGING_AUTO_DEPLOY }}
+          INCLUDE_CFMEET: ${{ inputs.include_cfmeet }}
+          AUTO_CFMEET: ${{ vars.PRODUCT_ADMIN_STAGING_CFMEET }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT" == push ]]; then
+            sha="$GITHUB_SHA"
+            if [[ "$AUTO_DEPLOY" == false ]]; then op=connection-check; auto=false
+            else op=deploy; auto=true; fi
+          else op="$OP"; sha="${INPUT_SHA:-$GITHUB_SHA}"; auto=false; fi
+          [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::release_sha must be a full 40-character commit SHA"; exit 1; }
+          case "$op" in
+            connection-check|preflight|status|network-probe|db-audit|migrate-preview|complete-stage) [[ "$auto" == true || -z "$CONFIRM" ]] || { echo "::error::read-only operations take no confirmation"; exit 1; }; host=true ;;
+            public-probe) host=false ;;
+            prepare-host|backup|migrate-apply|deploy|rollback|disable|attach-gateway)
+              [[ "$auto" == true || "$CONFIRM" == APPLY_STAGING_PRODUCT_ADMIN_CHANGES ]] || { echo "::error::$op needs confirm=APPLY_STAGING_PRODUCT_ADMIN_CHANGES. Nothing was started."; exit 1; }; host=true ;;
+            *) echo "::error::unknown operation $op"; exit 1 ;;
+          esac
+          cfmeet=false
+          if [[ "$op" == deploy ]]; then
+            if [[ "$auto" == true ]]; then [[ "$AUTO_CFMEET" != false ]] && cfmeet=true; else [[ "$INCLUDE_CFMEET" == true ]] && cfmeet=true; fi
+          fi
+          { echo "operation=$op"; echo "sha=$sha"; echo "host=$host"; echo "auto=$auto"; echo "cfmeet=$cfmeet"; } >> "$GITHUB_OUTPUT"
+          echo "Operation $op, release commit $sha (automatic: $auto, CF Meet Admin: $cfmeet). Production is never targeted."
+
+  s0:
+    name: S0 - reviewed commit and required CI
+    needs: plan
+    if: needs.plan.outputs.operation == 'deploy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Commit is on origin/staging and required CI succeeded for exactly that commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p _evidence
+          checks=()
+          add() { checks+=("{\"id\":\"$1\",\"status\":\"$2\",\"detail\":\"$3\"}"); echo "$1=$2 $3"; }
+          ok=1; detail=""
+          current="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq '.object.sha')"
+          if [[ "$current" == "$SHA" ]]; then add commit_on_staging PASS "exact current staging head"; else add commit_on_staging FAIL "release superseded"; ok=0; fi
+          deadline=$((SECONDS + 2700))
+          while (( ok )); do
+            current="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq '.object.sha')"
+            if [[ "$current" != "$SHA" ]]; then ok=0; detail="release superseded"; break; fi
+            runs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&branch=staging&event=push&per_page=100" | jq -cs '[.[].workflow_runs[]]')"
+            pending=0; detail=""
+            for wf in product-admin-platform-ci.yml product-admin-infrastructure-ci.yml monorepo-layout-ci.yml; do
+              c="$(jq -r --arg p ".github/workflows/$wf" '[.[] | select(.path==$p)] | max_by(.id) | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end' <<< "$runs")"
+              detail+="$wf=$c; "
+              case "$c" in success) ;; pending|missing) pending=1 ;; *) ok=0 ;; esac
+            done
+            # Check canonical API CI, not deployment jobs.
+            api_run="$(jq -c '[.[] | select(.path==".github/workflows/staging.yml")] | max_by(.id) // {}' <<< "$runs")"
+            api_id="$(jq -r '.id // empty' <<< "$api_run")"
+            api_status=missing
+            if [[ -n "$api_id" ]]; then
+              attempt="$(jq -r '.run_attempt' <<< "$api_run")"
+              api_jobs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$api_id/attempts/$attempt/jobs?per_page=100" | jq -cs '[.[].jobs[]]')"
+              api_status="$(jq -r '[.[] | select(.name=="Verify Social Operations backend")] | max_by(.id) | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end' <<< "$api_jobs")"
+            fi
+            detail+="staging.yml/verify=$api_status; "
+            case "$api_status" in success) ;; missing|pending) pending=1 ;; *) ok=0 ;; esac
+            echo "$detail"
+            if (( ! ok || ! pending )); then break; fi
+            if (( SECONDS >= deadline )); then ok=0; break; fi
+            sleep 20
+          done
+          if (( ok )); then add required_ci_green PASS "$detail"; else add required_ci_green FAIL "$detail"; fi
+          # Each of these runs inside the required workflows above; their success is the evidence.
+          for id in contract_drift_none database_security_suites container_build_smoke no_unrelated_changes; do
+            if (( ok )); then add "$id" PASS "covered by the required workflows for $SHA"; else add "$id" FAIL "required workflows not green"; fi
+          done
+          printf '[%s]\n' "$(IFS=,; echo "${checks[*]}")" > _evidence/s0-checks.json
+          (( ok )) || exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-s0-checks
+          path: _evidence/
+
+  images:
+    name: Build, smoke-test and publish immutable images
+    needs: [plan, s0]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      pic: ${{ steps.d.outputs.pic }}
+      ka: ${{ steps.d.outputs.ka }}
+      cm: ${{ steps.d.outputs.cm }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build (or reuse the published tag after verifying its revision), smoke-test, record digests
+        id: d
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+          CFMEET: ${{ needs.plan.outputs.cfmeet }}
+        run: |
+          set -euo pipefail
+          names=(karryam-admin product-integration-core)
+          specs=("karryam-admin:karryam-admin.sock:10001" "product-integration-core:product-integration-core.sock:10002")
+          cm_contract="not-included"
+          if [[ "$CFMEET" == true ]]; then names+=(cfmeet-admin); specs+=("cfmeet-admin:cfmeet-admin.sock:10003"); fi
+          contract="$(node -p "require('./services/karryam-admin/src/bridge/contracts/karrygo-backoffice-v1.json').source_commit")"
+          # CF Meet Admin carries its own Bridge contract pin (PINNED:<cfmeet main commit>, or DRAFT:DRAFT-UNPINNED for the HQ draft).
+          if [[ "$CFMEET" == true ]]; then cm_contract="$(node -p "const m=require('./services/cfmeet-admin/src/bridge/contracts/cfmeet-backoffice-v1.json'); m.contract_status + ':' + m.source_commit")"; fi
+          for n in "${names[@]}"; do
+            ref="ghcr.io/cosmicforgehealthnet/$n:staging-$SHA"
+            label="$contract"; [[ "$n" == cfmeet-admin ]] && label="$cm_contract"
+            if docker pull -q "$ref" >/dev/null 2>&1; then
+              [[ "$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$ref")" == "$SHA" ]] || { echo "::error::$ref exists with another revision"; exit 1; }
+              echo "$ref already published from $SHA (immutable, reused)"
+            else
+              docker build -q --label "org.opencontainers.image.revision=$SHA" --label "com.cosmicforge.bridge-contract=$label" --label "com.cosmicforge.protocol=1.1" -f "services/$n/Dockerfile" -t "$ref" . >/dev/null
+            fi
+          done
+          # Smoke: non-root, read-only, live 200, ready 503 while disabled.
+          for spec in "${specs[@]}"; do
+            IFS=: read -r n sock uid <<< "$spec"; dir="$(mktemp -d)"; chmod 0777 "$dir"
+            docker run -d --rm --name "smoke-$n" --network none --read-only --cap-drop ALL --security-opt no-new-privileges -v "$dir:/run/cosmicforge" "ghcr.io/cosmicforgehealthnet/$n:staging-$SHA" >/dev/null
+            for i in $(seq 1 30); do [ -S "$dir/$sock" ] && break; sleep 1; done
+            test "$(docker exec "smoke-$n" id -u)" = "$uid"
+            test "$(sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$dir/$sock" http://l/health/live)" = 200
+            test "$(sudo curl -s -o /dev/null -w '%{http_code}' --unix-socket "$dir/$sock" http://l/health/ready)" = 503
+            docker stop "smoke-$n" >/dev/null
+          done
+          mkdir -p _evidence
+          # cm stays empty (PA_CM_IMAGE unset on the host) unless CF Meet Admin was built for this release.
+          echo "cm=" >> "$GITHUB_OUTPUT"
+          for n in "${names[@]}"; do
+            ref="ghcr.io/cosmicforgehealthnet/$n:staging-$SHA"
+            docker manifest inspect "$ref" >/dev/null 2>&1 || docker push -q "$ref" >/dev/null
+            digest="$(docker image inspect -f '{{range .RepoDigests}}{{println .}}{{end}}' "$ref" | grep -m1 '^ghcr.io/cosmicforgehealthnet/')"
+            [[ "$digest" == *@sha256:* ]] || { echo "::error::no registry digest for $ref"; exit 1; }
+            case "$n" in
+              karryam-admin) echo "ka=$digest" >> "$GITHUB_OUTPUT" ;;
+              cfmeet-admin) echo "cm=$digest" >> "$GITHUB_OUTPUT" ;;
+              *) echo "pic=$digest" >> "$GITHUB_OUTPUT" ;;
+            esac
+            echo "$n $digest"
+          done | tee _evidence/digests.txt
+          printf '{"report":"product-admin-image-digests","environment":"staging","source_sha":"%s","bridge_contract":"%s","cfmeet_bridge_contract":"%s","generated_at":"%s","digests":"%s"}\n' "$SHA" "$contract" "$cm_contract" "$(date -u +%FT%TZ)" "$(tr '\n' ' ' < _evidence/digests.txt)" > _evidence/product-admin-image-digests.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: product-admin-image-digests
+          path: _evidence/
+
+  public-probe:
+    name: Public ingress probe of the live staging API host (read-only)
+    needs: plan
+    if: needs.plan.outputs.operation == 'public-probe' || needs.plan.outputs.operation == 'complete-stage'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: |
+          mkdir -p _evidence
+          node infrastructure/product-admin/nginx/test/probe.mjs --target "https://$PUBLIC_API_HOST" --host "$PUBLIC_API_HOST" --report _evidence/product-admin-ingress-probe.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-live-ingress-probe
+          path: _evidence/
+
+  host:
+    name: Host ${{ needs.plan.outputs.operation }} (staging VPS)
+    needs: [plan, s0, images, public-probe]
+    if: >-
+      always() && needs.plan.result == 'success' && needs.plan.outputs.host == 'true' &&
+      (needs.plan.outputs.operation != 'deploy' || (needs.s0.result == 'success' && needs.images.result == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: staging
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        with:
+          path: _artifacts
+      - name: Verify existing staging SSH connection (read-only)
+        env:
+          VPS_HOST: 173.249.30.55
+          VPS_USER: cf-staging-deploy
+          VPS_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          OP: ${{ needs.plan.outputs.operation }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$VPS_HOST" == 173.249.30.55 && "$VPS_USER" == cf-staging-deploy && -n "$VPS_KEY" ]] || { echo "::error::BLOCKED: staging environment host, deploy user or key differs from the pinned staging identity."; exit 1; }
+          key="$RUNNER_TEMP/key"; printf '%s\n' "$VPS_KEY" > "$key"; chmod 600 "$key"
+          pub="$RUNNER_TEMP/pub"; ssh-keygen -y -P '' -f "$key" > "$pub" || { echo "::error::Invalid staging SSH private key"; exit 1; }
+          [[ "$(ssh-keygen -l -E sha256 -f "$pub" | awk '{print $2}')" == "$STAGING_CLIENT_KEY_SHA256" ]] || { echo "::error::BLOCKED: the staging SSH key fingerprint differs from the established deployment key."; exit 1; }
+          hosts="$RUNNER_TEMP/known_hosts"; ssh-keyscan -T 10 -t ed25519 "$VPS_HOST" 2>/dev/null > "$hosts" || true
+          [[ -s "$hosts" && "$(ssh-keygen -l -E sha256 -f "$hosts" | awk 'NR==1{print $2}')" == "$STAGING_HOST_KEY_SHA256" ]] || { echo "::error::BLOCKED: staging VPS host fingerprint mismatch."; exit 1; }
+          printf '#!/usr/bin/env bash\nexec ssh -T -i %q -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=%q -o ConnectTimeout=15 -o ServerAliveInterval=15 %q "$@"\n' "$key" "$hosts" "$VPS_USER@$VPS_HOST" > "$RUNNER_TEMP/ssh"
+          chmod 700 "$RUNNER_TEMP/ssh"
+          # No sudo, file upload, or filesystem changes: only identity and
+          # existing staging Docker metadata are read.
+          "$RUNNER_TEMP/ssh" 'test "$(id -un)" = cf-staging-deploy && test -d /var/www/admin-server-staging && docker inspect -f "{{index .Config.Labels \"com.docker.compose.project\"}}" admin-server-staging-app-1' | grep -Fx admin-server-staging >/dev/null || { echo "::error::BLOCKED: staging account or Docker project could not be verified."; exit 1; }
+          echo "PASS: existing staging deploy account, pinned SSH keys and Docker project reachable (read-only)."
+          # Inventory reads metadata only: no Docker mutations, file writes, or
+          # secret values are read on the VPS. Persist sanitized JSON in CI.
+          mkdir -p _evidence
+          "$RUNNER_TEMP/ssh" 'python3 -c '"'"'
+          import json, os, subprocess
+          def call(*args):
+              try:
+                  p=subprocess.run(args, capture_output=True, text=True, timeout=8, check=False)
+                  return p.returncode, p.stdout.strip()
+              except Exception:
+                  return 127, ""
+          def docker_exists(kind, name):
+              return call("docker",kind,"inspect",name)[0]==0
+          sudo_rc,_=call("sudo","-n","-l")
+          networks=["cf-staging-hq-private","cf-staging-admin-private","cf-staging-karryam-bridge","cf-staging-karryam-admin-db","cf-staging-cfmeet-bridge","cf-staging-cfmeet-admin-db"]
+          names=["admin-server-staging-app-1","admin-server-staging-db-1","cf-product-admin-staging-product-integration-core-1","cf-product-admin-staging-karryam-admin-1","cf-product-admin-staging-karryam-admin-db-1","cf-product-admin-staging-cfmeet-admin-1","cf-product-admin-staging-cfmeet-admin-db-1","cfmeet-admin-bridge-hq-relay"]
+          result={
+           "report":"product-admin-staging-readonly-inventory","environment":"staging",
+           "user":os.environ.get("USER","unknown"),"euid":os.geteuid(),
+           "sudo_noninteractive_listing_available":sudo_rc==0,
+           "docker_access":call("docker","info","--format","{{.ServerVersion}}")[0]==0,
+           "private_networks":{n:docker_exists("network",n) for n in networks},
+           "cfmeet_bridge_internal":(lambda r: r[1] if r[0]==0 else None)(call("docker","network","inspect","-f","{{.Internal}}","cf-staging-cfmeet-bridge")),
+           "expected_containers":{n:docker_exists("container",n) for n in names},
+           "staging_api_dir_exists":os.path.isdir("/var/www/admin-server-staging"),
+           "product_admin_state_dir_visible":os.path.isdir("/srv/cosmicforge/staging/release"),
+           "product_admin_secret_dir_visible":os.path.isdir("/etc/cosmicforge/staging/secrets")
+          }
+          print(json.dumps(result,sort_keys=True))
+          '"'"'' | tee _evidence/product-admin-staging-readonly-inventory.json
+          if [[ "$OP" != connection-check ]]; then
+            [[ "$OP" == deploy && "$GITHUB_EVENT_NAME" == push ]] || { echo "::error::This operation requires its separate operator authorization path; the scoped capability only accepts staging-push deliveries."; exit 1; }
+            printf '%s\n' '{"op":"probe"}' | "$RUNNER_TEMP/ssh" 'sudo -n /usr/local/sbin/cf-product-admin-staging' | grep -Fx cf-product-admin-staging-v1 \
+              || { echo "::error::BLOCKED_PRIVILEGED_HOST_OPERATION: install the reviewed staging-only capability once as root. No unrestricted sudo or runner-uploaded code."; exit 1; }
+          fi
+      - name: Deploy through root-owned staging capability
+        if: needs.plan.outputs.operation == 'deploy'
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+          PIC: ${{ needs.images.outputs.pic }}
+          KA: ${{ needs.images.outputs.ka }}
+          CM: ${{ needs.images.outputs.cm }}
+          CM_BRIDGE_MODE: ${{ vars.PRODUCT_ADMIN_CM_BRIDGE_MODE }}
+          CM_BRIDGE_ADDRESS: ${{ vars.PRODUCT_ADMIN_CM_BRIDGE_ADDRESS }}
+          CM_BRIDGE_PORT: ${{ vars.PRODUCT_ADMIN_CM_BRIDGE_PORT }}
+          CM_DENY_TARGETS: ${{ vars.PRODUCT_ADMIN_CM_DENY_TARGETS }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ "${CM_BRIDGE_MODE:-same-host}" == same-host && "${CM_BRIDGE_ADDRESS:-10.231.14.2}" == 10.231.14.2 && "${CM_BRIDGE_PORT:-8460}" == 8460 && -z "$CM_DENY_TARGETS" ]] \
+            || { echo "::error::Installed capability supports only the reviewed same-host staging transport. No host mutation."; exit 1; }
+          # Only typed data crosses SSH stdin. No shell, archive or code is uploaded as root.
+          python3 -c 'import os,json; e=os.environ; print(json.dumps(dict(op="deploy",sha=e["SHA"],pic=e["PIC"],karryam=e["KA"],cfmeet=e["CM"],run=e["GITHUB_RUN_ID"]+"-"+e["GITHUB_RUN_ATTEMPT"],user=e["GHCR_USER"],token=e["GHCR_TOKEN"])))' \
+            | "$RUNNER_TEMP/ssh" 'sudo -n /usr/local/sbin/cf-product-admin-staging' | tee ops.log
+          grep '^PA_AUTO_DEPLOYMENT ' ops.log | tail -n 1 | cut -d' ' -f2- > _evidence/auto-deployment.json
+          jq -e --arg sha "$SHA" '.environment == "staging" and .sha == $sha' _evidence/auto-deployment.json
+      - name: Stage evidence and durable release state
+        if: success() && needs.plan.outputs.operation == 'complete-stage'
+        env:
+          OP: ${{ needs.plan.outputs.operation }}
+          SHA: ${{ needs.plan.outputs.sha }}
+          STAGE: ${{ inputs.stage }}
+          OPERATOR_EVIDENCE: ${{ inputs.operator_evidence }}
+          APPROVED_BY: ${{ inputs.approved_by }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          ssh="$RUNNER_TEMP/ssh"; r=infrastructure/product-admin/release; st="$RUNNER_TEMP/state"; mkdir -p "$st" _evidence
+          "$ssh" 'tar -C /srv/cosmicforge/staging/release -czf - state.json events.jsonl evidence logs 2>/dev/null || true' | tar -xzf - -C "$st" 2>/dev/null || true
+          node $r/release-state.mjs init --dir "$st" --sha "$SHA" --environment staging --actor "$GITHUB_ACTOR"
+          printf '{"by":"%s","confirm":"%s","approved_by":%s,"run_id":"%s"}' "$GITHUB_ACTOR" "${CONFIRM:-APPLY_STAGING_PRODUCT_ADMIN_CHANGES}" "$([[ -n "$APPROVED_BY" ]] && printf '"%s"' "$APPROVED_BY" || echo null)" "$GITHUB_RUN_ID" > "$RUNNER_TEMP/auth.json"
+          printf '%s' "${OPERATOR_EVIDENCE:-[]}" | node -e 'const v=JSON.parse(require("fs").readFileSync(0,"utf8")); if(!Array.isArray(v)) process.exit(1); process.stdout.write(JSON.stringify(v))' > "$RUNNER_TEMP/op.json"
+          complete() { # stage args...
+            local s="$1"; shift
+            node $r/release-state.mjs begin --dir "$st" --stage "$s" --actor "$GITHUB_ACTOR" --resume true || true
+            node $r/collect-evidence.mjs --stage "$s" --sha "$SHA" --environment staging "$@" --operator-evidence "$RUNNER_TEMP/op.json" --authorization "$RUNNER_TEMP/auth.json" --out "_evidence/$s-evidence.json"
+            node $r/release-state.mjs complete --dir "$st" --stage "$s" --evidence "_evidence/$s-evidence.json" --actor "$GITHUB_ACTOR" || true
+          }
+          if [[ "$OP" == deploy ]]; then
+            [[ "$(node $r/release-state.mjs status --dir "$st")" == *'"S0":{"status":"PASSED"'* ]] || complete S0 --extra _artifacts/product-admin-s0-checks/s0-checks.json
+            complete S2 --log "$st/logs/deploy.log"
+          else
+            case "$STAGE" in
+              S1) complete S1 --log "$st/logs/preflight.log" --log "$st/logs/db-audit.log" --log "$st/logs/backup.log" --log "$st/logs/migrate-preview.log" --log "$st/logs/migrate-apply.log" --probe-report _artifacts/product-admin-live-ingress-probe/product-admin-ingress-probe.json ;;
+              S2) complete S2 --log "$st/logs/deploy.log" ;;
+              S3|S4|S5|S6|S7) complete "$STAGE" --log "$st/logs/status.log" ;;
+              *) echo "::error::stage must be S1..S7"; exit 1 ;;
+            esac
+          fi
+          node $r/release-state.mjs verify --dir "$st"
+          node $r/release-state.mjs status --dir "$st" | tee _evidence/product-admin-release-state.json
+          tar -C "$st" -czf - state.json events.jsonl evidence | "$ssh" 'install -d -m 0700 /srv/cosmicforge/staging/release && tar -xzf - -C /srv/cosmicforge/staging/release'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-admin-staging-${{ needs.plan.outputs.operation }}-${{ github.run_id }}
+          path: |
+            ops.log
+            _evidence/
+          if-no-files-found: warn
