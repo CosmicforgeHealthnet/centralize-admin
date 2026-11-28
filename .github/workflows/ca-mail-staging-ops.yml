@@ -24,6 +24,9 @@ name: CA Mail staging operations (manual)
 # PROD_USER / PROD_PASSWORD); this workflow uses it only for the CA objects
 # named in the script. It never enables Mail and never touches RTC, Karryam or
 # other projects.
+# The one-time install-product-admin-staging-capability operation reuses this
+# authorized root connection for STAGING ONLY; it installs no production
+# settings and does not deploy or enable services. Normal releases use staging SSH.
 # A push to this file runs only the no-secrets `validate` job (GitHub needs one
 # run to register a dispatch-only workflow outside the default branch).
 
@@ -37,7 +40,7 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [mail-diagnose, marketing-access-diagnose, migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, storage-setup, storage-check, production-schema-names, containers, staging-checks, host-audit, secure-production-env, staging-env-access, pilot-storage-setup, nginx-upload-diagnose, nginx-upload-apply, nginx-upload-rollback]
+        options: [mail-diagnose, marketing-access-diagnose, migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, storage-setup, storage-check, production-schema-names, containers, staging-checks, host-audit, secure-production-env, staging-env-access, pilot-storage-setup, nginx-upload-diagnose, nginx-upload-apply, nginx-upload-rollback, install-product-admin-staging-capability]
         default: migrate-preflight
       target:
         description: "staging or production (migration, services, storage, check and nginx-upload operations)"
@@ -45,7 +48,7 @@ on:
         options: [staging, production]
         default: staging
       confirm:
-        description: "Mutating: APPLY_STAGING_MAIL_CHANGES; production services/storage: APPLY_PRODUCTION_MAIL_CHANGES; production migrate-apply: APPLY_PRODUCTION_MAIL_MIGRATIONS; secure-production-env: SECURE_PRODUCTION_ENV; production nginx-upload-apply/rollback: APPLY_PRODUCTION_NGINX_UPLOAD_LIMITS"
+        description: "Mutating: APPLY_STAGING_MAIL_CHANGES; production services/storage: APPLY_PRODUCTION_MAIL_CHANGES; production migrate-apply: APPLY_PRODUCTION_MAIL_MIGRATIONS; secure-production-env: SECURE_PRODUCTION_ENV; production nginx-upload-apply/rollback: APPLY_PRODUCTION_NGINX_UPLOAD_LIMITS; one-time staging capability: INSTALL_STAGING_PRODUCT_ADMIN_CAPABILITY"
         required: false
         default: ''
 
@@ -66,7 +69,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - run: bash -n .github/scripts/ca-mail-staging-ops.sh && sha256sum .github/scripts/ca-mail-staging-ops.sh
+      - run: |
+          bash -n .github/scripts/ca-mail-staging-ops.sh
+          bash -n infrastructure/product-admin/release/install-staging-capability.sh
+          sha256sum .github/scripts/ca-mail-staging-ops.sh infrastructure/product-admin/release/install-staging-capability.sh
 
   run:
     name: Mail ${{ inputs.operation }} (${{ inputs.target }})
@@ -74,6 +80,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: production
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Check the typed confirmation
         shell: bash
@@ -83,6 +92,10 @@ jobs:
           CONFIRM: ${{ inputs.confirm }}
         run: |
           set -euo pipefail
+          if [[ "$OP" == install-product-admin-staging-capability ]]; then
+            [[ "$TARGET" == staging && "$GITHUB_REF" == refs/heads/staging && "$CONFIRM" == INSTALL_STAGING_PRODUCT_ADMIN_CAPABILITY ]] || { echo "One-time capability install requires staging and confirm=INSTALL_STAGING_PRODUCT_ADMIN_CAPABILITY. Nothing changed."; exit 1; }
+            exit 0
+          fi
           if [[ "$TARGET" == production ]]; then
             case "$OP" in
               migrate-preflight|services-preflight|storage-check|staging-checks|mail-diagnose|marketing-access-diagnose|nginx-upload-diagnose)
@@ -110,9 +123,23 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
+      - name: Require green exact-commit staging CI for capability installation
+        if: inputs.operation == 'install-product-admin-staging-capability'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == refs/heads/staging && "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq .object.sha)" == "$GITHUB_SHA" ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$GITHUB_SHA&per_page=100" > ci-runs.json
+          for p in .github/workflows/product-admin-platform-ci.yml .github/workflows/product-admin-infrastructure-ci.yml .github/workflows/monorepo-layout-ci.yml .github/workflows/staging.yml; do
+            jq -e --arg p "$p" '.workflow_runs | map(select(.path == $p and .event == "push" and .head_branch == "staging")) | sort_by(.id) | last | .conclusion == "success"' ci-runs.json >/dev/null || { echo "Required CI not green: $p"; exit 1; }
+          done
+
       - name: Connect to the Contabo VPS (pinned host key, root only)
         shell: bash
         env:
+          OP: ${{ inputs.operation }}
           PROD_HOST: ${{ secrets.PROD_HOST }}
           PROD_USER: ${{ secrets.PROD_USER }}
           SSHPASS: ${{ secrets.PROD_PASSWORD }}
@@ -133,6 +160,7 @@ jobs:
           EOF
           chmod 700 "$RUNNER_TEMP/ssh"
           [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo 'BLOCKED: the VPS account is not root. Nothing changed.'; exit 1; }
+          if [[ "$OP" == install-product-admin-staging-capability ]]; then exit 0; fi
           # Pinned bundle: the script and the ClamAV configuration from this commit.
           bundle="$RUNNER_TEMP/bundle.tgz"
           # Recovery PUBLIC keys (not secret) are bundled when committed.
@@ -149,7 +177,30 @@ jobs:
             || { echo 'Bundle upload checksum mismatch.'; exit 1; }
           echo "Bundle $sha uploaded and verified (script sha256 $(sha256sum .github/scripts/ca-mail-staging-ops.sh | cut -d' ' -f1))."
 
+      - name: Install reviewed staging capability using the existing root connection
+        if: inputs.operation == 'install-product-admin-staging-capability'
+        env:
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == refs/heads/staging && "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
+          "$RUNNER_TEMP/ssh" "bash -s -- $GITHUB_SHA" <<'REMOTE'
+          set -euo pipefail
+          umask 077
+          [[ "$(id -u)" == 0 && $# == 1 && "$1" =~ ^[a-f0-9]{40}$ ]]
+          sha="$1"
+          tmp="$(mktemp -d /root/cf-staging-capability.XXXXXX)"
+          trap 'rm -rf "$tmp"' EXIT
+          git -C "$tmp" init -q
+          git -C "$tmp" remote add origin https://github.com/CosmicforgeHealthnet/centralize-admin.git
+          git -C "$tmp" -c core.hooksPath=/dev/null fetch --depth=1 origin "$sha"
+          git -C "$tmp" -c core.hooksPath=/dev/null checkout --detach -q FETCH_HEAD
+          [[ "$(git -C "$tmp" rev-parse HEAD)" == "$sha" ]]
+          bash "$tmp/infrastructure/product-admin/release/install-staging-capability.sh" "$sha"
+          REMOTE
+
       - name: Run on the VPS (detached; survives a dropped runner connection)
+        if: inputs.operation != 'install-product-admin-staging-capability'
         shell: bash
         env:
           OP: ${{ inputs.operation }}
